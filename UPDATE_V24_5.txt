@@ -1,0 +1,13 @@
+FM RUSH v24.5 — REPORTED NAME MISSES
+
+Close FM Rush, extract to a NEW folder, run START_FM_RUSH.bat.
+Keep your current v24.4 Brave extension. No extension changes required.
+Confirm the application title says v24.5.
+
+Fixed top-row exclusion, clipped recognition crops, short-name confidence rejection,
+and bounded recovery of an extra border/overlap glyph. Up to six candidates checked.
+New targets get one retry on a miss. Yellow CHECK markers require visual confirmation.
+
+Replay: FoxGod, Oral, Kilerious, jtedoigte, iSadlyfe, Cernia and Rollermo located.
+Snapkin cannot be legibly identified in the supplied screenshot; no match fabricated.
+Full details and verification limits: README.md.

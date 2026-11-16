@@ -1,0 +1,213 @@
+{
+  "environment": "Linux screenshot replay, single OpenCV/inference thread; excludes Windows capture and marker; five warm runs",
+  "cases": [
+    {
+      "target": "Cernia",
+      "fixture": "cernia.png",
+      "v24_4": {
+        "hit": {
+          "text": "Cemia.",
+          "box": [
+            1253,
+            577,
+            1295,
+            592
+          ],
+          "score": 0.8054965734481812,
+          "mode": "CONFUSABLE"
+        },
+        "median_ms": 107.2
+      },
+      "v24_5": {
+        "hit": {
+          "text": "Cemia",
+          "box": [
+            1253,
+            577,
+            1295,
+            592
+          ],
+          "score": 0.8054966330528259,
+          "mode": "CONFUSABLE"
+        },
+        "median_ms": 137.8
+      }
+    },
+    {
+      "target": "Rollermo",
+      "fixture": "rollermo.png",
+      "v24_4": {
+        "hit": {
+          "text": "Rollemo",
+          "box": [
+            507,
+            347,
+            541,
+            356
+          ],
+          "score": 0.716679573059082,
+          "mode": "CONFUSABLE"
+        },
+        "median_ms": 82.9
+      },
+      "v24_5": {
+        "hit": {
+          "text": "Rollemo",
+          "box": [
+            507,
+            347,
+            541,
+            356
+          ],
+          "score": 0.7166794538497925,
+          "mode": "CONFUSABLE"
+        },
+        "median_ms": 192.8
+      }
+    },
+    {
+      "target": "jtedoigte",
+      "fixture": "jtedoigte_141333.png",
+      "v24_4": {
+        "hit": null,
+        "median_ms": 110.3
+      },
+      "v24_5": {
+        "hit": {
+          "text": "[jtedoigte\u201d",
+          "box": [
+            676,
+            79,
+            731,
+            97
+          ],
+          "score": 0.6528264880180359,
+          "mode": "EXACT"
+        },
+        "median_ms": 102.2
+      }
+    },
+    {
+      "target": "iSadlyfe",
+      "fixture": "isadlyfe_143200.png",
+      "v24_4": {
+        "hit": {
+          "text": "iSadlyfe",
+          "box": [
+            601,
+            281,
+            646,
+            297
+          ],
+          "score": 0.6617279052734375,
+          "mode": "EXACT"
+        },
+        "median_ms": 71.2
+      },
+      "v24_5": {
+        "hit": {
+          "text": "iSadlyfe",
+          "box": [
+            601,
+            281,
+            646,
+            297
+          ],
+          "score": 0.6617276668548584,
+          "mode": "EXACT"
+        },
+        "median_ms": 90.9
+      }
+    },
+    {
+      "target": "Oral",
+      "fixture": "oral_222618.png",
+      "v24_4": {
+        "hit": null,
+        "median_ms": 182.0
+      },
+      "v24_5": {
+        "hit": {
+          "text": "Oral",
+          "box": [
+            227,
+            610,
+            256,
+            625
+          ],
+          "score": 0.8592879176139832,
+          "mode": "EXACT"
+        },
+        "median_ms": 195.8
+      }
+    },
+    {
+      "target": "FoxGod",
+      "fixture": "foxgod_060516.png",
+      "v24_4": {
+        "hit": null,
+        "median_ms": 135.6
+      },
+      "v24_5": {
+        "hit": {
+          "text": "FoxGod",
+          "box": [
+            1127,
+            171,
+            1176,
+            186
+          ],
+          "score": 0.6031484603881836,
+          "mode": "EXACT"
+        },
+        "median_ms": 104.6
+      }
+    },
+    {
+      "target": "Kilerious",
+      "fixture": "kilerious_085956.png",
+      "v24_4": {
+        "hit": null,
+        "median_ms": 145.6
+      },
+      "v24_5": {
+        "hit": {
+          "text": "Kilerious",
+          "box": [
+            593,
+            288,
+            647,
+            304
+          ],
+          "score": 0.6298761963844299,
+          "mode": "CONFUSABLE"
+        },
+        "median_ms": 134.5
+      }
+    },
+    {
+      "target": "Snapkin",
+      "fixture": "snapkin_072432.png",
+      "v24_4": {
+        "hit": null,
+        "median_ms": 120.2
+      },
+      "v24_5": {
+        "hit": null,
+        "median_ms": 147.5
+      }
+    },
+    {
+      "target": "Kilerious",
+      "fixture": "kilerious_090017.png",
+      "v24_4": {
+        "hit": null,
+        "median_ms": 109.3
+      },
+      "v24_5": {
+        "hit": null,
+        "median_ms": 130.2
+      }
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+v24.7.2 — browser v24.5.0
+Fixed lost-deal bug: only remember offers AFTER app acknowledges delivery.
+Added diagnostics and manual resend of visible deals.
+Preserves 1200ms soft-refresh events and 15K/15% threshold plus unusually-cheap exceptions.
