@@ -1,5 +1,5 @@
 importScripts('screenshot_worker.js');
-/* FM Rush v24.11: local deal bridge + Chrome alarm liveness check.
+/* FM Rush v24.16: local deal bridge + Chrome alarm liveness check.
  * Does not fetch HeneFM URLs, use HeneFM APIs, or edit the website.
  */
 const HEALTH_ALARM = 'fm-rush-health-v243';
@@ -53,7 +53,7 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
       .catch(()=>respond({ok:false}));
     return true;
   }
-  if (!msg || msg.kind !== 'fm-rush-route-deal') return false;
+  if (!msg || !['fm-rush-route-deal','fm-rush-visible-deals'].includes(msg.kind)) return false;
   const source = sender?.url || '';
   if (!/^https:\/\/(?:www\.)?henefm\.com\/flips\/deals(?:[/?#]|$)/.test(source)) {
     respond({ok:false,error:'Not an HeneFM Flips page',retryable:false});
@@ -61,10 +61,11 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
   }
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(),3500);
-  fetch('http://127.0.0.1:18773/deal', {
+  const live=msg.kind==='fm-rush-visible-deals';
+  fetch('http://127.0.0.1:18773/'+(live?'visible':'deal'), {
     method:'POST',
     headers:{'Content-Type':'application/json','X-FM-Rush-Bridge':'v17-browser-view'},
-    body:JSON.stringify(msg.deal),
+    body:JSON.stringify(live?msg.snapshot:msg.deal),
     signal:controller.signal
   }).then(async response => {
     let body={};

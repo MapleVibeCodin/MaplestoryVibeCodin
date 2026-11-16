@@ -242,7 +242,7 @@ class ShopHighlighter(tk.Toplevel):
         updated={}
         for key,deal in rows:
             location=f"CH {deal['cc'] or '?'} / FM {deal['fm'] or '?'}"
-            values=(deal['ign'],location,deal['item'],'SOLD' if deal.get('sold') else '')
+            values=(deal['ign'],location,deal['item'],'OFF PAGE' if deal.get('off_page') else ('SOLD' if deal.get('sold') else ''))
             updated[key]=values
             if key not in self.queue_rows:self.queue.insert('', 'end',iid=key,values=values)
             elif self.queue_rows[key]!=values:self.queue.item(key,values=values)
@@ -252,8 +252,9 @@ class ShopHighlighter(tk.Toplevel):
         if focus and focus!=getattr(self,'queue_focus',None):self.queue.see(focus)
         else:self.queue.yview_moveto(position)
         self.queue_focus=focus
-        self.target.set(f'{len(names)} sellers · working on {self.last_name or "none"}')
-        if not names:self.notice.set('Watching for room entry · waiting for HeneFM listings.')
+        off_page=' (off page)' if any(key==focus and deal.get('off_page') for key,deal in rows) else ''
+        self.target.set(f'{len(names)} live sellers · working on {self.last_name or "none"}{off_page}')
+        if not names:self.notice.set('No live sellers · reload extension v24.16 and the HeneFM tab if needed.')
         self.matches={name:hit for name,hit in self.matches.items() if name in names}
         if self.last_size and self.app.shop_running:self.pin.show_many(self.selected_hwnd(),self.last_size,self.matches)
 
@@ -324,7 +325,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.15 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.16 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -577,15 +578,24 @@ class FMApp:
     def sync_archive(self):
         # Receipt runs on HTTP threads: take one consistent UI/search snapshot.
         with self.archive.lock:
-            rows=self.archive.pending()
-            names=self.archive.names()
+            live_rows=self.archive.live_pending()
+            names=self.archive.live_names()
             current=self.archive.current()
+            rows=list(live_rows)
+            if current and current[0] not in {key for key,_ in rows}:
+                from dataclasses import asdict
+                rows.append((current[0],{**asdict(current[1]),'off_page':True}))
+            self.live_stamp=self.archive.live_state()
         revisions={}
-        for key,deal in rows:revisions.setdefault(deal['ign'].casefold(),[]).append(key)
+        for key,deal in live_rows:revisions.setdefault(deal['ign'].casefold(),[]).append(key)
         self.scan_revisions={name:tuple(keys) for name,keys in revisions.items()}
         self.scan_names=names
+        if names and not getattr(self,'live_started',False):
+            self.live_started=True
+            worker=getattr(self,'shop_thread',None)
+            if worker is not None and worker.is_alive():worker.entry_check.set()
         grouped={}
-        for _,deal in rows:grouped.setdefault(deal['fm'],[]).append(deal['ign'])
+        for _,deal in live_rows:grouped.setdefault(deal['fm'],[]).append(deal['ign'])
         self.scan_by_room={room:tuple(dict.fromkeys(values)) for room,values in grouped.items()}
         key,deal=current if current else (None,None)
         if key!=self.displayed_listing:
@@ -798,10 +808,14 @@ class FMApp:
         self.status.set('DISCORD: ≥15,000 MESOS AND ≥15% · WATCHING')
 
     def pump(self):
+        if hasattr(self,'live_stamp') and self.live_stamp!=self.archive.live_state():self.sync_archive()
         for _ in range(20):
             try:evt=self.events.get_nowait()
             except queue.Empty:break
-            if evt[0]=='browser_deal':
+            if evt[0]=='browser_visible':
+                self.sync_archive()
+                self.status.set('HeneFM live page · '+str(len(self.scan_names))+' sellers to scan')
+            elif evt[0]=='browser_deal':
                 deal=evt[1]
                 if deal.profit.accepted:
                     self.set_target(deal.cc,deal.fm,deal=deal,source='WEB')

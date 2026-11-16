@@ -1,10 +1,10 @@
-# FM Rush v24.15
+# FM Rush v24.16
 
-Mirror the listings shown on HeneFM Deals, keep a persistent deal queue, and mark matching seller names in the selected MapleStory window.
+Mirror the listings shown on HeneFM Deals, keep a persistent listing history, and mark matching seller names in the selected MapleStory window.
 
 ## Install or update
 
-For an existing installation, close FM Rush and extract this small ZIP **over the existing app folder**, choosing to replace app files. Keep `.venv` and `config.json` so dependencies and settings are reused. Run the top-level `START_FM_RUSH.bat` and confirm **v24.15**.
+For an existing installation, close FM Rush and extract this small ZIP **over the existing app folder**, choosing to replace app files. Keep `.venv` and `config.json` so dependencies and settings are reused. Run the top-level `START_FM_RUSH.bat` and confirm **v24.16**.
 
 For future updates, close FM Rush and double-click **`UPDATE_FM_RUSH.bat`** in that folder. It downloads the compact package, backs up previous app files under `updates_backup`, and replaces only runtime files. It preserves `.venv`, `config.json`, archives, screenshot folders and purchased images. No Git or Python package reinstall is needed for ordinary updates. If an update changes the browser extension, reload it once in `brave://extensions`, then reload HeneFM. The updater follows the `improve-name-locator` branch.
 
@@ -16,10 +16,11 @@ The download excludes uploaded screenshots, replay fixtures, Python bytecode, de
 
 - Browser delivery has **no profit threshold or sold-status filter**. It includes low-profit, missing-metric and displayed sold listings. HeneFM's own page filters still determine what is rendered.
 - Each listing is archived before receipt is acknowledged. Missing values remain unknown; prices are never inferred from resale values.
-- New listings join the queue without changing your working item, seller or route.
+- Only listings currently rendered on HeneFM form the live scan list. If the page shows two sellers, only those two can be scanned; archived names are not added. As page listings cycle out, they immediately leave the live list.
+- The current working deal stays selected for BOUGHT even if it leaves the page. It appears as one **OFF PAGE** row, excluded from OCR; other old listings remain in the archive instead of filling the queue.
 - Select a queue row to work on another listing. **DONE / NEXT DEAL** completes only the current item and selects the next pending item. Other items from the same seller remain pending.
 - **UNDO DONE** restores the last completed item, including after a restart.
-- Pending items and the working selection survive restarts. Completed items stay archived and ordinary resend does not reopen them.
+- Listing history and the working selection survive restarts. Live scan names start empty until the updated extension sends the current page. Completed items stay archived and ordinary resend does not reopen them.
 - **EXPORT ARCHIVE** saves a JSON history grouped by seller IGN, including completed listings.
 
 The Windows archive is `%LOCALAPPDATA%\FM_Rush\archives\deal_archive.sqlite3`. It persists across extracted app versions. Close the old app before starting another copy.
@@ -30,15 +31,21 @@ After buying an item, select its listing in FIND NAME and click **BOUGHT · SAVE
 
 Keep screenshot saving enabled in the extension. If the image is missing, the app asks you to locate `FM_Rush_Item_Screenshots` (useful with a custom browser download directory); cancel to wait for capture. It remembers the chosen source folder. Missing or broken images leave the deal pending. The exact listing ID is matched, so a newer deal cannot replace the purchase screenshot. Repeating BOUGHT after UNDO DONE reuses the same file. UNDO DONE reopens the deal and keeps its purchase PNG.
 
-The extension remains v24.11.0; existing screenshots and archives work with this update. Purchase recording uses a manual click and does not detect game transactions.
+Use extension **v24.16.0** with this update: reload it in `brave://extensions`, then reload HeneFM. Existing screenshots and archives work with this update. Purchase recording uses a manual click and does not detect game transactions.
+
+## Live page connection
+
+The extension sends a complete replacement of the current rendered listing set on changes, plus a heartbeat roughly every six seconds. A listing leaving the site view is removed from scans; it is not deleted from history. If the page disconnects, scan names expire after 45 seconds without a heartbeat. Archived individual deliveries cannot re-add a seller to the live list. The popup shows **Live list sent** and connection errors.
+
+After this update, load this app folder's `browser_extension` in Brave (or reload the existing extension if it points to that folder). Confirm extension **24.16.0**, then reload the HeneFM tab once. Before the first live snapshot, the app scans zero archived names. An updated list does not start continuous OCR: enter a room or press FIND AGAIN as before. With multiple Deals tabs, the most recently received tab snapshot controls the live list.
 
 ## Finding shops
 
-One worker runs a short search burst after you enter an FM room (including a channel change). Starting the locator while already inside a room also runs one burst. It reads the FM room header once, then searches pending seller IGNs archived for that room, plus sellers with an unknown room. Channels cannot be identified from the game header, so all archived channels for that FM number are included. Repeated items from the same seller share one search. It does not visit rooms or channels automatically.
+One worker runs a short search burst after you enter an FM room (including a channel change). Starting the locator while already inside a room also runs one burst. It reads the FM room header once, then searches only current-page pending seller IGNs for that room, plus current-page sellers with an unknown room. Channels cannot be identified from the game header, so current-page sellers from all channels for that FM number are included. Repeated items from the same seller share one search. It does not visit rooms or channels automatically.
 
 Found sellers get a large **red box, red downward arrow and IGN label**. Ambiguous reads say **CHECK NAME** and use dashed borders; verify the seller. Overlapping candidate names share a CHECK marker. Several distinct shops can stay marked together. Static markers reuse their drawing rather than repainting the whole overlay on every timer tick.
 
-Each entry burst has a three-second deadline, checked between inference batches. It first checks only the strongest visual candidates for each seller, using at most two visual candidates and the existing identity verification. It skips expensive recovery for absent sellers until every queued seller has had this quick sweep. It then runs full recovery for remaining names, with at most two attempts per seller. Once it finishes, **OCR stays idle until the next entry**. New listings remain archived and do not restart idle OCR; movement and queue selection do not restart it either. **FIND AGAIN** explicitly starts another burst. Very large queues can leave sellers unchecked within the deadline; select a seller and use FIND AGAIN to prioritize it. If the FM header cannot be read, automatic name search stays idle; FIND AGAIN can search all pending sellers manually.
+Each entry burst has a three-second deadline, checked between inference batches. It first checks only the strongest visual candidates for each seller, using at most two visual candidates and the existing identity verification. It skips expensive recovery for absent sellers until every queued seller has had this quick sweep. It then runs full recovery for remaining names, with at most two attempts per seller. Once it finishes, **OCR stays idle until the next entry**. New listings update the live list and remain archived, but do not restart idle OCR; movement and queue selection do not restart it either. **FIND AGAIN** explicitly starts another burst. Very large queues can leave sellers unchecked within the deadline; select a seller and use FIND AGAIN to prioritize it. If the FM header cannot be read, automatic name search stays idle; FIND AGAIN can search all current-page pending sellers manually.
 
 OCR remains one thread with the Windows CPU affinity guard. Per-seller cooldowns are removed inside the bounded burst, so it can briefly use more of one core. Between entries, only a lightweight loading-screen watcher remains active: sparse brightness samples and reduced-rate frame copies, with no OCR. Brief black transitions are latched so an entry during inference is not lost. PAUSE stops capture entirely. Model startup and live capture add latency beyond saved-image benchmarks.
 

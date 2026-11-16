@@ -17,6 +17,7 @@ from profit_filter import ProfitDecision
 HOST = '127.0.0.1'
 PORT = 18773
 MAX_REQUEST_BYTES = 65_536
+MAX_VISIBLE_BYTES=4*1024*1024
 
 
 def parse_browser_deal(raw: dict) -> Deal | None:
@@ -84,12 +85,12 @@ class BrowserBridge:
 
             def do_GET(self):
                 if self.path == '/health':
-                    self._send(200, {'ok': True, 'name': 'FM Rush v24.11'});
+                    self._send(200, {'ok': True, 'name': 'FM Rush v24.16'});
                 else:
                     self._send(404, {'ok': False})
 
             def do_POST(self):
-                if self.path != '/deal':
+                if self.path not in ('/deal','/visible'):
                     self._send(404, {'ok': False})
                     return
                 # This is a local UI bridge, not a remote data service. Require
@@ -107,9 +108,26 @@ class BrowserBridge:
                     return
                 try:
                     size = int(self.headers.get('Content-Length', '0'))
-                    if size < 2 or size > MAX_REQUEST_BYTES:
+                    if size < 2 or size > (MAX_VISIBLE_BYTES if self.path=='/visible' else MAX_REQUEST_BYTES):
                         raise ValueError('invalid request size')
                     data = json.loads(self.rfile.read(size).decode('utf-8'))
+                    if self.path=='/visible':
+                        if not isinstance(data,dict):raise ValueError('snapshot')
+                        raw=data.get('deals');session=data.get('session');revision=data.get('revision')
+                        if not isinstance(raw,list) or len(raw)>500 or not isinstance(session,str) or not 1<=len(session)<=120:
+                            raise ValueError('snapshot')
+                        if isinstance(revision,bool) or not isinstance(revision,int) or not 0<=revision<=2**53:
+                            raise ValueError('revision')
+                        deals=[parse_browser_deal(item) for item in raw]
+                        if any(deal is None or not deal.listing_id for deal in deals):raise ValueError('listing')
+                        if archive is None:
+                            self._send(503,{'ok':False,'error':'archive_not_ready'});return
+                        try:
+                            archive.apply_visible(deals,session,revision)
+                            out.put_nowait(('browser_visible',))
+                        except (queue.Full,OSError,ValueError,sqlite3.Error):
+                            self._send(503,{'ok':False,'error':'busy'});return
+                        self._send(200,{'ok':True,'live_listings':len(deals)});return
                     deal = parse_browser_deal(data)
                 except (ValueError, UnicodeError, json.JSONDecodeError):
                     deal = None

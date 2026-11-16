@@ -134,6 +134,20 @@ class MultiWorkerTests(unittest.TestCase):
         _,calls=self.run_worker(['Mora','Oral'],scan,on_frame=tick)
         self.assertEqual([x[0] for x in calls],['Mora','Oral','Oral','Mora'])
 
+    def test_initial_live_page_can_recheck_room_after_empty_start(self):
+        names=[]
+        def tick(index,worker):
+            if index==30:names.append('Mora');worker.entry_check.set()
+        _,calls=self.run_worker(names,lambda *args:None,on_frame=tick)
+        self.assertEqual(len(calls),2)
+        self.assertGreater(calls[0][1],1.5)
+
+    def test_initial_live_page_recheck_does_not_scan_outside_fm(self):
+        def tick(index,worker):
+            if index==30:worker.entry_check.set()
+        _,calls=self.run_worker(['Mora'],lambda *args:None,on_frame=tick,room=None)
+        self.assertEqual(calls,[])
+
     def test_non_fm_window_does_not_scan(self):
         _,calls=self.run_worker(['Mora'],lambda *args:None,room=None)
         self.assertEqual(calls,[])

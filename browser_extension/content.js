@@ -1,4 +1,4 @@
-/* FM Rush v24.11 — PASSIVE HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.16 — PASSIVE HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Does not insert, remove, style, sort, hide, click or modify ANY page element.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -23,6 +23,8 @@
   let lastScreenshotBatchAt = 0;
   let lastScreenshotBatchHash = '';
   const queued = [];
+  const liveSession=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+  let liveRevision=0,liveSending=false,liveHash=null,liveSentAt=-Infinity;
   const diagnostics = {lastScanAt:0, sellerLinks:0, cardsFound:0, soldCards:0, parsedCards:0, qualifyingDeals:0, sent:0, rejected:0, lastSentAt:0, lastError:'', lastRejectAt:0};
 
   try {
@@ -261,10 +263,31 @@
       console.warn('[FM Rush] Extension context invalidated; reload the HeneFM tab.');
     }
   }
+  function syncLivePage(deals) {
+    const hash=deals.map(d=>d.id).sort().join('|');
+    if(liveSending || (hash===liveHash && Date.now()-liveSentAt<5000))return;
+    liveSending=true;
+    try {
+      chrome.runtime.sendMessage({kind:'fm-rush-visible-deals',snapshot:{session:liveSession,
+        revision:++liveRevision,deals:deals.map(({id,...deal})=>deal)}},response=>{
+        liveSending=false;
+        if(response?.ok && !chrome.runtime.lastError){
+          liveHash=hash;liveSentAt=Date.now();
+          diagnostics.liveListings=deals.length;diagnostics.liveSentAt=liveSentAt;
+          diagnostics.liveError='';
+        } else {
+          diagnostics.liveError=chrome.runtime.lastError?.message || response?.error || 'Live page not connected';
+        }
+      });
+    } catch(err) {
+      liveSending=false;diagnostics.liveError=String(err);
+    }
+  }
   function scan() {
     scanTimer = null;
     if (!isDealsPage()) return;
     const deals = extract();
+    syncLivePage(deals);
     // Include eligible cards on first load as well as newly appearing cards.
     let queueChanged=false;
     for (const deal of deals) if (!seen.has(deal.id)) queueChanged=enqueue(deal)||queueChanged;
@@ -336,6 +359,7 @@
         if (message?.kind==='fm-rush-resend-current') {
           // Explicit opt-in to resend the current eligible page.
           seen.clear();
+          liveHash=null;liveSentAt=-Infinity;
           remember();
           queued.length = 0;
           remember();

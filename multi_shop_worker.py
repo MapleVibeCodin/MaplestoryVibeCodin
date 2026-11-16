@@ -27,6 +27,7 @@ class MultiShopWorker(threading.Thread):
         super().__init__(daemon=True)
         self.frames,self.get_names,self.post,self.stop=frames,get_names,post,stop
         self.get_room_names=get_room_names
+        self.entry_check=threading.Event()
         self.retry=threading.Event();self.priority=queue.SimpleQueue();self.preferred=None
 
     def prioritize(self,name):
@@ -85,6 +86,9 @@ class MultiShopWorker(threading.Thread):
                 epoch=current_epoch;gate.reset();gate.loading=True
                 jobs={};active=False;reference=None;rate(ACTIVE_CAPTURE_MS)
                 publish('Loading · waiting for a stable FM room')
+            if self.entry_check.is_set():
+                self.entry_check.clear();gate.reset();gate.loading=True
+                jobs={};active=False;reference=None
             trigger=gate.observe(bgr,now=stamp)
             if gate.invalidated:
                 jobs={};active=False;reference=None;rate(ACTIVE_CAPTURE_MS)

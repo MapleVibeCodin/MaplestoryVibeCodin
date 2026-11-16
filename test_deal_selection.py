@@ -20,7 +20,8 @@ class DealSelectionTests(unittest.TestCase):
         for name in ['ccfm','keys','item','stats','ign','profit','buy']:setattr(a,name,Value())
     def tearDown(self):self.app.archive.close();self.temp.cleanup()
 
-    def test_new_deals_keep_previous_item_and_route_while_all_names_are_searched(self):
+    def test_new_live_deals_keep_previous_item_and_route_while_only_live_names_are_searched(self):
+        self.app.archive.apply_visible([listing(),listing('Oral',cc=2,fm=4)],'page',1)
         self.app.set_target(1,3,deal=listing(),source='WEB')
         first=self.app.displayed_listing
         self.app.set_target(2,4,deal=listing('Oral',cc=2,fm=4),source='WEB')
@@ -56,3 +57,25 @@ class DealSelectionTests(unittest.TestCase):
     def test_room_names_include_other_channels_and_unknown_rooms_only(self):
         self.app.scan_by_room={3:('Mora','Oral'),4:('Elsewhere',),None:('Unknown','Mora')}
         self.assertEqual(self.app.names_for_room(3),('Mora','Oral','Unknown'))
+
+    def test_fifty_archived_names_do_not_expand_live_scan_set(self):
+        for i in range(50):self.app.archive.record(listing('Old'+str(i)))
+        self.app.archive.apply_visible([listing('languiwhisp',fm=15),listing('Hammy',fm=9)],'page',1)
+        self.app.sync_archive()
+        self.assertEqual(self.app.scan_names,('languiwhisp','Hammy'))
+        self.assertEqual(self.app.names_for_room(9),('Hammy',))
+        # A rotated-out working item is retained for BOUGHT, but never scanned.
+        previous=self.app.shop_target
+        self.app.archive.apply_visible([listing('NextSeller',fm=9)],'page',2)
+        self.app.sync_archive()
+        self.assertEqual(self.app.scan_names,('NextSeller',))
+        self.assertEqual(self.app.shop_target,previous)
+        self.assertEqual(self.app.names_for_room(15),())
+
+    def test_first_live_page_rechecks_entry_once_and_rotations_do_not_rearm(self):
+        from unittest.mock import Mock
+        self.app.shop_thread=Mock();self.app.shop_thread.is_alive.return_value=True
+        self.app.archive.apply_visible([listing('Hammy')],'page',1);self.app.sync_archive()
+        self.app.shop_thread.entry_check.set.assert_called_once()
+        self.app.archive.apply_visible([listing('NextSeller')],'page',2);self.app.sync_archive()
+        self.app.shop_thread.entry_check.set.assert_called_once()

@@ -40,9 +40,10 @@ async def main():
         await page.goto('about:blank')
         await page.set_content(HTML)
         await page.evaluate('''() => {
-            window.__routes=[];
+            window.__routes=[];window.__live=[];
             window.chrome={runtime:{lastError:null,sendMessage:(msg,cb)=>{
-                if(msg.kind==='fm-rush-route-deal')window.__routes.push(msg);cb({ok:true});
+                if(msg.kind==='fm-rush-route-deal')window.__routes.push(msg);
+                if(msg.kind==='fm-rush-visible-deals')window.__live.push(msg.snapshot);cb({ok:true});
             }}};
         }''')
         before=await page.locator('body').inner_html()
@@ -72,7 +73,11 @@ async def main():
         await page.locator('#new-sold').evaluate('(el)=>el.querySelector("span").textContent="Sold 1h ago"')
         await page.wait_for_timeout(200)
         assert await page.evaluate('window.__routes.length')==5
+        assert set(await page.evaluate('window.__live.at(-1).deals.map(d=>d.ign)'))=={'Hyperborean','Arkne','FantonRR','HazelGeek','UrMyVuln'}
+        await page.locator('#list').evaluate('(el)=>el.innerHTML=""')
+        await page.wait_for_timeout(250)
+        assert await page.evaluate('window.__live.at(-1).deals.length')==0,'An empty page must clear active scan names'
         await browser.close()
-        print('PASS: page DOM unchanged, all rendered active/sold listings delivered, multi-item profit, no duplicate sends')
+        print('PASS: page DOM unchanged, all rendered active/sold listings delivered, multi-item profit, no duplicate sends; live snapshots follow page rotation')
 
 if __name__=='__main__':asyncio.run(main())

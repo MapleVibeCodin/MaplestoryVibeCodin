@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "FM Rush \u2014 HeneFM Deal Scanner",
-  "version": "24.11.0",
-  "description": "Mirror visible HeneFM listings, archive screenshots by IGN, and send every seller to FM Rush.",
+  "version": "24.16.0",
+  "description": "Scan only sellers currently shown on HeneFM Deals; keep listing and purchase archives.",
   "permissions": [
     "storage",
     "alarms",

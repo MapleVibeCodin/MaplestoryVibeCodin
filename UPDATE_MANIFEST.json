@@ -1,5 +1,5 @@
 {
-  "version": "v24.15",
+  "version": "v24.16",
   "files": [
     "INSTALL_FAST_OCR.bat",
     "ITEM_PRICE_LOOKUP.bat",
@@ -15,6 +15,7 @@
     "UPDATE_V24_13.txt",
     "UPDATE_V24_14.txt",
     "UPDATE_V24_15.txt",
+    "UPDATE_V24_16.txt",
     "UPDATE_V24_4.txt",
     "UPDATE_V24_5.txt",
     "UPDATE_V24_6.txt",

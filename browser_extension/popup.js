@@ -28,9 +28,10 @@ async function readStatus(){
     $('parsed').textContent=sc.parsedCards??'—';
     $('qualified').textContent=sc.qualifyingDeals??'—';
     $('sent').textContent=sc.sent??'—';
+    $('live-time').textContent=ago(sc.liveSentAt);
     $('queued').textContent=sc.queued??'—';
     $('scanner-time').textContent=ago(sc.lastScanAt);
-    $('scanner-error').textContent=sc.lastError||'None';
+    $('scanner-error').textContent=sc.liveError||sc.lastError||'None';
     const captureStatus=await chrome.runtime.sendMessage({kind:'fm-rush-capture-status'});
     if (captureStatus?.ok) {
       $('capture').checked=captureStatus.enabled;

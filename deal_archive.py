@@ -10,6 +10,7 @@ from deal_parser import Deal
 from profit_filter import ProfitDecision
 
 _UNCHANGED=object()
+LIVE_PAGE_LEASE_SECONDS=45.0
 
 
 class DealArchive:
@@ -27,6 +28,7 @@ class DealArchive:
             'SELECT id,data FROM listings WHERE done=0 ORDER BY seq')}
         self.focus=self._setting('focus')
         self.last_completed=self._setting('last_completed')
+        self._live_keys=();self._live_seen=None;self._live_generation=0;self._live_revisions={}
         if self.focus not in self._pending:self.focus=next(iter(self._pending),None)
 
     def _setting(self,key):
@@ -69,6 +71,42 @@ class DealArchive:
             self._save(key,record,focus)
             return key,new
 
+    def apply_visible(self,deals,session,revision,now=None):
+        """Replace the live scan set after all listings have been durably archived."""
+        with self.lock:
+            if revision<=self._live_revisions.get(session,-1):return False
+            first_page=self._live_seen is None
+            keys=tuple(dict.fromkeys(self.record(deal)[0] for deal in deals))
+            self._live_keys=keys;self._live_seen=time.monotonic() if now is None else now
+            self._live_generation+=1
+            self._live_revisions[session]=revision
+            if len(self._live_revisions)>32:self._live_revisions.pop(next(iter(self._live_revisions)))
+            if self.focus is None or (first_page and self.focus not in keys):
+                first=next((key for key in keys if key in self._pending),None)
+                if first:self.select(first)
+            return True
+
+    def live_state(self,now=None):
+        with self.lock:
+            now=time.monotonic() if now is None else now
+            return self._live_generation,self._live_seen is not None and now-self._live_seen<LIVE_PAGE_LEASE_SECONDS
+
+    def live_pending(self,now=None):
+        with self.lock:
+            if not self.live_state(now)[1]:return []
+            return [(key,dict(self._pending[key]['deal'])) for key in self._live_keys if key in self._pending]
+
+    def live_names(self):
+        with self.lock:
+            names={}
+            for _,deal in self.live_pending():names.setdefault(deal['ign'].casefold(),deal['ign'])
+            return tuple(names.values())
+
+    def _next_pending(self,key):
+        # Retain legacy archive operations before a live page has ever connected.
+        keys=self._pending if self._live_seen is None else [item for item,_ in self.live_pending()]
+        return next((item for item in keys if item!=key),None)
+
     def pending(self):
         with self.lock:return [(key,dict(value['deal'])) for key,value in self._pending.items()]
 
@@ -97,7 +135,7 @@ class DealArchive:
             key=self.focus
             if key is None:return
             record={**self._pending[key],'done':True}
-            following=next((item for item in self._pending if item!=key),None)
+            following=self._next_pending(key)
             self._save(key,record,following,last_completed=key)
 
     def mark_bought(self,key,screenshot):
@@ -105,7 +143,7 @@ class DealArchive:
             if key not in self._pending:return False
             record={**self._pending[key],'done':True,'bought_at':time.time(),
                     'bought_screenshot':str(screenshot)}
-            following=next((item for item in self._pending if item!=key),None) if self.focus==key else self.focus
+            following=self._next_pending(key) if self.focus==key else self.focus
             self._save(key,record,following,last_completed=key)
             return True
 
