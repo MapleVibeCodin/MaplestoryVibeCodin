@@ -6,6 +6,7 @@ screen OCR, orientation classifier, cloud calls, Tesseract or Windows OCR.
 """
 from pathlib import Path
 from functools import lru_cache
+from difflib import SequenceMatcher
 import time
 import re
 import cv2
@@ -18,8 +19,8 @@ def confusable(s):
     return norm(s).replace('rn','m').replace('l','i')
 
 
-@lru_cache(maxsize=24)
-def templates(target,width,expand_case=False):
+@lru_cache(maxsize=128)
+def templates(target,width,expand_case=False,primary=False):
     font=ImageFont.truetype(str(Path(__file__).with_name('assets')/'name_font.ttf'),12)
     names=[target]
     if target[:1] in ('I','i','l','L'):
@@ -28,6 +29,7 @@ def templates(target,width,expand_case=False):
         names.extend([target.lower(),target.upper(),target.title()])
         names.extend(target[:i]+char.swapcase()+target[i+1:] for i,char in enumerate(target) if char.isalpha())
     scales=((1.,1.04,1366/1280) if width<1024 else (1.,))+(width/1280,width/1280*1.04,width/1366,width/1366*1.04)
+    if primary:scales=((1.,) if width<1024 else ())+(width/1280,width/1366*1.04)
     result=[];seen=set()
     for name in dict.fromkeys(names):
         bounds=font.getbbox(name)
@@ -57,10 +59,76 @@ class NameFinder:
         self.recognizer([np.full((20,80,3),255,np.uint8)])
         self.last_diagnostic={}
 
-    def room_number(self,bgr):
+    def room_number(self,bgr,quick=False):
         """One tiny header read at entry; never polls whole-screen OCR."""
         h,w=bgr.shape[:2]
         previous=self.recognizer.rec_image_shape
+        def remember(number):
+            if h>=62 and w>=160:
+                self._room_cache=(number,bgr.shape,cv2.cvtColor(bgr[38:59,110:156],cv2.COLOR_BGR2GRAY).copy())
+            return number
+        cached=getattr(self,'_room_cache',None)
+        if cached is not None and cached[1]==bgr.shape:
+            patch=cv2.cvtColor(bgr[38:59,110:156],cv2.COLOR_BGR2GRAY)
+            if float(patch.std())>5 and float(cv2.matchTemplate(patch,cached[2],cv2.TM_CCOEFF_NORMED)[0,0])>=.96:
+                return cached[0]
+        def numeric_header():
+            # A calibrated common label establishes where the two-digit field
+            # sits. Two independent number reads must agree; a clipped digit
+            # cannot become a one-digit room because this path accepts 10–20.
+            path=Path(__file__).with_name('assets')/'room_label_prefix.npz'
+            if not path.exists():return None
+            if not hasattr(self,'_room_prefix'):
+                with np.load(path) as data:self._room_prefix=data['prefix'].copy()
+            region=cv2.cvtColor(bgr[:min(h,100),:min(w,190)],cv2.COLOR_BGR2GRAY)
+            best=(-1,None)
+            for scale in (.90,.95,1.,1.05,1.1):
+                template=cv2.resize(self._room_prefix,None,fx=scale,fy=scale,interpolation=cv2.INTER_CUBIC)
+                if min(region.shape)<min(template.shape) or region.shape[1]<template.shape[1]:continue
+                _,score,_,(x,y)=cv2.minMaxLoc(cv2.matchTemplate(region,template,cv2.TM_CCOEFF_NORMED))
+                if score>best[0]:best=(score,(scale,x,y))
+            if best[0]<.65:return None
+            scale,x,y=best[1];crops=[]
+            for top,bottom in ((-4,16),(-2,15)):
+                left=round(x+82*scale);right=round(left+16*scale)
+                a=max(0,round(y+top*scale));b=min(h,round(y+bottom*scale))
+                crop=bgr[a:b,left:min(w,right)]
+                if crop.size:
+                    crop=self._contrast(crop)
+                    crops.append(cv2.resize(crop,None,fx=4,fy=4,interpolation=cv2.INTER_NEAREST))
+            reads,_=self.recognizer(crops) if crops else ([],0)
+            votes=[];confidence=[]
+            for text,certainty in reads:
+                match=re.fullmatch(r'(1[0-9]|20)[:>)]?',text.strip())
+                if match and certainty>=.80:votes.append(int(match[1]));confidence.append(certainty)
+            if len(votes)==2 and votes[0]==votes[1] and max(confidence)>=.95:return votes[0]
+            return None
+        def compressed_header():
+            # Compression can merge the small minimap letters. Require two
+            # independent, bounded header strips to agree before recovering a
+            # one/two-letter label error. Never truncate an out-of-range number.
+            crops=[]
+            for top,bottom,left,right,interpolation in [
+                    (36,62,45,150,cv2.INTER_CUBIC),
+                    (36,62,50,155,cv2.INTER_NEAREST),
+                    (35,60,45,155,cv2.INTER_NEAREST)]:
+                crop=bgr[top:min(h,bottom),left:min(w,right)]
+                if crop.size:crops.append(cv2.resize(crop,None,fx=3,fy=3,interpolation=interpolation))
+            reads,_=self.recognizer(crops) if crops else ([],0)
+            votes=[]
+            for text,confidence in reads:
+                found=re.fullmatch(r'([a-z ]+)[<c(\[]?\s*([0-9]{1,2})[>s)\]]?',text.strip(),re.I)
+                if not found or confidence<.65:continue
+                label=re.sub('[^a-z]','',found[1].lower())
+                previous_row=list(range(11))
+                for i,char in enumerate(label,1):
+                    row=[i]
+                    for j,other in enumerate('freemarket',1):
+                        row.append(min(row[-1]+1,previous_row[j]+1,previous_row[j-1]+(char!=other)))
+                    previous_row=row
+                number=int(found[2])
+                if previous_row[-1]<=2 and 1<=number<=20:votes.append(number)
+            return votes[0] if votes and votes.count(votes[0])>=2 and len(set(votes))==1 else None
         try:
             self.recognizer.rec_image_shape=[3,48,320]
             # Try the common expanded header first; avoid padding several wide
@@ -71,21 +139,62 @@ class NameFinder:
                 crop=cv2.resize(crop,None,fx=3,fy=3,interpolation=cv2.INTER_CUBIC)
                 reads,_=self.recognizer([crop])
                 for text,confidence in reads:
-                    found=re.search(r'fre[e]?\s*market\s*[<(\[]?\s*([0-9OIlg]{1,2})\s*[>)\]]?',text,re.I)
+                    found=re.search(r'fre[e]?\s*market\s*[<(\[]?\s*([0-9OIlg]{1,2})(?![0-9OIlg])\s*[>)\]]?',text,re.I)
                     if not found:
-                        found=re.search(r'\bmarket\s*[<(\[]\s*([0-9OIlg]{1,2})\s*[>)\]]',text,re.I)
+                        found=re.search(r'\bmarket\s*[<(\[]\s*([0-9OIlg]{1,2})(?![0-9OIlg])\s*[>)\]]',text,re.I)
                     if found and confidence>=.65:
                         value=found[1].lower().translate(str.maketrans({'o':'0','i':'1','l':'1','g':'9'}))
                         try:number=int(value)
                         except ValueError:continue
-                        if 1<=number<=20:return number
+                        if 1<=number<=20:return remember(number)
+                if (top,bottom,left,right)==(36,62,0,160):
+                    recovered=numeric_header()
+                    if recovered is None and not quick:recovered=compressed_header()
+                    if recovered is not None:return remember(recovered)
+                    if quick:return None
             return None
         finally:self.recognizer.rec_image_shape=previous
+
+    def numbered_header_visible(self,bgr):
+        """Detect the label and opening angle, without guessing its number.
+
+        This only permits a provisional search for the explicitly selected
+        seller. Actual room OCR remains the fallback for the rest of the queue.
+        """
+        path=Path(__file__).with_name('assets')/'room_label_prefix.npz'
+        if not path.exists():return False
+        if not hasattr(self,'_room_visual'):
+            with np.load(path) as data:
+                self._room_visual=[(scale,cv2.resize(data['prefix'],None,fx=scale,fy=scale,
+                    interpolation=cv2.INTER_CUBIC),cv2.resize(data['bracket'],None,fx=scale,fy=scale,
+                    interpolation=cv2.INTER_CUBIC)) for scale in (.90,.95,1.,1.05,1.1)]
+        gray=cv2.cvtColor(bgr[:100,:190],cv2.COLOR_BGR2GRAY);best=(-1,None)
+        for scale,prefix,bracket in self._room_visual:
+            if gray.shape[0]<prefix.shape[0] or gray.shape[1]<prefix.shape[1]:continue
+            _,score,_,(x,y)=cv2.minMaxLoc(cv2.matchTemplate(gray,prefix,cv2.TM_CCOEFF_NORMED))
+            if score>best[0]:best=(score,(scale,x,y,bracket))
+        if best[0]<.64:return False
+        scale,x,y,bracket=best[1]
+        patch=gray[max(0,y-1):round(y+15*scale),round(x+74*scale):round(x+84*scale)]
+        if patch.shape[0]<bracket.shape[0] or patch.shape[1]<bracket.shape[1]:return False
+        return cv2.minMaxLoc(cv2.matchTemplate(patch,bracket,cv2.TM_CCOEFF_NORMED))[1]>=.40
+
+    @staticmethod
+    def _contrast(crop):
+        # A fade can dim otherwise legible letters. Local contrast is enough;
+        # never wait for the entire animated scene to stop changing brightness.
+        low,high=np.percentile(crop,(2,98))
+        if high-low>8 and high<160:
+            return np.clip((crop.astype(np.float32)-low)*(255./(high-low)),0,255).astype(np.uint8)
+        return crop
+
+    def entry_room_number(self,bgr,full=False):
+        return self.room_number(bgr,quick=not full)
 
     def prepare(self,target,width=1366):
         templates(target,width)
 
-    def _candidates(self,bgr,target,dark=False,fast=False,min_score=.56,limit=6,peak_limit=24,cache=None,expand_case=False):
+    def _candidates(self,bgr,target,dark=False,fast=False,min_score=.56,limit=6,peak_limit=24,cache=None,expand_case=False,primary=False):
         h,w=bgr.shape[:2]
         # Search from the top: camera scroll can put nameplates above 12% height.
         top=0;bottom=round(h*.92)
@@ -101,7 +210,7 @@ class NameFinder:
             cache['small',dark]=cv2.resize(feature,None,fx=.5,fy=.5,interpolation=cv2.INTER_AREA)
         small=cache.get(('small',dark))
         proposals=[]
-        for template in templates(target,w,expand_case):
+        for template in templates(target,w,expand_case,primary):
             th,tw=template.shape
             if th>feature.shape[0] or tw>feature.shape[1]:continue
             if fast:
@@ -139,7 +248,7 @@ class NameFinder:
             unique.append((score,box))
         return unique[:limit]
 
-    def _verify(self,bgr,target,candidates,dark=False):
+    def _verify(self,bgr,target,candidates,dark=False,normalize=False,entry=False):
         if not candidates:return []
         contexts=[];tight_crops=[]
         for _,(x,y,r,b) in candidates:
@@ -148,6 +257,7 @@ class NameFinder:
             for horizontal,crops in ((pad,contexts),(0,tight_crops)):
                 crop=bgr[max(0,y-2):min(bgr.shape[0],b+2),
                          max(0,x-horizontal):min(bgr.shape[1],r+horizontal)]
+                if normalize:crop=self._contrast(crop)
                 if not dark:crop=255-crop
                 crops.append(cv2.resize(crop,None,fx=3,fy=3,interpolation=cv2.INTER_CUBIC))
         words,_=self.recognizer(contexts)
@@ -157,7 +267,7 @@ class NameFinder:
             expanded=norm(text)
             extra=(len(expanded)==len(wanted)+1 and
                    (expanded.startswith(wanted) or expanded.endswith(wanted)))
-            if ((len(wanted)<5 and expanded==wanted and score>=.70 and confidence>=.80) or
+            if ((len(wanted)<5 and expanded==wanted and score>=.56 and confidence>=.95) or
                 (score<.56 and len(wanted)>=5 and expanded==wanted and confidence>=.85) or
                 (len(wanted)>=6 and score>=.60 and extra and confidence>=.80)):
                 tight_indices.append(i)
@@ -180,7 +290,7 @@ class NameFinder:
             mode='EXACT' if same else 'CONFUSABLE'
             tight_text,tight_confidence=tight.get(i,('',0.))
             if len(wanted)<5:
-                valid=(valid and same and score>=.70 and
+                valid=(valid and same and score>=.56 and confidence>=.95 and
                        norm(tight_text)==wanted and tight_confidence>=.95)
             if not valid and len(wanted)>=6 and score>=.60:
                 expanded=norm(text)
@@ -193,8 +303,44 @@ class NameFinder:
                        confidence>=.85 and tight_confidence>=.85 and len(wanted)>=5)
                 mode='EXACT'
             if valid:matches.append(Hit(text.strip(),box,float(score),mode))
-        if not matches:matches=self._recover_read(bgr,target,candidates,words,dark)
+        if not matches:
+            matches=(self._entry_reads(bgr,target,candidates,words,dark) if entry else
+                     self._recover_read(bgr,target,candidates,words,dark))
         return matches
+
+    def _entry_reads(self,bgr,target,candidates,words,dark):
+        """Only two extra raw strips per plausible name; no threshold sweep."""
+        wanted=norm(target);hits=[]
+        if len(wanted)<6:return hits
+        for (score,box),(text,confidence) in zip(candidates,words):
+            read=norm(text)
+            if score<.60 or confidence<.65 or abs(len(read)-len(wanted))>2:continue
+            # Cheap overlap gates extra OCR, not acceptance of a similar name.
+            if SequenceMatcher(None,read,wanted).ratio()<.70:continue
+            x,y,r,b=box;crops=[]
+            if np.percentile(bgr[y:b,x:r],98)<140:
+                self.last_diagnostic['wait_for_contrast']=box
+                self.last_diagnostic['candidate_hint']=(score,box,text,confidence,dark)
+                continue
+            for pad in (0,3):
+                sample=bgr[y:b,max(0,x-pad):min(bgr.shape[1],r+pad)]
+                gray=cv2.cvtColor(sample,cv2.COLOR_BGR2GRAY)
+                crops.append(cv2.resize(cv2.cvtColor(gray if dark else 255-gray,cv2.COLOR_GRAY2BGR),
+                    None,fx=3,fy=3,interpolation=cv2.INTER_CUBIC))
+            previous=self.recognizer.rec_image_shape
+            try:
+                self.recognizer.rec_image_shape=[3,48,320]
+                reads,_=self.recognizer(crops)
+            finally:self.recognizer.rec_image_shape=previous
+            exact=[certainty for value,certainty in reads if norm(value)==wanted and certainty>=.75]
+            if len(exact)==2 and max(exact)>=.82:
+                hits.append(Hit(target,box,float(score),'CHECK'));continue
+            # One missing internal narrow glyph is visibly uncertain.
+            narrow={wanted[:i]+wanted[i+1:] for i in range(1,len(wanted)-1) if wanted[i] in 'il'}
+            if len(wanted)>=8 and score>=.64 and read in narrow and confidence>=.88:
+                if sum(norm(value)==read and certainty>=.88 for value,certainty in reads)==2:
+                    hits.append(Hit(text.strip(),box,float(score),'CHECK'))
+        return hits
 
     def _recover_read(self,bgr,target,candidates,words,dark):
         """Retry a few name strips, preserving CHECK for unresolved glyphs.
@@ -239,6 +385,16 @@ class NameFinder:
             stray=(len(wanted)>=6 and score>=.64 and any(contexts.count(c+wanted)>=2 for c in 'il1'))
             if partial or joined or stray:
                 hit=Hit(text.strip(),box,float(score),'CHECK');cache[key]=hit;matches.append(hit);continue
+            missing_narrow=(len(wanted)>=8 and score>=.64 and confidence>=.88 and
+                            len(read)==len(wanted)-1 and any(wanted[:i]+wanted[i+1:]==read
+                            for i in range(1,len(wanted)-1) if wanted[i] in 'il'))
+            if missing_narrow:
+                strips=[bgr[y:b,x:r],bgr[max(0,y-2):min(bgr.shape[0],b+2),x:r]]
+                strips=[cv2.resize(255-v if not dark else v,None,fx=3,fy=3,
+                                  interpolation=cv2.INTER_CUBIC) for v in strips if v.size]
+                confirmations,_=self.recognizer(strips)
+                if sum(norm(value)==read and certainty>=.88 for value,certainty in confirmations)>=2:
+                    hit=Hit(text.strip(),box,float(score),'CHECK');cache[key]=hit;matches.append(hit);continue
             crops=[]
             for vp in (1,2,3):
                 if b-y-2*vp<9:continue
@@ -300,13 +456,42 @@ class NameFinder:
             if hit is not None:matches.append(hit)
         return matches
 
-    def scan(self,bgr,target,cancelled=None,fast_only=False,quick_only=False):
+    def scan(self,bgr,target,cancelled=None,fast_only=False,quick_only=False,entry_only=False,candidate_hint=None):
         started=time.perf_counter()
         self._recovery_cache={}
         self.last_diagnostic={'method':'coarse proposals + full-resolution verification','target':target,'candidates':[]}
         if not target or not (3<=len(target)<=24):return None
         if cancelled is not None and cancelled():
             self.last_diagnostic['cancelled']=True;return None
+        if entry_only:
+            if candidate_hint is not None:
+                score,box,text,confidence,dark=candidate_hint
+                found=self._entry_reads(bgr,target,[(score,box)],[(text,confidence)],dark)
+                if len(found)==1:
+                    self.last_diagnostic.update(method='fresh-frame candidate verification',
+                        elapsed_ms=round((time.perf_counter()-started)*1000,1))
+                    return found[0]
+            # Two polarities cover ordinary white labels and selected gray
+            # labels. Avoid the multi-pass recovery search during the race.
+            cache={};matches=[]
+            for dark in ((True,False) if len(target)<5 else (False,True)):
+                if cancelled is not None and cancelled():return None
+                candidates=self._candidates(bgr,target,dark=dark,fast=True,
+                    min_score=.56,limit=3,peak_limit=96 if len(target)<5 else 24,cache=cache,primary=True)
+                if cancelled is not None and cancelled():return None
+                self.recognizer.rec_image_shape=[3,48,160]
+                found=self._verify(bgr,target,candidates,dark=dark,normalize=True,entry=True)
+                matches.extend(found)
+                if matches:break
+                # A likely label during fade-in gets a fresh frame next, rather
+                # than another polarity sweep of the same dim pixels.
+                if any(c['variant']=='context' and c['visual_score']>=.64 and
+                       c['ocr_confidence']>=.75 and len(norm(target))>=6 and
+                       SequenceMatcher(None,norm(c['text']),norm(target)).ratio()>=.75
+                       for c in self.last_diagnostic['candidates']):break
+            self.last_diagnostic.update(method='bounded room-entry sweep',
+                elapsed_ms=round((time.perf_counter()-started)*1000,1))
+            return matches[0] if len(matches)==1 else None
         if quick_only:
             # A cheap sweep across the queue must not spend recovery OCR on
             # absent sellers before reaching a clearly visible one.

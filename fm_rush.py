@@ -341,7 +341,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.18 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.19 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -794,7 +794,9 @@ class FMApp:
             self.shop_frames.start()
             self.shop_thread=MultiShopWorker(self.shop_frames,lambda:self.scan_names,
                                              lambda item:self._post_shop(('shop_epoch',session,item)),
-                                             self.shop_stop,lambda:self.scan_revisions,self.names_for_room)
+                                             self.shop_stop,lambda:self.scan_revisions,self.names_for_room,
+                                             lambda:(self.shop_target,self.current_fm))
+            if self.shop_target:self.shop_thread.prioritize(self.shop_target)
             self.shop_thread.start()
         except Exception as exc:
             if self.shop_frames:
@@ -922,7 +924,8 @@ class FMApp:
             if evt[0]=='shops_frame':
                 if self.shop_running and self.shop is not None and self.shop.winfo_exists():
                     _,size,hits,note=evt
-                    hits={name:hit for name,hit in hits.items() if name in self.scan_names}
+                    hits={name:hit for name,hit in hits.items() if name in self.scan_names or
+                          time.monotonic()<hit.get('hold_until',0)}
                     self.shop.draw_matches(size,hits,note)
             elif evt[0]=='shop_frame':
                 _,key,image,source_size,box,mode,seen,latency,method=evt
