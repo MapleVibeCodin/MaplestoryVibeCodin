@@ -56,10 +56,14 @@ class MultiShopWorker(threading.Thread):
         self.get_room_hint=get_room_hint
         self.ready=threading.Event()
         self.entry_check=threading.Event()
+        self.selection_check=threading.Event()
         self.retry=threading.Event();self.priority=queue.SimpleQueue();self.preferred=None
 
     def prioritize(self,name):
-        self.preferred=name.casefold();self.priority.put(self.preferred)
+        key=name.casefold()
+        changed=key!=self.preferred
+        self.preferred=key;self.priority.put(key)
+        if changed:self.selection_check.set()
 
     def run(self):
         cv2.setNumThreads(1)
@@ -91,8 +95,16 @@ class MultiShopWorker(threading.Thread):
             nonlocal active
             active=False;rate(IDLE_CAPTURE_MS);publish(note)
 
-        def begin(bgr,manual=False):
+        def begin(bgr,manual=False,preserve=False):
             nonlocal room,active,deadline,jobs,reference,burst_started,header_ms,header_retry_at,provisional
+            retained={}
+            if preserve:
+                for key,job in jobs.items():
+                    if job.hit is None or job.patch is None or job.found_at is None:continue
+                    if time.monotonic()>=job.found_at+FOUND_HOLD_SECONDS:continue
+                    x,y,r,b=job.hit.box;patch=bgr[y:b,x:r]
+                    if patch.shape==job.patch.shape and patch.size and np.mean(np.abs(
+                            patch.astype(np.int16)-job.patch.astype(np.int16)))<=24:retained[key]=job
             burst_started=time.monotonic();deadline=burst_started+ROOM_BURST_SECONDS
             if not self.get_names():idle('Waiting for FM entry · no pending sellers');return
             provisional=False
@@ -107,17 +119,18 @@ class MultiShopWorker(threading.Thread):
                     idle('Could not read FM room header · FIND AGAIN retries');return
             header_ms=(time.monotonic()-burst_started)*1000
             if room is None and not manual:
-                jobs={};active=True;rate(ACTIVE_CAPTURE_MS)
+                jobs=retained;active=True;rate(ACTIVE_CAPTURE_MS)
                 header_retry_at=time.monotonic()+.016
                 publish('Reading room header · retrying fresh entry frames');return
-            jobs={key:Search(name) for key,name in names().items()}
+            jobs={key:retained.get(key,Search(name)) for key,name in names().items()}
+            jobs.update(retained)
             key=self.preferred
             if key in jobs:jobs={key:jobs[key],**{k:v for k,v in jobs.items() if k!=key}}
             reference=signature(bgr);active=True;rate(ACTIVE_CAPTURE_MS)
             publish(f'FM {room or "?"} · entry burst · {len(jobs)} sellers')
 
         while not self.stop.is_set():
-            frame=self.frames.latest(version)
+            frame=self.frames.latest(-1 if self.selection_check.is_set() else version)
             if frame is None:
                 self.stop.wait(.008);continue
             version,stamp,bgr=frame
@@ -139,7 +152,19 @@ class MultiShopWorker(threading.Thread):
             if gate.loading:
                 self.stop.wait(.008);continue
             sig=signature(bgr)
-            if trigger or manual:begin(bgr,manual=manual)
+            selected=self.selection_check.is_set()
+            if trigger or manual:
+                self.selection_check.clear()
+                begin(bgr,manual=manual)
+            elif selected:
+                self.selection_check.clear()
+                live={name.casefold() for name in self.get_names()}
+                job=jobs.get(self.preferred)
+                if self.preferred in live and (job is None or job.hit is None):
+                    if not active:begin(bgr,preserve=True)
+                    elif job is not None:
+                        job.attempts=0;job.wait_box=None;job.candidate_hint=None
+                        deadline=time.monotonic()+ROOM_BURST_SECONDS
             # A failed header on the first fade-in frame must not consume entry.
             if active and room is None and not manual:
                 if time.monotonic()>=deadline:
@@ -152,7 +177,10 @@ class MultiShopWorker(threading.Thread):
                     header_ms+=(time.monotonic()-header_started)*1000
                     header_retry_at=time.monotonic()+.016
                     if room is not None:
-                        jobs={key:Search(name) for key,name in names().items()}
+                        saved={key:job for key,job in jobs.items() if job.hit is not None and
+                               job.found_at is not None and time.monotonic()<job.found_at+FOUND_HOLD_SECONDS}
+                        jobs={key:saved.get(key,Search(name)) for key,name in names().items()}
+                        jobs.update(saved)
                         reference=sig
                 if room is None:
                     self.stop.wait(.008);continue
@@ -249,7 +277,9 @@ class MultiShopWorker(threading.Thread):
             posted=time.monotonic();loading_at=getattr(self.frames,'loading_started',None)
             self.post(('shop_timing',{'name':job.name,'found':hit is not None,'room':room,
                 'room_source':'selected route + numbered header' if provisional else 'header OCR',
-                'quick_pass':attempt<2,'header_ms':round(header_ms,1),
+                'quick_pass':attempt<2,
+                'verification':getattr(engine,'last_diagnostic',None) if hit is None and attempt>=2 else None,
+                'header_ms':round(header_ms,1),
                 'recognition_ms':round((posted-search_started)*1000,1),
                 'queue_ms':round(max(0,(search_started-burst_started)*1000-header_ms),1),
                 'frame_age_ms':round(max(0,(search_started-stamp)*1000),1),

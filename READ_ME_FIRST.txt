@@ -1,4 +1,4 @@
-FM RUSH — CLEAN EDITION (app v24.19 / extension 24.17.0)
+FM RUSH — CLEAN EDITION (app v24.20 / extension 24.17.0)
 
 1. Extract this entire ZIP into one folder. Do not run it from inside the ZIP.
 2. Double-click START_FM_RUSH.bat. Keep the other files in place.
@@ -8,8 +8,9 @@ FM RUSH — CLEAN EDITION (app v24.19 / extension 24.17.0)
    Remove the old FM Rush extension, click Load unpacked, and select the
    browser_extension folder inside this new FM Rush folder.
 4. Reload https://henefm.com/flips/deals and select your buyer's game window.
-5. Keep your three-minute HeneFM filter. Select the deal you are chasing BEFORE
-   entering the room: that seller is searched first. Keep the locator armed.
+5. Keep your three-minute HeneFM filter and keep the locator armed. Select the
+   deal you are chasing: that seller is searched first. Selecting a different
+   live deal after arrival also starts a bounded scan automatically.
 
 Only sellers on the current Deals page enter the scan queue. Old archive names
 are excluded. Found markers can remain for two minutes after their card leaves;
