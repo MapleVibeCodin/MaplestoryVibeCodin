@@ -7,6 +7,10 @@ from deal_parser import parse_deal
 
 @unittest.skipIf(os.name!='nt' and not os.environ.get('DISPLAY'),'No GUI display available')
 class TestGUI(unittest.TestCase):
+    def tearDown(self):
+        import gc
+        gc.collect()
+
     def setUp(self):
         import tempfile
         from pathlib import Path

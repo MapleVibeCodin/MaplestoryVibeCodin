@@ -46,6 +46,7 @@ class MultiShopWorker(threading.Thread):
         jobs={};version=-1;reference=None;shape=None;room=None
         active=False;deadline=0.;source_size=(1,1)
         epoch=getattr(self.frames,'loading_epoch',0)
+        burst_started=0.;header_ms=0.
 
         def names():
             values=self.get_room_names(room) if room is not None and self.get_room_names else self.get_names()
@@ -61,12 +62,13 @@ class MultiShopWorker(threading.Thread):
             active=False;rate(IDLE_CAPTURE_MS);publish(note)
 
         def begin(bgr,manual=False):
-            nonlocal room,active,deadline,jobs,reference
-            deadline=time.monotonic()+ROOM_BURST_SECONDS
+            nonlocal room,active,deadline,jobs,reference,burst_started,header_ms
+            burst_started=time.monotonic();deadline=burst_started+ROOM_BURST_SECONDS
             if not self.get_names():idle('Waiting for FM entry · no pending sellers');return
             try:room=engine.room_number(bgr)
             except Exception as exc:
                 idle('Could not read FM room header · FIND AGAIN retries');return
+            header_ms=(time.monotonic()-burst_started)*1000
             if room is None and not manual:
                 jobs={};idle('Waiting for FM room entry · header not identified');return
             jobs={key:Search(name) for key,name in names().items()}
@@ -137,6 +139,7 @@ class MultiShopWorker(threading.Thread):
             start_epoch=epoch;attempt=job.attempts
             job.attempts+=1
             self.post(('shop_note',f'FM {room or "?"} · finding {job.name}'))
+            search_started=time.monotonic()
             try:
                 engine.prepare(job.name,w)
                 hit=engine.scan(bgr,job.name,quick_only=attempt==0,cancelled=lambda:
@@ -155,4 +158,13 @@ class MultiShopWorker(threading.Thread):
                 if hit is not None and name_region_changed(bgr,new,hit.box):continue
             if hit is not None:
                 job.hit=hit;x,y,r,b=hit.box;job.patch=bgr[y:b,x:r].copy()
+            posted=time.monotonic();loading_at=getattr(self.frames,'loading_started',None)
+            self.post(('shop_timing',{'name':job.name,'found':hit is not None,'room':room,
+                'quick_pass':attempt==0,'header_ms':round(header_ms,1),
+                'recognition_ms':round((posted-search_started)*1000,1),
+                'queue_ms':round(max(0,(search_started-burst_started)*1000-header_ms),1),
+                'frame_age_ms':round(max(0,(search_started-stamp)*1000),1),
+                'burst_to_result_ms':round((posted-burst_started)*1000,1),
+                'loading_to_result_ms':round((posted-loading_at)*1000,1) if loading_at is not None else None,
+                'posted_at':posted}))
             publish(f'{sum(state.hit is not None for state in jobs.values())} matched · FM {room or "?"} entry burst')

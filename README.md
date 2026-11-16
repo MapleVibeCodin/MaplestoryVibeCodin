@@ -1,70 +1,65 @@
-# FM Rush v24.16
+# FM Rush v24.17 — trading desk
 
-Mirror the listings shown on HeneFM Deals, keep a persistent listing history, and mark matching seller names in the selected MapleStory window.
+One workspace for current HeneFM deals, purchase receipts, two seller shops and buyer cash.
 
-## Install or update
+Buyer: **Unfkabe**. Sellers: **fkable** and **unfkable**, 18 slots each. No third selling shop is assumed.
 
-For an existing installation, close FM Rush and extract this small ZIP **over the existing app folder**, choosing to replace app files. Keep `.venv` and `config.json` so dependencies and settings are reused. Run the top-level `START_FM_RUSH.bat` and confirm **v24.16**.
+## Update
 
-For future updates, close FM Rush and double-click **`UPDATE_FM_RUSH.bat`** in that folder. It downloads the compact package, backs up previous app files under `updates_backup`, and replaces only runtime files. It preserves `.venv`, `config.json`, archives, screenshot folders and purchased images. No Git or Python package reinstall is needed for ordinary updates. If an update changes the browser extension, reload it once in `brave://extensions`, then reload HeneFM. The updater follows the `improve-name-locator` branch.
+Close FM Rush and run **UPDATE_FM_RUSH.bat**, or copy the small ZIP's contents over the existing app folder. Keep `.venv` and `config.json`. Confirm app **v24.17**.
 
-For a first install, extract the ZIP, run `START_FM_RUSH.bat`, load the top-level `browser_extension` folder with **Load unpacked** in Brave's Developer mode, and reload https://henefm.com/flips/deals.
+Reload the extension from this app folder in `brave://extensions`, confirm **24.17.0**, then reload HeneFM. If your old extension points to another extracted folder, use Load unpacked on the updated `browser_extension` directory.
 
-The download excludes uploaded screenshots, replay fixtures, Python bytecode, development checks and the nested old `FM_Rush_v24_7` copy. Test data remains in the Git repository for development. Existing screenshots on your PC are never deleted by the updater.
+The package excludes personal screenshots, replay data, bytecode and the older nested app. Updates preserve local archives, installed dependencies and settings.
 
-## Listings and working selection
+## One-time setup
 
-- Browser delivery has **no profit threshold or sold-status filter**. It includes low-profit, missing-metric and displayed sold listings. HeneFM's own page filters still determine what is rendered.
-- Each listing is archived before receipt is acknowledged. Missing values remain unknown; prices are never inferred from resale values.
-- Only listings currently rendered on HeneFM form the live scan list. If the page shows two sellers, only those two can be scanned; archived names are not added. As page listings cycle out, they immediately leave the live list.
-- The current working deal stays selected for BOUGHT even if it leaves the page. It appears as one **OFF PAGE** row, excluded from OCR; other old listings remain in the archive instead of filling the queue.
-- Select a queue row to work on another listing. **DONE / NEXT DEAL** completes only the current item and selects the next pending item. Other items from the same seller remain pending.
-- **UNDO DONE** restores the last completed item, including after a restart.
-- Listing history and the working selection survive restarts. Live scan names start empty until the updated extension sends the current page. Completed items stay archived and ordinary resend does not reopen them.
-- **EXPORT ARCHIVE** saves a JSON history grouped by seller IGN, including completed listings.
+Select **Unfkabe’s game window** in the capture dropdown; seller clients may have the same MapleStory title. A different client's window will show a different room.
 
-The Windows archive is `%LOCALAPPDATA%\FM_Rush\archives\deal_archive.sqlite3`. It persists across extracted app versions. Close the old app before starting another copy.
+Open **Shops & cash → Set current buyer cash / shop setup**. Confirm Unfkabe's actual spendable cash (the form starts at **2M**) and each seller's old occupied slots that are NOT already in this ledger. Blank occupancy means unknown; no automatic shop assignment is made while it is unknown.
 
-## Purchased screenshots
+The planning defaults are a **500K cash reserve**, a warning above **20% of available cash per purchase**, and **3% estimated sale tax**. They are adjustable warnings, not hidden deal filters. Confirm the tax matches your actual setup. Collection uses actual cash received, not an inferred sale-tax result.
 
-After buying an item, select its listing in FIND NAME and click **BOUGHT · SAVE PNG / NEXT**. The app copies that listing's original screenshot into **`Downloads/Bought/`**, then completes the deal and selects the next one. All purchase PNGs share this single folder, with no seller or date subfolders. **OPEN BOUGHT** opens it for scrolling while you relist. Filenames include item, seller and purchase price; the listing image preserves the displayed stats and resale guidance.
+Old screenshots are not treated as proof that an item is still owned. To onboard existing stock, save the blank CSV template and import only currently owned items. Fields: `stock_id,item,stats,quantity,unit_cost,list_price,seller,listed_hours,slots`. Use a stable, unique stock ID where possible. Leave unknown cost or listed age blank; leave seller blank for buyer inventory. Imports do not debit current cash. Imported shop stock replaces the corresponding count of untracked old occupied slots.
 
-Keep screenshot saving enabled in the extension. If the image is missing, the app asks you to locate `FM_Rush_Item_Screenshots` (useful with a custom browser download directory); cancel to wait for capture. It remembers the chosen source folder. Missing or broken images leave the deal pending. The exact listing ID is matched, so a newer deal cannot replace the purchase screenshot. Repeating BOUGHT after UNDO DONE reuses the same file. UNDO DONE reopens the deal and keeps its purchase PNG.
+## While chasing
 
-Use extension **v24.16.0** with this update: reload it in `brave://extensions`, then reload HeneFM. Existing screenshots and archives work with this update. Purchase recording uses a manual click and does not detect game transactions.
+All listings on the current HeneFM page remain available. Archived names do not enter the scan queue. Columns show the explicit HeneFM resale price, estimated profit per holding hour, and cash/slow-turnover warnings. Sale-time estimates are heuristics, not guarantees. No CozyFM lookup is required by this workflow.
 
-## Live page connection
+Choose a deal in the Chase tab. **CHASE MODE · HIDE DESK** hides the large desk while keeping the small target strip, hotkeys and game markers active. Open it again with **OPEN TRADE DESK**.
 
-The extension sends a complete replacement of the current rendered listing set on changes, plus a heartbeat roughly every six seconds. A listing leaving the site view is removed from scans; it is not deleted from history. If the page disconnects, scan names expire after 45 seconds without a heartbeat. Archived individual deliveries cannot re-add a seller to the live list. The popup shows **Live list sent** and connection errors.
+- **Ctrl+Alt+N:** choose the next current-page deal.
+- **Ctrl+Alt+F:** explicitly retry the shop finder.
+- **Ctrl+Alt+B:** after actually buying, confirm the selected deal was purchased and advance.
 
-After this update, load this app folder's `browser_extension` in Brave (or reload the existing extension if it points to that folder). Confirm extension **24.16.0**, then reload the HeneFM tab once. Before the first live snapshot, the app scans zero archived names. An updated list does not start continuous OCR: enter a room or press FIND AGAIN as before. With multiple Deals tabs, the most recently received tab snapshot controls the live list.
+The purchase hotkey records the item, displayed numeric stats, quantity, alert Buy price, explicit HeneFM listing price and expected sale time. Quantity uses the lot count when read; otherwise it starts at one. Verify the visible quantity for bundles. If you paid a different price or bought a different quantity, use **Correct cost / qty** before listing. One receipt is retained per listing; adjust that receipt if you buy additional units from the same listing. A missing Buy price prompts for the actual paid amount; missing resale prices remain unknown rather than being reconstructed from profit.
 
-## Finding shops
+The text receipt is saved immediately. It does not wait for an image, a folder picker or a screenshot download. **Undo mistaken buy** reverses an unlisted receipt and reopens its deal. Duplicate retries do not debit cash twice, and a short debounce guards accidental double hotkeys.
 
-One worker runs a short search burst after you enter an FM room (including a channel change). Starting the locator while already inside a room also runs one burst. It reads the FM room header once, then searches only current-page pending seller IGNs for that room, plus current-page sellers with an unknown room. Channels cannot be identified from the game header, so current-page sellers from all channels for that FM number are included. Repeated items from the same seller share one search. It does not visit rooms or channels automatically.
+Screenshot saving is turned **off once on this workflow upgrade**. It can be enabled again in the extension popup; later upgrades preserve that opt-in. Existing PNGs remain untouched. The hotkey creates a text receipt, not another Bought PNG.
 
-Found sellers get a large **red box, red downward arrow and IGN label**. Ambiguous reads say **CHECK NAME** and use dashed borders; verify the seller. Overlapping candidate names share a CHECK marker. Several distinct shops can stay marked together. Static markers reuse their drawing rather than repainting the whole overlay on every timer tick.
+## Listing and stock
 
-Each entry burst has a three-second deadline, checked between inference batches. It first checks only the strongest visual candidates for each seller, using at most two visual candidates and the existing identity verification. It skips expensive recovery for absent sellers until every queued seller has had this quick sweep. It then runs full recovery for remaining names, with at most two attempts per seller. Once it finishes, **OCR stays idle until the next entry**. New listings update the live list and remain archived, but do not restart idle OCR; movement and queue selection do not restart it either. **FIND AGAIN** explicitly starts another burst. Very large queues can leave sellers unchecked within the deadline; select a seller and use FIND AGAIN to prioritize it. If the FM header cannot be read, automatic name search stays idle; FIND AGAIN can search all current-page pending sellers manually.
+Inventory shows only unsold stock by default, with stats, paid cost, suggested listing price, seller and actual listed age. Copy listing details when entering your store.
 
-OCR remains one thread with the Windows CPU affinity guard. Per-seller cooldowns are removed inside the bounded burst, so it can briefly use more of one core. Between entries, only a lightweight loading-screen watcher remains active: sparse brightness samples and reduced-rate frame copies, with no OCR. Brief black transitions are latched so an entry during inference is not lost. PAUSE stops capture entirely. Model startup and live capture add latency beyond saved-image benchmarks.
+When old occupancy is known, new receipts are assigned to the first seller with room, keeping transfer batches together. Equipment uses a slot per unit; explicit consumable lots use one listing slot. Unknown categories use conservative per-unit accounting. Imported stock can specify slots explicitly. Verify actual game slot usage.
 
-## Screenshot archive
+**Shops & cash** groups transfer batches from Unfkabe to each seller. After performing the actual transfer and listing, select the rows and click **Confirm LISTED**. Confirm multiple rows at once when appropriate. This starts their listing age; a restart or repricing does not reset the first-listed date. After at least 12 hours or twice the displayed expected sale time, items get a review reminder for the next planned visit. No automatic price cuts are made.
 
-The extension saves rendered listing cards under:
+## Sales and capital
 
-`Downloads/FM_Rush_Item_Screenshots/IGN_<seller>/YYYY-MM-DD/`
+Select only items you verified sold, then use **Confirm SOLD at list price**. This is a user confirmation, not automatic sale detection. It records estimated seller proceeds using the planning tax; it does NOT immediately increase buyer cash.
 
-One PNG is saved per unique listing, with 48-hour deduplication. Filenames include time, seller, item, channel/room, price and fingerprint. Sold entries are labelled. The extension resolves the current card position before capture and skips vanished cards rather than saving another seller's card under the wrong name.
+After the actual mesos transfer, click **Cash received from fkable/unfkable** and enter what Unfkabe really received. The amount can include proceeds from old untracked stock. Cash is credited once per recorded receipt action; the field returns to zero when tracked proceeds have been collected. Reconcile current buyer cash if actual spending, fees or sales outside the ledger caused drift.
 
-Screenshot saving defaults on; its popup toggle preserves an earlier off preference. Disable Brave's **Ask where to save each file** for automatic saving. A debugger banner may appear; avoid DevTools on the same tab. The archive stays local and can run without the Windows app. Unrendered or vanished cards cannot be captured. Existing screenshots remain in their old directories; new captures use IGN folders.
+When buyer cash is below the reserve, the desk highlights the seller with the most recorded proceeds first. Group transfers and listings into visits instead of automatically restarting both stores or cutting every stale item's price.
 
-## Timing and checks
+Ledger files are in `%LOCALAPPDATA%\FM_Rush\archives\trade_ledger.sqlite3` on Windows, alongside the existing deal archive. Export the ledger to JSON for backup or review. Sold history is hidden until requested. Actual game purchases, listings, sales and account transfers still require your action/confirmation; hotkeys do not send game inputs.
 
-The extension sends a soft-refresh signal every 1.2 seconds; HeneFM can ignore or delay it. This does not guarantee fresh site data. No private HeneFM endpoints are used and the page is not rewritten.
+## Scanner timing
 
-Development checks are available from a full Git checkout: run `TEST_LOCATOR.bat`. `benchmark_name_finder.py` measures saved-image recognition and optional simulated target-arrival CPU stress. These exclude live capture, GUI dispatch and marker drawing; live Windows behavior still needs a game-session check. `benchmark_entry_burst.py` compares warm room-entry latency against v24.11; see `benchmark_entry_v24_12.json` and `UPDATE_V24_12.txt`.
+Room-entry-only bursts, one OCR thread, a three-second deadline, current-room scoping and large red markers remain. A new page list does not run continuous OCR. The first live list can request one guarded room-entry check when already inside an FM room.
 
-Discord/OCR alerts retain the separate **15,000 mesos AND 15%** filter. Browser listings do not use it.
+**Export scanner timing** records local page-to-app delivery, room-header, search, queue, frame age and software result-to-UI timing. It does not measure HeneFM server freshness, human travel, network competition or compositor display time. A scanner cannot guarantee winning a race against other buyers; saved-image speed is not proof of live end-to-end speed.
 
-The v24.14 queue replay (`benchmark_queue_sweep.py`, `benchmark_queue_v24_14.json`) compares the same room queue against v24.13: six absent sellers before two visible sellers improved from 914 ms to 290 ms median in three warm runs. It excludes startup, live capture and GUI; live results vary. See `UPDATE_V24_14.txt`.
+Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_17.txt` for validation and limits.

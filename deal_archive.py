@@ -147,6 +147,14 @@ class DealArchive:
             self._save(key,record,following,last_completed=key)
             return True
 
+    def reopen(self,key):
+        with self.lock:
+            row=self.db.execute('SELECT data FROM listings WHERE id=?',(key,)).fetchone()
+            if row is None:return False
+            record={**json.loads(row[0]),'done':False}
+            self._save(key,record,key,last_completed=None if self.last_completed==key else _UNCHANGED)
+            return True
+
     def undo_complete(self):
         with self.lock:
             key=self.last_completed

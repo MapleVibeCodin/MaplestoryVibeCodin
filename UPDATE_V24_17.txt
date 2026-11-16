@@ -1,0 +1,60 @@
+FM RUSH v24.17 — PURCHASE-TO-SALE TRADING DESK
+
+Confirmed roles: Unfkabe buys; fkable and unfkable sell (18 slots each).
+The initial cash setup is prefilled at 2M; confirm the actual balance once.
+
+Close the app and run UPDATE_FM_RUSH.bat. Confirm app v24.17. Reload extension
+24.17.0 from the same app folder, then reload HeneFM.
+
+One Trade Desk now contains Chase, Inventory & listing, and Shops & cash.
+Legacy grid/map popouts start hidden. CHASE MODE hides the desk during races.
+Ctrl+Alt+N chooses the next live deal, Ctrl+Alt+F retries the finder, and
+Ctrl+Alt+B confirms the selected purchase and advances.
+
+Purchases become durable text receipts immediately: item, numeric stats,
+quantity, alert cost, explicit HeneFM resale price and holding-time estimate.
+Numeric stat badges are joined rather than retaining only the first label.
+Check bundle quantity; correct cost/quantity when different from the alert.
+Missing resale values stay unknown. Purchase retry is idempotent; accidental
+double-hotkey presses are debounced. An unlisted mistaken receipt can be voided.
+
+Receipts do not wait for PNGs. Automatic screenshot saving is disabled once
+on this upgrade; explicit re-enabling is supported and then remembered. Old
+screenshots are kept. The hotkey does not create an extra Bought PNG.
+
+The cash ledger separates spending, seller sale proceeds and cash actually
+received by Unfkabe. Estimated proceeds are not spendable until collection.
+Current cash can be reconciled. Warnings highlight reserve use, large purchases
+and slow estimated turnover while all current-page options remain available.
+Planning defaults: 500K reserve, 20% per-purchase warning, 3% estimated sale tax;
+edit them to match the real setup. Actual collection amount controls cash.
+
+Known shop occupancy enables assignment and grouped transfer batches. Listings
+start an age timer only after confirmation. Repricing/restarting preserves the
+original listed age; review reminders do not automatically lower prices.
+Batch-confirm verified sales and then confirm the actual cash transfer.
+
+A one-time CSV import supports CURRENTLY OWNED old stock without charging
+its historical cost against today's cash. Unknown old costs and ages stay blank.
+Screenshots alone cannot establish what remains in a store or whether it sold.
+Stock IDs make imports repeatable; identical rows retain their multiplicity.
+
+Local timing export records the software pipeline so live bottlenecks can be
+measured. It is not a claim of a guaranteed racing advantage. No game input,
+trade, purchase or store listing is automated by this version.
+
+The expanded UI has been exercised on a Linux virtual desktop. Native Windows
+global-hotkey registration, capture and actual game-session timing still need
+a Windows session to validate. Use the visible buttons if a hotkey is unavailable.
+
+Validation: the full 156-test Python suite passed 155 with one unavailable
+external fixture skipped. This included four GUI flows on a Linux virtual
+desktop, transactional accounting, duplicate/retry/undo behavior, historical
+stock import, slot accounting, whole-lot holding estimates and cash collection.
+Eight Node checks and the offline Chromium integration passed. GUI reference
+cycles are collected on the GUI test thread before later worker tests run.
+
+Choose Unfkabe's capture window: multiple MapleStory clients can have the same
+title. Timing export includes the selected HWND, live names, capture error/status
+and CPU guard along with timing records. Windows hotkeys and real competitive
+latency remain unverified; no guaranteed racing advantage is claimed.

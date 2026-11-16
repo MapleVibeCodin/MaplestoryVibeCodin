@@ -1,4 +1,4 @@
-/* FM Rush v24.16 — PASSIVE HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.17 — PASSIVE HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Does not insert, remove, style, sort, hide, click or modify ANY page element.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -154,8 +154,8 @@
       if (!/^[A-Za-z0-9_]{3,24}$/.test(ign)) continue;
       const item = itemName(card, link, lines);
       if (!item) continue;
-      const stats = lines.find(s =>
-        /\b(?:W\.DEF|M\.DEF|ATT|M\.ATT|STR|DEX|INT|LUK|ACC|AVOID|SPEED|JUMP|CDMG|CRIT)\b/i.test(s) && s.length < 170) || '';
+      const statWords=/\b(?:W\.DEF|M\.DEF|M\.ATT|ATT|STR|DEX|INT|LUK|ACC|AVOID|SPEED|JUMP|HP|MP|CDMG|CRIT)\s*[-+]?\d+(?:\s*[+-]\s*\d+)?|\b\d+\s+slots?(?:\s+\d+\s+used)?/gi;
+      const stats=[...text.split(/\bBuy\b/i)[0].matchAll(statWords)].map(m=>m[0].replace(/\s+/g,' ')).join(' · ').slice(0,160);
       const unusuallyCheap = /Unusually\s+cheap\s*:\s*check\s+it\s+is\s+still\s+there/i.test(text);
 
       // Screenshots are a separate feature and include every rendered item on
@@ -182,7 +182,7 @@
       // Mirror rendered listings exactly; profit and sold state are metadata.
       counts.parsedCards++;
       const listing_id=captureId;
-      const deal = {cc,fm,ign,item,stats:stats.slice(0,150),listing_id,sold,
+      const deal = {cc,fm,ign,item,stats:stats.slice(0,160),listing_id,sold,
         buy_mesos:buy,profit_mesos:profit?.gain??null,profit_percent:profit?.pct??null,
         unusually_cheap:unusuallyCheap,raw_text:lines.join('\n').slice(0,6000)};
       deal.id=fingerprint([listing_id,sold,deal.profit_mesos,deal.profit_percent].join('|'));
@@ -269,7 +269,7 @@
     liveSending=true;
     try {
       chrome.runtime.sendMessage({kind:'fm-rush-visible-deals',snapshot:{session:liveSession,
-        revision:++liveRevision,deals:deals.map(({id,...deal})=>deal)}},response=>{
+        revision:++liveRevision,observed_at_ms:Date.now(),deals:deals.map(({id,...deal})=>deal)}},response=>{
         liveSending=false;
         if(response?.ok && !chrome.runtime.lastError){
           liveHash=hash;liveSentAt=Date.now();

@@ -15,7 +15,7 @@ const fmCaptureFailures = new Map();
 const fmCaptureSaved = new Map();
 let fmCaptureReady = null;
 let fmCaptureRunning = false;
-let fmCaptureEnabled = true;
+let fmCaptureEnabled = false;
 let fmCaptureSavedInSession = 0;
 let fmCaptureLastSavedAt = 0;
 let fmCaptureLastError = '';
@@ -54,7 +54,7 @@ async function fmCaptureInit() {
   if (fmCaptureReady) return fmCaptureReady;
   fmCaptureReady = (async()=>{
     const state=await chrome.storage.local.get([FM_CAPTURE_SEEN_KEY, FM_CAPTURE_ENABLED_KEY]);
-    fmCaptureEnabled=state[FM_CAPTURE_ENABLED_KEY] !== false;
+    fmCaptureEnabled=state[FM_CAPTURE_ENABLED_KEY] === true;
     const previous=state[FM_CAPTURE_SEEN_KEY] || {};
     const cutoff=Date.now()-FM_CAPTURE_RETENTION_MS;
     for(const [key,when] of Object.entries(previous)){

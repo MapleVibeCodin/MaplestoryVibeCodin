@@ -22,3 +22,11 @@ if(process.argv[2]){
  console.log(matches.map(d=>`${d.item}: ${d.ign}, ${d.profit_mesos}, ${d.profit_percent}%`).join('\n'));
 }
 console.log('PASS: all visible listings, below-threshold and sold entries, numeric seller names and dedupe');
+
+cards=[card(['Test Item','Equipment · Overall','W.DEF','57','+2','M.DEF','66','INT','8','10 slots','Profit','+5.4K','39%','Buy','14K','Resell at','20K','Time to resell','about 3 h','2pro','CH 9 · FM 15'])];
+const detail=window.test.extract()[0];
+assert(detail.stats.includes('W.DEF 57 +2'),detail.stats);
+assert(detail.stats.includes('M.DEF 66'),detail.stats);
+assert(detail.stats.includes('INT 8'),detail.stats);
+assert(detail.stats.includes('10 slots'),detail.stats);
+console.log('PASS: split label/value stat badges retain full numeric details');

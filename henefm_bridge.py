@@ -85,7 +85,7 @@ class BrowserBridge:
 
             def do_GET(self):
                 if self.path == '/health':
-                    self._send(200, {'ok': True, 'name': 'FM Rush v24.16'});
+                    self._send(200, {'ok': True, 'name': 'FM Rush v24.17'});
                 else:
                     self._send(404, {'ok': False})
 
@@ -123,7 +123,12 @@ class BrowserBridge:
                         if archive is None:
                             self._send(503,{'ok':False,'error':'archive_not_ready'});return
                         try:
-                            archive.apply_visible(deals,session,revision)
+                            applied=archive.apply_visible(deals,session,revision)
+                            observed=data.get('observed_at_ms')
+                            if applied and isinstance(observed,(int,float)) and not isinstance(observed,bool) and math.isfinite(observed):
+                                import time
+                                delay=time.time()*1000-observed
+                                archive.last_feed_latency_ms=round(delay,1) if 0<=delay<60000 else None
                             out.put_nowait(('browser_visible',))
                         except (queue.Full,OSError,ValueError,sqlite3.Error):
                             self._send(503,{'ok':False,'error':'busy'});return

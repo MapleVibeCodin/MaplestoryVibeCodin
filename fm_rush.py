@@ -15,10 +15,12 @@ import re
 import threading
 import time
 import tkinter as tk
-from tkinter import messagebox, ttk, filedialog
+from tkinter import messagebox, ttk, filedialog, simpledialog
 from window_capture import windows as list_game_windows, WindowFrames
 from multi_shop_worker import MultiShopWorker
 from deal_archive import DealArchive
+from trade_ledger import TradeLedger
+from trade_hotkeys import TradeHotkeys
 from bought_screenshots import downloads_folder, save_bought_screenshot
 
 from deal_parser import parse_deal
@@ -50,6 +52,7 @@ def settings():
         'map_geom':data.get('map_geom',''),
         'shop_geom':data.get('shop_geom',''),
         'screenshot_folder':data.get('screenshot_folder',''),
+        'compact_workspace':data.get('compact_workspace',True),
         'topmost':bool(data.get('topmost',True)),
     }
 
@@ -196,10 +199,10 @@ class ShopHighlighter(tk.Toplevel):
         super().__init__(app.root)
         from shop_pin import ShopPin
         self.app=app
-        self.title('FM RUSH — FIND NAME')
+        self.title('FM RUSH — TRADE DESK')
         self.config(bg=BG)
         self.resizable(True,True)
-        self.minsize(520,340)
+        self.minsize(1000,520)
         self.attributes('-topmost',app.conf['topmost'])
         self.protocol('WM_DELETE_WINDOW',self.withdraw)
         self.last_image=None;self.last_size=None;self.last_box=None;self.last_name='';self.last_mode='SEARCHING'
@@ -209,6 +212,8 @@ class ShopHighlighter(tk.Toplevel):
         self.matches={}
         top=tk.Frame(self,bg=BG);top.pack(fill='x',padx=10,pady=(7,3))
         tk.Label(top,textvariable=self.target,bg=BG,fg=YELLOW,font=('Segoe UI',17,'bold'),anchor='w').pack(side='left',fill='x',expand=True)
+        tk.Button(top,text='CHASE MODE · HIDE DESK',command=self.withdraw,bg=CARD2,fg=FG,relief='flat').pack(side='right',padx=4)
+        tk.Button(top,text='NEXT LIVE (Ctrl+Alt+N)',command=app.next_live_deal,bg=CARD2,fg=FG,relief='flat').pack(side='right',padx=4)
         tk.Button(top,text='FIND AGAIN',command=app.retry_shop_once,bg=CARD2,fg=FG,relief='flat').pack(side='right')
         row=tk.Frame(self,bg=BG);row.pack(fill='x',padx=10,pady=3)
         self.chosen=tk.StringVar(value='');self.available=[]
@@ -219,22 +224,27 @@ class ShopHighlighter(tk.Toplevel):
         self.start_btn=tk.Button(row,text='START',command=app.toggle_shop_scan,bg=TEAL,fg=BG,relief='flat')
         self.start_btn.pack(side='left')
         tk.Label(self,textvariable=self.notice,bg=BG,fg=MUTED,font=('Segoe UI',10),wraplength=490,anchor='w',justify='left').pack(fill='x',padx=10,pady=(5,8))
-        queue_frame=tk.Frame(self,bg=BG);queue_frame.pack(fill='both',expand=True,padx=10,pady=5)
-        self.queue=ttk.Treeview(queue_frame,columns=('ign','room','item','state'),show='headings',height=5)
-        for column,label,width in [('ign','Seller IGN',120),('room','Location',100),('item','Item',220),('state','Status',55)]:
+        self.tabs=ttk.Notebook(self);self.tabs.pack(fill='both',expand=True,padx=5,pady=4)
+        hunt=ttk.Frame(self.tabs);self.tabs.add(hunt,text='Chase · current page')
+        queue_frame=tk.Frame(hunt,bg=BG);queue_frame.pack(fill='both',expand=True,padx=10,pady=5)
+        self.queue=ttk.Treeview(queue_frame,columns=('ign','room','item','list','return','state'),show='headings',height=5)
+        for column,label,width in [('ign','Seller IGN',120),('room','Location',100),('item','Item',180),('list','HeneFM list',90),('return','Est. profit / hour',110),('state','Watch',180)]:
             self.queue.heading(column,text=label);self.queue.column(column,width=width,minwidth=50)
         self.queue.pack(side='left',fill='both',expand=True)
         scroll=ttk.Scrollbar(queue_frame,orient='vertical',command=self.queue.yview)
         scroll.pack(side='right',fill='y');self.queue.configure(yscrollcommand=scroll.set)
         self.queue_rows={}
         self.queue.bind('<<TreeviewSelect>>',self.select_queue)
-        buttons=tk.Frame(self,bg=BG);buttons.pack(fill='x',padx=10,pady=(0,8))
+        buttons=tk.Frame(hunt,bg=BG);buttons.pack(fill='x',padx=10,pady=(0,8))
         tk.Button(buttons,text='EXPORT ARCHIVE',command=app.export_archive,bg=CARD2,fg=FG,relief='flat').pack(side='left')
-        tk.Button(buttons,text='UNDO DONE',command=app.undo_deal,bg=CARD2,fg=FG,relief='flat').pack(side='left',padx=8)
-        tk.Button(buttons,text='DONE / NEXT DEAL',command=app.complete_deal,bg=TEAL,fg=BG,relief='flat').pack(side='right')
+        tk.Button(buttons,text='REOPEN LAST DEAL',command=app.undo_deal,bg=CARD2,fg=FG,relief='flat').pack(side='left',padx=8)
+        tk.Button(buttons,text='SKIP DEAL',command=app.complete_deal,bg=TEAL,fg=BG,relief='flat').pack(side='right')
         purchases=tk.Frame(self,bg=BG);purchases.pack(fill='x',padx=10,pady=(0,8))
-        tk.Button(purchases,text='OPEN BOUGHT',command=app.open_bought_folder,bg=CARD2,fg=FG,relief='flat').pack(side='left')
-        tk.Button(purchases,text='BOUGHT · SAVE PNG / NEXT',command=app.bought_deal,bg=YELLOW,fg=BG,relief='flat').pack(side='right')
+        tk.Label(purchases,text='Bought qty:',bg=BG,fg=FG).pack(side='left',padx=5)
+        ttk.Spinbox(purchases,from_=1,to=999,textvariable=app.buy_quantity,width=4).pack(side='left')
+        tk.Button(purchases,text='BOUGHT · LOG / NEXT (Ctrl+Alt+B)',command=app.log_purchase,bg=YELLOW,fg=BG,relief='flat').pack(side='right')
+        from trade_desk import TradePanels
+        self.trade_panels=TradePanels(app,self.tabs)
         self.refresh_windows()
 
     def render_queue(self,rows,focus,names):
@@ -242,7 +252,13 @@ class ShopHighlighter(tk.Toplevel):
         updated={}
         for key,deal in rows:
             location=f"CH {deal['cc'] or '?'} / FM {deal['fm'] or '?'}"
-            values=(deal['ign'],location,deal['item'],'OFF PAGE' if deal.get('off_page') else ('SOLD' if deal.get('sold') else ''))
+            from deal_parser import Deal
+            from profit_filter import ProfitDecision
+            from trade_desk import money
+            live_deal=Deal(**{**{k:v for k,v in deal.items() if k!='off_page'},'profit':ProfitDecision(**deal['profit'])})
+            estimate=self.app.ledger.recommendation(live_deal)
+            watch='OFF PAGE' if deal.get('off_page') else ('SOLD' if deal.get('sold') else '; '.join(estimate['notes']))
+            values=(deal['ign'],location,deal['item'],money(estimate['list_price']),money(estimate['profit_per_hour']),watch)
             updated[key]=values
             if key not in self.queue_rows:self.queue.insert('', 'end',iid=key,values=values)
             elif self.queue_rows[key]!=values:self.queue.item(key,values=values)
@@ -254,7 +270,7 @@ class ShopHighlighter(tk.Toplevel):
         self.queue_focus=focus
         off_page=' (off page)' if any(key==focus and deal.get('off_page') for key,deal in rows) else ''
         self.target.set(f'{len(names)} live sellers · working on {self.last_name or "none"}{off_page}')
-        if not names:self.notice.set('No live sellers · reload extension v24.16 and the HeneFM tab if needed.')
+        if not names:self.notice.set('No live sellers · reload extension v24.17 and the HeneFM tab if needed.')
         self.matches={name:hit for name,hit in self.matches.items() if name in names}
         if self.last_size and self.app.shop_running:self.pin.show_many(self.selected_hwnd(),self.last_size,self.matches)
 
@@ -325,7 +341,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.16 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.17 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -339,6 +355,7 @@ class FMApp:
         self.ign=tk.StringVar(value='IGN: —')
         self.profit=tk.StringVar(value='PROFIT: —')
         self.buy=tk.StringVar(value='BUY AT: —')
+        self.buy_quantity=tk.StringVar(value='1')
         self.status=tk.StringVar(value=FILTER_LABEL+'  •  No alert yet')
         self.manual=tk.StringVar(value='CC 22 FM 13')
         self.events=queue.Queue()
@@ -362,6 +379,8 @@ class FMApp:
         self.shop_paused=False
         self.displayed_listing=None
         self.archive=DealArchive(ARCHIVE_DIR/'deal_archive.sqlite3')
+        self.ledger=TradeLedger(ARCHIVE_DIR/'trade_ledger.sqlite3')
+        self.latency_history=[]
         self.shop_events=queue.Queue(maxsize=3)
         self._pending_after=set()
         self._closing=False
@@ -379,7 +398,9 @@ class FMApp:
             self.map.geometry(self.conf['map_geom'])
         else:
             self.snap()
-        self.shop.geometry('680x390+300+110')
+        self.shop.geometry('1100x650+300+110')
+        if self.conf.get('compact_workspace',True):
+            self.grid.withdraw();self.map.withdraw()
         self.sync_archive()
         self.schedule(35,self.pump)
         try:
@@ -389,6 +410,8 @@ class FMApp:
         except OSError as exc:
             self.status.set('HeneFM bridge not available: '+str(exc)[:100]+' • Discord OCR still works')
         if not self.web_only:self.schedule(0,self.try_start_shop)
+        self.trade_keys=TradeHotkeys(self.events.put_nowait);self.trade_keys.start()
+        self.schedule(30000,self.refresh_trade_panels)
 
     def schedule(self, delay, callback):
         if self._closing:return
@@ -600,6 +623,9 @@ class FMApp:
         key,deal=current if current else (None,None)
         if key!=self.displayed_listing:
             self.displayed_listing=key
+            if deal is not None and hasattr(self,'buy_quantity'):
+                from trade_ledger import quote
+                self.buy_quantity.set(str(quote(deal.raw_text)['offered_quantity'] or 1))
             if deal is not None:
                 if deal.cc is not None and deal.fm is not None:
                     self.set_target(deal.cc,deal.fm,deal=deal,source='ARCHIVE')
@@ -624,6 +650,54 @@ class FMApp:
         if path:
             try:self.archive.export_json(path);self.status.set('Archive saved: '+path)
             except OSError as exc:messagebox.showerror('Archive export',str(exc))
+
+    def next_live_deal(self):
+        rows=self.archive.live_pending()
+        if not rows:
+            self.status.set('No current-page deals to switch to.');return
+        keys=[key for key,_ in rows]
+        index=(keys.index(self.archive.focus)+1)%len(keys) if self.archive.focus in keys else 0
+        self.archive.select(keys[index]);self.sync_archive()
+
+    def refresh_trade_panels(self):
+        if self._closing:return
+        if self.shop is not None and self.shop.winfo_exists():self.shop.trade_panels.refresh()
+        self.schedule(30000,self.refresh_trade_panels)
+
+    def export_latency(self):
+        path=filedialog.asksaveasfilename(defaultextension='.json',initialfile='FM_Rush_Scan_Timings.json')
+        if path:
+            Path(path).write_text(json.dumps({'scope':'Local page delivery and software room-entry stages; excludes HeneFM server freshness, human travel and compositor display latency.',
+                'live_names':list(self.scan_names),'selected_ign':self.shop_target,
+                'capture_hwnd':self.shop.selected_hwnd() if self.shop is not None else None,
+                'capture_error':getattr(self.shop_frames,'error',''),
+                'status':self.shop.notice.get() if self.shop is not None else '',
+                'cpu_guard':CPU_GUARD_MESSAGE,'latest':self.latency_history},indent=2)+'\n',encoding='utf-8')
+
+    def log_purchase(self):
+        if time.monotonic()-getattr(self,'last_receipt_at',float('-inf'))<.5:return
+        current=self.archive.current()
+        if current is None:
+            self.status.set('Choose the deal you bought before using Ctrl+Alt+B.');return
+        key,deal=current
+        try:
+            quantity=int(self.shop.trade_panels.quantity.get()) if self.shop is not None else 1
+            paid=None
+            if deal.buy_mesos is None:
+                paid=simpledialog.askstring('Price paid','The alert has no Buy price. Enter the actual unit price paid:')
+                if paid is None:return
+            receipt,new=self.ledger.purchase(key,deal,quantity=quantity,unit_cost=paid)
+            self.archive.complete_current()
+        except (ValueError,OSError) as exc:
+            messagebox.showerror('Purchase not logged',str(exc));return
+        except Exception as exc:
+            messagebox.showerror('Purchase recording needs retry',str(exc)+'\nRetrying will not double-charge a recorded receipt.');return
+        self.last_receipt_at=time.monotonic()
+        self.sync_archive()
+        if self.shop is not None and self.shop.winfo_exists():
+            self.shop.trade_panels.refresh()
+        price='—' if receipt['list_price'] is None else f"{receipt['list_price']:,}"
+        self.status.set(f"RECORDED {quantity} × {receipt['item']} · paid {receipt['unit_cost']:,} each · list {price} · seller {receipt['target_store'] or 'unassigned'}")
 
     def bought_deal(self):
         current=self.archive.current()
@@ -812,7 +886,13 @@ class FMApp:
         for _ in range(20):
             try:evt=self.events.get_nowait()
             except queue.Empty:break
-            if evt[0]=='browser_visible':
+            if evt[0]=='trade_buy':
+                self.log_purchase()
+            elif evt[0]=='trade_next':
+                self.next_live_deal()
+            elif evt[0]=='trade_find':
+                self.retry_shop_once()
+            elif evt[0]=='browser_visible':
                 self.sync_archive()
                 self.status.set('HeneFM live page · '+str(len(self.scan_names))+' sellers to scan')
             elif evt[0]=='browser_deal':
@@ -851,6 +931,11 @@ class FMApp:
             elif evt[0]=='shop_clear':
                 if evt[1]==(self.shop_target,self.shop_generation) and self.shop is not None:
                     self.shop.set_target(self.shop_target,force=True)
+            elif evt[0]=='shop_timing':
+                timing={**evt[1]}
+                timing['burst_to_ui_request_ms']=round(timing['burst_to_result_ms']+max(0,time.monotonic()-timing.pop('posted_at'))*1000,1)
+                timing['local_page_to_app_ms']=getattr(self.archive,'last_feed_latency_ms',None)
+                self.latency_history.append(timing);self.latency_history=self.latency_history[-200:]
             elif evt[0]=='shop_note':
                 if self.shop_running and self.shop is not None and self.shop.winfo_exists():
                     self.shop.notice.set(evt[1])
@@ -898,6 +983,8 @@ class FMApp:
         if self.shop is not None:
             self.shop.pin.close()
         self.archive.close()
+        if hasattr(self,'trade_keys'):self.trade_keys.close()
+        if hasattr(self,'ledger'):self.ledger.close()
         self.root.destroy()
 
 

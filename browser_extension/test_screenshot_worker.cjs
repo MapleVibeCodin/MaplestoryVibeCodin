@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const operations=[];
-const saved={};
+const saved={fmRushScreenshotEnabled:true};
 let currentCard=null;
 const chrome={
   storage:{local:{async get(keys){const kk=typeof keys==='string'?[keys]:Array.isArray(keys)?keys:Object.keys(keys);return Object.fromEntries(kk.map(k=>[k,saved[k]]));}, async set(values){Object.assign(saved,values);}}},

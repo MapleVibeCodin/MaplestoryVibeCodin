@@ -1,5 +1,5 @@
 importScripts('screenshot_worker.js');
-/* FM Rush v24.16: local deal bridge + Chrome alarm liveness check.
+/* FM Rush v24.17: local deal bridge + Chrome alarm liveness check.
  * Does not fetch HeneFM URLs, use HeneFM APIs, or edit the website.
  */
 const HEALTH_ALARM = 'fm-rush-health-v243';
@@ -11,9 +11,13 @@ async function ensureHealthAlarm() {
 }
 chrome.runtime.onInstalled.addListener(async () => {
   await chrome.storage.local.set({fmRushIntervalMs:1200,fmRushBackupReload:false});
-  // Screenshot archiver defaults ON; a saved OFF preference is preserved.
-  const saved = await chrome.storage.local.get('fmRushScreenshotEnabled');
-  if(saved.fmRushScreenshotEnabled===undefined)await chrome.storage.local.set({fmRushScreenshotEnabled:true});
+  // Trading records replace screenshot spam. Reset once on this workflow upgrade;
+  // a later explicit opt-in is preserved across subsequent extension reloads.
+  const saved=await chrome.storage.local.get('fmRushTextWorkflowV2417');
+  if(!saved.fmRushTextWorkflowV2417){
+    await chrome.storage.local.set({fmRushTextWorkflowV2417:true,fmRushScreenshotEnabled:false});
+    await fmCaptureSetEnabled(false);
+  }
   await ensureHealthAlarm();
 });
 chrome.runtime.onStartup.addListener(ensureHealthAlarm);

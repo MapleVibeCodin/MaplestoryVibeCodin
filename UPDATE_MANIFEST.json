@@ -1,5 +1,5 @@
 {
-  "version": "v24.16",
+  "version": "v24.17",
   "files": [
     "INSTALL_FAST_OCR.bat",
     "ITEM_PRICE_LOOKUP.bat",
@@ -16,6 +16,7 @@
     "UPDATE_V24_14.txt",
     "UPDATE_V24_15.txt",
     "UPDATE_V24_16.txt",
+    "UPDATE_V24_17.txt",
     "UPDATE_V24_4.txt",
     "UPDATE_V24_5.txt",
     "UPDATE_V24_6.txt",
@@ -57,6 +58,9 @@
     "scan_budget.py",
     "shop_pin.py",
     "snapshot_ocr.py",
+    "trade_desk.py",
+    "trade_hotkeys.py",
+    "trade_ledger.py",
     "update_fm_rush.py",
     "window_capture.py"
   ]

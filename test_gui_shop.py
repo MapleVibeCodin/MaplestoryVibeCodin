@@ -10,6 +10,10 @@ from PIL import Image
 
 @unittest.skipIf(os.name!='nt' and not os.environ.get('DISPLAY'),'No GUI display available')
 class TestShopUI(unittest.TestCase):
+    def tearDown(self):
+        import gc
+        gc.collect()
+
     def setUp(self):
         import tempfile
         from pathlib import Path
