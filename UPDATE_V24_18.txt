@@ -1,0 +1,25 @@
+FM RUSH v24.18 — UPLOADED SCREENSHOT READER FIXES
+
+Close FM Rush and run UPDATE_FM_RUSH.bat. Confirm app v24.18.
+The browser extension remains 24.17.0; this is a desktop reader update.
+The compact runtime download excludes uploaded screenshots and test fixtures.
+
+Fixes target matching for case variations, cropped viewport scales, selected
+name tags and narrowly defined OCR glyph ambiguities. Small cleaned name strips
+provide bounded recovery; no whole-screen OCR or extra OCR threads are added.
+The quick pass also retries promising proposals at full recognition width.
+Clipped minimap headers can identify a bracketed Market room number.
+
+Replay coverage checks all 17 latest uploaded screenshots against actual
+in-game name-label coordinates, excluding browser seller text. Ambiguous or
+obscured names produce CHECK NAME markers, never an exact-identity claim.
+This is screenshot replay validation, not a measured Windows racing advantage.
+Some difficult names still require the slower recovery pass.
+
+Current-page queues, purchase receipts and trading-desk data are preserved.
+No new screenshot-saving behavior is introduced.
+
+Validation: full 158-test suite passed 157 tests with one unavailable external
+fixture skipped, including GUI flows on a Linux virtual desktop. Additional
+clipped-header confidence and range checks passed. Native Windows capture
+and live game latency still require a Windows session.

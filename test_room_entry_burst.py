@@ -37,10 +37,13 @@ class RoomHeaderTests(unittest.TestCase):
             def __call__(self,crops):return self.reads,0
         f.recognizer=Recognition();image=np.full((600,1000,3),140,np.uint8)
         for reads in [[('Free Market',.99)],[('Hidden Street 9',.99)],
-                      [('Free Market<21>',.99)],[('Free Market<9>',.4)]]:
+                      [('Free Market<21>',.99)],[('Free Market<9>',.4)],
+                      [('Market 13',.99)],[('Market<21>',.99)],[('Market<13>',.4)]]:
             f.recognizer.reads=reads
             self.assertIsNone(f.room_number(image))
         f.recognizer.rec_image_shape=[3,48,999]
+        f.recognizer.reads=[('Market<13>',.9)]
+        self.assertEqual(f.room_number(image),13)
         f.recognizer.reads=[('Free Market<9>',.9)]
         self.assertEqual(f.room_number(image),9)
         self.assertEqual(f.recognizer.rec_image_shape,[3,48,999])

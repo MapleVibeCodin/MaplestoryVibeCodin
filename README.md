@@ -1,4 +1,4 @@
-# FM Rush v24.17 — trading desk
+# FM Rush v24.18 — reader recovery
 
 One workspace for current HeneFM deals, purchase receipts, two seller shops and buyer cash.
 
@@ -6,7 +6,7 @@ Buyer: **Unfkabe**. Sellers: **fkable** and **unfkable**, 18 slots each. No thir
 
 ## Update
 
-Close FM Rush and run **UPDATE_FM_RUSH.bat**, or copy the small ZIP's contents over the existing app folder. Keep `.venv` and `config.json`. Confirm app **v24.17**.
+Close FM Rush and run **UPDATE_FM_RUSH.bat**, or copy the small ZIP's contents over the existing app folder. Keep `.venv` and `config.json`. Confirm app **v24.18**.
 
 Reload the extension from this app folder in `brave://extensions`, confirm **24.17.0**, then reload HeneFM. If your old extension points to another extracted folder, use Load unpacked on the updated `browser_extension` directory.
 
@@ -62,4 +62,4 @@ Room-entry-only bursts, one OCR thread, a three-second deadline, current-room sc
 
 **Export scanner timing** records local page-to-app delivery, room-header, search, queue, frame age and software result-to-UI timing. It does not measure HeneFM server freshness, human travel, network competition or compositor display time. A scanner cannot guarantee winning a race against other buyers; saved-image speed is not proof of live end-to-end speed.
 
-Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_17.txt` for validation and limits.
+Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_18.txt` for validation and limits.

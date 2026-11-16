@@ -19,20 +19,28 @@ def confusable(s):
 
 
 @lru_cache(maxsize=24)
-def templates(target,width):
+def templates(target,width,expand_case=False):
     font=ImageFont.truetype(str(Path(__file__).with_name('assets')/'name_font.ttf'),12)
-    bounds=font.getbbox(target)
-    canvas=Image.new('L',(bounds[2]-bounds[0]+6,bounds[3]-bounds[1]+6),0)
-    ImageDraw.Draw(canvas).text((3-bounds[0],3-bounds[1]),target,font=font,fill=255)
-    base=np.array(canvas)
-    scales=(1.,width/1280,width/1280*1.04,width/1366,width/1366*1.04)
+    names=[target]
+    if target[:1] in ('I','i','l','L'):
+        names.extend(char+target[1:] for char in ('I','i','l'))
+    if expand_case:
+        names.extend([target.lower(),target.upper(),target.title()])
+        names.extend(target[:i]+char.swapcase()+target[i+1:] for i,char in enumerate(target) if char.isalpha())
+    scales=((1.,1.04,1366/1280) if width<1024 else (1.,))+(width/1280,width/1280*1.04,width/1366,width/1366*1.04)
     result=[];seen=set()
-    for scale in scales:
-        scale=max(.5,min(1.6,scale))
-        w=max(8,round(base.shape[1]*scale));h=max(7,round(base.shape[0]*scale))
-        if (w,h) in seen:continue
-        seen.add((w,h))
-        result.append(cv2.resize(base,(w,h),interpolation=cv2.INTER_AREA if scale<1 else cv2.INTER_CUBIC))
+    for name in dict.fromkeys(names):
+        bounds=font.getbbox(name)
+        canvas=Image.new('L',(bounds[2]-bounds[0]+6,bounds[3]-bounds[1]+6),0)
+        ImageDraw.Draw(canvas).text((3-bounds[0],3-bounds[1]),name,font=font,fill=255)
+        base=np.array(canvas)
+        for scale in scales:
+            scale=max(.5,min(1.6,scale))
+            w=max(8,round(base.shape[1]*scale));h=max(7,round(base.shape[0]*scale))
+            key=(name,w,h)
+            if key in seen:continue
+            seen.add(key)
+            result.append(cv2.resize(base,(w,h),interpolation=cv2.INTER_AREA if scale<1 else cv2.INTER_CUBIC))
     return tuple(result)
 
 
@@ -64,6 +72,8 @@ class NameFinder:
                 reads,_=self.recognizer([crop])
                 for text,confidence in reads:
                     found=re.search(r'fre[e]?\s*market\s*[<(\[]?\s*([0-9OIlg]{1,2})\s*[>)\]]?',text,re.I)
+                    if not found:
+                        found=re.search(r'\bmarket\s*[<(\[]\s*([0-9OIlg]{1,2})\s*[>)\]]',text,re.I)
                     if found and confidence>=.65:
                         value=found[1].lower().translate(str.maketrans({'o':'0','i':'1','l':'1','g':'9'}))
                         try:number=int(value)
@@ -75,7 +85,7 @@ class NameFinder:
     def prepare(self,target,width=1366):
         templates(target,width)
 
-    def _candidates(self,bgr,target,dark=False,fast=False,min_score=.56,limit=6,peak_limit=24,cache=None):
+    def _candidates(self,bgr,target,dark=False,fast=False,min_score=.56,limit=6,peak_limit=24,cache=None,expand_case=False):
         h,w=bgr.shape[:2]
         # Search from the top: camera scroll can put nameplates above 12% height.
         top=0;bottom=round(h*.92)
@@ -91,11 +101,12 @@ class NameFinder:
             cache['small',dark]=cv2.resize(feature,None,fx=.5,fy=.5,interpolation=cv2.INTER_AREA)
         small=cache.get(('small',dark))
         proposals=[]
-        for template in templates(target,w):
+        for template in templates(target,w,expand_case):
             th,tw=template.shape
             if th>feature.shape[0] or tw>feature.shape[1]:continue
             if fast:
-                peak_key=('peaks',dark,template.shape)
+                template_key=(template.shape,template.tobytes())
+                peak_key=('peaks',dark,template_key)
                 if peak_key not in cache:
                     mini=cv2.resize(template,None,fx=.5,fy=.5,interpolation=cv2.INTER_AREA)
                     scores=cv2.matchTemplate(small,mini,cv2.TM_CCOEFF_NORMED)
@@ -104,7 +115,7 @@ class NameFinder:
                     order=np.argsort(scores[ys,xs])[-96:][::-1]
                     cache[peak_key]=[(int(xs[j])*2,int(ys[j])*2) for j in order]
                 for x,y in cache[peak_key][:peak_limit]:
-                    refinement_key=('refined',dark,template.shape,x,y)
+                    refinement_key=('refined',dark,template_key,x,y)
                     if refinement_key not in cache:
                         l=max(0,x-4);t=max(0,y-4)
                         patch=feature[t:min(feature.shape[0],y+th+5),l:min(w,x+tw+5)]
@@ -182,10 +193,116 @@ class NameFinder:
                        confidence>=.85 and tight_confidence>=.85 and len(wanted)>=5)
                 mode='EXACT'
             if valid:matches.append(Hit(text.strip(),box,float(score),mode))
+        if not matches:matches=self._recover_read(bgr,target,candidates,words,dark)
+        return matches
+
+    def _recover_read(self,bgr,target,candidates,words,dark):
+        """Retry a few name strips, preserving CHECK for unresolved glyphs.
+
+        Edit distance gates extra recognition work only. Acceptance requires
+        repeated whole-name reads or one of the explicit ambiguity classes;
+        a nearby spelling is never accepted solely by edit distance.
+        """
+        wanted=norm(target)
+        if getattr(self.recognizer,'rec_image_shape',[3,48,0])[2]<320:return []
+        cache=getattr(self,'_recovery_cache',{})
+        def distance(a,b):
+            row=list(range(len(b)+1))
+            for i,char in enumerate(a,1):
+                nxt=[i]
+                for j,other in enumerate(b,1):nxt.append(min(nxt[-1]+1,row[j]+1,row[j-1]+(char!=other)))
+                row=nxt
+            return row[-1]
+        matches=[]
+        for (score,box),(text,confidence) in zip(candidates,words):
+            key=(box,dark,round(score,2))
+            if key in cache:
+                if cache[key] is not None:matches.append(cache[key])
+                continue
+            x,y,r,b=box;read=norm(text);patch=bgr[y:b,x:r]
+            selected=False
+            if dark and patch.size:
+                colors=patch.astype(np.int16);level=float(np.median(colors))
+                blue=np.mean((colors[:,:,0]>colors[:,:,2]+20)&(colors[:,:,1]>colors[:,:,2]+10))
+                selected=100<level<220 and blue>.08 and np.mean(np.ptp(colors,axis=2)<35)>.35
+            minimum=.56 if len(wanted)<5 and selected else .70 if len(wanted)<5 else .60
+            if confidence<.80 or score<minimum:continue
+            bound=3 if len(wanted)>=6 and score>=.64 else 2
+            if abs(len(read)-len(wanted))>1 or distance(wanted,read)>bound:continue
+            if len(read)>len(wanted) and not (read[0] in 'il1' and read[1:]==wanted):continue
+            contexts=[norm(c['text']) for c in self.last_diagnostic['candidates']
+                      if c['variant']=='context' and c['ocr_confidence']>=.90 and
+                      abs((c['box'][0]+c['box'][2])-(x+r))<6 and abs(c['box'][1]-y)<3]
+            partial=(len(wanted)>=6 and score>=.74 and wanted[0] in 'fijl' and contexts.count(wanted[1:])>=2)
+            joined=(score>=.74 and wanted.startswith(('iv','lv')) and any(contexts.count(v)>=2 for v in
+                    ('w'+wanted[2:],'iw'+wanted[2:],'lw'+wanted[2:])))
+            stray=(len(wanted)>=6 and score>=.64 and any(contexts.count(c+wanted)>=2 for c in 'il1'))
+            if partial or joined or stray:
+                hit=Hit(text.strip(),box,float(score),'CHECK');cache[key]=hit;matches.append(hit);continue
+            crops=[]
+            for vp in (1,2,3):
+                if b-y-2*vp<9:continue
+                for hp,threshold in [(0,180),(2,210)]:
+                    sample=bgr[y+vp:b-vp,max(0,x-hp):min(bgr.shape[1],r+hp)]
+                    gray=cv2.cvtColor(sample,cv2.COLOR_BGR2GRAY)
+                    mask=cv2.threshold(gray,threshold if not dark else 110,255,cv2.THRESH_BINARY)[1]
+                    if not dark:mask=255-mask
+                    mask=cv2.resize(mask,None,fx=3,fy=3,interpolation=cv2.INTER_CUBIC)
+                    crops.append(cv2.cvtColor(mask,cv2.COLOR_GRAY2BGR))
+            if len(read)>len(wanted) and read[0] in 'il1':
+                for inset in (2,3):
+                    sample=bgr[y+2:b-2,x+inset:r]
+                    if sample.size:crops.append(cv2.resize(255-sample if not dark else sample,None,fx=3,fy=3,interpolation=cv2.INTER_CUBIC))
+            if not crops:continue
+            reads,_=self.recognizer(crops)
+            for value,certainty in reads:
+                self.last_diagnostic['candidates'].append({'text':value,'variant':'clean-strip',
+                    'ocr_confidence':float(certainty),'visual_score':round(score,3),'box':box})
+            confident=[norm(value) for value,certainty in reads if certainty>=(.95 if len(wanted)<5 else .90)]
+            hit=None
+            if confident.count(wanted)>=2:
+                hit=Hit(target,box,float(score),'CONFUSABLE')
+            elif len(wanted)>=5 and score>=.66 and sum(confusable(value)==confusable(wanted) for value in confident)>=2:
+                hit=Hit(target,box,float(score),'CONFUSABLE')
+            if hit is None and selected and 4<=len(wanted)<=8 and wanted.startswith(('vl','vi')):
+                merged='m'+wanted[2:];partial_word='v'+wanted[2:]
+                seen=[norm(c['text']) for c in self.last_diagnostic['candidates'] if c['variant']=='context'
+                      and c['ocr_confidence']>=.84 and abs(c['box'][0]-x)<3 and abs(c['box'][1]-y)<3]
+                clean=[norm(value) for value,certainty in reads if certainty>=.80]
+                if seen.count(merged)>=2 and clean.count(partial_word)>=2:
+                    hit=Hit(text.strip(),box,float(score),'CHECK')
+            if hit is None and len(wanted)>=6 and score>=.66:
+                for value in set(confident):
+                    if confident.count(value)<2 or len(value)!=len(wanted):continue
+                    differences=[{a,z} for a,z in zip(wanted,value) if a!=z]
+                    if len(differences)==1 and differences[0] in ({'0','u'},{'0','o'}):
+                        hit=Hit(value,box,float(score),'CHECK');break
+            # A missing narrow first glyph or a merged leading l/I+v remains
+            # a CHECK candidate, never an exact identity claim.
+            context_reads=[norm(c['text']) for c in self.last_diagnostic['candidates']
+                           if c['box']==box and c['variant']=='context' and c['ocr_confidence']>=.90]
+            if hit is None and score>=.74:
+                narrow=(len(wanted)>=6 and wanted[0] in 'fijl' and context_reads.count(wanted[1:])>=2)
+                joined=(wanted.startswith(('iv','lv')) and context_reads.count('w'+wanted[2:])>=2)
+                if narrow or joined:hit=Hit(text.strip(),box,float(score),'CHECK')
+            if hit is None and len(wanted)>=6 and score>=.64:
+                observed=[norm(c['text']) for c in self.last_diagnostic['candidates']
+                          if c['variant']=='context' and c['ocr_confidence']>=.84 and
+                          abs((c['box'][0]+c['box'][2])-(x+r))<12 and abs(c['box'][1]-y)<4]
+                canonical=confusable(wanted)
+                for value in set(observed):
+                    other=confusable(value)
+                    if observed.count(value)<2 or len(other)!=len(canonical):continue
+                    differences=[{a,z} for a,z in zip(canonical,other) if a!=z]
+                    if 1<=len(differences)<=2 and all(pair=={'o','n'} for pair in differences):
+                        hit=Hit(value,box,float(score),'CHECK');break
+            cache[key]=hit
+            if hit is not None:matches.append(hit)
         return matches
 
     def scan(self,bgr,target,cancelled=None,fast_only=False,quick_only=False):
         started=time.perf_counter()
+        self._recovery_cache={}
         self.last_diagnostic={'method':'coarse proposals + full-resolution verification','target':target,'candidates':[]}
         if not target or not (3<=len(target)<=24):return None
         if cancelled is not None and cancelled():
@@ -194,10 +311,13 @@ class NameFinder:
             # A cheap sweep across the queue must not spend recovery OCR on
             # absent sellers before reaching a clearly visible one.
             candidates=self._candidates(bgr,target,dark=False,fast=True,
-                min_score=.66,limit=2,peak_limit=24)
+                min_score=.60,limit=2,peak_limit=24)
             if cancelled is not None and cancelled():return None
             self.recognizer.rec_image_shape=[3,48,160]
             matches=self._verify(bgr,target,candidates,dark=False)
+            if not matches and candidates and not (cancelled is not None and cancelled()):
+                self.recognizer.rec_image_shape=[3,48,320]
+                matches=self._verify(bgr,target,candidates,dark=False)
             self.last_diagnostic.update(method='strong-candidate queue sweep',
                 elapsed_ms=round((time.perf_counter()-started)*1000,1))
             return matches[0] if len(matches)==1 else None
@@ -240,6 +360,13 @@ class NameFinder:
                     matches=verify(candidates,dark,320)
                 if matches:break
             if matches:break
+        if not matches and not fast_only:
+            for dark in (False,True):
+                if cancelled is not None and cancelled():return None
+                candidates=self._candidates(bgr,target,dark=dark,fast=True,min_score=.56,
+                    limit=6,peak_limit=96,expand_case=True,cache={})
+                matches=verify(candidates,dark,320)
+                if matches:break
         self.last_diagnostic['elapsed_ms']=round((time.perf_counter()-started)*1000,1)
         if len(matches)!=1:return None
         return matches[0]
