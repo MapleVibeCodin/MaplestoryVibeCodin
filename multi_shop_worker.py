@@ -135,7 +135,7 @@ class MultiShopWorker(threading.Thread):
             self.post(('shop_note',f'FM {room or "?"} · finding {job.name}'))
             try:
                 engine.prepare(job.name,w)
-                hit=engine.scan(bgr,job.name,fast_only=attempt==0,cancelled=lambda:
+                hit=engine.scan(bgr,job.name,quick_only=attempt==0,cancelled=lambda:
                     self.stop.is_set() or time.monotonic()>=deadline or
                     getattr(self.frames,'loading_epoch',start_epoch)!=start_epoch or key not in names())
             except Exception as exc:

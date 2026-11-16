@@ -1,4 +1,4 @@
-# FM Rush v24.13
+# FM Rush v24.14
 
 Mirror the listings shown on HeneFM Deals, keep a persistent deal queue, and mark matching seller names in the selected MapleStory window.
 
@@ -7,7 +7,7 @@ Mirror the listings shown on HeneFM Deals, keep a persistent deal queue, and mar
 1. Close the old FM Rush app. Extract the new ZIP into a fresh folder.
 2. In `brave://extensions`, disable/remove the old FM Rush extension. Enable Developer mode, choose **Load unpacked**, and select the new top-level `browser_extension` folder.
 3. Reload https://henefm.com/flips/deals.
-4. Run the top-level `START_FM_RUSH.bat`. Confirm **v24.13** in the title and select MapleStory in FIND NAME.
+4. Run the top-level `START_FM_RUSH.bat`. Confirm **v24.14** in the title and select MapleStory in FIND NAME.
 
 Use the launcher at the ZIP's top level; the nested `FM_Rush_v24_7` directory is an older copy. Dependencies and extension permissions have not changed.
 
@@ -37,7 +37,7 @@ One worker runs a short search burst after you enter an FM room (including a cha
 
 Found sellers get a large **red box, red downward arrow and IGN label**. Ambiguous reads say **CHECK NAME** and use dashed borders; verify the seller. Overlapping candidate names share a CHECK marker. Several distinct shops can stay marked together. Static markers reuse their drawing rather than repainting the whole overlay on every timer tick.
 
-Each entry burst has a three-second deadline, checked between inference batches. It tries a fast pass for each seller before recovery passes, with at most two attempts per seller. Once it finishes, **OCR stays idle until the next entry**. New listings remain archived and do not restart idle OCR; movement and queue selection do not restart it either. **FIND AGAIN** explicitly starts another burst. Very large queues can leave sellers unchecked within the deadline; select a seller and use FIND AGAIN to prioritize it. If the FM header cannot be read, automatic name search stays idle; FIND AGAIN can search all pending sellers manually.
+Each entry burst has a three-second deadline, checked between inference batches. It first checks only the strongest visual candidates for each seller, using at most two visual candidates and the existing identity verification. It skips expensive recovery for absent sellers until every queued seller has had this quick sweep. It then runs full recovery for remaining names, with at most two attempts per seller. Once it finishes, **OCR stays idle until the next entry**. New listings remain archived and do not restart idle OCR; movement and queue selection do not restart it either. **FIND AGAIN** explicitly starts another burst. Very large queues can leave sellers unchecked within the deadline; select a seller and use FIND AGAIN to prioritize it. If the FM header cannot be read, automatic name search stays idle; FIND AGAIN can search all pending sellers manually.
 
 OCR remains one thread with the Windows CPU affinity guard. Per-seller cooldowns are removed inside the bounded burst, so it can briefly use more of one core. Between entries, only a lightweight loading-screen watcher remains active: sparse brightness samples and reduced-rate frame copies, with no OCR. Brief black transitions are latched so an entry during inference is not lost. PAUSE stops capture entirely. Model startup and live capture add latency beyond saved-image benchmarks.
 
@@ -58,3 +58,5 @@ The extension sends a soft-refresh signal every 1.2 seconds; HeneFM can ignore o
 Run `TEST_LOCATOR.bat`. `benchmark_name_finder.py` measures saved-image recognition and optional simulated target-arrival CPU stress. These exclude live capture, GUI dispatch and marker drawing; live Windows behavior still needs a game-session check. `benchmark_entry_burst.py` compares warm room-entry latency against v24.11; see `benchmark_entry_v24_12.json` and `UPDATE_V24_12.txt`.
 
 Discord/OCR alerts retain the separate **15,000 mesos AND 15%** filter. Browser listings do not use it.
+
+The v24.14 queue replay (`benchmark_queue_sweep.py`, `benchmark_queue_v24_14.json`) compares the same room queue against v24.13: six absent sellers before two visible sellers improved from 914 ms to 290 ms median in three warm runs. It excludes startup, live capture and GUI; live results vary. See `UPDATE_V24_14.txt`.

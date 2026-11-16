@@ -1,0 +1,133 @@
+{
+  "scope": "Warm static FM5 frame at simulated 60Hz; time until both visible sellers have correct name matches. Same room queue, same name verification engine. Includes room read and worker waits, excludes model startup, live capture and UI. Three runs per scenario.",
+  "results": {
+    "two_visible": {
+      "v24_13": {
+        "median_ms": 120.06,
+        "runs_ms": [
+          129.29,
+          112.58,
+          120.06
+        ],
+        "searches": [
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ]
+        ]
+      },
+      "v24_14": {
+        "median_ms": 116.34,
+        "runs_ms": [
+          116.92,
+          107.94,
+          116.34
+        ],
+        "searches": [
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ]
+        ]
+      }
+    },
+    "six_absent_first": {
+      "v24_13": {
+        "median_ms": 913.99,
+        "runs_ms": [
+          894.15,
+          913.99,
+          939.89
+        ],
+        "searches": [
+          [
+            "NotHere",
+            "NobodyHere",
+            "NobodyElse",
+            "MissingShop",
+            "OtherSeller",
+            "GoneAway",
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "NotHere",
+            "NobodyHere",
+            "NobodyElse",
+            "MissingShop",
+            "OtherSeller",
+            "GoneAway",
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "NotHere",
+            "NobodyHere",
+            "NobodyElse",
+            "MissingShop",
+            "OtherSeller",
+            "GoneAway",
+            "Cernia",
+            "Melonade"
+          ]
+        ]
+      },
+      "v24_14": {
+        "median_ms": 290.28,
+        "runs_ms": [
+          308.64,
+          290.28,
+          256.81
+        ],
+        "searches": [
+          [
+            "NotHere",
+            "NobodyHere",
+            "NobodyElse",
+            "MissingShop",
+            "OtherSeller",
+            "GoneAway",
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "NotHere",
+            "NobodyHere",
+            "NobodyElse",
+            "MissingShop",
+            "OtherSeller",
+            "GoneAway",
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "NotHere",
+            "NobodyHere",
+            "NobodyElse",
+            "MissingShop",
+            "OtherSeller",
+            "GoneAway",
+            "Cernia",
+            "Melonade"
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -184,10 +184,23 @@ class NameFinder:
             if valid:matches.append(Hit(text.strip(),box,float(score),mode))
         return matches
 
-    def scan(self,bgr,target,cancelled=None,fast_only=False):
+    def scan(self,bgr,target,cancelled=None,fast_only=False,quick_only=False):
         started=time.perf_counter()
         self.last_diagnostic={'method':'coarse proposals + full-resolution verification','target':target,'candidates':[]}
         if not target or not (3<=len(target)<=24):return None
+        if cancelled is not None and cancelled():
+            self.last_diagnostic['cancelled']=True;return None
+        if quick_only:
+            # A cheap sweep across the queue must not spend recovery OCR on
+            # absent sellers before reaching a clearly visible one.
+            candidates=self._candidates(bgr,target,dark=False,fast=True,
+                min_score=.66,limit=2,peak_limit=24)
+            if cancelled is not None and cancelled():return None
+            self.recognizer.rec_image_shape=[3,48,160]
+            matches=self._verify(bgr,target,candidates,dark=False)
+            self.last_diagnostic.update(method='strong-candidate queue sweep',
+                elapsed_ms=round((time.perf_counter()-started)*1000,1))
+            return matches[0] if len(matches)==1 else None
         matches=[]
         coarse={};search_cache={};verified=set()
         # Coarse proposals are ALWAYS refined and recognized at original resolution.

@@ -1,0 +1,36 @@
+FM RUSH v24.14 — QUICK SWEEP BEFORE DEEP SEARCHES
+
+Close the old app, extract into a fresh folder, run the top-level
+START_FM_RUSH.bat, and confirm v24.14. The extension remains 24.11.0.
+Existing local deal archives and the flat Downloads/Bought folder are reused.
+
+The previous first pass could spend several recognition batches on each absent
+seller, delaying an obvious shop farther down the room's saved queue.
+
+Now every seller gets a quick strong-candidate check before any deeper recovery:
+- Only the two best strong visual proposals reach first-pass OCR.
+- Existing exact/confusable name verification is retained.
+- Missing or weak names get full recovery on their second attempt.
+- Verified names are published immediately, without waiting for the queue.
+
+Scanning still runs only on room entry, channel change, startup inside a room,
+or FIND AGAIN. It keeps one OCR thread and the three-second entry deadline.
+New arrivals do not restart idle OCR. The BOUGHT screenshot workflow is unchanged.
+
+Three-run warm replay, same FM5 image and same queue for both versions:
+- Two visible sellers only: 120.06 -> 116.34 ms median.
+- Six absent sellers before two visible sellers: 913.99 -> 290.28 ms median.
+The improvement addresses queue delay, not every source of live latency. These
+results include header OCR and simulated 60Hz worker waits, excluding model
+startup, Windows capture and overlay drawing. Actual game timing is unverified.
+Scripts/results: benchmark_queue_sweep.py / benchmark_queue_v24_14.json.
+
+Targeted checks passed for clear sellers, uploaded screenshot coordinates, weak
+name recovery, prefixes and wrong names, duplicate-name ambiguity, cancellation,
+all quick checks before recovery, idle behavior and room transitions.
+
+The main IGN remains your selected working deal. A different found seller can be
+marked without replacing that working deal; select its queue row to work on it.
+
+Full Python suite: 116 tests, 112 passed and 4 skipped (three require a GUI
+display; one requires an external reference fixture).

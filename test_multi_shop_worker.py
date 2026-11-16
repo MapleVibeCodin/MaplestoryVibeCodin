@@ -22,7 +22,7 @@ class MultiWorkerTests(unittest.TestCase):
             def room_number(self,frame):return room
             def prepare(self,*args):pass
             def scan(self,frame,name,**kwargs):
-                calls.append((name,clock[0]));cpu[0]+=cpu_cost
+                calls.append((name,clock[0],kwargs.get('quick_only',False)));cpu[0]+=cpu_cost
                 return scan(name,names,kwargs['cancelled'])
         with patch('multi_shop_worker.NameFinder',Finder), \
              patch('multi_shop_worker.time.monotonic',side_effect=lambda:clock[0]), \
@@ -46,6 +46,12 @@ class MultiWorkerTests(unittest.TestCase):
         events,calls=self.run_worker(['Mora','Oral'],lambda *args:None)
         self.assertEqual([c[0] for c in calls].count('Mora'),2)
         self.assertEqual([c[0] for c in calls].count('Oral'),2)
+
+    def test_every_seller_gets_quick_sweep_before_any_recovery(self):
+        _,calls=self.run_worker(['Mora','Oral','Melonade'],lambda *args:None)
+        self.assertEqual([(name,quick) for name,_,quick in calls],
+            [('Mora',True),('Oral',True),('Melonade',True),
+             ('Mora',False),('Oral',False),('Melonade',False)])
 
     def test_no_per_seller_cooldown_inside_burst(self):
         def scan(name,*args):return Hit(name,(200,200,240,215),.9,'EXACT')
