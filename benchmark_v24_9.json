@@ -1,0 +1,412 @@
+{
+  "baseline_commit": "4d213addae4ed04c0cef7acb93b028847d0e9f83",
+  "environment": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "runs_per_case": 5,
+  "warmup_runs_per_case": 1,
+  "opencv_threads": 1,
+  "recognizer_threads": 1,
+  "scope": "Saved game pixels only; excludes Windows capture, loading/fade waits, scheduling and marker drawing. Not a live accuracy estimate.",
+  "cases": [
+    {
+      "image": "regression_samples/cernia.png",
+      "crop": null,
+      "target": "Cernia",
+      "expected_point": [
+        1270,
+        585
+      ],
+      "before": {
+        "median_ms": 56.3,
+        "min_ms": 54.4,
+        "max_ms": 57.6,
+        "correct_runs": 5,
+        "reads": [
+          "Cemia",
+          "Cemia",
+          "Cemia",
+          "Cemia",
+          "Cemia"
+        ]
+      },
+      "after": {
+        "median_ms": 55.5,
+        "min_ms": 54.6,
+        "max_ms": 66.8,
+        "correct_runs": 5,
+        "reads": [
+          "Cemia",
+          "Cemia",
+          "Cemia",
+          "Cemia",
+          "Cemia"
+        ]
+      }
+    },
+    {
+      "image": "regression_samples/rollermo.png",
+      "crop": null,
+      "target": "Rollermo",
+      "expected_point": [
+        524,
+        352
+      ],
+      "before": {
+        "median_ms": 120.1,
+        "min_ms": 105.7,
+        "max_ms": 126.5,
+        "correct_runs": 5,
+        "reads": [
+          "Rollemo",
+          "Rollemo",
+          "Rollemo",
+          "Rollemo",
+          "Rollemo"
+        ]
+      },
+      "after": {
+        "median_ms": 120.6,
+        "min_ms": 102.4,
+        "max_ms": 131.6,
+        "correct_runs": 5,
+        "reads": [
+          "Rollemo",
+          "Rollemo",
+          "Rollemo",
+          "Rollemo",
+          "Rollemo"
+        ]
+      }
+    },
+    {
+      "image": "regression_samples/jtedoigte_141333.png",
+      "crop": null,
+      "target": "jtedoigte",
+      "expected_point": [
+        704,
+        87
+      ],
+      "before": {
+        "median_ms": 55.1,
+        "min_ms": 52.3,
+        "max_ms": 61.8,
+        "correct_runs": 5,
+        "reads": [
+          "jtedoigte",
+          "jtedoigte",
+          "jtedoigte",
+          "jtedoigte",
+          "jtedoigte"
+        ]
+      },
+      "after": {
+        "median_ms": 52.2,
+        "min_ms": 51.2,
+        "max_ms": 54.5,
+        "correct_runs": 5,
+        "reads": [
+          "jtedoigte",
+          "jtedoigte",
+          "jtedoigte",
+          "jtedoigte",
+          "jtedoigte"
+        ]
+      }
+    },
+    {
+      "image": "regression_samples/isadlyfe_143200.png",
+      "crop": null,
+      "target": "iSadlyfe",
+      "expected_point": [
+        623,
+        289
+      ],
+      "before": {
+        "median_ms": 54.9,
+        "min_ms": 53.5,
+        "max_ms": 56.0,
+        "correct_runs": 5,
+        "reads": [
+          "iSadlyfe",
+          "iSadlyfe",
+          "iSadlyfe",
+          "iSadlyfe",
+          "iSadlyfe"
+        ]
+      },
+      "after": {
+        "median_ms": 55.1,
+        "min_ms": 53.0,
+        "max_ms": 56.8,
+        "correct_runs": 5,
+        "reads": [
+          "iSadlyfe",
+          "iSadlyfe",
+          "iSadlyfe",
+          "iSadlyfe",
+          "iSadlyfe"
+        ]
+      }
+    },
+    {
+      "image": "regression_samples/oral_222618.png",
+      "crop": null,
+      "target": "Oral",
+      "expected_point": [
+        241,
+        617
+      ],
+      "before": {
+        "median_ms": 89.0,
+        "min_ms": 88.7,
+        "max_ms": 91.3,
+        "correct_runs": 5,
+        "reads": [
+          "Oral",
+          "Oral",
+          "Oral",
+          "Oral",
+          "Oral"
+        ]
+      },
+      "after": {
+        "median_ms": 95.3,
+        "min_ms": 88.2,
+        "max_ms": 101.8,
+        "correct_runs": 5,
+        "reads": [
+          "Oral",
+          "Oral",
+          "Oral",
+          "Oral",
+          "Oral"
+        ]
+      }
+    },
+    {
+      "image": "regression_samples/foxgod_060516.png",
+      "crop": null,
+      "target": "FoxGod",
+      "expected_point": [
+        1152,
+        179
+      ],
+      "before": {
+        "median_ms": 51.2,
+        "min_ms": 49.7,
+        "max_ms": 52.0,
+        "correct_runs": 5,
+        "reads": [
+          "FoxGod",
+          "FoxGod",
+          "FoxGod",
+          "FoxGod",
+          "FoxGod"
+        ]
+      },
+      "after": {
+        "median_ms": 51.7,
+        "min_ms": 51.0,
+        "max_ms": 52.4,
+        "correct_runs": 5,
+        "reads": [
+          "FoxGod",
+          "FoxGod",
+          "FoxGod",
+          "FoxGod",
+          "FoxGod"
+        ]
+      }
+    },
+    {
+      "image": "regression_samples/kilerious_085956.png",
+      "crop": null,
+      "target": "Kilerious",
+      "expected_point": [
+        621,
+        296
+      ],
+      "before": {
+        "median_ms": 92.1,
+        "min_ms": 91.6,
+        "max_ms": 96.2,
+        "correct_runs": 5,
+        "reads": [
+          "Kilerious",
+          "Kilerious",
+          "Kilerious",
+          "Kilerious",
+          "Kilerious"
+        ]
+      },
+      "after": {
+        "median_ms": 92.9,
+        "min_ms": 92.5,
+        "max_ms": 108.1,
+        "correct_runs": 5,
+        "reads": [
+          "Kilerious",
+          "Kilerious",
+          "Kilerious",
+          "Kilerious",
+          "Kilerious"
+        ]
+      }
+    },
+    {
+      "image": "Screenshot 2026-11-16 141643.png",
+      "crop": [
+        1,
+        210,
+        1360,
+        978
+      ],
+      "target": "MilkToast",
+      "expected_point": [
+        888,
+        108
+      ],
+      "before": {
+        "median_ms": 175.7,
+        "min_ms": 166.9,
+        "max_ms": 189.5,
+        "correct_runs": 0,
+        "reads": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "after": {
+        "median_ms": 118.5,
+        "min_ms": 86.5,
+        "max_ms": 128.8,
+        "correct_runs": 5,
+        "reads": [
+          "MilkToast.",
+          "MilkToast.",
+          "MilkToast.",
+          "MilkToast.",
+          "MilkToast."
+        ]
+      }
+    },
+    {
+      "image": "Screenshot 2026-11-16 141643.png",
+      "crop": [
+        1,
+        210,
+        1360,
+        978
+      ],
+      "target": "FightClub",
+      "expected_point": [
+        766,
+        325
+      ],
+      "before": {
+        "median_ms": 217.9,
+        "min_ms": 208.8,
+        "max_ms": 240.1,
+        "correct_runs": 0,
+        "reads": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "after": {
+        "median_ms": 100.6,
+        "min_ms": 96.1,
+        "max_ms": 102.4,
+        "correct_runs": 5,
+        "reads": [
+          "Fightclub",
+          "Fightclub",
+          "Fightclub",
+          "Fightclub",
+          "Fightclub"
+        ]
+      }
+    },
+    {
+      "image": "regression_samples/snapkin_072432.png",
+      "crop": null,
+      "target": "Snapkin",
+      "expected_point": null,
+      "before": {
+        "median_ms": 191.5,
+        "min_ms": 176.2,
+        "max_ms": 199.1,
+        "correct_runs": 5,
+        "reads": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "after": {
+        "median_ms": 415.1,
+        "min_ms": 371.4,
+        "max_ms": 429.7,
+        "correct_runs": 5,
+        "reads": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    {
+      "image": "Screenshot 2026-11-16 141643.png",
+      "crop": [
+        1,
+        210,
+        1360,
+        978
+      ],
+      "target": "Ballor",
+      "expected_point": null,
+      "before": {
+        "median_ms": 282.3,
+        "min_ms": 281.0,
+        "max_ms": 287.4,
+        "correct_runs": 5,
+        "reads": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "after": {
+        "median_ms": 499.3,
+        "min_ms": 479.7,
+        "max_ms": 508.5,
+        "correct_runs": 5,
+        "reads": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    }
+  ],
+  "dependencies": {
+    "opencv": "4.14.0",
+    "rapidocr-onnxruntime": "1.4.4",
+    "onnxruntime": "1.32.0",
+    "numpy": "2.5.5",
+    "Pillow": "12.3.0"
+  }
+}

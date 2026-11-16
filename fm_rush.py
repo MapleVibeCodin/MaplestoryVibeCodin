@@ -252,7 +252,8 @@ class ShopHighlighter(tk.Toplevel):
         self.last_image=None;self.last_size=source_size;self.last_box=box;self.last_mode=mode
         if box is None:
             self.pin.hide()
-            self.notice.set(f'No confident match · {latency_ms:.0f} ms · ready for room / channel change')
+            self.notice.set(f'No confident match · {latency_ms:.0f} ms · '+
+                            ('retrying automatically' if mode=='RETRYING' else 'press FIND AGAIN or change room'))
         else:
             likely=mode!='FOUND'
             self.notice.set(f'{"CHECK NAME" if likely else "FOUND"} · {latency_ms:.0f} ms · marked in game'+(f' · read: {seen_text}' if likely else ''))
@@ -269,7 +270,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.7 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.9 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -518,7 +519,7 @@ class FMApp:
         if self.shop is not None and self.shop.winfo_exists():
             self.shop.set_target(name,force=True)
         if name and not self.shop_running and not self.web_only:
-            self.schedule(100,self.try_start_shop)
+            self.schedule(0,self.try_start_shop)
 
     def try_start_shop(self):
         if self.shop_running or not self.shop_target:return

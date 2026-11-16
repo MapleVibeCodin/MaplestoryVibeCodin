@@ -51,7 +51,7 @@ class NameFinder:
     def prepare(self,target,width=1366):
         templates(target,width)
 
-    def _candidates(self,bgr,target,dark=False,fast=False):
+    def _candidates(self,bgr,target,dark=False,fast=False,min_score=.56,limit=6):
         h,w=bgr.shape[:2]
         # Search from the top: camera scroll can put nameplates above 12% height.
         top=0;bottom=round(h*.92)
@@ -78,13 +78,13 @@ class NameFinder:
                     if patch.shape[0]<th or patch.shape[1]<tw:continue
                     full=cv2.matchTemplate(patch,template,cv2.TM_CCOEFF_NORMED)
                     _,score,_,(dx,dy)=cv2.minMaxLoc(full)
-                    if score>=.56:
+                    if score>=min_score:
                         proposals.append((score,(l+dx,t+dy+top,l+dx+tw,t+dy+top+th)))
             else:
                 scores=cv2.matchTemplate(feature,template,cv2.TM_CCOEFF_NORMED)
                 for _ in range(3):
                     _,score,_,(x,y)=cv2.minMaxLoc(scores)
-                    if score<.56:break
+                    if score<min_score:break
                     proposals.append((score,(x,y+top,x+tw,y+top+th)))
                     scores[max(0,y-th):y+th,max(0,x-tw):x+tw]=-1
         unique=[]
@@ -92,7 +92,7 @@ class NameFinder:
             cx=(box[0]+box[2])/2;cy=(box[1]+box[3])/2
             if any(abs(cx-(b[0]+b[2])/2)<max(6,(b[2]-b[0])*.6) and abs(cy-(b[1]+b[3])/2)<12 for _,b in unique):continue
             unique.append((score,box))
-        return unique[:6]
+        return unique[:limit]
 
     def _verify(self,bgr,target,candidates,dark=False):
         if not candidates:return []
@@ -133,22 +133,40 @@ class NameFinder:
                        (expanded.startswith(wanted) or expanded.endswith(wanted)))
                 if extra and norm(tight[0])==wanted and tight[1]>=.95 and context[1]>=.80:
                     valid=True;text=tight[0];mode='CONFUSABLE'
+            # Weak shape proposals need two exact reads; never relax identity checks.
+            if score < .56:
+                valid=(same and norm(tight[0])==wanted and
+                       confidence>=.85 and tight[1]>=.85 and len(wanted)>=5)
+                mode='EXACT'
             if valid:matches.append(Hit(text.strip(),box,float(score),mode))
         return matches
 
-    def scan(self,bgr,target):
+    def scan(self,bgr,target,cancelled=None):
         started=time.perf_counter()
         self.last_diagnostic={'method':'coarse proposals + full-resolution verification','target':target,'candidates':[]}
         if not target or not (3<=len(target)<=24):return None
         matches=[]
+        coarse={}
         # Coarse proposals are ALWAYS refined and recognized at original resolution.
         # If no candidate verifies, retain the full-resolution recovery search.
-        for fast in (True,False):
+        passes=((True,.56),(True,.48),(False,.56)) if len(norm(target))>=5 else ((True,.56),(False,.56))
+        for fast,min_score in passes:
             for dark in (False,True):
-                candidates=self._candidates(bgr,target,dark=dark,fast=fast)
+                if cancelled is not None and cancelled():
+                    self.last_diagnostic['cancelled']=True
+                    return None
+                if fast:
+                    if dark not in coarse:
+                        coarse[dark]=self._candidates(bgr,target,dark=dark,fast=True,
+                                                       min_score=.48,limit=12)
+                    candidates=[c for c in coarse[dark]
+                                if (c[0]>=.56 if min_score==.56 else c[0]<.56)][:6]
+                else:
+                    candidates=self._candidates(bgr,target,dark=dark,fast=False)
+                self.last_diagnostic['proposal_threshold']=min_score
                 self.recognizer.rec_image_shape=[3,48,160 if fast else 320]
                 matches=self._verify(bgr,target,candidates,dark=dark)
-                if fast and not matches and candidates:
+                if fast and min_score==.56 and not matches and candidates:
                     # Some overlapping tags need the model's original right padding.
                     # Retry only these small patches, not the whole image search.
                     self.recognizer.rec_image_shape=[3,48,320]

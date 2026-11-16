@@ -2,7 +2,14 @@
 
 The Brave extension can save one actual PNG per unique rendered HeneFM Deals item card to `Downloads/FM_Rush_Item_Screenshots/YYYY-MM-DD/`. It captures off-screen rendered cards without scrolling, and includes cards outside the 15K/15% *alert* threshold. The extension popup has a screenshot toggle and capture diagnostics. It needs Brave debugger + downloads permissions; a browser debugging banner may appear. See `UPDATE_V24_8.txt`.
 
-# FM Rush v24.7 — Earlier room-entry scan
+# FM Rush v24.9 — Name locator recovery
+
+- Recovers readable names below the old visual cutoff using two exact OCR reads.
+- Retries misses four times with backoff, then stops; FIND AGAIN retries manually.
+- Waits for stable startup brightness and clears markers when the name region changes.
+- Starts new targets immediately and cancels obsolete searches between passes.
+
+Run `TEST_LOCATOR.bat`. See `UPDATE_V24_9.txt` for validation and limits.
 
 ## Install
 
@@ -11,7 +18,7 @@ The Brave extension can save one actual PNG per unique rendered HeneFM Deals ite
 3. Replace the older Brave extension with the bundled browser_extension folder (see browser_extension/README_INSTALL.txt), then reload the HeneFM tab.
 4. Select the MapleStory window in FIND NAME if needed. Enter the room, change channel, or press FIND AGAIN.
 
-The window title must say v24.7. Compact controls and the click-through in-game marker remain. Green HERE means exact text recognition. Yellow CHECK means ambiguous lettering or overlap: check the seller before buying.
+The window title must say v24.9. Compact controls and the click-through in-game marker remain. Green HERE means exact text recognition. Yellow CHECK means ambiguous lettering or overlap: check the seller before buying.
 
 ## Faster search
 
@@ -21,7 +28,7 @@ The fast recognition pass uses a 160-pixel minimum input width instead of paddin
 
 Capture now accepts a frame every 16 ms instead of v24.6's 33 ms (up to approximately 60 copies/second). The loading gate scans on the first pair of stable visible samples, with no extra settling timer. It still rejects black frames and changing fade brightness. Nominal pre-recognition wait after brightness settles is approximately 16–32 ms, plus worker polling (up to about 8 ms) and scheduling; actual Windows/game frame delivery may be slower. Name recognition time and GUI dispatch are additional.
 
-GUI event dispatch remains 10 ms. Recognition remains one thread and only runs on target changes, room transitions, camera movement or manual retry, with one bounded retry after a miss. The higher frame-copy rate can increase capture overhead; this does not enable continuous OCR.
+GUI event dispatch remains 10 ms. Recognition remains one thread and only runs on target changes, room transitions, camera movement or manual retry, with four bounded retries after a miss. The higher frame-copy rate can increase capture overhead; this does not enable continuous OCR.
 
 v24.7 validation: six timing-gate and worker tests passed, including fade rejection, repeat channel transitions, stale-target suppression and bounded retry. The recognition algorithm is byte-for-byte unchanged from v24.6; the following recognition tests and benchmark results are from that version.
 

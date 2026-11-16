@@ -1,0 +1,29 @@
+FM Rush v24.9 — Name locator recovery
+
+Close the app, update the Python files together, then run START_FM_RUSH.bat.
+The main title should say v24.9. No extension or dependency update is required.
+Run TEST_LOCATOR.bat to verify the name finder and worker.
+
+- Keeps the original fast search. If it misses, tries lower-scoring visual
+  proposals for names of five or more characters. Both context and tight OCR
+  crops must read the exact target with >=85% confidence. Short-name checks
+  and full-resolution recovery remain.
+- Startup waits for two stable visible brightness samples, including when
+  launched halfway through a fade without first seeing a black frame.
+- Misses retry after 150, 350, 700 and 1200 ms, measured after each scan ends.
+  Retries stop after success or exhaustion; they do not run continuously.
+- Clears the marker when its name region changes, even without camera motion.
+  Results are checked against the newest frame before publication.
+- Removes the 100 ms auto-start delay and cancels superseded searches between
+  passes. An OCR batch already running must finish before cancellation.
+
+Validation: existing reported-name replays plus MilkToast and FightClub from
+Screenshot 2026-11-16 141643.png, with marker-coordinate and near-name rejection
+checks. Tests cover startup fades, late name appearance, bounded retries, target
+replacement and name-region changes during/after recognition.
+Linux test suite: 50 passed; four skipped (GUI display/external fixtures).
+
+benchmark_v24_9.json compares five warmed saved-image replays per case against
+commit 4d213add. Capture, fade waits, GUI dispatch and marker drawing are excluded.
+Recovery costs additional time on absent/unreadable names. These samples do not
+establish live accuracy. Windows capture/highlighting needs a live game check.
