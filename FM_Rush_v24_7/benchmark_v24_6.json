@@ -1,0 +1,241 @@
+{
+  "method": "same runtime, one thread; five warm replays; excludes capture/fade/UI",
+  "cases": [
+    {
+      "name": "Cernia",
+      "fixture": "cernia.png",
+      "v24_5": {
+        "ms": 284.2,
+        "hit": {
+          "text": "Cemia",
+          "box": [
+            1253,
+            577,
+            1295,
+            592
+          ],
+          "score": 0.8054966330528259,
+          "mode": "CONFUSABLE"
+        }
+      },
+      "v24_6": {
+        "ms": 84.1,
+        "hit": {
+          "text": "Cemia",
+          "box": [
+            1253,
+            577,
+            1295,
+            592
+          ],
+          "score": 0.8054966330528259,
+          "mode": "CONFUSABLE"
+        }
+      }
+    },
+    {
+      "name": "Rollermo",
+      "fixture": "rollermo.png",
+      "v24_5": {
+        "ms": 467.2,
+        "hit": {
+          "text": "Rollemo",
+          "box": [
+            507,
+            347,
+            541,
+            356
+          ],
+          "score": 0.7166794538497925,
+          "mode": "CONFUSABLE"
+        }
+      },
+      "v24_6": {
+        "ms": 195.6,
+        "hit": {
+          "text": "Rollemo",
+          "box": [
+            507,
+            347,
+            541,
+            356
+          ],
+          "score": 0.7166796922683716,
+          "mode": "CONFUSABLE"
+        }
+      }
+    },
+    {
+      "name": "jtedoigte",
+      "fixture": "jtedoigte_141333.png",
+      "v24_5": {
+        "ms": 170.7,
+        "hit": {
+          "text": "[jtedoigte\u201d",
+          "box": [
+            676,
+            79,
+            731,
+            97
+          ],
+          "score": 0.6528264880180359,
+          "mode": "EXACT"
+        }
+      },
+      "v24_6": {
+        "ms": 84.4,
+        "hit": {
+          "text": "jtedoigte",
+          "box": [
+            676,
+            79,
+            731,
+            97
+          ],
+          "score": 0.6528264880180359,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "name": "iSadlyfe",
+      "fixture": "isadlyfe_143200.png",
+      "v24_5": {
+        "ms": 156.7,
+        "hit": {
+          "text": "iSadlyfe",
+          "box": [
+            601,
+            281,
+            646,
+            297
+          ],
+          "score": 0.6617276668548584,
+          "mode": "EXACT"
+        }
+      },
+      "v24_6": {
+        "ms": 84.1,
+        "hit": {
+          "text": "iSadlyfe",
+          "box": [
+            601,
+            281,
+            646,
+            297
+          ],
+          "score": 0.661727786064148,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "name": "Oral",
+      "fixture": "oral_222618.png",
+      "v24_5": {
+        "ms": 311.1,
+        "hit": {
+          "text": "Oral",
+          "box": [
+            227,
+            610,
+            256,
+            625
+          ],
+          "score": 0.8592879176139832,
+          "mode": "EXACT"
+        }
+      },
+      "v24_6": {
+        "ms": 165.3,
+        "hit": {
+          "text": "Oral",
+          "box": [
+            227,
+            610,
+            256,
+            625
+          ],
+          "score": 0.8592882752418518,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "name": "FoxGod",
+      "fixture": "foxgod_060516.png",
+      "v24_5": {
+        "ms": 151.1,
+        "hit": {
+          "text": "FoxGod",
+          "box": [
+            1127,
+            171,
+            1176,
+            186
+          ],
+          "score": 0.6031484603881836,
+          "mode": "EXACT"
+        }
+      },
+      "v24_6": {
+        "ms": 77.8,
+        "hit": {
+          "text": "FoxGod",
+          "box": [
+            1127,
+            171,
+            1176,
+            186
+          ],
+          "score": 0.6031485795974731,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "name": "Kilerious",
+      "fixture": "kilerious_085956.png",
+      "v24_5": {
+        "ms": 170.2,
+        "hit": {
+          "text": "Kilerious",
+          "box": [
+            593,
+            288,
+            647,
+            304
+          ],
+          "score": 0.6298761963844299,
+          "mode": "CONFUSABLE"
+        }
+      },
+      "v24_6": {
+        "ms": 159.2,
+        "hit": {
+          "text": "Kilerious",
+          "box": [
+            593,
+            288,
+            647,
+            304
+          ],
+          "score": 0.6298761963844299,
+          "mode": "CONFUSABLE"
+        }
+      }
+    },
+    {
+      "name": "Snapkin",
+      "fixture": "snapkin_072432.png",
+      "v24_5": {
+        "ms": 148.9,
+        "hit": null
+      },
+      "v24_6": {
+        "ms": 257.8,
+        "hit": null
+      }
+    }
+  ]
+}

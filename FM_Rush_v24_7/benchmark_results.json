@@ -1,0 +1,70 @@
+{
+  "scope": "Linux CPU processing only, model warmed; excludes capture, loading fade and Windows overlay. Five trials per case. Not a Windows latency guarantee.",
+  "results": [
+    {
+      "sample": "cernia.png",
+      "target": "Cernia",
+      "result": "CONFUSABLE",
+      "median_ms": 118.5,
+      "min_ms": 116.9,
+      "max_ms": 157.8,
+      "box": [
+        1253,
+        577,
+        1295,
+        592
+      ]
+    },
+    {
+      "sample": "rollermo.png",
+      "target": "Rollermo",
+      "result": "CONFUSABLE",
+      "median_ms": 93.6,
+      "min_ms": 79.9,
+      "max_ms": 127.8,
+      "box": [
+        507,
+        347,
+        541,
+        356
+      ]
+    },
+    {
+      "sample": "cernia.png",
+      "target": "Melonade",
+      "result": "EXACT",
+      "median_ms": 104.1,
+      "min_ms": 99.0,
+      "max_ms": 116.0,
+      "box": [
+        1054,
+        577,
+        1114,
+        592
+      ]
+    },
+    {
+      "sample": "cernia.png",
+      "target": "SpringBuck",
+      "result": "EXACT",
+      "median_ms": 108.4,
+      "min_ms": 104.5,
+      "max_ms": 120.8,
+      "box": [
+        889,
+        314,
+        958,
+        331
+      ]
+    },
+    {
+      "sample": "cernia.png",
+      "target": "Oakhaven",
+      "result": "NOT VISIBLE",
+      "median_ms": 153.2,
+      "min_ms": 144.3,
+      "max_ms": 165.3,
+      "box": null
+    }
+  ]
+}
