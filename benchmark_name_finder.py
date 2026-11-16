@@ -87,15 +87,17 @@ def stress_worker(finder,seconds,baseline_ref=None):
         import multi_shop_worker as worker_module
     import numpy as np
     image=cv2.imread(str(ROOT/'regression_samples/snapkin_072432.png'))
-    stop=threading.Event();scans=[];started=time.monotonic()
+    stop=threading.Event();scans=[];scan_starts=[];started=time.monotonic()
     class Frames:
         def latest(self,after=-1):
             now=time.monotonic();version=int((now-started)*60)
             return None if version==after else (version,now,image)
         peek=latest
     class CountFinder:
+        def room_number(self,*args):return finder.room_number(*args)
         def prepare(self,*args):finder.prepare(*args)
         def scan(self,*args,**kwargs):
+            scan_starts.append(time.monotonic()-started)
             cpu=time.thread_time()
             try:return finder.scan(*args,**kwargs)
             finally:scans.append(time.thread_time()-cpu)
@@ -115,10 +117,10 @@ def stress_worker(finder,seconds,baseline_ref=None):
     if worker.is_alive():raise RuntimeError('Stress worker did not stop')
     wall=time.perf_counter()-wall;cpu=time.process_time()-cpu
     return {'simulated_fps':60,'target_period_s':.25,'wall_seconds':round(wall,3),
-            'searches':len(scans),'search_cpu_seconds':round(sum(scans),3),
+            'searches':len(scans),'searches_after_entry_burst':sum(t>3.25 for t in scan_starts),'search_cpu_seconds':round(sum(scans),3),
             'search_cpu_fraction_of_one_core':round(sum(scans)/wall,3),
             'process_cpu_fraction_of_one_core':round(cpu/wall,3),
-            'scope':'Static in-memory frames; legacy worker replaces targets, current worker retains incoming sellers. Excludes capture/GUI/Discord; models prewarmed.'}
+            'scope':'Static in-memory frames; current worker only scans its initial entry burst while arrivals and revisions continue. Legacy comparison replaces targets. Excludes capture/GUI/Discord; models prewarmed.'}
 
 
 def main():
@@ -126,7 +128,7 @@ def main():
     parser.add_argument('--baseline-ref',help='Optional local Git revision to compare')
     parser.add_argument('--runs',type=int,default=5)
     parser.add_argument('--stress-seconds',type=float,default=0.,help='Optional simulated rapid-target stress duration per version')
-    parser.add_argument('--output',type=Path,default=ROOT/'benchmark_v24_11.json')
+    parser.add_argument('--output',type=Path,default=ROOT/'benchmark_v24_12.json')
     args=parser.parse_args()
     if args.runs<1:parser.error('--runs must be positive')
     cv2.setNumThreads(1)

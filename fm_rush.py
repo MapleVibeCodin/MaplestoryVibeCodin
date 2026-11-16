@@ -248,7 +248,7 @@ class ShopHighlighter(tk.Toplevel):
         else:self.queue.yview_moveto(position)
         self.queue_focus=focus
         self.target.set(f'{len(names)} sellers · working on {self.last_name or "none"}')
-        if not names:self.notice.set('Waiting for listings from HeneFM Deals.')
+        if not names:self.notice.set('Watching for room entry · waiting for HeneFM listings.')
         self.matches={name:hit for name,hit in self.matches.items() if name in names}
         if self.last_size and self.app.shop_running:self.pin.show_many(self.selected_hwnd(),self.last_size,self.matches)
 
@@ -319,7 +319,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.11 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.12 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -352,6 +352,8 @@ class FMApp:
         self.shop_session=0
         self.scan_names=()
         self.scan_revisions={}
+        self.scan_by_room={}
+        self.shop_paused=False
         self.displayed_listing=None
         self.archive=DealArchive(ARCHIVE_DIR/'deal_archive.sqlite3')
         self.shop_events=queue.Queue(maxsize=3)
@@ -380,6 +382,7 @@ class FMApp:
             self.status.set(FILTER_LABEL+' • HeneFM browser bridge READY on 127.0.0.1:18773'+(' • WEB ONLY (NO OCR)' if self.web_only else ''))
         except OSError as exc:
             self.status.set('HeneFM bridge not available: '+str(exc)[:100]+' • Discord OCR still works')
+        if not self.web_only:self.schedule(0,self.try_start_shop)
 
     def schedule(self, delay, callback):
         if self._closing:return
@@ -576,6 +579,9 @@ class FMApp:
         for key,deal in rows:revisions.setdefault(deal['ign'].casefold(),[]).append(key)
         self.scan_revisions={name:tuple(keys) for name,keys in revisions.items()}
         self.scan_names=names
+        grouped={}
+        for _,deal in rows:grouped.setdefault(deal['fm'],[]).append(deal['ign'])
+        self.scan_by_room={room:tuple(dict.fromkeys(values)) for room,values in grouped.items()}
         key,deal=current if current else (None,None)
         if key!=self.displayed_listing:
             self.displayed_listing=key
@@ -594,7 +600,6 @@ class FMApp:
         elif deal is not None:
             self.item.set('ITEM: '+deal.item+(' · SOLD' if deal.sold else ''))
             self.profit.set(deal.profit.label)
-        if not self.scan_names and self.shop_running:self.stop_shop_scan()
         if self.shop is not None and self.shop.winfo_exists():
             self.shop.render_queue(rows,key,names)
 
@@ -623,14 +628,15 @@ class FMApp:
             self.shop.set_focus(name)
         worker=getattr(self,'shop_thread',None)
         if name and worker is not None and worker.is_alive():worker.prioritize(name)
-        if name and not self.shop_running and not self.web_only:
+        if name and not self.shop_running and not self.web_only and not getattr(self,'shop_paused',False):
             self.schedule(0,self.try_start_shop)
 
     def try_start_shop(self):
-        if self.shop_running or not self.scan_names:return
+        if self.shop_running or self.shop_paused:return
         if self.shop is None or not self.shop.winfo_exists():
             self.open_shop()
-        if self.shop.selected_hwnd() is not None:
+        index=self.shop.combo.current()
+        if index>=0 and any(value in self.shop.available[index][1].lower() for value in ('maplestory','maple story')):
             self.start_shop_scan()
         else:
             self.shop.notice.set('MapleStory not found — open game and click REFRESH')
@@ -663,7 +669,7 @@ class FMApp:
             self.shop_frames.start()
             self.shop_thread=MultiShopWorker(self.shop_frames,lambda:self.scan_names,
                                              lambda item:self._post_shop(('shop_epoch',session,item)),
-                                             self.shop_stop,lambda:self.scan_revisions)
+                                             self.shop_stop,lambda:self.scan_revisions,self.names_for_room)
             self.shop_thread.start()
         except Exception as exc:
             if self.shop_frames:
@@ -676,11 +682,16 @@ class FMApp:
         self.shop.start_btn.config(text='PAUSE',bg=RED)
         self.shop.notice.set('Preparing name finder…')
 
+    def names_for_room(self,room):
+        values=self.scan_by_room.get(room,())+self.scan_by_room.get(None,())
+        return tuple(dict.fromkeys(values))
+
     def retry_shop_once(self):
         if self.shop_thread is not None and self.shop_thread.is_alive():
             self.shop_thread.retry.set()
 
     def toggle_shop_scan(self):
+        self.shop_paused=self.shop_running
         if self.shop_running:self.stop_shop_scan()
         else:self.start_shop_scan()
 

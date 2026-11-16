@@ -7,6 +7,7 @@ screen OCR, orientation classifier, cloud calls, Tesseract or Windows OCR.
 from pathlib import Path
 from functools import lru_cache
 import time
+import re
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -47,6 +48,29 @@ class NameFinder:
         self.recognizer=TextRecognizer(config)
         self.recognizer([np.full((20,80,3),255,np.uint8)])
         self.last_diagnostic={}
+
+    def room_number(self,bgr):
+        """One tiny header read at entry; never polls whole-screen OCR."""
+        h,w=bgr.shape[:2]
+        previous=self.recognizer.rec_image_shape
+        try:
+            self.recognizer.rec_image_shape=[3,48,320]
+            # Try the common expanded header first; avoid padding several wide
+            # blank crops into a costly batch. Fall back to collapsed/title layouts.
+            for top,bottom,left,right in [(36,62,0,160),(0,24,0,255),(80,104,25,160),(40,64,25,190)]:
+                crop=bgr[top:min(h,bottom),left:min(w,right)]
+                if not crop.size:continue
+                crop=cv2.resize(crop,None,fx=3,fy=3,interpolation=cv2.INTER_CUBIC)
+                reads,_=self.recognizer([crop])
+                for text,confidence in reads:
+                    found=re.search(r'fre[e]?\s*market\s*[<(\[]?\s*([0-9OIlg]{1,2})\s*[>)\]]?',text,re.I)
+                    if found and confidence>=.65:
+                        value=found[1].lower().translate(str.maketrans({'o':'0','i':'1','l':'1','g':'9'}))
+                        try:number=int(value)
+                        except ValueError:continue
+                        if 1<=number<=20:return number
+            return None
+        finally:self.recognizer.rec_image_shape=previous
 
     def prepare(self,target,width=1366):
         templates(target,width)
@@ -160,7 +184,7 @@ class NameFinder:
             if valid:matches.append(Hit(text.strip(),box,float(score),mode))
         return matches
 
-    def scan(self,bgr,target,cancelled=None):
+    def scan(self,bgr,target,cancelled=None,fast_only=False):
         started=time.perf_counter()
         self.last_diagnostic={'method':'coarse proposals + full-resolution verification','target':target,'candidates':[]}
         if not target or not (3<=len(target)<=24):return None
@@ -181,7 +205,7 @@ class NameFinder:
         if initial_peaks<96:
             passes.append((True,.56,96))
             if len(norm(target))>=5:passes.append((True,.48,96))
-        passes.append((False,.56,96))
+        if not fast_only:passes.append((False,.56,96))
         for fast,min_score,peak_limit in passes:
             for dark in (False,True):
                 if cancelled is not None and cancelled():

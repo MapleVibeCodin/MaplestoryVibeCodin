@@ -52,3 +52,7 @@ class DealSelectionTests(unittest.TestCase):
         a.shop_events.put(('shops_frame',(1000,600),{'Mora':{'box':(1,2,3,4),'mode':'EXACT'}},'old'))
         a.pump()
         a.shop.draw_matches.assert_not_called()
+
+    def test_room_names_include_other_channels_and_unknown_rooms_only(self):
+        self.app.scan_by_room={3:('Mora','Oral'),4:('Elsewhere',),None:('Unknown','Mora')}
+        self.assertEqual(self.app.names_for_room(3),('Mora','Oral','Unknown'))
