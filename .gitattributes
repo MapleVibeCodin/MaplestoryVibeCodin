@@ -1,0 +1,14 @@
+# Keep runtime downloads small; fixtures remain available in a Git checkout.
+/Screenshot* export-ignore
+/regression_samples export-ignore
+/FM_Rush_v24_7 export-ignore
+/__pycache__ export-ignore
+/assets/*.png export-ignore
+/assets/smoke_deals_test.html export-ignore
+/test_*.py export-ignore
+/self_test_locator.py export-ignore
+/benchmark* export-ignore
+/TEST_LOCATOR.bat export-ignore
+/browser_extension/test_* export-ignore
+/.gitattributes export-ignore
+/config.json export-ignore

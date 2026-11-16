@@ -1,15 +1,16 @@
-# FM Rush v24.14
+# FM Rush v24.15
 
 Mirror the listings shown on HeneFM Deals, keep a persistent deal queue, and mark matching seller names in the selected MapleStory window.
 
 ## Install or update
 
-1. Close the old FM Rush app. Extract the new ZIP into a fresh folder.
-2. In `brave://extensions`, disable/remove the old FM Rush extension. Enable Developer mode, choose **Load unpacked**, and select the new top-level `browser_extension` folder.
-3. Reload https://henefm.com/flips/deals.
-4. Run the top-level `START_FM_RUSH.bat`. Confirm **v24.14** in the title and select MapleStory in FIND NAME.
+For an existing installation, close FM Rush and extract this small ZIP **over the existing app folder**, choosing to replace app files. Keep `.venv` and `config.json` so dependencies and settings are reused. Run the top-level `START_FM_RUSH.bat` and confirm **v24.15**.
 
-Use the launcher at the ZIP's top level; the nested `FM_Rush_v24_7` directory is an older copy. Dependencies and extension permissions have not changed.
+For future updates, close FM Rush and double-click **`UPDATE_FM_RUSH.bat`** in that folder. It downloads the compact package, backs up previous app files under `updates_backup`, and replaces only runtime files. It preserves `.venv`, `config.json`, archives, screenshot folders and purchased images. No Git or Python package reinstall is needed for ordinary updates. If an update changes the browser extension, reload it once in `brave://extensions`, then reload HeneFM. The updater follows the `improve-name-locator` branch.
+
+For a first install, extract the ZIP, run `START_FM_RUSH.bat`, load the top-level `browser_extension` folder with **Load unpacked** in Brave's Developer mode, and reload https://henefm.com/flips/deals.
+
+The download excludes uploaded screenshots, replay fixtures, Python bytecode, development checks and the nested old `FM_Rush_v24_7` copy. Test data remains in the Git repository for development. Existing screenshots on your PC are never deleted by the updater.
 
 ## Listings and working selection
 
@@ -55,7 +56,7 @@ Screenshot saving defaults on; its popup toggle preserves an earlier off prefere
 
 The extension sends a soft-refresh signal every 1.2 seconds; HeneFM can ignore or delay it. This does not guarantee fresh site data. No private HeneFM endpoints are used and the page is not rewritten.
 
-Run `TEST_LOCATOR.bat`. `benchmark_name_finder.py` measures saved-image recognition and optional simulated target-arrival CPU stress. These exclude live capture, GUI dispatch and marker drawing; live Windows behavior still needs a game-session check. `benchmark_entry_burst.py` compares warm room-entry latency against v24.11; see `benchmark_entry_v24_12.json` and `UPDATE_V24_12.txt`.
+Development checks are available from a full Git checkout: run `TEST_LOCATOR.bat`. `benchmark_name_finder.py` measures saved-image recognition and optional simulated target-arrival CPU stress. These exclude live capture, GUI dispatch and marker drawing; live Windows behavior still needs a game-session check. `benchmark_entry_burst.py` compares warm room-entry latency against v24.11; see `benchmark_entry_v24_12.json` and `UPDATE_V24_12.txt`.
 
 Discord/OCR alerts retain the separate **15,000 mesos AND 15%** filter. Browser listings do not use it.
 
