@@ -29,3 +29,10 @@ TEST_LOCATOR.bat covers recognition, durable receipt, queue selection,
 multiple-seller scheduling, CPU sharing and marker geometry. Offline Chromium
 checks verify that displayed active/sold cards route without changing the page.
 Live Windows rendering and end-to-end latency still require a game check.
+
+New screenshot replay covers suc2er, IamNotty, Meryelse, RavenNoir,
+Hyouden and BigChui with in-game marker-coordinate checks. Browser-only
+sellers from other rooms and incorrect spellings remain no-match checks.
+
+Validation: 84 Python tests passed; four GUI/external-fixture checks skipped.
+Five Node checks and an offline Chromium DOM/delivery check passed.
