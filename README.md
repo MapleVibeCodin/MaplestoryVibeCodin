@@ -2,14 +2,17 @@
 
 The Brave extension can save one actual PNG per unique rendered HeneFM Deals item card to `Downloads/FM_Rush_Item_Screenshots/YYYY-MM-DD/`. It captures off-screen rendered cards without scrolling, and includes cards outside the 15K/15% *alert* threshold. The extension popup has a screenshot toggle and capture diagnostics. It needs Brave debugger + downloads permissions; a browser debugging banner may appear. See `UPDATE_V24_8.txt`.
 
-# FM Rush v24.9 — Name locator recovery
+# FM Rush v24.10 — Faster name scanning
 
 - Recovers readable names below the old visual cutoff using two exact OCR reads.
 - Retries misses four times with backoff, then stops; FIND AGAIN retries manually.
 - Waits for stable startup brightness and clears markers when the name region changes.
-- Starts new targets immediately and cancels obsolete searches between passes.
+- Refines 24 locations per font scale first, expanding to 96 on a miss; tiny text starts with the wider search.
+- Reads context first; tight OCR crops run only when the identity checks need them.
+- Keeps one-thread OCR and Windows CPU affinity limits. A shared cooldown targets 35% of one logical CPU for sustained shop-search work; capture and other app work are additional.
+- Cancels obsolete searches. New targets, retries and movement recovery share the CPU budget.
 
-Run `TEST_LOCATOR.bat`. See `UPDATE_V24_9.txt` for validation and limits.
+Run `TEST_LOCATOR.bat`. See `UPDATE_V24_10.txt` for validation and limits.
 
 ## Install
 
@@ -18,7 +21,7 @@ Run `TEST_LOCATOR.bat`. See `UPDATE_V24_9.txt` for validation and limits.
 3. Replace the older Brave extension with the bundled browser_extension folder (see browser_extension/README_INSTALL.txt), then reload the HeneFM tab.
 4. Select the MapleStory window in FIND NAME if needed. Enter the room, change channel, or press FIND AGAIN.
 
-The window title must say v24.9. Compact controls and the click-through in-game marker remain. Green HERE means exact text recognition. Yellow CHECK means ambiguous lettering or overlap: check the seller before buying.
+The window title must say v24.10. Compact controls and the click-through in-game marker remain. Green HERE means exact text recognition. Yellow CHECK means ambiguous lettering or overlap: check the seller before buying.
 
 ## Faster search
 
@@ -26,9 +29,9 @@ The first pass searches a half-size feature image for candidate locations. Each 
 
 The fast recognition pass uses a 160-pixel minimum input width instead of padding every name to at least 320 pixels. Long names still expand to their required width. When this changes recognition on an overlapping tag, the original padding is retried on just those candidate patches. If no candidate verifies, the original full-resolution search remains as recovery.
 
-Capture now accepts a frame every 16 ms instead of v24.6's 33 ms (up to approximately 60 copies/second). The loading gate scans on the first pair of stable visible samples, with no extra settling timer. It still rejects black frames and changing fade brightness. Nominal pre-recognition wait after brightness settles is approximately 16–32 ms, plus worker polling (up to about 8 ms) and scheduling; actual Windows/game frame delivery may be slower. Name recognition time and GUI dispatch are additional.
+Capture accepts a frame every 16 ms instead of v24.6's 33 ms (up to approximately 60 copies/second). The loading gate scans on the first pair of stable visible samples, with no extra settling timer. It still rejects black frames and changing fade brightness. Nominal pre-recognition wait after brightness settles is approximately 16–32 ms, plus worker polling (up to about 8 ms) and scheduling; actual Windows/game frame delivery may be slower. Name recognition time and GUI dispatch are additional.
 
-GUI event dispatch remains 10 ms. Recognition remains one thread and only runs on target changes, room transitions, camera movement or manual retry, with four bounded retries after a miss. The higher frame-copy rate can increase capture overhead; this does not enable continuous OCR.
+GUI event dispatch remains 10 ms. Recognition remains one thread and only runs on target changes, room transitions, name-region/camera movement or manual retry, with four bounded retries after a miss. After a costly scan, the shared CPU cooldown can delay the next scan. The higher frame-copy rate can increase capture overhead; this does not enable continuous OCR.
 
 v24.7 validation: six timing-gate and worker tests passed, including fade rejection, repeat channel transitions, stale-target suppression and bounded retry. The recognition algorithm is byte-for-byte unchanged from v24.6; the following recognition tests and benchmark results are from that version.
 

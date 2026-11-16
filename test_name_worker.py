@@ -138,3 +138,64 @@ class NameWorkerTests(unittest.TestCase):
         self.assertFalse(worker.is_alive())
         self.assertTrue(calls)
         self.assertFalse(any(e[0]=='shop_frame' and e[4] is not None for e in events))
+
+    def test_new_target_cannot_bypass_search_cpu_cooldown(self):
+        stop=threading.Event();events=[];calls=[];wall=[0.];cpu=[0.];target=['Mora',1]
+        frame=np.full((600,1000,3),140,np.uint8)
+        class Frames:
+            index=0
+            def latest(self,after):
+                self.index+=1;wall[0]+=.05
+                if self.index==4:target[:]=['Oral',2]
+                if self.index>30:stop.set();return None
+                return self.index,wall[0],frame
+        class Finder:
+            def prepare(self,*args):pass
+            def scan(self,frame,name,**kwargs):
+                calls.append((name,wall[0]));cpu[0]+=.2
+                return Hit(name,(200,200,240,215),.9,'EXACT')
+        with patch('fast_shop_worker.NameFinder',Finder), \
+             patch('fast_shop_worker.time.monotonic',side_effect=lambda:wall[0]), \
+             patch('fast_shop_worker.time.thread_time',side_effect=lambda:cpu[0]):
+            worker=FastShopWorker(Frames(),lambda:tuple(target),events.append,stop)
+            worker.start();worker.join(3)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual([name for name,_ in calls],['Mora','Oral'])
+        self.assertGreaterEqual(calls[1][1]-calls[0][1],.2*(1/.35-1))
+
+    def test_manual_retry_during_cpu_cooldown_is_not_lost(self):
+        stop=threading.Event();calls=[];wall=[0.];cpu=[0.]
+        frame=np.full((600,1000,3),140,np.uint8)
+        class Frames:
+            index=0
+            def latest(self,after):
+                self.index+=1;wall[0]+=.05
+                if self.index==4:worker.retry.set()
+                if self.index>30:stop.set();return None
+                return self.index,wall[0],frame
+        class Finder:
+            def prepare(self,*args):pass
+            def scan(self,frame,name,**kwargs):
+                calls.append(wall[0]);cpu[0]+=.2
+                return Hit(name,(200,200,240,215),.9,'EXACT')
+        with patch('fast_shop_worker.NameFinder',Finder), \
+             patch('fast_shop_worker.time.monotonic',side_effect=lambda:wall[0]), \
+             patch('fast_shop_worker.time.thread_time',side_effect=lambda:cpu[0]):
+            worker=FastShopWorker(Frames(),lambda:('Mora',1),lambda e:None,stop)
+            worker.start();worker.join(3)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(len(calls),2)
+        self.assertGreaterEqual(calls[1]-calls[0],.2*(1/.35-1))
+
+class SceneSignatureTests(unittest.TestCase):
+    def test_local_animation_does_not_look_like_a_scene_change(self):
+        from fast_shop_worker import signature
+        before=np.full((768,1360,3),140,np.uint8)
+        after=before.copy();after[250:310,400:460]=0
+        self.assertLess(np.mean(np.abs(signature(before)-signature(after))),28)
+
+    def test_major_scene_change_is_still_detected(self):
+        from fast_shop_worker import signature
+        before=np.full((768,1360,3),140,np.uint8)
+        after=np.full_like(before,210)
+        self.assertGreater(np.mean(np.abs(signature(before)-signature(after))),28)

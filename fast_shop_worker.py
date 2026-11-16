@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from name_finder import NameFinder
 from fm_entry_gate import SnapshotGate
+from scan_budget import ScanDutyBudget
 from fast_shop_match import candidates
 
 
@@ -28,7 +29,11 @@ def name_region_changed(before, after, box):
 
 
 def signature(bgr):
-    return cv2.resize(bgr,(48,28),interpolation=cv2.INTER_AREA).astype(np.int16)
+    # Motion needs a scene summary, not an area average over every source pixel.
+    # The name itself is checked at full resolution by name_region_changed().
+    h,w=bgr.shape[:2]
+    step=max(1,min(h//112,w//192))
+    return cv2.resize(bgr[::step,::step],(48,28),interpolation=cv2.INTER_AREA).astype(np.int16)
 
 
 class FastShopWorker(threading.Thread):
@@ -45,6 +50,7 @@ class FastShopWorker(threading.Thread):
             self.post(('shop_note','STARTUP ERROR: '+str(exc)[:150]))
             return
         gate=SnapshotGate(settle_seconds=0.0)
+        duty=ScanDutyBudget()
         last_key=None;last_version=-1;reference=None
         matched_frame=None;matched_box=None
         pending=False;retry_at=None;retry_index=0
@@ -69,6 +75,7 @@ class FastShopWorker(threading.Thread):
                 matched_frame=None;matched_box=None
             manual=self.retry.is_set()
             if manual:self.retry.clear()
+            if manual or trigger:pending=True
             # Clear stale coordinates after camera movement. Settle briefly,
             # then search once; animated characters alone do not cause a loop.
             scene_changed=(reference is not None and np.mean(np.abs(sig-reference))>28)
@@ -81,17 +88,23 @@ class FastShopWorker(threading.Thread):
             due=retry_at is not None and time.monotonic()>=retry_at
             if not (trigger or pending or manual or due) or gate.loading:
                 self.stop.wait(.008);continue
+            wait=duty.remaining(time.monotonic())
+            if wait>0:
+                self.stop.wait(min(.008,wait));continue
             # A stable visible frame is required even for a new deal/manual find.
             if float(np.mean(bgr[::24,::24]))<30:continue
             if trigger or manual or pending:retry_index=0
             pending=False;retry_at=None
             started=time.perf_counter()
+            cpu_started=time.thread_time()
             try:
                 engine.prepare(key[0],bgr.shape[1])
                 hit=engine.scan(bgr,key[0],cancelled=lambda: self.stop.is_set() or
                                 target_key(self.get_target())!=key)
             except Exception as exc:
                 self.post(('shop_note','NAME FINDER ERROR: '+str(exc)[:150]));continue
+            finally:
+                duty.charge(time.thread_time()-cpu_started,time.monotonic())
             if self.stop.is_set():break
             if target_key(self.get_target())!=key:continue
             latest=self.frames.peek(ver) if hasattr(self.frames,'peek') else None
