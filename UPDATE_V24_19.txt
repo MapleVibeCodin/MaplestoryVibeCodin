@@ -1,0 +1,43 @@
+FM RUSH v24.19 — FAST ROOM-ENTRY NAME SEARCH
+
+Close FM Rush before replacing files. Start the app and confirm v24.19.
+Extension version remains 24.17.0. Select your deal before entering the room.
+Keep HeneFM's three-minute filter: the page alone supplies the live scan set.
+
+Selected names are prioritized at startup. A numbered minimap label permits an
+immediate provisional selected-route search; full room OCR is the fallback.
+Fast passes use a small set of native glyph scales and tiny name strips. Dim
+but plausible labels wait on a cheap contrast check, then reuse that candidate
+on a fresh frame. A bounded full recovery pass remains for harder lettering.
+Only one recognizer thread runs, inside a three-second entry burst; idle capture
+and verified-label tracking use cheap image checks, with no idle OCR loop.
+
+Found labels remain eligible for 120 seconds after detection if their alert
+leaves the page. Unfound off-page sellers drop immediately. Label tracking
+follows camera scroll; loading, loss or resize invalidates screen coordinates.
+A retained found label does not restart OCR after it leaves the current page.
+CHECK NAME marks unresolved identity ambiguity; it is not an exact-name claim.
+
+Validation: three real-time 30fps playbacks of each supplied clip, with a
+current-page workload derived from HENEFM SCANS and the selected seller first:
+Ceci: 8.6381 / 8.6507 / 8.6531 seconds (goal 9)
+Tounge: 11.8344 / 11.8354 / 11.8368 seconds (goal 12)
+Gimchigirl: 14.9507 / 14.9550 / 14.9761 seconds (goal 15; CHECK NAME)
+Returned boxes were checked against annotated in-game shop regions. Browser and
+mirrored previews were cropped out; compressed 720p game views were restored to
+approximate native size. No shop coordinates are supplied to the finder.
+
+These times end at the software marker callback on Linux. Native Windows
+capture, GUI/compositor delay and live competitive latency are not measured.
+The third deadline has little spare margin; no racing advantage is guaranteed.
+The benchmark and videos stay in the full repository, outside runtime downloads.
+A tiny derived minimap-label calibration is bundled as a required app asset.
+
+Existing purchase receipts, settings and archives are preserved. Screenshots
+remain optional and disabled by default. The clean download contains no videos,
+screenshots, tests, old versions, update tools or update notes.
+
+Checks: full 167-test suite passed 166 with one unavailable external fixture
+skipped, followed by 28 targeted checks including two additional selected-route
+regressions. The fresh 35-file clean ZIP opened its GUI and trading tabs and
+loaded the new calibration/reader successfully on a Linux virtual desktop.

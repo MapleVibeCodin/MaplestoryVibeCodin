@@ -7,19 +7,20 @@ from multi_shop_worker import MultiShopWorker
 
 
 class MultiWorkerTests(unittest.TestCase):
-    def run_worker(self,names,scan,max_frames=160,frames=None,cpu_cost=0.,versions=lambda:{},room=3,room_names=None,on_frame=None):
+    def run_worker(self,names,scan,max_frames=160,frames=None,cpu_cost=0.,versions=lambda:{},room=3,room_names=None,on_frame=None,clock_step=.05,hint=None,numbered=False):
         stop=threading.Event();events=[];calls=[];clock=[0.];cpu=[0.]
         image=np.full((600,1000,3),140,np.uint8)
         class Frames:
             index=0
             def latest(self,after):
-                self.index+=1;clock[0]+=.05
+                self.index+=1;clock[0]+=clock_step
                 if self.index>max_frames:stop.set();return None
                 if on_frame:on_frame(self.index,worker)
                 frame=frames(self.index,image) if frames else image
                 return self.index,clock[0],frame
         class Finder:
             def room_number(self,frame):return room
+            def numbered_header_visible(self,frame):return numbered
             def prepare(self,*args):pass
             def scan(self,frame,name,**kwargs):
                 calls.append((name,clock[0],kwargs.get('quick_only',False)));cpu[0]+=cpu_cost
@@ -27,7 +28,9 @@ class MultiWorkerTests(unittest.TestCase):
         with patch('multi_shop_worker.NameFinder',Finder), \
              patch('multi_shop_worker.time.monotonic',side_effect=lambda:clock[0]), \
              patch('multi_shop_worker.time.thread_time',side_effect=lambda:cpu[0]):
-            worker=MultiShopWorker(Frames(),lambda:tuple(names),events.append,stop,versions,room_names)
+            self.event_times=[]
+            def post(event):events.append(event);self.event_times.append((clock[0],event))
+            worker=MultiShopWorker(Frames(),lambda:tuple(names),post,stop,versions,room_names,(lambda:hint) if hint else None)
             worker.start();worker.join(4)
         self.assertFalse(worker.is_alive())
         return events,calls
@@ -44,13 +47,14 @@ class MultiWorkerTests(unittest.TestCase):
 
     def test_missing_names_get_bounded_retries_without_continuous_ocr(self):
         events,calls=self.run_worker(['Mora','Oral'],lambda *args:None)
-        self.assertEqual([c[0] for c in calls].count('Mora'),2)
-        self.assertEqual([c[0] for c in calls].count('Oral'),2)
+        self.assertEqual([c[0] for c in calls].count('Mora'),3)
+        self.assertEqual([c[0] for c in calls].count('Oral'),3)
 
     def test_every_seller_gets_quick_sweep_before_any_recovery(self):
         _,calls=self.run_worker(['Mora','Oral','Melonade'],lambda *args:None)
         self.assertEqual([(name,quick) for name,_,quick in calls],
             [('Mora',True),('Oral',True),('Melonade',True),
+             ('Mora',True),('Oral',True),('Melonade',True),
              ('Mora',False),('Oral',False),('Melonade',False)])
 
     def test_no_per_seller_cooldown_inside_burst(self):
@@ -103,7 +107,7 @@ class MultiWorkerTests(unittest.TestCase):
             return image
         def scan(*args):count[0]+=1;return None
         events,calls=self.run_worker(['Mora'],scan,frames=frame,versions=lambda:revisions)
-        self.assertEqual(count[0],2)
+        self.assertEqual(count[0],3)
 
     def test_new_seller_while_idle_waits_for_next_entry(self):
         names=['Mora']
@@ -111,20 +115,20 @@ class MultiWorkerTests(unittest.TestCase):
             if index==30:names.append('Oral')
             return image
         _,calls=self.run_worker(names,lambda *args:None,frames=frame)
-        self.assertEqual([x[0] for x in calls],['Mora','Mora'])
+        self.assertEqual([x[0] for x in calls],['Mora','Mora','Mora'])
 
     def test_movement_and_selection_while_idle_do_not_rearm(self):
         def frame(index,image):return image if index<30 else np.full_like(image,220)
         def tick(index,worker):
             if index==50:worker.prioritize('Mora')
         _,calls=self.run_worker(['Mora'],lambda *args:None,frames=frame,on_frame=tick)
-        self.assertEqual(len(calls),2)
+        self.assertEqual(len(calls),3)
 
     def test_find_again_explicitly_starts_another_burst(self):
         def tick(index,worker):
             if index==30:worker.retry.set()
         _,calls=self.run_worker(['Mora'],lambda *args:None,on_frame=tick)
-        self.assertEqual(len(calls),4)
+        self.assertEqual(len(calls),6)
 
     def test_idle_selection_is_prioritized_on_explicit_find_again(self):
         def tick(index,worker):
@@ -139,7 +143,7 @@ class MultiWorkerTests(unittest.TestCase):
         def tick(index,worker):
             if index==30:names.append('Mora');worker.entry_check.set()
         _,calls=self.run_worker(names,lambda *args:None,on_frame=tick)
-        self.assertEqual(len(calls),2)
+        self.assertEqual(len(calls),3)
         self.assertGreater(calls[0][1],1.5)
 
     def test_initial_live_page_recheck_does_not_scan_outside_fm(self):
@@ -157,7 +161,7 @@ class MultiWorkerTests(unittest.TestCase):
         def room_names(room):rooms.append(room);return ('Oral',)
         _,calls=self.run_worker(['Mora','Oral'],lambda *args:None,room_names=room_names)
         self.assertTrue(rooms and set(rooms)=={3})
-        self.assertEqual([x[0] for x in calls],['Oral','Oral'])
+        self.assertEqual([x[0] for x in calls],['Oral','Oral','Oral'])
 
     def test_large_queue_is_cut_off_at_burst_deadline(self):
         names=['Seller'+str(i) for i in range(100)]
@@ -165,6 +169,41 @@ class MultiWorkerTests(unittest.TestCase):
         self.assertLess(len(calls),100)
         self.assertLessEqual(calls[-1][1]-calls[0][1],3.)
 
+
+    def test_selected_route_can_search_first_only_with_a_numbered_header(self):
+        def tick(index,worker):
+            if index==1:worker.prioritize('Oral')
+        def scan(name,*args):return Hit(name,(200,200,240,215),.9,'EXACT')
+        _,calls=self.run_worker(['Mora','Oral'],scan,room=None,hint=('Oral',3),numbered=True,on_frame=tick)
+        self.assertEqual([name for name,_,_ in calls],['Oral','Mora'])
+        _,calls=self.run_worker(['Mora','Oral'],scan,room=None,hint=('Oral',3),numbered=False)
+        self.assertEqual(calls,[])
+
+    def test_an_off_page_selected_route_cannot_unlock_a_scan(self):
+        _,calls=self.run_worker(['Oral'],lambda *args:None,room=None,hint=('Mora',3),numbered=True)
+        self.assertEqual(calls,[])
+
+    def test_found_name_survives_page_removal_for_two_minutes_without_more_ocr(self):
+        names=['Mora']
+        def tick(index,worker):
+            if index==20:names.clear()
+        def scan(name,*args):return Hit(name,(200,200,240,215),.9,'EXACT')
+        events,calls=self.run_worker(names,scan,max_frames=145,on_frame=tick,clock_step=1.)
+        self.assertEqual(len(calls),1)
+        matched=[t for t,e in self.event_times if e[0]=='shops_frame' and e[2]]
+        cleared=[t for t,e in self.event_times if e[0]=='shops_frame' and not e[2] and t>20]
+        self.assertTrue(matched)
+        self.assertTrue(cleared)
+        self.assertGreaterEqual(cleared[0]-matched[0],120.)
+
+    def test_unfound_name_is_removed_as_soon_as_page_drops_it(self):
+        names=['Mora']
+        def scan(name,names,cancelled):
+            names.clear()
+            self.assertTrue(cancelled())
+            return None
+        _,calls=self.run_worker(names,scan)
+        self.assertEqual(len(calls),1)
 
 class MultiReplayTests(unittest.TestCase):
     def test_two_real_sellers_are_retained_in_one_marker_snapshot(self):

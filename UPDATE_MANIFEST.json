@@ -1,5 +1,5 @@
 {
-  "version": "v24.18",
+  "version": "v24.19",
   "files": [
     "INSTALL_FAST_OCR.bat",
     "ITEM_PRICE_LOOKUP.bat",
@@ -18,6 +18,7 @@
     "UPDATE_V24_16.txt",
     "UPDATE_V24_17.txt",
     "UPDATE_V24_18.txt",
+    "UPDATE_V24_19.txt",
     "UPDATE_V24_4.txt",
     "UPDATE_V24_5.txt",
     "UPDATE_V24_6.txt",
@@ -27,6 +28,7 @@
     "UPDATE_V24_8.txt",
     "UPDATE_V24_9.txt",
     "assets/fm_minimap_references.npz",
+    "assets/room_label_prefix.npz",
     "assets/name_font.ttf",
     "assets/name_font_LICENSE.txt",
     "bought_screenshots.py",

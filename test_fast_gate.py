@@ -24,3 +24,13 @@ class FastGateTests(unittest.TestCase):
         self.assertEqual(WindowFrames(1).interval_ms,16)
         self.assertEqual(WindowFrames(1,interval_ms=1).interval_ms,16)
         self.assertEqual(WindowFrames(1,interval_ms=100).interval_ms,100)
+
+
+class EarlyVisibleGate(unittest.TestCase):
+    def test_entry_mode_can_try_first_visible_frame_but_still_needs_a_header(self):
+        gate=SnapshotGate(settle_seconds=0.,first_visible=True)
+        black=np.zeros((600,1000,3),np.uint8)
+        visible=np.full_like(black,80)
+        self.assertFalse(gate.observe(black,0.))
+        self.assertTrue(gate.observe(visible,.016))
+        self.assertFalse(gate.observe(visible,.032))

@@ -12,3 +12,7 @@
 /browser_extension/test_* export-ignore
 /.gitattributes export-ignore
 /config.json export-ignore
+
+/*.mp4 export-ignore
+/HENEFM* export-ignore
+/build_clean_package.py export-ignore
