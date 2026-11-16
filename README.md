@@ -1,4 +1,4 @@
-# FM Rush v24.19 — room-entry scanner
+# FM Rush v24.20 — native labels and selection-triggered scans
 
 One workspace for current HeneFM deals, purchase receipts, two seller shops and buyer cash.
 
@@ -6,7 +6,7 @@ Buyer: **Unfkabe**. Sellers: **fkable** and **unfkable**, 18 slots each. No thir
 
 ## Update
 
-Close FM Rush and run **UPDATE_FM_RUSH.bat**, or copy the small ZIP's contents over the existing app folder. Keep `.venv` and `config.json`. Confirm app **v24.19**.
+Close FM Rush and run **UPDATE_FM_RUSH.bat**, or copy the small ZIP's contents over the existing app folder. Keep `.venv` and `config.json`. Confirm app **v24.20**.
 
 Reload the extension from this app folder in `brave://extensions`, confirm **24.17.0**, then reload HeneFM. If your old extension points to another extracted folder, use Load unpacked on the updated `browser_extension` directory.
 
@@ -14,7 +14,9 @@ The package excludes personal screenshots, replay data, bytecode and the older n
 
 ## Room-entry scanner
 
-Select the deal before travelling: its seller gets the first search. Only the
+Select the deal before travelling for the first entry search. Selecting a different
+live deal after arrival now also starts a bounded scan automatically; it no longer
+leaves the finder idle. Already-found labels remain marked when selection changes. Only the
 current HeneFM page supplies other names; keep your three-minute page filter.
 A found marker remains eligible for two minutes after detection even when its
 card disappears. Loading, a lost label or a changed capture window clears its
@@ -26,12 +28,19 @@ numbered minimap header can start the selected seller search using the selected
 route provisionally; room OCR remains the fallback. It does not read the current
 channel from game memory. Ambiguous lettering stays visibly CHECK NAME.
 
-Three real-time replays per supplied clip produced marker callbacks at
-8.638–8.653 s (Ceci), 11.834–11.837 s (Tounge), and 14.951–14.976 s
+The v24.20 validation used three real-time replays per supplied clip,
+with marker callbacks at
+8.662–8.664 s (Ceci), 11.832–11.837 s (Tounge), and 14.981–14.990 s
 (Gimchigirl, CHECK NAME). Each box was in the annotated shop region. These are
 Linux software callback times from compressed desktop video, excluding Windows
 capture, GUI/compositor latency, network freshness and other players' actions.
 The last deadline has little margin; live Windows racing performance is unverified.
+
+The November 17 label regressions now cover six recovered positions (three exact,
+three CHECK). HisCapybara and Kethan remain unverified in their truncated crops;
+full game frames are needed. These crop tests isolate recognition and do not
+validate live capture or room-entry gating. Selecting a deal after arrival is
+separately covered by worker tests, including an unchanged capture frame.
 
 The full checkout includes `benchmark_video_entries.py` and accuracy regressions;
 recordings and developer files are excluded from downloads.
@@ -86,4 +95,4 @@ Room-entry-only bursts, one OCR thread, a three-second deadline, current-room sc
 
 **Export scanner timing** records local page-to-app delivery, room-header, search, queue, frame age and software result-to-UI timing. It does not measure HeneFM server freshness, human travel, network competition or compositor display time. A scanner cannot guarantee winning a race against other buyers; saved-image speed is not proof of live end-to-end speed.
 
-Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_19.txt` for validation and limits.
+Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_20.txt` for validation and limits.

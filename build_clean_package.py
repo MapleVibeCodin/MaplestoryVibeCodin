@@ -40,8 +40,9 @@ def build(output,root=ROOT):
    Remove the old FM Rush extension, click Load unpacked, and select the
    browser_extension folder inside this new FM Rush folder.
 4. Reload https://henefm.com/flips/deals and select your buyer's game window.
-5. Keep your three-minute HeneFM filter. Select the deal you are chasing BEFORE
-   entering the room: that seller is searched first. Keep the locator armed.
+5. Keep your three-minute HeneFM filter and keep the locator armed. Select the
+   deal you are chasing: that seller is searched first. Selecting a different
+   live deal after arrival also starts a bounded scan automatically.
 
 Only sellers on the current Deals page enter the scan queue. Old archive names
 are excluded. Found markers can remain for two minutes after their card leaves;

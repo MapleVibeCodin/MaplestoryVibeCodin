@@ -19,7 +19,7 @@ class MultiWorkerTests(unittest.TestCase):
                 frame=frames(self.index,image) if frames else image
                 return self.index,clock[0],frame
         class Finder:
-            def room_number(self,frame):return room
+            def room_number(self,frame):return room() if callable(room) else room
             def numbered_header_visible(self,frame):return numbered
             def prepare(self,*args):pass
             def scan(self,frame,name,**kwargs):
@@ -117,12 +117,13 @@ class MultiWorkerTests(unittest.TestCase):
         _,calls=self.run_worker(names,lambda *args:None,frames=frame)
         self.assertEqual([x[0] for x in calls],['Mora','Mora','Mora'])
 
-    def test_movement_and_selection_while_idle_do_not_rearm(self):
+    def test_movement_alone_does_not_rearm_but_selection_does(self):
         def frame(index,image):return image if index<30 else np.full_like(image,220)
         def tick(index,worker):
             if index==50:worker.prioritize('Mora')
         _,calls=self.run_worker(['Mora'],lambda *args:None,frames=frame,on_frame=tick)
-        self.assertEqual(len(calls),3)
+        self.assertEqual(len(calls),6)
+        self.assertGreater(calls[3][1],2.4)
 
     def test_find_again_explicitly_starts_another_burst(self):
         def tick(index,worker):
@@ -137,6 +138,41 @@ class MultiWorkerTests(unittest.TestCase):
         def scan(name,*args):return Hit(name,(200,200,240,215),.9,'EXACT')
         _,calls=self.run_worker(['Mora','Oral'],scan,on_frame=tick)
         self.assertEqual([x[0] for x in calls],['Mora','Oral','Oral','Mora'])
+
+    def test_new_selection_in_an_idle_room_starts_without_find_again(self):
+        names=['Mora']
+        def tick(index,worker):
+            if index==30:
+                names.append('Oral');worker.prioritize('Oral')
+        _,calls=self.run_worker(names,lambda *args:None,on_frame=tick)
+        self.assertIn('Oral',[name for name,_,_ in calls])
+        self.assertEqual(calls[3][0],'Oral')
+
+    def test_selection_after_page_expiry_does_not_scan_archived_name(self):
+        names=['Mora']
+        def tick(index,worker):
+            if index==30:names.clear();worker.prioritize('OldSeller')
+        _,calls=self.run_worker(names,lambda *args:None,on_frame=tick)
+        self.assertNotIn('OldSeller',[name for name,_,_ in calls])
+
+    def test_selecting_another_target_keeps_a_found_marker_without_researching_it(self):
+        names=['Mora']
+        def tick(index,worker):
+            if index==30:names.append('Oral');worker.prioritize('Oral')
+        def scan(name,*args):return Hit(name,(200 if name=='Mora' else 400,200,240 if name=='Mora' else 440,215),.9,'EXACT')
+        events,calls=self.run_worker(names,scan,on_frame=tick)
+        self.assertEqual([name for name,_,_ in calls],['Mora','Oral'])
+        self.assertTrue(any(e[0]=='shops_frame' and set(e[2])=={'Mora','Oral'} for e in events))
+
+    def test_header_retry_after_selection_keeps_already_verified_markers(self):
+        names=['Mora'];headers=iter([3,None,3])
+        def room():return next(headers,3)
+        def tick(index,worker):
+            if index==30:names.append('Oral');worker.prioritize('Oral')
+        def scan(name,*args):return Hit(name,(200 if name=='Mora' else 400,200,240 if name=='Mora' else 440,215),.9,'EXACT')
+        events,calls=self.run_worker(names,scan,on_frame=tick,room=room)
+        self.assertEqual([name for name,_,_ in calls],['Mora','Oral'])
+        self.assertTrue(any(e[0]=='shops_frame' and set(e[2])=={'Mora','Oral'} for e in events))
 
     def test_initial_live_page_can_recheck_room_after_empty_start(self):
         names=[]
@@ -204,6 +240,37 @@ class MultiWorkerTests(unittest.TestCase):
             return None
         _,calls=self.run_worker(names,scan)
         self.assertEqual(len(calls),1)
+
+class StaticSelectionTests(unittest.TestCase):
+    def test_selection_uses_latest_frame_when_capture_has_not_changed(self):
+        import time
+        names=['Mora'];stop=threading.Event();idle=threading.Event();found=threading.Event()
+        image=np.full((600,1000,3),140,np.uint8)
+        class Frames:
+            version=0;value=None
+            def latest(self,after=-1):
+                if not idle.is_set():
+                    self.version+=1;self.value=(self.version,time.monotonic(),image)
+                return None if self.value is None or self.value[0]==after else self.value
+        class Finder:
+            def room_number(self,frame):return 3
+            def prepare(self,*args):pass
+            def scan(self,frame,name,**kwargs):
+                return Hit(name,(200 if name=='Mora' else 400,200,240 if name=='Mora' else 440,215),.9,'EXACT')
+        def post(event):
+            if event[0]=='shops_frame':
+                if 'scanned' in event[-1]:idle.set()
+                if 'Oral' in event[2]:found.set()
+        with patch('multi_shop_worker.NameFinder',Finder):
+            worker=MultiShopWorker(Frames(),lambda:tuple(names),post,stop)
+            worker.start()
+            try:
+                self.assertTrue(idle.wait(1))
+                names.append('Oral');worker.prioritize('Oral')
+                self.assertTrue(found.wait(1),'Selection waited indefinitely for a new capture frame')
+            finally:stop.set();worker.join(2)
+        self.assertFalse(worker.is_alive())
+
 
 class MultiReplayTests(unittest.TestCase):
     def test_two_real_sellers_are_retained_in_one_marker_snapshot(self):

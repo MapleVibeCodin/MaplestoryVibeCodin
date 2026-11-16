@@ -6,7 +6,7 @@
       "name": "Ceci",
       "goal": 9.0,
       "found": true,
-      "marker_at": 8.6507,
+      "marker_at": 8.662,
       "mode": "EXACT",
       "box": [
         878,
@@ -22,73 +22,76 @@
         "room": 9,
         "room_source": "selected route + numbered header",
         "quick_pass": true,
+        "verification": null,
+        "header_ms": 2.3,
+        "recognition_ms": 41.0,
+        "queue_ms": 144.3,
+        "frame_age_ms": 20.8,
+        "burst_to_result_ms": 187.7,
+        "loading_to_result_ms": 1928.4,
+        "posted_at": 53869.301205506
+      }
+    },
+    {
+      "repeat": 1,
+      "name": "Tounge",
+      "goal": 12.0,
+      "found": true,
+      "marker_at": 11.8365,
+      "mode": "EXACT",
+      "box": [
+        394,
+        98,
+        443,
+        116
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "timing": {
+        "name": "Tounge",
+        "found": true,
+        "room": 9,
+        "room_source": "selected route + numbered header",
+        "quick_pass": true,
+        "verification": null,
         "header_ms": 1.4,
-        "recognition_ms": 38.7,
-        "queue_ms": 141.7,
-        "frame_age_ms": 11.6,
+        "recognition_ms": 32.9,
+        "queue_ms": 0.4,
+        "frame_age_ms": 3.4,
+        "burst_to_result_ms": 34.7,
+        "loading_to_result_ms": 1969.6,
+        "posted_at": 53872.184987996
+      }
+    },
+    {
+      "repeat": 1,
+      "name": "Gimchigirl",
+      "goal": 15.0,
+      "found": true,
+      "marker_at": 14.9895,
+      "mode": "CHECK",
+      "box": [
+        1281,
+        399,
+        1342,
+        417
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "timing": {
+        "name": "Gimchigirl",
+        "found": true,
+        "room": 13,
+        "room_source": "selected route + numbered header",
+        "quick_pass": true,
+        "verification": null,
+        "header_ms": 1.3,
+        "recognition_ms": 44.0,
+        "queue_ms": 136.5,
+        "frame_age_ms": 11.9,
         "burst_to_result_ms": 181.8,
-        "loading_to_result_ms": 1917.1,
-        "posted_at": 47991.742629919
-      }
-    },
-    {
-      "repeat": 1,
-      "name": "Tounge",
-      "goal": 12.0,
-      "found": true,
-      "marker_at": 11.8354,
-      "mode": "EXACT",
-      "box": [
-        394,
-        98,
-        443,
-        116
-      ],
-      "location_ok": true,
-      "deadline_met": true,
-      "timing": {
-        "name": "Tounge",
-        "found": true,
-        "room": 9,
-        "room_source": "selected route + numbered header",
-        "quick_pass": true,
-        "header_ms": 1.7,
-        "recognition_ms": 28.9,
-        "queue_ms": 0.5,
-        "frame_age_ms": 6.1,
-        "burst_to_result_ms": 31.1,
-        "loading_to_result_ms": 1968.4,
-        "posted_at": 47995.085056198
-      }
-    },
-    {
-      "repeat": 1,
-      "name": "Gimchigirl",
-      "goal": 15.0,
-      "found": true,
-      "marker_at": 14.9507,
-      "mode": "CHECK",
-      "box": [
-        1281,
-        399,
-        1342,
-        417
-      ],
-      "location_ok": true,
-      "deadline_met": true,
-      "timing": {
-        "name": "Gimchigirl",
-        "found": true,
-        "room": 13,
-        "room_source": "selected route + numbered header",
-        "quick_pass": true,
-        "header_ms": 2.1,
-        "recognition_ms": 44.5,
-        "queue_ms": 101.1,
-        "frame_age_ms": 6.1,
-        "burst_to_result_ms": 147.7,
-        "loading_to_result_ms": 550.4,
-        "posted_at": 47997.663647624
+        "loading_to_result_ms": 589.2,
+        "posted_at": 53874.734969388
       }
     },
     {
@@ -96,7 +99,7 @@
       "name": "Ceci",
       "goal": 9.0,
       "found": true,
-      "marker_at": 8.6381,
+      "marker_at": 8.662,
       "mode": "EXACT",
       "box": [
         878,
@@ -112,13 +115,14 @@
         "room": 9,
         "room_source": "selected route + numbered header",
         "quick_pass": true,
-        "header_ms": 8.7,
-        "recognition_ms": 36.1,
-        "queue_ms": 118.2,
-        "frame_age_ms": 1.7,
-        "burst_to_result_ms": 163.0,
-        "loading_to_result_ms": 1904.5,
-        "posted_at": 48000.831733829
+        "verification": null,
+        "header_ms": 6.0,
+        "recognition_ms": 40.1,
+        "queue_ms": 145.6,
+        "frame_age_ms": 21.6,
+        "burst_to_result_ms": 191.7,
+        "loading_to_result_ms": 1928.2,
+        "posted_at": 53877.706422345
       }
     },
     {
@@ -126,7 +130,7 @@
       "name": "Tounge",
       "goal": 12.0,
       "found": true,
-      "marker_at": 11.8344,
+      "marker_at": 11.8347,
       "mode": "EXACT",
       "box": [
         394,
@@ -142,13 +146,14 @@
         "room": 9,
         "room_source": "selected route + numbered header",
         "quick_pass": true,
-        "header_ms": 1.9,
-        "recognition_ms": 26.4,
-        "queue_ms": 0.5,
-        "frame_age_ms": 7.7,
-        "burst_to_result_ms": 28.8,
-        "loading_to_result_ms": 1966.9,
-        "posted_at": 48004.010097781
+        "verification": null,
+        "header_ms": 2.3,
+        "recognition_ms": 27.8,
+        "queue_ms": 0.4,
+        "frame_age_ms": 6.8,
+        "burst_to_result_ms": 30.4,
+        "loading_to_result_ms": 1967.8,
+        "posted_at": 53880.72025522
       }
     },
     {
@@ -156,7 +161,7 @@
       "name": "Gimchigirl",
       "goal": 15.0,
       "found": true,
-      "marker_at": 14.9761,
+      "marker_at": 14.9806,
       "mode": "CHECK",
       "box": [
         1281,
@@ -172,13 +177,14 @@
         "room": 13,
         "room_source": "selected route + numbered header",
         "quick_pass": true,
-        "header_ms": 2.0,
-        "recognition_ms": 55.5,
-        "queue_ms": 115.8,
-        "frame_age_ms": 20.4,
-        "burst_to_result_ms": 173.3,
-        "loading_to_result_ms": 575.8,
-        "posted_at": 48006.619172341
+        "verification": null,
+        "header_ms": 2.3,
+        "recognition_ms": 43.1,
+        "queue_ms": 129.3,
+        "frame_age_ms": 4.0,
+        "burst_to_result_ms": 174.6,
+        "loading_to_result_ms": 580.2,
+        "posted_at": 53883.221099025
       }
     },
     {
@@ -186,7 +192,7 @@
       "name": "Ceci",
       "goal": 9.0,
       "found": true,
-      "marker_at": 8.6531,
+      "marker_at": 8.6642,
       "mode": "EXACT",
       "box": [
         878,
@@ -202,13 +208,14 @@
         "room": 9,
         "room_source": "selected route + numbered header",
         "quick_pass": true,
-        "header_ms": 8.1,
-        "recognition_ms": 42.0,
-        "queue_ms": 130.6,
-        "frame_age_ms": 10.8,
-        "burst_to_result_ms": 180.6,
-        "loading_to_result_ms": 1919.5,
-        "posted_at": 48009.884326117
+        "verification": null,
+        "header_ms": 1.4,
+        "recognition_ms": 47.5,
+        "queue_ms": 142.1,
+        "frame_age_ms": 16.4,
+        "burst_to_result_ms": 191.1,
+        "loading_to_result_ms": 1930.6,
+        "posted_at": 53886.240700297
       }
     },
     {
@@ -216,7 +223,7 @@
       "name": "Tounge",
       "goal": 12.0,
       "found": true,
-      "marker_at": 11.8368,
+      "marker_at": 11.8321,
       "mode": "EXACT",
       "box": [
         394,
@@ -232,13 +239,14 @@
         "room": 9,
         "room_source": "selected route + numbered header",
         "quick_pass": true,
-        "header_ms": 1.6,
-        "recognition_ms": 31.7,
+        "verification": null,
+        "header_ms": 1.4,
+        "recognition_ms": 27.1,
         "queue_ms": 0.3,
         "frame_age_ms": 4.7,
-        "burst_to_result_ms": 33.7,
-        "loading_to_result_ms": 1969.5,
-        "posted_at": 48013.115238995
+        "burst_to_result_ms": 28.8,
+        "loading_to_result_ms": 1965.1,
+        "posted_at": 53889.114335154
       }
     },
     {
@@ -246,7 +254,7 @@
       "name": "Gimchigirl",
       "goal": 15.0,
       "found": true,
-      "marker_at": 14.955,
+      "marker_at": 14.9851,
       "mode": "CHECK",
       "box": [
         1281,
@@ -262,13 +270,14 @@
         "room": 13,
         "room_source": "selected route + numbered header",
         "quick_pass": true,
-        "header_ms": 1.7,
-        "recognition_ms": 52.2,
-        "queue_ms": 95.3,
-        "frame_age_ms": 2.5,
-        "burst_to_result_ms": 149.2,
-        "loading_to_result_ms": 552.7,
-        "posted_at": 48015.72603674
+        "verification": null,
+        "header_ms": 1.4,
+        "recognition_ms": 43.9,
+        "queue_ms": 136.3,
+        "frame_age_ms": 7.5,
+        "burst_to_result_ms": 181.6,
+        "loading_to_result_ms": 584.9,
+        "posted_at": 53891.623870469
       }
     }
   ]

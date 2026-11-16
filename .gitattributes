@@ -16,3 +16,5 @@
 /*.mp4 export-ignore
 /HENEFM* export-ignore
 /build_clean_package.py export-ignore
+
+/*.png export-ignore

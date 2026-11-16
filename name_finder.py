@@ -29,7 +29,7 @@ def templates(target,width,expand_case=False,primary=False):
         names.extend([target.lower(),target.upper(),target.title()])
         names.extend(target[:i]+char.swapcase()+target[i+1:] for i,char in enumerate(target) if char.isalpha())
     scales=((1.,1.04,1366/1280) if width<1024 else (1.,))+(width/1280,width/1280*1.04,width/1366,width/1366*1.04)
-    if primary:scales=((1.,) if width<1024 else ())+(width/1280,width/1366*1.04)
+    if primary:scales=(1.,width/1280,width/1366*1.04)
     result=[];seen=set()
     for name in dict.fromkeys(names):
         bounds=font.getbbox(name)
@@ -303,10 +303,76 @@ class NameFinder:
                        confidence>=.85 and tight_confidence>=.85 and len(wanted)>=5)
                 mode='EXACT'
             if valid:matches.append(Hit(text.strip(),box,float(score),mode))
+        if not matches:matches=self._label_recovery(bgr,target,candidates,words,dark)
         if not matches:
             matches=(self._entry_reads(bgr,target,candidates,words,dark) if entry else
                      self._recover_read(bgr,target,candidates,words,dark))
         return matches
+
+    def _label_recovery(self,bgr,target,candidates,words,dark):
+        """Bounded recovery for repeated tails, adjacent tags and occluded gaps.
+
+        Expanded strips must read the complete requested name twice. A visible
+        internal gap can produce CHECK only; its covered letter is not inferred.
+        """
+        wanted=norm(target);run=re.search(r'([a-z0-9])\1{2,}$',wanted)
+        hits=[]
+        for (score,box),(text,confidence) in zip(candidates[:2],words[:2]):
+            if score<.56 or confidence<.70:continue
+            x,y,r,b=box;read=norm(text);crops=[];repeat=False;gap=False
+            if run and run.start()>=3 and wanted[:run.start()][1:] in read:
+                repeat=True
+                shift=max(1,round((r-x)/len(wanted)/2))
+                # Follow the visible run to its end. A fixed target-width crop
+                # would otherwise verify a shorter prefix of a longer Z run.
+                top=max(0,y+2);bottom=min(bgr.shape[0],b-2)
+                end=min(bgr.shape[1],r+60);start=max(x,r-3)
+                line=bgr[top:bottom,start:end]
+                if not line.size:continue
+                ink=((line.min(axis=2)>150)&(np.ptp(line,axis=2)<55)).any(axis=0)
+                blank=0;right=end
+                for offset,present in enumerate(ink):
+                    blank=0 if present else blank+1
+                    if blank>=2:
+                        right=min(bgr.shape[1],start+offset+4);break
+                for inset in (0,2):
+                    sample=bgr[max(0,y-2)+inset:min(bgr.shape[0],b+1),x+shift:right]
+                    if not sample.size:continue
+                    sample=sample if dark else 255-sample
+                    sample=cv2.resize(sample,None,fx=6,fy=3,interpolation=cv2.INTER_CUBIC)
+                    crops.append(cv2.copyMakeBorder(sample,8,8,12,12,cv2.BORDER_CONSTANT,value=(255,255,255)))
+            elif len(wanted)>=6 and len(read)==len(wanted)+1 and read[0] in 'il1' and read[1:]==wanted:
+                for inset in (2,3):
+                    sample=bgr[max(0,y-1):min(bgr.shape[0],b+1),x+inset:r]
+                    if sample.size:crops.append(cv2.resize(sample if dark else 255-sample,None,fx=3,fy=3,interpolation=cv2.INTER_CUBIC))
+            elif len(wanted)>=8 and score>=.60 and confidence>=.90:
+                parts=text.strip().split()
+                if len(parts)==2:
+                    left,right=map(norm,parts)
+                    gap=(len(left)>=2 and len(right)>=3 and len(left)+len(right)==len(wanted)-1 and
+                         wanted.startswith(left) and wanted.endswith(right))
+                if gap and b-y>=15:
+                    for pad,threshold in ((0,180),(2,210)):
+                        sample=bgr[y+3:b-3,max(0,x-pad):min(bgr.shape[1],r+pad)]
+                        gray=cv2.cvtColor(sample,cv2.COLOR_BGR2GRAY)
+                        mask=cv2.threshold(gray,110 if dark else threshold,255,cv2.THRESH_BINARY)[1]
+                        if not dark:mask=255-mask
+                        crops.append(cv2.cvtColor(cv2.resize(mask,None,fx=3,fy=3,interpolation=cv2.INTER_CUBIC),cv2.COLOR_GRAY2BGR))
+            if len(crops)!=2:continue
+            previous=self.recognizer.rec_image_shape
+            try:
+                self.recognizer.rec_image_shape=[3,48,320]
+                reads,_=self.recognizer(crops)
+            finally:self.recognizer.rec_image_shape=previous
+            for value,certainty in reads:
+                self.last_diagnostic['candidates'].append(dict(text=value,variant='label-recovery',
+                    ocr_confidence=float(certainty),visual_score=round(score,3),box=box))
+            if gap:
+                verified=sum(value.strip().split()==text.strip().split() and certainty>=.90 for value,certainty in reads)==2
+            else:
+                verified=sum(norm(value)==wanted and certainty>=.90 for value,certainty in reads)==2
+            if verified:hits.append(Hit(target if not gap else text.strip(),box,float(score),'CHECK'))
+        return hits
 
     def _entry_reads(self,bgr,target,candidates,words,dark):
         """Only two extra raw strips per plausible name; no threshold sweep."""
@@ -478,6 +544,9 @@ class NameFinder:
                 if cancelled is not None and cancelled():return None
                 candidates=self._candidates(bgr,target,dark=dark,fast=True,
                     min_score=.56,limit=3,peak_limit=96 if len(target)<5 else 24,cache=cache,primary=True)
+                if not candidates:
+                    candidates=self._candidates(bgr,target,dark=dark,fast=True,
+                        min_score=.52,limit=2,peak_limit=24,cache=cache,primary=True)
                 if cancelled is not None and cancelled():return None
                 self.recognizer.rec_image_shape=[3,48,160]
                 found=self._verify(bgr,target,candidates,dark=dark,normalize=True,entry=True)
