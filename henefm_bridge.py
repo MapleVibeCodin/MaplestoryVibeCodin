@@ -2,46 +2,44 @@
 
 Receives only one HeneFM Flips deal at a time (as shown on the user's
 browser page) and hands it to the GUI. No API key, no network requests,
-no shop listing/price data downloaded or saved.
+listing metadata can be persisted locally before delivery is acknowledged.
 """
 from __future__ import annotations
 import json
 import math
 import queue
 import threading
-from dataclasses import dataclass
+import sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from deal_parser import Deal
 from profit_filter import ProfitDecision
 
-MIN_MESOS = 15_000
-MIN_PERCENT = 15.0
-
 HOST = '127.0.0.1'
 PORT = 18773
-MAX_REQUEST_BYTES = 10_240
+MAX_REQUEST_BYTES = 65_536
 
 
 def parse_browser_deal(raw: dict) -> Deal | None:
-    """Strict fail-closed validation of a single browser-visible flip."""
+    """Validate listing structure; apply no profit or sold-status eligibility gate."""
     if not isinstance(raw, dict):
         return None
+    def integer(key,low,high):
+        value=raw.get(key)
+        if value is None:return None
+        if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or int(value)!=value:
+            raise ValueError(key)
+        if not low<=value<=high:raise ValueError(key)
+        return int(value)
     try:
-        cc = int(raw['cc'])
-        fm = int(raw['fm'])
-        buy = int(raw['buy_mesos'])
-        gain = int(raw['profit_mesos'])
-        pct = float(raw['profit_percent'])
-    except (KeyError, TypeError, ValueError, OverflowError):
-        return None
-    # Do not allow coercion of nonintegers, enormous values or percentages.
-    if not (1 <= cc <= 40 and 1 <= fm <= 20 and 1 <= buy <= 1_000_000_000_000):
-        return None
-    if not (0 <= gain <= 1_000_000_000_000 and math.isfinite(pct) and 0 <= pct <= 100_000_000_000_000):
-        return None
-    unusually_cheap = raw.get('unusually_cheap') is True
-    if not unusually_cheap and not (gain >= MIN_MESOS and pct >= MIN_PERCENT):
-        return None
+        cc=integer('cc',1,40);fm=integer('fm',1,20)
+        buy=integer('buy_mesos',0,1_000_000_000_000)
+        gain=integer('profit_mesos',-1_000_000_000_000,1_000_000_000_000)
+        pct=raw.get('profit_percent')
+        if pct is not None:
+            if isinstance(pct,bool) or not isinstance(pct,(int,float)) or not math.isfinite(pct) or abs(pct)>1e14:
+                return None
+            pct=float(pct)
+    except (ValueError,TypeError,OverflowError):return None
     item = raw.get('item')
     ign = raw.get('ign')
     stats = raw.get('stats', '')
@@ -54,18 +52,22 @@ def parse_browser_deal(raw: dict) -> Deal | None:
         return None
     return Deal(cc=cc, fm=fm, item=item, stats=stats, ign=ign,
                 buy_mesos=buy,
-                profit=ProfitDecision(True, gain, pct, 'unusually cheap' if unusually_cheap else 'passed'))
+                profit=ProfitDecision(True,gain,pct,'browser listing'),
+                listing_id=str(raw.get('listing_id',''))[:120],
+                sold=raw.get('sold') is True,raw_text=str(raw.get('raw_text',''))[:6000])
 
 
 class BrowserBridge:
     """Small receiver on 127.0.0.1; posts accepted deals into an existing queue."""
-    def __init__(self, out: queue.Queue):
+    def __init__(self, out: queue.Queue, archive=None):
         self.out = out
+        self.archive=archive
         self.server: ThreadingHTTPServer | None = None
         self.thread: threading.Thread | None = None
 
     def start(self):
         out = self.out
+        archive=self.archive
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, fmt, *args):
@@ -82,7 +84,7 @@ class BrowserBridge:
 
             def do_GET(self):
                 if self.path == '/health':
-                    self._send(200, {'ok': True, 'name': 'FM Rush v22.2'});
+                    self._send(200, {'ok': True, 'name': 'FM Rush v24.11'});
                 else:
                     self._send(404, {'ok': False})
 
@@ -112,11 +114,13 @@ class BrowserBridge:
                 except (ValueError, UnicodeError, json.JSONDecodeError):
                     deal = None
                 if deal is None:
-                    self._send(422, {'ok': False, 'error': 'deal_must_pass_filter'})
+                    self._send(422, {'ok': False, 'error': 'invalid_listing'})
                     return
                 try:
-                    out.put_nowait(('browser_deal', deal))
-                except queue.Full:
+                    new=True
+                    if archive is not None:_,new=archive.record(deal)
+                    out.put_nowait(('browser_deal', deal,new))
+                except (queue.Full,OSError,ValueError,sqlite3.Error):
                     self._send(503, {'ok': False, 'error': 'busy'})
                     return
                 self._send(200, {'ok': True, 'ign': deal.ign})

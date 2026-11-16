@@ -1,4 +1,4 @@
-/* FM Rush v24.8 — PASSIVE HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.11 — PASSIVE HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Does not insert, remove, style, sort, hide, click or modify ANY page element.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -10,10 +10,8 @@
 
   const isDealsPage = () => /^\/flips\/deals\/?$/.test(location.pathname);
   const SELLER_LINKS = 'a[href*="/shops/"],a[href*="/shop/"]';
-  const SEEN_KEY = 'fmRushDeliveredV245';
-  const MIN_GAIN = 15000;
-  const MIN_PERCENT = 15;
-  const MAX_QUEUE = 30;
+  const SEEN_KEY = 'fmRushDeliveredV2411';
+  const QUEUE_KEY = 'fmRushPendingV2411';
   const AMOUNT = '([0-9][0-9,]*(?:\\.[0-9]+)?(?:\\s*[KMB](?=mesos?\\b|\\b))?)';
 
   let seen = new Set();
@@ -21,7 +19,6 @@
   let sending = false;
   let retryAfter = 0;
   let retryFailures = 0;
-  let activeIds = new Set();
   let screenshotCandidates = [];
   let lastScreenshotBatchAt = 0;
   let lastScreenshotBatchHash = '';
@@ -33,11 +30,16 @@
     if (saved !== null) {
       seen = new Set(JSON.parse(saved));
     }
+    const pending=JSON.parse(sessionStorage.getItem(QUEUE_KEY)||'[]');
+    if(Array.isArray(pending))queued.push(...pending);
   } catch (_) { /* Fallback to tab-local state. */ }
 
   function remember() {
-    try { sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen].slice(-1200))); }
-    catch (_) { /* Private browsing or restricted storage. */ }
+    try {
+      sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen].slice(-1200)));
+      sessionStorage.setItem(QUEUE_KEY, JSON.stringify(queued));
+    }
+    catch (_) { diagnostics.lastError='Pending listings are in memory; browser storage failed. Keep this tab open until delivery.'; }
   }
   function money(text) {
     const m = String(text ?? '').replace(/,/g, '').match(/([0-9]+(?:\.[0-9]+)?)\s*([KMB]?)(?![A-Za-z])/i);
@@ -74,8 +76,7 @@
       if (sellers.size > 1) break;
       const text = linesOf(element).join(' ');
       if (text.length > 9000) break;
-      if (/\b(?:CH|CC)\s*\d{1,2}\s*[·•/|,\-]?\s*FM\s*\d{1,2}\b/i.test(text) &&
-          /\bProfit\b/i.test(text) && /\bBuy(?=\s|[:+0-9])/i.test(text)) {
+      if (/\bProfit\b/i.test(text) && /\bBuy(?=\s|[:+0-9])/i.test(text)) {
         return element;
       }
     }
@@ -83,14 +84,14 @@
   }
   function readProfit(lines) {
     const all = lines.join(' ');
-    const block = all.match(/\bProfit\b([\s\S]*?)\bBuy\b/i)?.[1];
+    const block=all.split(/\bProfit\b/i)[1]?.split(/\b(?:Buy|Resell at|Average sale|Time to resell)\b/i)[0];
     if (!block) return null;
     // Single item: "Profit +22.3K 34%".
     // Multi-item:  "Profit · all 3 +47.7K +15.9K each 1026%".
-    const gain = block.match(new RegExp('\\+\\s*' + AMOUNT, 'i'));
-    const percentages = [...block.matchAll(/([0-9][0-9,]*(?:\.[0-9]+)?)\s*%/g)];
+    const gain = block.match(new RegExp('([+-])\\s*' + AMOUNT, 'i'));
+    const percentages = [...block.matchAll(/(-?[0-9][0-9,]*(?:\.[0-9]+)?)\s*%/g)];
     if (!gain || !percentages.length) return null;
-    return { gain: money(gain[1]), pct: Number(percentages.at(-1)[1].replace(/,/g, '')) };
+    return { gain: (gain[1]==='-'?-1:1)*money(gain[2]), pct: Number(percentages.at(-1)[1].replace(/,/g, '')) };
   }
   function readBuy(lines) {
     const all = lines.join(' ');
@@ -121,6 +122,7 @@
     const unique = new Set();
     const uniqueCaptured = new Set();
     const uniqueCards = new Set();
+    const occurrences=new Map();
     const counts = {sellerLinks:0, cardsFound:0, soldCards:0, parsedCards:0, qualifyingDeals:0};
     const links = document.querySelectorAll(SELLER_LINKS);
     counts.sellerLinks = links.length;
@@ -139,9 +141,8 @@
       if (sold) counts.soldCards++;
       const text = lines.join(' ');
       const position = text.match(/\b(?:CH|CC)\s*(\d{1,2})\s*[·•/|,\-]?\s*FM\s*(\d{1,2})\b/i);
-      if (!position) continue;
-      const cc = Number(position[1]), fm = Number(position[2]);
-      if (cc < 1 || cc > 40 || fm < 1 || fm > 20) continue;
+      const cc=position?Number(position[1]):null, fm=position?Number(position[2]):null;
+      if (position && (cc<1 || cc>40 || fm<1 || fm>20)) continue;
       const profit = readProfit(lines);
       const buy = readBuy(lines);
       const label = (link.textContent || '').trim().replace(/\s+/g, ' ');
@@ -157,12 +158,14 @@
 
       // Screenshots are a separate feature and include every rendered item on
       // the user's current Deals view (even low profit and sold entries).
-      // They never change the stricter alert filter below.
+      // Listing delivery and screenshots both include the current page contents.
       const r = card.getBoundingClientRect();
       const itemAnchor = [...card.querySelectorAll('a[href]')]
         .find(a => a !== link && /\/items?\//i.test(a.getAttribute('href')||''));
-      const captureKey = [link.href, itemAnchor?.href||'', cc, fm,
-        item, stats, buy??''].join('|').toLowerCase();
+      const baseKey=[card.getAttribute?.('data-listing-id')||'',link.href,itemAnchor?.href||'',cc,fm,
+        item,stats,buy??''].join('|').toLowerCase();
+      const occurrence=occurrences.get(baseKey)||0;occurrences.set(baseKey,occurrence+1);
+      const captureKey=baseKey+'|'+occurrence;
       const captureId = fingerprint(captureKey) + fingerprint([...captureKey].reverse().join(''));
       if (!uniqueCaptured.has(captureId) && r.width >= 12 && r.height >= 24) {
         uniqueCaptured.add(captureId);
@@ -174,15 +177,13 @@
           }});
       }
 
-      // Original bridge route: sold items and offers not passing the alert
-      // threshold are not forwarded to the game locator.
-      if (sold) continue;
-      if (!profit || buy === null || buy < 1) continue;
+      // Mirror rendered listings exactly; profit and sold state are metadata.
       counts.parsedCards++;
-      if (!unusuallyCheap && !(profit.gain >= MIN_GAIN && profit.pct >= MIN_PERCENT)) continue;
-      const deal = {cc, fm, ign, item, stats: stats.slice(0, 150),
-        buy_mesos: buy, profit_mesos: profit.gain, profit_percent: profit.pct, unusually_cheap: unusuallyCheap};
-      deal.id = fingerprint([ign, cc, fm, item, deal.stats, buy].join('|').toLowerCase());
+      const listing_id=captureId;
+      const deal = {cc,fm,ign,item,stats:stats.slice(0,150),listing_id,sold,
+        buy_mesos:buy,profit_mesos:profit?.gain??null,profit_percent:profit?.pct??null,
+        unusually_cheap:unusuallyCheap,raw_text:lines.join('\n').slice(0,6000)};
+      deal.id=fingerprint([listing_id,sold,deal.profit_mesos,deal.profit_percent].join('|'));
       if (unique.has(deal.id)) continue;
       unique.add(deal.id);
       results.push(deal);
@@ -208,13 +209,12 @@
     } catch (_) { /* Extension may be reloading. */ }
   }
   function enqueue(deal) {
-    if (queued.some(d => d.id === deal.id)) return;
-    if (queued.length >= MAX_QUEUE) queued.shift();
+    if (queued.some(d => d.id === deal.id)) return false;
     queued.push(deal);
+    return true;
   }
   function sendNext() {
     if (sending || Date.now() < retryAfter || !isDealsPage()) return;
-    while (queued.length && !activeIds.has(queued[0].id)) queued.shift();
     const deal = queued[0];
     if (!deal) return;
     sending = true;
@@ -224,7 +224,8 @@
         sending = false;
         const error = chrome.runtime.lastError?.message || response?.error;
         if (response?.ok && !chrome.runtime.lastError) {
-          queued.shift();
+          const index=queued.findIndex(d=>d.id===deal.id);
+          if(index>=0)queued.splice(index,1);
           // Only remember a deal AFTER FM Rush actually acknowledges it.
           // Previously a reload while the app was disconnected permanently
           // suppressed unsent deals for the rest of the tab session.
@@ -237,7 +238,9 @@
           retryAfter = 0;
           console.info('[FM Rush] Routed', deal.ign, 'CH' + deal.cc, 'FM' + deal.fm);
         } else if (response?.retryable === false) {
-          queued.shift(); // Bad payload: do not endlessly retry.
+          const index=queued.findIndex(d=>d.id===deal.id);
+          if(index>=0)queued.splice(index,1);
+          remember(); // Invalid data is reported instead of retrying forever.
           diagnostics.rejected++;
           diagnostics.lastRejectAt = Date.now();
           diagnostics.lastError = String(error || 'invalid deal');
@@ -260,17 +263,14 @@
   }
   function scan() {
     scanTimer = null;
-    if (!isDealsPage()) {activeIds.clear(); queued.length = 0; return;}
+    if (!isDealsPage()) return;
     const deals = extract();
-    activeIds = new Set(deals.map(d => d.id));
     // Include eligible cards on first load as well as newly appearing cards.
-    for (const deal of deals) if (!seen.has(deal.id)) enqueue(deal);
-    // Preserve only delivered IDs: queued / disconnected deals MUST NOT be
-    // recorded as seen, including after a browser page reload.
-    // Drop offers which have disappeared or become sold before delivery.
-    for (let i = queued.length - 1; i >= 0; i--) {
-      if (!activeIds.has(queued[i].id) && !sending) queued.splice(i, 1);
-    }
+    let queueChanged=false;
+    for (const deal of deals) if (!seen.has(deal.id)) queueChanged=enqueue(deal)||queueChanged;
+    if(queueChanged)remember();
+    // Keep unsent listings even after they leave the page; the archive must
+    // not lose a seller while the local app is disconnected.
     // A compact fingerprint, not seller names, is passed to the refresh telemetry.
     // A changed fingerprint shows rendered deal data changed, not necessarily
     // that the server itself just generated a new list.
@@ -321,6 +321,12 @@
         }
       });
       chrome.runtime.onMessage?.addListener((message,_sender,respond) => {
+        if (message?.kind==='fm-rush-locate-capture') {
+          extract();
+          const card=screenshotCandidates.find(card=>card.id===message.id);
+          respond(card?{ok:true,card}:{ok:false,error:'Listing no longer rendered'});
+          return false;
+        }
         if (message?.kind==='fm-rush-health-wake') {
           scheduleScan();
           signalRefresh('wake');
@@ -332,6 +338,7 @@
           seen.clear();
           remember();
           queued.length = 0;
+          remember();
           retryAfter = 0;
           retryFailures = 0;
           scheduleScan();

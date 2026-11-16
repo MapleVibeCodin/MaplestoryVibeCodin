@@ -1,6 +1,6 @@
 """Replay locator accuracy, latency and CPU work; never captures the desktop.
 
-python benchmark_name_finder.py --baseline-ref 8e60f1f --runs 5
+python benchmark_name_finder.py --baseline-ref 0c77d82 --runs 5
 Without --baseline-ref, works from an extracted ZIP without Git installed.
 """
 from cpu_guard import initialize
@@ -84,7 +84,7 @@ def stress_worker(finder,seconds,baseline_ref=None):
         worker_module=types.ModuleType('baseline_shop_worker')
         exec(compile(source,str(ROOT/'fast_shop_worker.py'),'exec'),vars(worker_module))
     else:
-        import fast_shop_worker as worker_module
+        import multi_shop_worker as worker_module
     import numpy as np
     image=cv2.imread(str(ROOT/'regression_samples/snapkin_072432.png'))
     stop=threading.Event();scans=[];started=time.monotonic()
@@ -104,7 +104,12 @@ def stress_worker(finder,seconds,baseline_ref=None):
     def target():
         generation=int((time.monotonic()-started)/.25)
         return names[generation%len(names)],generation
-    worker=worker_module.FastShopWorker(Frames(),target,lambda event:None,stop)
+    if baseline_ref:
+        worker=worker_module.FastShopWorker(Frames(),target,lambda event:None,stop)
+    else:
+        def queued_names():return names[:min(3,1+int((time.monotonic()-started)/.25))]
+        def revisions():return {name.casefold():int((time.monotonic()-started)/.75) for name in queued_names()}
+        worker=worker_module.MultiShopWorker(Frames(),queued_names,lambda event:None,stop,revisions)
     cpu=time.process_time();wall=time.perf_counter()
     worker.start();stop.wait(seconds);stop.set();worker.join(5)
     if worker.is_alive():raise RuntimeError('Stress worker did not stop')
@@ -113,7 +118,7 @@ def stress_worker(finder,seconds,baseline_ref=None):
             'searches':len(scans),'search_cpu_seconds':round(sum(scans),3),
             'search_cpu_fraction_of_one_core':round(sum(scans)/wall,3),
             'process_cpu_fraction_of_one_core':round(cpu/wall,3),
-            'scope':'Static in-memory replay frames; excludes real capture, GUI and Discord OCR; models prewarmed.'}
+            'scope':'Static in-memory frames; legacy worker replaces targets, current worker retains incoming sellers. Excludes capture/GUI/Discord; models prewarmed.'}
 
 
 def main():
@@ -121,7 +126,7 @@ def main():
     parser.add_argument('--baseline-ref',help='Optional local Git revision to compare')
     parser.add_argument('--runs',type=int,default=5)
     parser.add_argument('--stress-seconds',type=float,default=0.,help='Optional simulated rapid-target stress duration per version')
-    parser.add_argument('--output',type=Path,default=ROOT/'benchmark_v24_10.json')
+    parser.add_argument('--output',type=Path,default=ROOT/'benchmark_v24_11.json')
     args=parser.parse_args()
     if args.runs<1:parser.error('--runs must be positive')
     cv2.setNumThreads(1)

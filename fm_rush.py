@@ -15,18 +15,21 @@ import re
 import threading
 import time
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, filedialog
 from window_capture import windows as list_game_windows, WindowFrames
-from fast_shop_worker import FastShopWorker
+from multi_shop_worker import MultiShopWorker
+from deal_archive import DealArchive
 
 from deal_parser import parse_deal
 from henefm_bridge import BrowserBridge
 from profit_filter import FILTER_LABEL
-FILTER_LABEL = "BROWSER: UNUSUALLY CHEAP OR (≥15,000 MESOS AND ≥15%)"
+FILTER_LABEL = "BROWSER: ALL SHOWN LISTINGS · NO PROFIT FILTER"
 from route_logic import parse_alert, plan, arrows, PORTALS, START_POINT, ROW_Y, ROPE_X, BOTTOM_WARP, START_CHANNEL
 
 BASE = Path(__file__).resolve().parent
 CONFIG = BASE / 'config.json'
+ARCHIVE_DIR=(Path(os.environ['LOCALAPPDATA'])/'FM_Rush'/'archives'
+             if os.name=='nt' and os.environ.get('LOCALAPPDATA') else BASE/'archives')
 BG = '#091222'; CARD='#152338'; CARD2='#1c314a'
 FG='#f5fbff'; MUTED='#a9bfd6'; TEAL='#25e5b5'; YELLOW='#ffdf72'; RED='#f37d8c'
 
@@ -193,14 +196,15 @@ class ShopHighlighter(tk.Toplevel):
         self.app=app
         self.title('FM RUSH — FIND NAME')
         self.config(bg=BG)
-        self.resizable(True,False)
-        self.minsize(460,130)
+        self.resizable(True,True)
+        self.minsize(520,300)
         self.attributes('-topmost',app.conf['topmost'])
         self.protocol('WM_DELETE_WINDOW',self.withdraw)
         self.last_image=None;self.last_size=None;self.last_box=None;self.last_name='';self.last_mode='SEARCHING'
         self.target=tk.StringVar(value='Waiting for a deal')
         self.notice=tk.StringVar(value='A marker will appear over the matching name in MapleStory.')
         self.pin=ShopPin(app.root)
+        self.matches={}
         top=tk.Frame(self,bg=BG);top.pack(fill='x',padx=10,pady=(7,3))
         tk.Label(top,textvariable=self.target,bg=BG,fg=YELLOW,font=('Segoe UI',17,'bold'),anchor='w').pack(side='left',fill='x',expand=True)
         tk.Button(top,text='FIND AGAIN',command=app.retry_shop_once,bg=CARD2,fg=FG,relief='flat').pack(side='right')
@@ -213,7 +217,52 @@ class ShopHighlighter(tk.Toplevel):
         self.start_btn=tk.Button(row,text='START',command=app.toggle_shop_scan,bg=TEAL,fg=BG,relief='flat')
         self.start_btn.pack(side='left')
         tk.Label(self,textvariable=self.notice,bg=BG,fg=MUTED,font=('Segoe UI',10),wraplength=490,anchor='w',justify='left').pack(fill='x',padx=10,pady=(5,8))
+        queue_frame=tk.Frame(self,bg=BG);queue_frame.pack(fill='both',expand=True,padx=10,pady=5)
+        self.queue=ttk.Treeview(queue_frame,columns=('ign','room','item','state'),show='headings',height=5)
+        for column,label,width in [('ign','Seller IGN',120),('room','Location',100),('item','Item',220),('state','Status',55)]:
+            self.queue.heading(column,text=label);self.queue.column(column,width=width,minwidth=50)
+        self.queue.pack(side='left',fill='both',expand=True)
+        scroll=ttk.Scrollbar(queue_frame,orient='vertical',command=self.queue.yview)
+        scroll.pack(side='right',fill='y');self.queue.configure(yscrollcommand=scroll.set)
+        self.queue_rows={}
+        self.queue.bind('<<TreeviewSelect>>',self.select_queue)
+        buttons=tk.Frame(self,bg=BG);buttons.pack(fill='x',padx=10,pady=(0,8))
+        tk.Button(buttons,text='EXPORT ARCHIVE',command=app.export_archive,bg=CARD2,fg=FG,relief='flat').pack(side='left')
+        tk.Button(buttons,text='UNDO DONE',command=app.undo_deal,bg=CARD2,fg=FG,relief='flat').pack(side='left',padx=8)
+        tk.Button(buttons,text='DONE / NEXT DEAL',command=app.complete_deal,bg=TEAL,fg=BG,relief='flat').pack(side='right')
         self.refresh_windows()
+
+    def render_queue(self,rows,focus,names):
+        position=self.queue.yview()[0]
+        updated={}
+        for key,deal in rows:
+            location=f"CH {deal['cc'] or '?'} / FM {deal['fm'] or '?'}"
+            values=(deal['ign'],location,deal['item'],'SOLD' if deal.get('sold') else '')
+            updated[key]=values
+            if key not in self.queue_rows:self.queue.insert('', 'end',iid=key,values=values)
+            elif self.queue_rows[key]!=values:self.queue.item(key,values=values)
+        for key in set(self.queue_rows)-set(updated):self.queue.delete(key)
+        self.queue_rows=updated
+        if focus:self.queue.selection_set(focus)
+        if focus and focus!=getattr(self,'queue_focus',None):self.queue.see(focus)
+        else:self.queue.yview_moveto(position)
+        self.queue_focus=focus
+        self.target.set(f'{len(names)} sellers · working on {self.last_name or "none"}')
+        if not names:self.notice.set('Waiting for listings from HeneFM Deals.')
+        self.matches={name:hit for name,hit in self.matches.items() if name in names}
+        if self.last_size and self.app.shop_running:self.pin.show_many(self.selected_hwnd(),self.last_size,self.matches)
+
+    def select_queue(self,event=None):
+        selected=self.queue.selection()
+        if selected and selected[0]!=self.app.archive.focus:self.app.select_archived(selected[0])
+
+    def set_focus(self,name):
+        self.last_name=name
+
+    def draw_matches(self,size,hits,note):
+        self.last_size=size;self.matches=hits
+        self.pin.show_many(self.selected_hwnd(),size,hits)
+        if note:self.notice.set(note)
 
     def change_window(self,event=None):
         self.pin.hide()
@@ -243,7 +292,7 @@ class ShopHighlighter(tk.Toplevel):
     def set_target(self,name,force=False):
         if force or name.casefold()!=self.last_name.casefold():
             self.last_image=None;self.last_size=None;self.last_box=None
-            self.last_mode='SEARCHING';self.pin.hide()
+            self.last_mode='SEARCHING';self.matches.clear();self.pin.hide()
         self.last_name=name
         self.target.set(name or 'Waiting for a deal')
         self.notice.set('Looking for '+name if name else 'A marker will appear over the matching name in MapleStory.')
@@ -270,7 +319,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.10 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.11 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -300,6 +349,11 @@ class FMApp:
         self.shop_running=False
         self.shop_target=''
         self.shop_generation=0
+        self.shop_session=0
+        self.scan_names=()
+        self.scan_revisions={}
+        self.displayed_listing=None
+        self.archive=DealArchive(ARCHIVE_DIR/'deal_archive.sqlite3')
         self.shop_events=queue.Queue(maxsize=3)
         self._pending_after=set()
         self._closing=False
@@ -317,10 +371,11 @@ class FMApp:
             self.map.geometry(self.conf['map_geom'])
         else:
             self.snap()
-        self.shop.geometry('520x140+300+110')
+        self.shop.geometry('680x350+300+110')
+        self.sync_archive()
         self.schedule(35,self.pump)
         try:
-            self.browser_bridge=BrowserBridge(self.events)
+            self.browser_bridge=BrowserBridge(self.events,self.archive)
             self.browser_bridge.start()
             self.status.set(FILTER_LABEL+' • HeneFM browser bridge READY on 127.0.0.1:18773'+(' • WEB ONLY (NO OCR)' if self.web_only else ''))
         except OSError as exc:
@@ -485,14 +540,14 @@ class FMApp:
                     return
 
     def set_target(self,cc,fm,deal=None,keep_deal=False,source='MANUAL'):
+        if deal is not None and source in ('WEB','DISCORD'):
+            self.archive.record(deal);self.sync_archive();return
         self.current_cc=cc;self.current_fm=fm
         p=plan(cc,fm,start_channel=self.conf['start_channel'])
         self.ccfm.set(f'CH {cc:02d}  /  FM {fm:02d}')
         self.keys.set(arrows(p.channel_keys))
         if deal is not None:
-            if source in ('DISCORD', 'WEB'):
-                self.accepted_ign(deal.ign)
-            self.item.set('ITEM: '+(deal.item or '—'))
+            self.item.set('ITEM: '+(deal.item or '—')+(' · SOLD' if deal.sold else ''))
             self.stats.set('STATS: '+(deal.stats or '—'))
             self.ign.set('IGN: '+(deal.ign or '—'))
             self.profit.set(deal.profit.label)
@@ -511,18 +566,68 @@ class FMApp:
         self.shop=ShopHighlighter(self)
         self.shop.set_target(self.shop_target)
 
+    def sync_archive(self):
+        # Receipt runs on HTTP threads: take one consistent UI/search snapshot.
+        with self.archive.lock:
+            rows=self.archive.pending()
+            names=self.archive.names()
+            current=self.archive.current()
+        revisions={}
+        for key,deal in rows:revisions.setdefault(deal['ign'].casefold(),[]).append(key)
+        self.scan_revisions={name:tuple(keys) for name,keys in revisions.items()}
+        self.scan_names=names
+        key,deal=current if current else (None,None)
+        if key!=self.displayed_listing:
+            self.displayed_listing=key
+            if deal is not None:
+                if deal.cc is not None and deal.fm is not None:
+                    self.set_target(deal.cc,deal.fm,deal=deal,source='ARCHIVE')
+                else:
+                    self.ign.set('IGN: '+deal.ign);self.item.set('ITEM: '+deal.item+(' · SOLD' if deal.sold else ''))
+                    self.stats.set('STATS: '+deal.stats);self.profit.set(deal.profit.label)
+                    self.buy.set(deal.buy_label);self.ccfm.set('CH / FM: not shown')
+                self.accepted_ign(deal.ign)
+            else:
+                self.accepted_ign('')
+                self.ign.set('IGN: —');self.item.set('ITEM: —');self.stats.set('STATS: —')
+                self.buy.set('BUY AT: —');self.profit.set('PROFIT: —')
+        elif deal is not None:
+            self.item.set('ITEM: '+deal.item+(' · SOLD' if deal.sold else ''))
+            self.profit.set(deal.profit.label)
+        if not self.scan_names and self.shop_running:self.stop_shop_scan()
+        if self.shop is not None and self.shop.winfo_exists():
+            self.shop.render_queue(rows,key,names)
+
+    def export_archive(self):
+        path=filedialog.asksaveasfilename(title='Export listings grouped by seller IGN',
+            defaultextension='.json',initialfile='FM_Rush_IGN_Archive.json',filetypes=[('JSON archive','*.json')])
+        if path:
+            try:self.archive.export_json(path);self.status.set('Archive saved: '+path)
+            except OSError as exc:messagebox.showerror('Archive export',str(exc))
+
+    def select_archived(self,key):
+        self.archive.select(key);self.sync_archive()
+
+    def undo_deal(self):
+        self.archive.undo_complete();self.sync_archive()
+
+    def complete_deal(self):
+        self.archive.complete_current();self.sync_archive()
+
     def accepted_ign(self, name):
-        # Only an accepted HeneFM browser deal or Discord alert can establish/replace a scan target.
+        # The working selection is explicit; new archived listings do not replace it.
         name=(name or '').strip()
         self.shop_target=name
         self.shop_generation+=1
         if self.shop is not None and self.shop.winfo_exists():
-            self.shop.set_target(name,force=True)
+            self.shop.set_focus(name)
+        worker=getattr(self,'shop_thread',None)
+        if name and worker is not None and worker.is_alive():worker.prioritize(name)
         if name and not self.shop_running and not self.web_only:
             self.schedule(0,self.try_start_shop)
 
     def try_start_shop(self):
-        if self.shop_running or not self.shop_target:return
+        if self.shop_running or not self.scan_names:return
         if self.shop is None or not self.shop.winfo_exists():
             self.open_shop()
         if self.shop.selected_hwnd() is not None:
@@ -531,7 +636,7 @@ class FMApp:
             self.shop.notice.set('MapleStory not found — open game and click REFRESH')
 
     def _post_shop(self, item):
-        # Only the newest screenshot matters. Never let queued old frames add lag.
+        # Each multi-seller result is a complete marker snapshot, so coalescing is safe.
         try:
             self.shop_events.put_nowait(item)
         except queue.Full:
@@ -551,11 +656,14 @@ class FMApp:
             self.shop.notice.set('Select the MapleStory window, then ARM LOCATOR')
             return
         self.shop_stop=threading.Event()
+        self.shop_session+=1
+        session=self.shop_session
         try:
             self.shop_frames=WindowFrames(hwnd, interval_ms=16)
             self.shop_frames.start()
-            self.shop_thread=FastShopWorker(self.shop_frames,lambda:(self.shop_target,self.shop_generation),
-                                             self._post_shop,self.shop_stop)
+            self.shop_thread=MultiShopWorker(self.shop_frames,lambda:self.scan_names,
+                                             lambda item:self._post_shop(('shop_epoch',session,item)),
+                                             self.shop_stop,lambda:self.scan_revisions)
             self.shop_thread.start()
         except Exception as exc:
             if self.shop_frames:
@@ -577,6 +685,7 @@ class FMApp:
         else:self.start_shop_scan()
 
     def stop_shop_scan(self):
+        self.shop_session+=1
         self.shop_stop.set()
         if self.shop_frames is not None:
             try:self.shop_frames.stop()
@@ -585,6 +694,7 @@ class FMApp:
         self.shop_running=False
         if self.shop is not None and self.shop.winfo_exists():
             self.shop.start_btn.config(text='START',bg=TEAL)
+            self.shop.matches.clear();self.shop.last_size=None
             self.shop.pin.hide()
 
     def manual_go(self):
@@ -633,7 +743,7 @@ class FMApp:
         self.worker=DiscordWatcher(lambda:self.conf['discord_region'],self.events,self.stop)
         self.worker.start();self.running=True
         self.ocr_btn.config(text='STOP OCR',bg=RED)
-        self.status.set(FILTER_LABEL+'  •  WATCHING DISCORD')
+        self.status.set('DISCORD: ≥15,000 MESOS AND ≥15% · WATCHING')
 
     def pump(self):
         for _ in range(20):
@@ -644,14 +754,15 @@ class FMApp:
                 if deal.profit.accepted:
                     self.set_target(deal.cc,deal.fm,deal=deal,source='WEB')
                     self.status.set(f'HENEFM WEB DEAL • DIRECT • {FILTER_LABEL}')
-                    try:self.root.bell()
-                    except Exception:pass
+                    if len(evt)<3 or evt[2]:
+                        try:self.root.bell()
+                        except Exception:pass
             elif evt[0]=='deal':
                 deal,ms=evt[1],evt[2]
                 # Defense-in-depth: checked in watcher and UI, never show low-profit deals.
                 if deal.profit.accepted:
                     self.set_target(deal.cc,deal.fm,deal=deal,source='DISCORD')
-                    self.status.set(f'ACCEPTED • OCR {ms:.0f} ms • {FILTER_LABEL}')
+                    self.status.set(f'ACCEPTED • DISCORD OCR {ms:.0f} ms • ≥15,000 MESOS AND ≥15%')
                     try:self.root.bell()
                     except Exception:pass
             elif evt[0]=='status':
@@ -659,7 +770,15 @@ class FMApp:
         for _ in range(3):
             try:evt=self.shop_events.get_nowait()
             except queue.Empty:break
-            if evt[0]=='shop_frame':
+            if evt[0]=='shop_epoch':
+                if evt[1]!=self.shop_session:continue
+                evt=evt[2]
+            if evt[0]=='shops_frame':
+                if self.shop_running and self.shop is not None and self.shop.winfo_exists():
+                    _,size,hits,note=evt
+                    hits={name:hit for name,hit in hits.items() if name in self.scan_names}
+                    self.shop.draw_matches(size,hits,note)
+            elif evt[0]=='shop_frame':
                 _,key,image,source_size,box,mode,seen,latency,method=evt
                 if key==(self.shop_target,self.shop_generation) and self.shop is not None and self.shop.winfo_exists():
                     self.shop.draw(image,source_size,box,mode,seen,latency,method)
@@ -667,7 +786,7 @@ class FMApp:
                 if evt[1]==(self.shop_target,self.shop_generation) and self.shop is not None:
                     self.shop.set_target(self.shop_target,force=True)
             elif evt[0]=='shop_note':
-                if self.shop is not None and self.shop.winfo_exists():
+                if self.shop_running and self.shop is not None and self.shop.winfo_exists():
                     self.shop.notice.set(evt[1])
         self.schedule(10,self.pump)
 
@@ -712,6 +831,7 @@ class FMApp:
         self.stop_shop_scan()
         if self.shop is not None:
             self.shop.pin.close()
+        self.archive.close()
         self.root.destroy()
 
 

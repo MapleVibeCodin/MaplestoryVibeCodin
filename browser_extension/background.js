@@ -1,5 +1,5 @@
 importScripts('screenshot_worker.js');
-/* FM Rush v24.5: local deal bridge + Chrome alarm liveness check.
+/* FM Rush v24.11: local deal bridge + Chrome alarm liveness check.
  * Does not fetch HeneFM URLs, use HeneFM APIs, or edit the website.
  */
 const HEALTH_ALARM = 'fm-rush-health-v243';

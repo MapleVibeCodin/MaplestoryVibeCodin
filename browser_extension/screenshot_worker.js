@@ -3,7 +3,7 @@
  * CDP captures one actual PNG per unique rendered listing without scrolling,
  * changing filters, refreshing the page or delaying the deal bridge.
  */
-const FM_CAPTURE_SEEN_KEY = 'fmRushScreenshotSeenV1';
+const FM_CAPTURE_SEEN_KEY = 'fmRushScreenshotSeenByIGNV2';
 const FM_CAPTURE_ENABLED_KEY = 'fmRushScreenshotEnabled';
 const FM_CAPTURE_FOLDER = 'FM_Rush_Item_Screenshots';
 const FM_CAPTURE_RETENTION_MS = 48 * 60 * 60 * 1000;
@@ -34,18 +34,18 @@ function fmCaptureFileName(card) {
   const now=new Date();
   const date=fmCaptureTimestamp(now);
   const day=date.slice(0,10);
-  const location=`CH${String(card.cc).padStart(2,'0')}-FM${String(card.fm).padStart(2,'0')}`;
+  const location=`CH${String(card.cc??'--').padStart(2,'0')}-FM${String(card.fm??'--').padStart(2,'0')}`;
   const price=Number.isSafeInteger(card.buy_mesos)?`${card.buy_mesos}mesos`:'price_unknown';
   const sold=card.sold?'_SOLD':'';
-  return `${FM_CAPTURE_FOLDER}/${day}/${date}_${location}_${fmCaptureSanitize(card.item)}_${fmCaptureSanitize(card.ign,24)}_${price}${sold}_${card.id}.png`;
+  return `${FM_CAPTURE_FOLDER}/IGN_${fmCaptureSanitize(card.ign,24)}/${day}/${date}_${location}_${fmCaptureSanitize(card.item)}_${fmCaptureSanitize(card.ign,24)}_${price}${sold}_${card.id}.png`;
 }
 function fmCaptureValidCard(card) {
   const r=card?.rect;
   return /^[a-f0-9]{8,24}$/.test(String(card?.id||'')) &&
     typeof card.item==='string' && card.item.length>0 && card.item.length<=150 &&
     typeof card.ign==='string' && card.ign.length<=40 &&
-    Number.isInteger(card.cc) && card.cc>=1 && card.cc<=40 &&
-    Number.isInteger(card.fm) && card.fm>=1 && card.fm<=20 &&
+    (card.cc==null || (Number.isInteger(card.cc) && card.cc>=1 && card.cc<=40)) &&
+    (card.fm==null || (Number.isInteger(card.fm) && card.fm>=1 && card.fm<=20)) &&
     r && ['x','y','width','height'].every(k=>Number.isFinite(r[k])) &&
     r.x>=0 && r.y>=0 && r.x<300000 && r.y<1000000 &&
     r.width>=12 && r.width<=3000 && r.height>=24 && r.height<=3000;
@@ -103,12 +103,17 @@ async function fmCaptureDrain() {
   let attachedTabId=null;
   try {
     while(fmCaptureQueue.length && fmCaptureEnabled){
-      const {tabId,card}=fmCaptureQueue.shift();
+      let {tabId,card}=fmCaptureQueue.shift();
       try {
         const tab=await chrome.tabs.get(tabId);
         if(!/^https:\/\/(?:www\.)?henefm\.com\/flips\/deals(?:[/?#]|$)/.test(tab.url||'')) {
           throw Error('HeneFM Deals tab navigated away');
         }
+        const current=await chrome.tabs.sendMessage(tabId,{kind:'fm-rush-locate-capture',id:card.id});
+        if(!current?.ok || !fmCaptureValidCard(current.card) || current.card.id!==card.id) {
+          throw Error('Listing no longer rendered; skipped stale screenshot');
+        }
+        card=current.card;
         if(attachedTabId!==tabId){
           if(attachedTabId!==null){await chrome.debugger.detach({tabId:attachedTabId});attachedTabId=null;}
           await chrome.debugger.attach({tabId},'1.3');

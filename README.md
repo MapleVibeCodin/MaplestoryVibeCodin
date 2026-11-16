@@ -1,79 +1,52 @@
-## New: Automatic HeneFM item screenshots (v24.8)
+# FM Rush v24.11
 
-The Brave extension can save one actual PNG per unique rendered HeneFM Deals item card to `Downloads/FM_Rush_Item_Screenshots/YYYY-MM-DD/`. It captures off-screen rendered cards without scrolling, and includes cards outside the 15K/15% *alert* threshold. The extension popup has a screenshot toggle and capture diagnostics. It needs Brave debugger + downloads permissions; a browser debugging banner may appear. See `UPDATE_V24_8.txt`.
+Mirror the listings shown on HeneFM Deals, keep a persistent deal queue, and mark matching seller names in the selected MapleStory window.
 
-# FM Rush v24.10 — Faster name scanning
+## Install or update
 
-- Recovers readable names below the old visual cutoff using two exact OCR reads.
-- Retries misses four times with backoff, then stops; FIND AGAIN retries manually.
-- Waits for stable startup brightness and clears markers when the name region changes.
-- Refines 24 locations per font scale first, expanding to 96 on a miss; tiny text starts with the wider search.
-- Reads context first; tight OCR crops run only when the identity checks need them.
-- Keeps one-thread OCR and Windows CPU affinity limits. A shared cooldown targets 35% of one logical CPU for sustained shop-search work; capture and other app work are additional.
-- Cancels obsolete searches. New targets, retries and movement recovery share the CPU budget.
+1. Close the old FM Rush app. Extract the new ZIP into a fresh folder.
+2. In `brave://extensions`, disable/remove the old FM Rush extension. Enable Developer mode, choose **Load unpacked**, and select the new top-level `browser_extension` folder.
+3. Reload https://henefm.com/flips/deals.
+4. Run the top-level `START_FM_RUSH.bat`. Confirm **v24.11** in the title and select MapleStory in FIND NAME.
 
-Run `TEST_LOCATOR.bat`. See `UPDATE_V24_10.txt` for validation and limits.
+Use the launcher at the ZIP's top level; the nested `FM_Rush_v24_7` directory is an older copy. Dependencies and extension permissions have not changed.
 
-## Install
+## Listings and working selection
 
-1. Close the running FM Rush app.
-2. Extract this ZIP into a new folder and run START_FM_RUSH.bat.
-3. Replace the older Brave extension with the bundled browser_extension folder (see browser_extension/README_INSTALL.txt), then reload the HeneFM tab.
-4. Select the MapleStory window in FIND NAME if needed. Enter the room, change channel, or press FIND AGAIN.
+- Browser delivery has **no profit threshold or sold-status filter**. It includes low-profit, missing-metric and displayed sold listings. HeneFM's own page filters still determine what is rendered.
+- Each listing is archived before receipt is acknowledged. Missing values remain unknown; prices are never inferred from resale values.
+- New listings join the queue without changing your working item, seller or route.
+- Select a queue row to work on another listing. **DONE / NEXT DEAL** completes only the current item and selects the next pending item. Other items from the same seller remain pending.
+- **UNDO DONE** restores the last completed item, including after a restart.
+- Pending items and the working selection survive restarts. Completed items stay archived and ordinary resend does not reopen them.
+- **EXPORT ARCHIVE** saves a JSON history grouped by seller IGN, including completed listings.
 
-The window title must say v24.10. Compact controls and the click-through in-game marker remain. Green HERE means exact text recognition. Yellow CHECK means ambiguous lettering or overlap: check the seller before buying.
+The Windows archive is `%LOCALAPPDATA%\FM_Rush\archives\deal_archive.sqlite3`. It persists across extracted app versions. Close the old app before starting another copy.
 
-## Faster search
+## Finding shops
 
-The first pass searches a half-size feature image for candidate locations. Each candidate is refined against ORIGINAL-resolution pixels and verified by text recognition before any marker is shown. This reduces full-window matching work without drawing speculative markers.
+One worker searches all pending seller IGNs against the current selected game window, deduplicating repeated items from the same seller. It does not visit other rooms or channels automatically.
 
-The fast recognition pass uses a 160-pixel minimum input width instead of padding every name to at least 320 pixels. Long names still expand to their required width. When this changes recognition on an overlapping tag, the original padding is retried on just those candidate patches. If no candidate verifies, the original full-resolution search remains as recovery.
+Found sellers get a large **red box, red downward arrow and IGN label**. Ambiguous reads say **CHECK NAME** and use dashed borders; verify the seller. Overlapping candidate names share a CHECK marker. Several distinct shops can stay marked together. Static markers reuse their drawing rather than repainting the whole overlay on every timer tick.
 
-Capture accepts a frame every 16 ms instead of v24.6's 33 ms (up to approximately 60 copies/second). The loading gate scans on the first pair of stable visible samples, with no extra settling timer. It still rejects black frames and changing fade brightness. Nominal pre-recognition wait after brightness settles is approximately 16–32 ms, plus worker polling (up to about 8 ms) and scheduling; actual Windows/game frame delivery may be slower. Name recognition time and GUI dispatch are additional.
+New arrivals do not cancel a seller already being searched. Each seller gets a bounded search/retry sequence; room changes, name movement, new listings or **FIND AGAIN** can rearm searches. A selected missing seller is prioritized within the shared CPU budget. Capture pauses when the pending queue is empty.
 
-GUI event dispatch remains 10 ms. Recognition remains one thread and only runs on target changes, room transitions, name-region/camera movement or manual retry, with four bounded retries after a miss. After a costly scan, the shared CPU cooldown can delay the next scan. The higher frame-copy rate can increase capture overhead; this does not enable continuous OCR.
+OCR remains one thread, with the Windows CPU affinity guard and a shared sustained search budget targeting 35% of one logical CPU. Capture, UI and Discord work are additional. Large queues take time; cooldown after an expensive search can delay another target.
 
-v24.7 validation: six timing-gate and worker tests passed, including fade rejection, repeat channel transitions, stale-target suppression and bounded retry. The recognition algorithm is byte-for-byte unchanged from v24.6; the following recognition tests and benchmark results are from that version.
+## Screenshot archive
 
-v24.5 fixes remain: the top row is included, both crop contexts are checked, short names require two agreeing reads, and ambiguous extra border/overlap glyphs produce a yellow CHECK marker. There is no continuous OCR or large preview.
+The extension saves rendered listing cards under:
 
-## Timing comparison
+`Downloads/FM_Rush_Item_Screenshots/IGN_<seller>/YYYY-MM-DD/`
 
-Five warmed screenshot replays per sample, both versions measured in the same Linux runtime. These are algorithm times, excluding capture, fade settling and drawing the Windows marker.
+One PNG is saved per unique listing, with 48-hour deduplication. Filenames include time, seller, item, channel/room, price and fingerprint. Sold entries are labelled. The extension resolves the current card position before capture and skips vanished cards rather than saving another seller's card under the wrong name.
 
-| Seller | v24.5 median | v24.6 median |
-| --- | ---: | ---: |
-| Cernia | 284.2 ms | 84.1 ms |
-| Rollermo | 467.2 ms | 195.6 ms |
-| jtedoigte | 170.7 ms | 84.4 ms |
-| iSadlyfe | 156.7 ms | 84.1 ms |
-| Oral | 311.1 ms | 165.3 ms |
-| FoxGod | 151.1 ms | 77.8 ms |
-| Kilerious | 170.2 ms | 159.2 ms |
-| Snapkin (no readable match) | 148.9 ms | 257.8 ms |
+Screenshot saving defaults on; its popup toggle preserves an earlier off preference. Disable Brave's **Ask where to save each file** for automatic saving. A debugger banner may appear; avoid DevTools on the same tab. The archive stays local and can run without the Windows app. Unrendered or vanished cards cannot be captured. Existing screenshots remain in their old directories; new captures use IGN folders.
 
-Recovery can be slower on unreadable names. Measurements vary with machine and load; this is not a guarantee of end-to-end speed on your PC. See benchmark_v24_6.json for the measured results. The 1.2-second HeneFM soft-refresh signal remains a separate upstream delay and does not guarantee a network update.
+## Timing and checks
 
-## Verification
+The extension sends a soft-refresh signal every 1.2 seconds; HeneFM can ignore or delay it. This does not guarantee fresh site data. No private HeneFM endpoints are used and the page is not rewritten.
 
-Seven readable reported sellers locate correctly in saved-image replay: FoxGod, Oral, Kilerious, jtedoigte, iSadlyfe, Cernia and Rollermo. Marker coordinates are checked against the names, not desktop alert text. Game-only crops are used and visible desktop-panel occlusions are masked.
+Run `TEST_LOCATOR.bat`. `benchmark_name_finder.py` measures saved-image recognition and optional simulated target-arrival CPU stress. These exclude live capture, GUI dispatch and marker drawing; live Windows behavior still needs a game-session check. See `UPDATE_V24_11.txt` and `benchmark_v24_11.json`.
 
-Kilerious, Cernia and Rollermo produce CHECK markers in these samples. Snapkin is not legibly identifiable in its supplied frame. Kilerious is not present in the supplied FM15 frame; the readable sample is FM17. Those two samples remain no-match checks.
-
-Existing tests cover Mora, dark lettering on light tags, duplicate names, absent names, prefixes, similar spellings, loading transitions, stale target suppression and bounded retries. All 15 finder, reported-miss, worker and new timing-gate tests passed. A further 20 resized/dimmed-image comparisons retained all 15 detections that v24.5 could make. Two small Rollermo variants remained unreadable in both versions.
-
-See benchmark_v24_6.json for five-run warmed Linux replay timings. These exclude Windows capture, waiting for a stable frame, and drawing the native marker. Live Windows capture and end-to-end latency cannot be verified here. Obscured letters, different fonts and extreme resizing can still miss.
-
-Run TEST_LOCATOR.bat after setup to replay the included finder/worker tests.
-
-## Browser feed
-
-The bundled Brave extension is v24.4.1: 1.2-second soft-refresh default; unsold unusually-cheap flagged deals OR at least 15,000 mesos profit AND 15%; backup reload off. Install/update resets the saved refresh interval to 1.2 seconds. Discord/OCR alerts also use 15,000 mesos AND 15%.
-
-
-## Deal scanner repair (v24.7.2 / Brave v24.5.0)
-- Deals are recorded as delivered **only after** FM Rush acknowledges receipt. Earlier builds marked them seen before delivery, so an app-disconnected tab reload could skip them permanently.
-- In Brave's FM Rush popup, watch Seller links seen / Listing cards found / Profit cards parsed / Qualified deals / Pending unsent / Sent to FM Rush / Windows app status.
-- Use Resend visible deals to reset the session's delivered list and route currently eligible cards again. May produce duplicate pings.
-- Keep HeneFM open at https://henefm.com/flips/deals; reload that tab once when updating the extension. Start the Windows app before browsing to route deals immediately.
-- Refresh signals run every 1200ms but HeneFM may ignore refresh events; the public site displays deal listings with a stated 60-second delay for free access.
+Discord/OCR alerts retain the separate **15,000 mesos AND 15%** filter. Browser listings do not use it.

@@ -16,5 +16,7 @@ class MapAlignment(unittest.TestCase):
 
     def test_large_valid_profit_percent_not_rejected(self):
         self.assertIsNotNone(parse_browser_deal({**OK,'profit_percent':1500}))
-        for pct in [float('nan'),float('inf'),-1,14.99]:
+        for pct in [-1,14.99]:
+            self.assertIsNotNone(parse_browser_deal({**OK,'profit_percent':pct}))
+        for pct in [float('nan'),float('inf')]:
             self.assertIsNone(parse_browser_deal({**OK,'profit_percent':pct}))

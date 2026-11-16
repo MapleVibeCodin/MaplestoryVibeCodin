@@ -2,9 +2,9 @@
 <style>
 :root{color-scheme:dark;font:13px system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;background:#121820;color:#e9eef4;width:312px;padding:17px;box-sizing:border-box}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}h1{font-size:17px;margin:0}small,.muted{color:#a4b3c2}.status{font-weight:650;margin-bottom:12px;color:#a5e3b8}.status.warn{color:#f3cb80}label{display:block;margin:12px 0 6px;font-weight:600}select{width:100%;color:#e9eef4;background:#202c39;border:1px solid #475968;border-radius:8px;padding:9px;font-size:14px}dl{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:16px 0 12px}dt{color:#a4b3c2}dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}p{line-height:1.45;font-size:12px;color:#a4b3c2;margin:12px 0 0}.hr{border-top:1px solid #33414c;margin-top:10px}button{background:#30465a;border:0;border-radius:7px;color:white;padding:8px 11px;cursor:pointer;margin-top:10px}.check{display:flex;align-items:flex-start;gap:9px;margin:12px 0 7px}.check input{margin:3px 0 0;accent-color:#7dc99e}.check span{line-height:1.35}.small{font-size:11px;color:#a4b3c2}
 </style></head><body>
-<header><h1>FM Rush <small>v24.8.0</small></h1><small>HeneFM</small></header>
+<header><h1>FM Rush <small>v24.11.0</small></h1><small>HeneFM</small></header>
 <div class="status" id="status">Checking HeneFM tab…</div>
-<p>Alert: Unusually cheap <b>OR</b> profit ≥15,000 mesos <b>AND</b> ≥15%.</p>
+<p><b>All listings shown on HeneFM Deals.</b> No profit filter; new sellers stay queued.</p>
 <label class="check"><input id="capture" type="checkbox" checked><span><b>Automatically save each new listing screenshot</b> <span class="small">(all items in your current Deals view, not only qualifying alerts)</span></span></label>
 <p class="small">Saved under Downloads/FM_Rush_Item_Screenshots. Requires Brave debugger access for off-screen cards; no scrolling or page edits.</p>
 <label for="speed">Soft refresh interval</label>
@@ -20,7 +20,7 @@
 <dt>Listing cards found</dt><dd id="cards">—</dd>
 <dt>Sold cards excluded</dt><dd id="sold">—</dd>
 <dt>Profit cards parsed</dt><dd id="parsed">—</dd>
-<dt>Qualified deals</dt><dd id="qualified">—</dd>
+<dt>Visible listings</dt><dd id="qualified">—</dd>
 <dt>Sent to FM Rush</dt><dd id="sent">—</dd>
 <dt>Screenshots saved this session</dt><dd id="shots">—</dd>
 <dt>Screenshot queue</dt><dd id="shots-queued">—</dd>

@@ -10,6 +10,15 @@ from PIL import Image
 
 @unittest.skipIf(os.name!='nt' and not os.environ.get('DISPLAY'),'No GUI display available')
 class TestShopUI(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        self.temp=tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        for field,path in [('ARCHIVE_DIR',Path(self.temp.name)/'archives'),('CONFIG',Path(self.temp.name)/'config.json')]:
+            patcher=patch('fm_rush.'+field,path);patcher.start();self.addCleanup(patcher.stop)
+
     @unittest.skipIf(tkinter is None,'Tk unavailable')
     def test_discord_only_persistent_highlight(self):
         app=FMApp()
