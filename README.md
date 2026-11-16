@@ -1,4 +1,4 @@
-# FM Rush v24.12
+# FM Rush v24.13
 
 Mirror the listings shown on HeneFM Deals, keep a persistent deal queue, and mark matching seller names in the selected MapleStory window.
 
@@ -7,7 +7,7 @@ Mirror the listings shown on HeneFM Deals, keep a persistent deal queue, and mar
 1. Close the old FM Rush app. Extract the new ZIP into a fresh folder.
 2. In `brave://extensions`, disable/remove the old FM Rush extension. Enable Developer mode, choose **Load unpacked**, and select the new top-level `browser_extension` folder.
 3. Reload https://henefm.com/flips/deals.
-4. Run the top-level `START_FM_RUSH.bat`. Confirm **v24.12** in the title and select MapleStory in FIND NAME.
+4. Run the top-level `START_FM_RUSH.bat`. Confirm **v24.13** in the title and select MapleStory in FIND NAME.
 
 Use the launcher at the ZIP's top level; the nested `FM_Rush_v24_7` directory is an older copy. Dependencies and extension permissions have not changed.
 
@@ -22,6 +22,14 @@ Use the launcher at the ZIP's top level; the nested `FM_Rush_v24_7` directory is
 - **EXPORT ARCHIVE** saves a JSON history grouped by seller IGN, including completed listings.
 
 The Windows archive is `%LOCALAPPDATA%\FM_Rush\archives\deal_archive.sqlite3`. It persists across extracted app versions. Close the old app before starting another copy.
+
+## Purchased screenshots
+
+After buying an item, select its listing in FIND NAME and click **BOUGHT · SAVE PNG / NEXT**. The app copies that listing's original screenshot into **`Downloads/Bought/`**, then completes the deal and selects the next one. All purchase PNGs share this single folder, with no seller or date subfolders. **OPEN BOUGHT** opens it for scrolling while you relist. Filenames include item, seller and purchase price; the listing image preserves the displayed stats and resale guidance.
+
+Keep screenshot saving enabled in the extension. If the image is missing, the app asks you to locate `FM_Rush_Item_Screenshots` (useful with a custom browser download directory); cancel to wait for capture. It remembers the chosen source folder. Missing or broken images leave the deal pending. The exact listing ID is matched, so a newer deal cannot replace the purchase screenshot. Repeating BOUGHT after UNDO DONE reuses the same file. UNDO DONE reopens the deal and keeps its purchase PNG.
+
+The extension remains v24.11.0; existing screenshots and archives work with this update. Purchase recording uses a manual click and does not detect game transactions.
 
 ## Finding shops
 

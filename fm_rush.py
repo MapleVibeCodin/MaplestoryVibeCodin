@@ -19,6 +19,7 @@ from tkinter import messagebox, ttk, filedialog
 from window_capture import windows as list_game_windows, WindowFrames
 from multi_shop_worker import MultiShopWorker
 from deal_archive import DealArchive
+from bought_screenshots import downloads_folder, save_bought_screenshot
 
 from deal_parser import parse_deal
 from henefm_bridge import BrowserBridge
@@ -48,6 +49,7 @@ def settings():
         'grid_geom':data.get('grid_geom',''),
         'map_geom':data.get('map_geom',''),
         'shop_geom':data.get('shop_geom',''),
+        'screenshot_folder':data.get('screenshot_folder',''),
         'topmost':bool(data.get('topmost',True)),
     }
 
@@ -197,7 +199,7 @@ class ShopHighlighter(tk.Toplevel):
         self.title('FM RUSH — FIND NAME')
         self.config(bg=BG)
         self.resizable(True,True)
-        self.minsize(520,300)
+        self.minsize(520,340)
         self.attributes('-topmost',app.conf['topmost'])
         self.protocol('WM_DELETE_WINDOW',self.withdraw)
         self.last_image=None;self.last_size=None;self.last_box=None;self.last_name='';self.last_mode='SEARCHING'
@@ -230,6 +232,9 @@ class ShopHighlighter(tk.Toplevel):
         tk.Button(buttons,text='EXPORT ARCHIVE',command=app.export_archive,bg=CARD2,fg=FG,relief='flat').pack(side='left')
         tk.Button(buttons,text='UNDO DONE',command=app.undo_deal,bg=CARD2,fg=FG,relief='flat').pack(side='left',padx=8)
         tk.Button(buttons,text='DONE / NEXT DEAL',command=app.complete_deal,bg=TEAL,fg=BG,relief='flat').pack(side='right')
+        purchases=tk.Frame(self,bg=BG);purchases.pack(fill='x',padx=10,pady=(0,8))
+        tk.Button(purchases,text='OPEN BOUGHT',command=app.open_bought_folder,bg=CARD2,fg=FG,relief='flat').pack(side='left')
+        tk.Button(purchases,text='BOUGHT · SAVE PNG / NEXT',command=app.bought_deal,bg=YELLOW,fg=BG,relief='flat').pack(side='right')
         self.refresh_windows()
 
     def render_queue(self,rows,focus,names):
@@ -319,7 +324,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.12 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.13 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -373,7 +378,7 @@ class FMApp:
             self.map.geometry(self.conf['map_geom'])
         else:
             self.snap()
-        self.shop.geometry('680x350+300+110')
+        self.shop.geometry('680x390+300+110')
         self.sync_archive()
         self.schedule(35,self.pump)
         try:
@@ -609,6 +614,42 @@ class FMApp:
         if path:
             try:self.archive.export_json(path);self.status.set('Archive saved: '+path)
             except OSError as exc:messagebox.showerror('Archive export',str(exc))
+
+    def bought_deal(self):
+        current=self.archive.current()
+        if current is None:
+            self.status.set('Select a pending listing before clicking BOUGHT.');return
+        key,deal=current
+        source=Path(self.conf.get('screenshot_folder') or downloads_folder()/'FM_Rush_Item_Screenshots')
+        destination=downloads_folder()/'Bought'
+        try:
+            try:path=save_bought_screenshot(deal,key,source,destination)
+            except FileNotFoundError:
+                folder=filedialog.askdirectory(title='Choose FM_Rush_Item_Screenshots — Cancel to wait for capture',
+                    initialdir=str(source if source.exists() else downloads_folder()))
+                if not folder:return
+                path=save_bought_screenshot(deal,key,folder,destination)
+                self.conf['screenshot_folder']=folder;self.save()
+            self.archive.mark_bought(key,path)
+        except (OSError,ValueError) as exc:
+            messagebox.showerror('Purchase screenshot not saved',str(exc)+'\n\nThe deal remains pending.');return
+        except Exception as exc:
+            messagebox.showerror('Purchase not recorded',str(exc)+'\n\nThe screenshot may already be saved. Retry BOUGHT to record it.');return
+        self.sync_archive()
+        message='Saved purchase PNG: '+str(path)
+        self.status.set(message)
+        if self.shop is not None and self.shop.winfo_exists():self.shop.notice.set(message)
+
+    def open_bought_folder(self):
+        folder=downloads_folder()/'Bought'
+        try:
+            folder.mkdir(parents=True,exist_ok=True)
+            if os.name=='nt':os.startfile(str(folder))
+            else:
+                import subprocess
+                import sys
+                subprocess.Popen(['open' if sys.platform=='darwin' else 'xdg-open',str(folder)])
+        except OSError as exc:messagebox.showerror('Open Bought folder',str(exc))
 
     def select_archived(self,key):
         self.archive.select(key);self.sync_archive()

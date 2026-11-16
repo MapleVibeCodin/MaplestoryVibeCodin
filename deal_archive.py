@@ -100,6 +100,15 @@ class DealArchive:
             following=next((item for item in self._pending if item!=key),None)
             self._save(key,record,following,last_completed=key)
 
+    def mark_bought(self,key,screenshot):
+        with self.lock:
+            if key not in self._pending:return False
+            record={**self._pending[key],'done':True,'bought_at':time.time(),
+                    'bought_screenshot':str(screenshot)}
+            following=next((item for item in self._pending if item!=key),None) if self.focus==key else self.focus
+            self._save(key,record,following,last_completed=key)
+            return True
+
     def undo_complete(self):
         with self.lock:
             key=self.last_completed
