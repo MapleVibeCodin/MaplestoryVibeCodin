@@ -20,12 +20,15 @@ from selected_word_candidates import propose as selected_proposals
 MODEL_SHA='c3461add59bb4323ecba96a492ab75e06dda42467c9e3d0c18db5d1d21924be8'
 
 
-def entry_readable(frame):
+def entry_level(frame):
     h,w=frame.shape[:2]
     levels=[float(frame[int((y-.06)*h):int((y+.06)*h):16,
                         int((x-.06)*w):int((x+.06)*w):16].mean())
             for x,y in ((.25,.25),(.75,.25),(.5,.5),(.25,.7),(.75,.7))]
-    return float(np.median(levels))>=85 and float(np.percentile(frame[::16,::16],98))>=175
+    return float(np.median(levels))
+
+def entry_readable(frame):
+    return entry_level(frame)>=26 and float(np.percentile(frame[::16,::16],98))>=65
 
 
 def glyph_key(text):
@@ -324,7 +327,7 @@ class RoomTextReader:
         pad=(1 if label.segmented else (4,4,12,16)[variant]) if confirm else (1 if label.segmented else 8)
         patch=frame[max(0,y-1):min(frame.shape[0],b+1),max(0,x-pad):min(frame.shape[1],r+pad)]
         gray=cv2.cvtColor(patch,cv2.COLOR_BGR2GRAY)
-        if label.direct and not confirm:
+        if not confirm:
             low,high=np.percentile(gray,(2,98))
             if high-low>8 and high<160:gray=np.clip((gray.astype(np.float32)-low)*255/(high-low),0,255).astype(np.uint8)
         if label.repeat:
@@ -395,10 +398,11 @@ class RoomTextReader:
         if self.producer and not entry_readable(frame):
             self.last_diagnostic=dict(method='waiting for readable entry contrast',regions=0,recognized=0,words=[],elapsed_ms=0.)
             return {}
+        early_fade=self.producer is not None and time.monotonic()-self.scene_started<.45 and entry_level(frame)<85
         focus=preferred if preferred in names else names[0]
         if focus!=self.visual_focus:
             self.visual_focus=focus;self.visual_attempts=0;self.visual_frame=None
-        if (self.visual_attempts<1 or time.monotonic()-getattr(self,"visual_at",0)>.25) and frame is not self.visual_frame and not cancelled():
+        if (self.visual_attempts<1 or time.monotonic()-getattr(self,"visual_at",0)>.06) and frame is not self.visual_frame and not cancelled():
             self.visual_attempts+=1;self.visual_frame=frame;self.visual_at=time.monotonic()
             hints=[]
             for score,box,dark in selected_proposals(frame,focus):
@@ -406,7 +410,7 @@ class RoomTextReader:
                 if b-y>=13:box=(x+1,y+2,min(frame.shape[1],r+1),b-2)
                 hints.append(Label(box,dark,2.5,self.patch(frame,box),glyphs=len(focus),source=frame,created=time.monotonic(),direct=True))
             for offset in range(len(hints)):
-                if cancelled() or time.monotonic()-started>.22:break
+                if cancelled() or time.monotonic()-started>(.075 if early_fade else .22):break
                 group=hints[offset:offset+1]
                 reads=self.recognizer([self.crop(frame,label) for label in group])
                 for label,reading in zip(group,reads):label.reading=reading;label.used_at=time.monotonic()
@@ -417,6 +421,13 @@ class RoomTextReader:
                         words=[dict(text=label.reading[0],confidence=round(label.reading[1],3),box=label.box) for label in hints if label.reading],
                         elapsed_ms=round((time.monotonic()-started)*1000,1))
                     return hits
+        if early_fade:
+            # Try during the first light frames, but do not let an unreadable
+            # early view occupy the useful arrival window with recovery work.
+            self.hit_sources={}
+            self.last_diagnostic=dict(method='early fade quick attempt',regions=len(self.labels),recognized=0,words=[],
+                elapsed_ms=round((time.monotonic()-started)*1000,1))
+            return {}
         self.targets=names
         self.update(frame)
         self.propose_words(frame,names,list(self.labels),cancelled)
@@ -609,7 +620,7 @@ class RoomTextReader:
         for index in range(len(characters)-2):
             part=text[index:index+3];evidence=characters[index:index+3]
             confidence=min(item[1] for item in evidence)
-            if part in allowed and confidence>=.75:matches.append((confidence,index,part))
+            if part in allowed and confidence>=.88:matches.append((confidence,index,part))
         if not matches:return None
         confidence,index,part=max(matches)
         return part,confidence,box

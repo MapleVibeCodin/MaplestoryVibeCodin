@@ -1,5 +1,5 @@
 {
-  "version": "v24.21",
+  "version": "v24.22",
   "files": [
     "INSTALL_FAST_OCR.bat",
     "ITEM_PRICE_LOOKUP.bat",
@@ -21,6 +21,7 @@
     "UPDATE_V24_19.txt",
     "UPDATE_V24_20.txt",
     "UPDATE_V24_21.txt",
+    "UPDATE_V24_22.txt",
     "UPDATE_V24_4.txt",
     "UPDATE_V24_5.txt",
     "UPDATE_V24_6.txt",
@@ -30,6 +31,7 @@
     "UPDATE_V24_8.txt",
     "UPDATE_V24_9.txt",
     "assets/ENGLISH_OCR_LICENSE.txt",
+    "assets/channel_menu.npz",
     "assets/english_name_rec.json",
     "assets/english_name_rec.onnx",
     "assets/fm_minimap_references.npz",
@@ -45,6 +47,7 @@
     "browser_extension/popup.js",
     "browser_extension/refresh_2s.js",
     "browser_extension/screenshot_worker.js",
+    "channel_overlay.py",
     "cpu_guard.py",
     "deal_archive.py",
     "deal_parser.py",

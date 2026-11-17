@@ -118,9 +118,10 @@ class SnapshotGate:
     The user arms this in FM. Any subsequent black loading transition can
     trigger, including a same-room channel change. Tiny samples only; no OCR.
     """
-    def __init__(self, settle_seconds=.25, first_visible=False):
+    def __init__(self, settle_seconds=.25, first_visible=False,visible_level=55):
         self.settle_seconds=settle_seconds
         self.first_visible=first_visible
+        self.visible_level=visible_level
         self.reset()
 
     def reset(self):
@@ -148,7 +149,7 @@ class SnapshotGate:
                      int((x-.07)*w):int((x+.07)*w):8]
             levels.append(float(tile.mean()))
         dark=sum(v<24 for v in levels)>=4
-        visible=sum(v>55 for v in levels)>=4
+        visible=sum(v>self.visible_level for v in levels)>=4
         if dark:
             if not self.loading:self.invalidated=True
             self.loading=True

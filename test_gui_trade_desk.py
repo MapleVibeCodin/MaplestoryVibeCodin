@@ -19,11 +19,13 @@ class TradeDeskGUI(unittest.TestCase):
                 app.ledger.configure('2M',['fkable','unfkable'],[0,0])
                 app.archive.apply_visible([listing('First',item='Blue Starlight',buy_mesos=14000,raw_text='Resell at 20K Time to resell about 3 h'),
                     listing('Next',buy_mesos=85000,raw_text='Resell at 100K Time to resell about 1 h 2 items · 170K total')],'page',1)
-                app.sync_archive();app.root.update()
+                app.select_archived(app.archive.live_pending()[0][0]);app.root.update()
                 self.assertEqual(len(app.shop.tabs.tabs()),3)
                 self.assertEqual(app.grid.state(),'withdrawn');self.assertEqual(app.map.state(),'withdrawn')
                 app.log_purchase();app.root.update()
                 item=app.ledger.items()[0];self.assertEqual(app.ledger.cash(),1986000)
+                self.assertIsNone(app.archive.current())
+                app.select_archived(app.archive.live_pending()[0][0])
                 self.assertEqual(app.buy_quantity.get(),'2')
                 panel=app.shop.trade_panels
                 app.shop.tabs.select(panel.inventory);panel.table.selection_set(item['id'])

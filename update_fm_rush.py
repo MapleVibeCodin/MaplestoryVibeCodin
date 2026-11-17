@@ -25,7 +25,7 @@ def safe_runtime_path(name):
                 name.startswith('requirements') and name.endswith('.txt') or
                 name in ('README.md','UPDATE_MANIFEST.json') or
                 name.startswith('UPDATE_V') and name.endswith('.txt'))
-    if parts[0]=='assets':return len(parts)==2 and parts[1] in ('name_font.ttf','name_font_LICENSE.txt','fm_minimap_references.npz','room_label_prefix.npz','english_name_rec.onnx','english_name_rec.json','ENGLISH_OCR_LICENSE.txt')
+    if parts[0]=='assets':return len(parts)==2 and parts[1] in ('name_font.ttf','name_font_LICENSE.txt','fm_minimap_references.npz','room_label_prefix.npz','english_name_rec.onnx','english_name_rec.json','ENGLISH_OCR_LICENSE.txt','channel_menu.npz')
     if parts[0]=='browser_extension':
         return len(parts)==2 and not parts[1].startswith('test_') and Path(parts[1]).suffix in ('.js','.json','.html','.txt','.css')
     return False

@@ -90,7 +90,7 @@ class BrowserBridge:
                     self._send(404, {'ok': False})
 
             def do_POST(self):
-                if self.path not in ('/deal','/visible'):
+                if self.path not in ('/deal','/visible','/select','/skip'):
                     self._send(404, {'ok': False})
                     return
                 # This is a local UI bridge, not a remote data service. Require
@@ -141,8 +141,18 @@ class BrowserBridge:
                     return
                 try:
                     new=True
-                    if archive is not None:_,new=archive.record(deal)
-                    out.put_nowait(('browser_deal', deal,new))
+                    key=None
+                    if archive is not None:key,new=archive.record(deal)
+                    if self.path in ('/select','/skip'):
+                        if archive is None:
+                            self._send(503,{'ok':False,'error':'archive_not_ready'});return
+                        # Intent is applied on the GUI thread so click, skip,
+                        # receipt and screen updates have one ordered owner.
+                        session=data.get('_choice_session');revision=data.get('_choice_revision')
+                        if not isinstance(session,str) or not 1<=len(session)<=120 or isinstance(revision,bool) or not isinstance(revision,int) or not 1<=revision<=2**53:
+                            self._send(422,{'ok':False,'error':'invalid_choice_sequence'});return
+                        out.put_nowait(('browser_choice',self.path[1:],key,session,revision))
+                    else:out.put_nowait(('browser_deal', deal,new))
                 except (queue.Full,OSError,ValueError,sqlite3.Error):
                     self._send(503, {'ok': False, 'error': 'busy'})
                     return

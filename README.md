@@ -1,4 +1,4 @@
-# FM Rush v24.21 — replacement room text reader
+# FM Rush v24.22 — choose a listing, scan one seller
 
 Current HeneFM deals, purchase receipts and shop stock in one app.
 
@@ -11,45 +11,50 @@ Extracting over an existing app folder reuses its installed `.venv` and settings
 a new folder installs dependencies on its first launch. Purchase records remain
 in `%LOCALAPPDATA%\FM_Rush\archives`.
 
-The bundled browser extension remains **24.17.0**. If using a new folder,
-load that folder's `browser_extension` directory in `brave://extensions`, then
-reload HeneFM. Keep your three-minute Deals filter.
+Load the included **browser_extension (24.22.0)** in `brave://extensions`, replacing
+or reloading the old extension, then reload HeneFM. This step enables listing
+clicks and CHASE/SKIP buttons. Keep your three-minute Deals filter.
 
-Older in-place updaters cannot accept the new model asset. Use this complete
-clean ZIP for the transition to v24.21 instead of the old update launcher.
+## Choose what to chase
 
-## Replacement scanner
+Incoming listings are available without being assigned. Click a listing anywhere
+on HeneFM or press its **CHASE** button. That seller becomes the only OCR target;
+new arrivals do not replace it. A green outline confirms the choice was delivered.
+You can also choose a row in the desktop Chase tab.
 
-The scan controller and reader are replaced. Selected-name shapes propose
-locations, and an English recognition model verifies the actual lettering.
-Other live sellers share a room text index. Location hints are retried during
-the entry fade; a shape proposal alone never establishes identity. Room-header
-OCR never blocks name recognition.
-Only the current HeneFM page supplies targets; archived sellers are excluded.
+**SKIP** on a HeneFM card dismisses that listing. Skipping another card leaves your
+current choice alone. **SKIP DEAL / Ctrl+Alt+N** clears the selected deal without
+recording a purchase or selecting another one. Click another listing whenever
+you want. Clicking CHASE on a skipped card reopens it.
 
-A separate region worker keeps the newest readable entry snapshot while OCR
-is busy. Old queued views are dropped rather than delaying the next scan. Results retain their source frame and are relocated against the newest
-capture before a marker is published. Loading, a changed capture size and lost
-lettering invalidate positions. Inference is confined to a three-second entry
-burst, with a bounded retry when selecting another live deal. There is no idle
-OCR. OCR uses one thread; Windows process affinity remains capped at two CPUs.
+**Ctrl+Alt+B** confirms the selected purchase, records its item/stats/prices and
+clears the chase target. It does not automatically take the next deal.
+**FIND AGAIN / Ctrl+Alt+F**, or clicking the chosen listing again, retries scanning.
 
-Select the deal before travelling to put its seller first. **FIND AGAIN** or
-**Ctrl+Alt+F** starts another bounded scan. Found positions stay eligible for
-120 seconds from detection even if the page drops their card. Current live
-sellers can remain marked longer. Unfound off-page sellers are dropped promptly.
+## In-game highlights
 
-Three clearly read letters are enough for a fast **CHECK NAME** marker. The
-fragment must distinguish that seller from the other live targets; repeated
-identical letters and low-confidence fragments do not qualify. This intentionally
-accepts partial names and similar names sharing those letters. Full-name
-confirmation is no longer required before showing a useful location.
-The app never clicks a shop or buys an item automatically.
+Open MapleStory's channel menu normally. A transparent, click-through red cell
+outline and arrow mark the chosen channel directly over the real menu. Its
+position is anchored to the menu from the uploaded screenshot; it follows the
+selected game window and hides when the menu closes. It never clicks for you.
 
-The full source checkout includes real-time video replay and recognition tests.
-Video times measure the software marker callback, excluding native Windows
-capture, GUI/compositor latency and other players. Live Windows racing latency
-still needs checking; a replay is not a guarantee of winning a purchase.
+The name reader begins on the early light frames of the room fade. It retries
+without the previous quarter-second delay, searches only the selected live IGN,
+and accepts three confidently read letters for a **CHECK NAME** shop marker.
+Repeated identical letters and weak readings do not qualify. Loading, resizing
+or lost lettering clears stale positions. Selecting another listing clears the
+old seller's marker, including queued results from the previous choice.
+
+A bounded worker indexes only the newest queued view. Room-header OCR and a
+heavy full-room detection pass cannot delay live searches. OCR stays within a
+three-second entry/retry burst; idle watching does no OCR. Found positions can
+stay eligible for 120 seconds after detection if their alert leaves the page,
+until you change or clear your choice. An off-page selected purchase stays
+available for receipt logging, but its unfound seller is not scanned.
+
+Video replay measures the software marker callback. Native Windows capture,
+GUI/compositor latency and network competition remain outside that measurement;
+an instant successful identification is not guaranteed on every fade frame.
 
 ## One-time setup
 
@@ -67,9 +72,9 @@ All listings on the current HeneFM page remain available. Archived names do not 
 
 Choose a deal in the Chase tab. **CHASE MODE · HIDE DESK** hides the large desk while keeping the small target strip, hotkeys and game markers active. Open it again with **OPEN TRADE DESK**.
 
-- **Ctrl+Alt+N:** choose the next current-page deal.
+- **Ctrl+Alt+N:** skip the chosen deal and wait for another choice.
 - **Ctrl+Alt+F:** explicitly retry the shop finder.
-- **Ctrl+Alt+B:** after actually buying, confirm the selected deal was purchased and advance.
+- **Ctrl+Alt+B:** after actually buying, record the selected purchase and clear the target.
 
 The purchase hotkey records the item, displayed numeric stats, quantity, alert Buy price, explicit HeneFM listing price and expected sale time. Quantity uses the lot count when read; otherwise it starts at one. Verify the visible quantity for bundles. If you paid a different price or bought a different quantity, use **Correct cost / qty** before listing. One receipt is retained per listing; adjust that receipt if you buy additional units from the same listing. A missing Buy price prompts for the actual paid amount; missing resale prices remain unknown rather than being reconstructed from profit.
 
@@ -97,8 +102,8 @@ Ledger files are in `%LOCALAPPDATA%\FM_Rush\archives\trade_ledger.sqlite3` on Wi
 
 ## Scanner timing
 
-Room-entry bursts, one OCR thread, a three-second deadline, current-page scoping and large red markers remain. A new page list does not run continuous OCR. The first live list can request one guarded room-entry check when already inside an FM room.
+Room-entry bursts, one OCR thread, a three-second deadline, current-page scoping and large red markers remain. A new page list does not run continuous OCR. Choosing a live listing can request a guarded entry check when already inside an FM room.
 
 **Export scanner timing** records local page-to-app delivery, search, queue, frame age and software result-to-UI timing. It does not measure HeneFM server freshness, human travel, network competition or compositor display time. A scanner cannot guarantee winning a race against other buyers; saved-image speed is not proof of live end-to-end speed.
 
-Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_21.txt` for validation and limits.
+Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_22.txt` for validation and limits.

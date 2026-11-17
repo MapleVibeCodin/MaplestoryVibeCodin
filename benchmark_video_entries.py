@@ -75,7 +75,7 @@ def replay(case):
             return None if self.value is None or self.value[0]==after else self.value
         peek=latest
     frames=Frames()
-    names=tuple(dict.fromkeys([name for name,_ in PAGE]+[case['name']]))
+    names=(case['name'],)
     def room_names(room):
         return tuple(dict.fromkeys([name for name,n in PAGE if n==room]+
                                    ([case['name']] if room==case['room'] else [])))
@@ -90,7 +90,7 @@ def replay(case):
                           location_ok=location_ok,deadline_met=location_ok and timestamp<=case['goal'])
             stop.set()
     worker=MultiShopWorker(frames,lambda:names,post,stop,get_room_names=room_names,
-                           get_room_hint=lambda:(case['name'],case['room']))
+                           get_room_hint=lambda:(case['name'],case['room']),single_target=True)
     worker.prioritize(case['name']);worker.start()
     # Prewarm completes while the player is still travelling. No measured entry
     # time is hidden here; this is the already-armed application workflow.
@@ -123,7 +123,7 @@ def main():
     for repeat in range(args.repeats):
         for case in CASES:
             row={'repeat':repeat+1,**replay(case)};rows.append(row);print(json.dumps(row),flush=True)
-    Path(args.output).write_text(json.dumps({'scope':'Real-time 30/60fps desktop-video replay; software marker callback; selected target plus the seven sellers from the supplied HeneFM page fixture; excludes native capture, GUI/compositor and network latency.',
+    Path(args.output).write_text(json.dumps({'scope':'Real-time 30/60fps desktop-video replay; software marker callback; one explicitly selected seller; other page listings remain available but unscanned; excludes native capture, GUI/compositor and network latency.',
         'results':rows},indent=2)+'\n')
 
 if __name__=='__main__':main()

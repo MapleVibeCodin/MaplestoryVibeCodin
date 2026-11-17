@@ -57,7 +57,7 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
       .catch(()=>respond({ok:false}));
     return true;
   }
-  if (!msg || !['fm-rush-route-deal','fm-rush-visible-deals'].includes(msg.kind)) return false;
+  if (!msg || !['fm-rush-route-deal','fm-rush-visible-deals','fm-rush-select-deal','fm-rush-skip-deal'].includes(msg.kind)) return false;
   const source = sender?.url || '';
   if (!/^https:\/\/(?:www\.)?henefm\.com\/flips\/deals(?:[/?#]|$)/.test(source)) {
     respond({ok:false,error:'Not an HeneFM Flips page',retryable:false});
@@ -66,7 +66,7 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(),3500);
   const live=msg.kind==='fm-rush-visible-deals';
-  fetch('http://127.0.0.1:18773/'+(live?'visible':'deal'), {
+  fetch('http://127.0.0.1:18773/'+(live?'visible':msg.kind==='fm-rush-select-deal'?'select':msg.kind==='fm-rush-skip-deal'?'skip':'deal'), {
     method:'POST',
     headers:{'Content-Type':'application/json','X-FM-Rush-Bridge':'v17-browser-view'},
     body:JSON.stringify(live?msg.snapshot:msg.deal),

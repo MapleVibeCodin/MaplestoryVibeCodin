@@ -15,5 +15,11 @@ vm.runInNewContext(fs.readFileSync(__dirname+'/background.js','utf8'),context);
  assert.equal(requests[0].options.headers['X-FM-Rush-Bridge'],'v17-browser-view');
  const bad=await new Promise(resolve=>listener({kind:'fm-rush-visible-deals',snapshot},{url:'https://evil.example'},resolve));
  assert.equal(bad.ok,false);assert.equal(requests.length,1);
+ for(const [kind,path] of [['fm-rush-select-deal','select'],['fm-rush-skip-deal','skip']]){
+  const deal={ign:'Seller',_choice_session:'tab',_choice_revision:2};
+  const reply=await new Promise(resolve=>listener({kind,deal},{url:'https://henefm.com/flips/deals'},resolve));
+  assert.equal(reply.ok,true);assert.equal(requests.at(-1).url,'http://127.0.0.1:18773/'+path);
+  assert.deepEqual(JSON.parse(requests.at(-1).options.body),deal);
+ }
  console.log('PASS: live snapshot transport preserves complete payload and rejects other origins');
 })().catch(err=>{console.error(err);process.exitCode=1});

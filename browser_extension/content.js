@@ -1,6 +1,6 @@
-/* FM Rush v24.17 — PASSIVE HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.22 — click-to-chase HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
- * Does not insert, remove, style, sort, hide, click or modify ANY page element.
+ * Adds Chase/Skip controls and selection feedback only; no automatic game inputs.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
  */
 (() => {
@@ -9,6 +9,8 @@
   window.__fmRushPassiveBridgeInstalled = true;
 
   const isDealsPage = () => /^\/flips\/deals\/?$/.test(location.pathname);
+  const cardDeals=new WeakMap();
+  let selectionSerial=0,selectedListingId=null;
   const SELLER_LINKS = 'a[href*="/shops/"],a[href*="/shop/"]';
   const SEEN_KEY = 'fmRushDeliveredV2411';
   const QUEUE_KEY = 'fmRushPendingV2411';
@@ -62,7 +64,7 @@
     const result = [];
     let node;
     while ((node = walker.nextNode())) {
-      if (node.parentElement?.closest('script,style,noscript,template')) continue;
+      if (node.parentElement?.closest('script,style,noscript,template,[data-fm-rush-controls]')) continue;
       const text = node.textContent.replace(/\u00a0/g, ' ').trim();
       if (text) result.push(text);
     }
@@ -189,12 +191,70 @@
       if (unique.has(deal.id)) continue;
       unique.add(deal.id);
       results.push(deal);
+      cardDeals.set(card,deal);
+      addChoiceControls(card);
+      if(selectedListingId===deal.listing_id && !card.dataset?.fmRushSelected){
+        card.dataset.fmRushOldOutline=card.style.outline||'';
+        card.dataset.fmRushSelected='true';card.style.outline='3px solid #00c99a';
+      }else if(selectedListingId!==deal.listing_id && card.dataset?.fmRushSelected){
+        card.style.outline=card.dataset.fmRushOldOutline||'';delete card.dataset.fmRushSelected;
+      }
     }
     screenshotCandidates = captureResults;
     counts.qualifyingDeals = results.length;
     Object.assign(diagnostics, counts, {lastScanAt:Date.now()});
     return results;
   }
+  function choiceError(card,message){
+    const status=card.querySelector?.('[data-fm-rush-status]');
+    if(status)status.textContent=message;
+  }
+  function chooseDeal(card,action) {
+    const deal=cardDeals.get(card);
+    if(!deal)return;
+    const serial=++selectionSerial;
+    const {id,...payload}=deal;
+    choiceError(card,'');
+    try { chrome.runtime.sendMessage({kind:action==='skip'?'fm-rush-skip-deal':'fm-rush-select-deal',deal:{...payload,_choice_session:liveSession,_choice_revision:serial}},response=>{
+      if(serial!==selectionSerial)return;
+      if(response?.ok && !chrome.runtime.lastError){
+        if(action==='select')selectedListingId=payload.listing_id;
+        else if(selectedListingId===payload.listing_id)selectedListingId=null;
+        for(const previous of (action==='select'?document.querySelectorAll('[data-fm-rush-selected]'):(card.dataset.fmRushSelected?[card]:[]))){
+          previous.style.outline=previous.dataset.fmRushOldOutline||'';
+          delete previous.dataset.fmRushSelected;
+        }
+        if(action==='select'){
+          card.dataset.fmRushOldOutline=card.style.outline||'';
+          card.dataset.fmRushSelected='true';card.style.outline='3px solid #00c99a';
+        }
+      }else {
+        choiceError(card,'NOT SENT · start FM Rush and try again');
+        console.warn('[FM Rush] Choice not delivered:',response?.error||chrome.runtime.lastError?.message);
+      }
+    }); }catch(error){choiceError(card,'NOT SENT · reload HeneFM');}
+  }
+  function addChoiceControls(card){
+    if(!card.querySelector || card.querySelector('[data-fm-rush-controls]') || !document.createElement)return;
+    const controls=document.createElement('div');controls.dataset.fmRushControls='true';
+    controls.style.cssText='display:flex;gap:6px;justify-content:flex-end;margin:4px 8px;';
+    for(const [action,label] of [['select','CHASE'],['skip','SKIP']]){
+      const button=document.createElement('button');button.type='button';button.textContent=label;
+      button.style.cssText='cursor:pointer;padding:4px 12px;border:1px solid #087962;border-radius:5px;background:#f0fffa;color:#075c49;font-weight:bold;';
+      button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();chooseDeal(card,action);});
+      controls.appendChild(button);
+    }
+    const status=document.createElement('span');status.dataset.fmRushStatus='true';
+    status.setAttribute('role','status');status.style.cssText='color:#b71c1c;font-size:11px;align-self:center;';
+    controls.appendChild(status);card.appendChild(controls);
+  }
+  document.addEventListener('click',event=>{
+    if(event.button!==0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)return;
+    if(event.target?.closest?.('[data-fm-rush-controls]'))return;
+    for(let card=event.target;card && card!==document;card=card.parentElement){
+      if(cardDeals.has(card)){event.preventDefault();chooseDeal(card,'select');return;}
+    }
+  },true);
   function archiveScreenshots() {
     if (!isDealsPage() || !screenshotCandidates.length) return;
     const now=Date.now();
@@ -311,8 +371,8 @@
     scanTimer = setTimeout(scan, 80);
   }
   function init() {
-    console.info('[FM Rush] Passive bridge active. Original HeneFM page is unchanged.');
-    // The observer and listeners do not alter the page or intercept its controls.
+    console.info('[FM Rush] Click a listing or CHASE to select one seller; SKIP never records a purchase.');
+    // Listing controls are excluded from parser text; normal site data stays intact.
     const observer = new MutationObserver(mutations => {
       if (mutations.some(m => m.type === 'childList' || m.type === 'characterData' ||
           (m.type === 'attributes' && m.target.matches?.('[data-sold],[data-status],[hidden]')))) {
