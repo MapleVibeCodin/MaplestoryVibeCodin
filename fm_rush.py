@@ -19,6 +19,7 @@ from tkinter import messagebox, ttk, filedialog, simpledialog
 from window_capture import windows as list_game_windows, WindowFrames
 from multi_shop_worker import MultiShopWorker
 from deal_archive import DealArchive
+from channel_overlay import ChannelPin,locate_channel
 from trade_ledger import TradeLedger
 from trade_hotkeys import TradeHotkeys
 from bought_screenshots import downloads_folder, save_bought_screenshot
@@ -213,7 +214,7 @@ class ShopHighlighter(tk.Toplevel):
         top=tk.Frame(self,bg=BG);top.pack(fill='x',padx=10,pady=(7,3))
         tk.Label(top,textvariable=self.target,bg=BG,fg=YELLOW,font=('Segoe UI',17,'bold'),anchor='w').pack(side='left',fill='x',expand=True)
         tk.Button(top,text='CHASE MODE · HIDE DESK',command=self.withdraw,bg=CARD2,fg=FG,relief='flat').pack(side='right',padx=4)
-        tk.Button(top,text='NEXT LIVE (Ctrl+Alt+N)',command=app.next_live_deal,bg=CARD2,fg=FG,relief='flat').pack(side='right',padx=4)
+        tk.Button(top,text='SKIP (Ctrl+Alt+N)',command=app.next_live_deal,bg=CARD2,fg=FG,relief='flat').pack(side='right',padx=4)
         tk.Button(top,text='FIND AGAIN',command=app.retry_shop_once,bg=CARD2,fg=FG,relief='flat').pack(side='right')
         row=tk.Frame(self,bg=BG);row.pack(fill='x',padx=10,pady=3)
         self.chosen=tk.StringVar(value='');self.available=[]
@@ -242,7 +243,7 @@ class ShopHighlighter(tk.Toplevel):
         purchases=tk.Frame(self,bg=BG);purchases.pack(fill='x',padx=10,pady=(0,8))
         tk.Label(purchases,text='Bought qty:',bg=BG,fg=FG).pack(side='left',padx=5)
         ttk.Spinbox(purchases,from_=1,to=999,textvariable=app.buy_quantity,width=4).pack(side='left')
-        tk.Button(purchases,text='BOUGHT · LOG / NEXT (Ctrl+Alt+B)',command=app.log_purchase,bg=YELLOW,fg=BG,relief='flat').pack(side='right')
+        tk.Button(purchases,text='BOUGHT · LOG / CLEAR (Ctrl+Alt+B)',command=app.log_purchase,bg=YELLOW,fg=BG,relief='flat').pack(side='right')
         from trade_desk import TradePanels
         self.trade_panels=TradePanels(app,self.tabs)
         self.refresh_windows()
@@ -269,10 +270,10 @@ class ShopHighlighter(tk.Toplevel):
         else:self.queue.yview_moveto(position)
         self.queue_focus=focus
         live_focus=bool(self.last_name) and self.last_name.casefold() in {name.casefold() for name in names}
-        priority=('priority '+self.last_name if live_focus else 'selected deal is off page' if self.last_name else 'current page')
+        priority=('priority '+self.last_name if live_focus else 'selected deal is off page' if self.last_name else 'click a listing to choose')
         self.target.set(f'{len(names)} live sellers · {priority}')
-        if not names:self.notice.set('No live sellers · reload extension v24.17 and the HeneFM tab if needed.')
-        self.matches={name:hit for name,hit in self.matches.items() if name in names or time.monotonic()<hit.get('hold_until',0)}
+        if not names:self.notice.set('No live sellers · reload extension v24.22 and the HeneFM tab if needed.')
+        self.matches={name:hit for name,hit in self.matches.items() if name.casefold()==self.last_name.casefold() and (name in names or time.monotonic()<hit.get('hold_until',0))}
         if self.last_size and self.app.shop_running:self.pin.show_many(self.selected_hwnd(),self.last_size,self.matches)
 
     def select_queue(self,event=None):
@@ -342,7 +343,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.21 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.22 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -379,13 +380,15 @@ class FMApp:
         self.scan_by_room={}
         self.shop_paused=False
         self.displayed_listing=None
-        self.archive=DealArchive(ARCHIVE_DIR/'deal_archive.sqlite3')
+        self.archive=DealArchive(ARCHIVE_DIR/'deal_archive.sqlite3',manual_selection=True)
         self.ledger=TradeLedger(ARCHIVE_DIR/'trade_ledger.sqlite3')
         self.latency_history=[]
         self.shop_events=queue.Queue(maxsize=3)
         self._pending_after=set()
         self._closing=False
         self.root.protocol('WM_DELETE_WINDOW',self.close)
+        self.channel_pin=ChannelPin(self.root)
+        self.channel_frame_version=None
         self._make_bottom()
         self.open_grid()
         self.open_map()
@@ -404,6 +407,7 @@ class FMApp:
             self.grid.withdraw();self.map.withdraw()
         self.sync_archive()
         self.schedule(35,self.pump)
+        self.schedule(50,self.update_channel_overlay)
         try:
             self.browser_bridge=BrowserBridge(self.events,self.archive)
             self.browser_bridge.start()
@@ -603,7 +607,8 @@ class FMApp:
         # Receipt runs on HTTP threads: take one consistent UI/search snapshot.
         with self.archive.lock:
             live_rows=self.archive.live_pending()
-            names=self.archive.live_names()
+            names=self.archive.selected_names()
+            available_names=self.archive.live_names()
             current=self.archive.current()
             rows=list(live_rows)
             if current and current[0] not in {key for key,_ in rows}:
@@ -613,7 +618,11 @@ class FMApp:
         revisions={}
         for key,deal in live_rows:revisions.setdefault(deal['ign'].casefold(),[]).append(key)
         self.scan_revisions={name:tuple(keys) for name,keys in revisions.items()}
+        previous_names=self.scan_names
         self.scan_names=names
+        if names and names!=previous_names:
+            worker=getattr(self,'shop_thread',None)
+            if worker is not None and worker.is_alive():worker.selection_check.set()
         if names and not getattr(self,'live_started',False):
             self.live_started=True
             worker=getattr(self,'shop_thread',None)
@@ -643,7 +652,7 @@ class FMApp:
             self.item.set('ITEM: '+deal.item+(' · SOLD' if deal.sold else ''))
             self.profit.set(deal.profit.label)
         if self.shop is not None and self.shop.winfo_exists():
-            self.shop.render_queue(rows,key,names)
+            self.shop.render_queue(rows,key,available_names)
 
     def export_archive(self):
         path=filedialog.asksaveasfilename(title='Export listings grouped by seller IGN',
@@ -653,12 +662,29 @@ class FMApp:
             except OSError as exc:messagebox.showerror('Archive export',str(exc))
 
     def next_live_deal(self):
-        rows=self.archive.live_pending()
-        if not rows:
-            self.status.set('No current-page deals to switch to.');return
-        keys=[key for key,_ in rows]
-        index=(keys.index(self.archive.focus)+1)%len(keys) if self.archive.focus in keys else 0
-        self.archive.select(keys[index]);self.sync_archive()
+        # The hotkey skips; accepting the next deal always requires a choice.
+        self.complete_deal()
+
+    def update_channel_overlay(self):
+        if self._closing:return
+        current=self.archive.current()
+        frames=self.shop_frames
+        if not self.shop_running or not current or not frames:
+            self.channel_pin.hide();self.channel_frame_version=None
+        else:
+            frame=frames.peek(-1)
+            if frame is not None:
+                version,stamp,image=frame
+                token=(self.shop_session,version,current[0],self.current_cc)
+                if token!=self.channel_frame_version:
+                    self.channel_frame_version=token
+                    box=locate_channel(image,self.current_cc)
+                    if box:
+                        h,w=image.shape[:2]
+                        self.channel_pin.show_many(self.shop.selected_hwnd(),(w,h),
+                            {'CH '+str(self.current_cc):{'box':box,'mode':'EXACT'}})
+                    else:self.channel_pin.hide()
+        self.schedule(50,self.update_channel_overlay)
 
     def refresh_trade_panels(self):
         if self._closing:return
@@ -743,7 +769,10 @@ class FMApp:
         self.archive.undo_complete();self.sync_archive()
 
     def complete_deal(self):
-        self.archive.complete_current();self.sync_archive()
+        current=self.archive.current()
+        if current:self.archive.skip(current[0])
+        self.sync_archive()
+        self.status.set('Skipped · click a HeneFM listing to chase')
 
     def accepted_ign(self, name):
         # The working selection is explicit; new archived listings do not replace it.
@@ -753,7 +782,9 @@ class FMApp:
         if self.shop is not None and self.shop.winfo_exists():
             self.shop.set_focus(name)
         worker=getattr(self,'shop_thread',None)
-        if name and worker is not None and worker.is_alive():worker.prioritize(name)
+        if self.shop is not None:
+            self.shop.matches={};self.shop.pin.hide()
+        if worker is not None and worker.is_alive():worker.prioritize(name)
         if name and not self.shop_running and not self.web_only and not getattr(self,'shop_paused',False):
             self.schedule(0,self.try_start_shop)
 
@@ -796,7 +827,7 @@ class FMApp:
             self.shop_thread=MultiShopWorker(self.shop_frames,lambda:self.scan_names,
                                              lambda item:self._post_shop(('shop_epoch',session,item)),
                                              self.shop_stop,lambda:self.scan_revisions,self.names_for_room,
-                                             lambda:(self.shop_target,self.current_fm))
+                                             lambda:(self.shop_target,self.current_fm),single_target=True)
             if self.shop_target:self.shop_thread.prioritize(self.shop_target)
             self.shop_thread.start()
         except Exception as exc:
@@ -895,17 +926,29 @@ class FMApp:
                 self.next_live_deal()
             elif evt[0]=='trade_find':
                 self.retry_shop_once()
+            elif evt[0]=='browser_choice':
+                action,key,session,revision=evt[1:]
+                versions=getattr(self,'choice_revisions',{})
+                if revision<=versions.get(session,0):continue
+                versions[session]=revision
+                if len(versions)>32:versions.pop(next(iter(versions)))
+                self.choice_revisions=versions
+                if action=='select':
+                    if not self.archive.choose(key):
+                        self.status.set('Listing already completed · choose another listing');continue
+                else:
+                    self.archive.skip(key)
+                self.sync_archive()
+                if action=='select':self.retry_shop_once()
+                self.status.set('Chasing selected listing' if action=='select' else 'Skipped · choose any listing')
             elif evt[0]=='browser_visible':
                 self.sync_archive()
-                self.status.set('HeneFM live page · '+str(len(self.scan_names))+' sellers to scan')
+                self.status.set(f'{len(self.archive.live_pending())} HeneFM listings available · selected: {self.shop_target or "none"}')
             elif evt[0]=='browser_deal':
                 deal=evt[1]
                 if deal.profit.accepted:
                     self.set_target(deal.cc,deal.fm,deal=deal,source='WEB')
-                    self.status.set(f'HENEFM WEB DEAL • DIRECT • {FILTER_LABEL}')
-                    if len(evt)<3 or evt[2]:
-                        try:self.root.bell()
-                        except Exception:pass
+                    self.status.set(f'{len(self.archive.live_pending())} listings available · click one on HeneFM to chase')
             elif evt[0]=='deal':
                 deal,ms=evt[1],evt[2]
                 # Defense-in-depth: checked in watcher and UI, never show low-profit deals.
@@ -925,8 +968,8 @@ class FMApp:
             if evt[0]=='shops_frame':
                 if self.shop_running and self.shop is not None and self.shop.winfo_exists():
                     _,size,hits,note=evt
-                    hits={name:hit for name,hit in hits.items() if name in self.scan_names or
-                          time.monotonic()<hit.get('hold_until',0)}
+                    hits={name:hit for name,hit in hits.items() if name.casefold()==self.shop_target.casefold() and (name in self.scan_names or
+                          time.monotonic()<hit.get('hold_until',0))}
                     self.shop.draw_matches(size,hits,note)
             elif evt[0]=='shop_frame':
                 _,key,image,source_size,box,mode,seen,latency,method=evt
@@ -984,6 +1027,7 @@ class FMApp:
             try:self.browser_bridge.stop()
             except Exception:pass
         self.stop_shop_scan()
+        self.channel_pin.close()
         if self.shop is not None:
             self.shop.pin.close()
         self.archive.close()

@@ -14,8 +14,8 @@ LIVE_PAGE_LEASE_SECONDS=45.0
 
 
 class DealArchive:
-    def __init__(self,path):
-        self.path=Path(path);self.lock=threading.RLock()
+    def __init__(self,path,manual_selection=False):
+        self.path=Path(path);self.lock=threading.RLock();self.manual_selection=manual_selection
         self.path.parent.mkdir(parents=True,exist_ok=True)
         self.db=sqlite3.connect(self.path,check_same_thread=False)
         self.db.execute('PRAGMA journal_mode=WAL')
@@ -29,7 +29,8 @@ class DealArchive:
         self.focus=self._setting('focus')
         self.last_completed=self._setting('last_completed')
         self._live_keys=();self._live_seen=None;self._live_generation=0;self._live_revisions={}
-        if self.focus not in self._pending:self.focus=next(iter(self._pending),None)
+        if self.manual_selection:self.focus=None
+        elif self.focus not in self._pending:self.focus=next(iter(self._pending),None)
 
     def _setting(self,key):
         row=self.db.execute('SELECT value FROM settings WHERE key=?',(key,)).fetchone()
@@ -67,7 +68,7 @@ class DealArchive:
             if existing is not None and existing['deal']==payload:return key,False
             record={'deal':payload,'first_seen':time.time(),'last_seen':time.time(),'done':False} if new else {
                 **existing,'deal':payload,'last_seen':time.time()}
-            focus=self.focus or (key if not record['done'] else None)
+            focus=self.focus if self.manual_selection else self.focus or (key if not record['done'] else None)
             self._save(key,record,focus)
             return key,new
 
@@ -81,7 +82,7 @@ class DealArchive:
             self._live_generation+=1
             self._live_revisions[session]=revision
             if len(self._live_revisions)>32:self._live_revisions.pop(next(iter(self._live_revisions)))
-            if self.focus is None or (first_page and self.focus not in keys):
+            if not self.manual_selection and (self.focus is None or (first_page and self.focus not in keys)):
                 first=next((key for key in keys if key in self._pending),None)
                 if first:self.select(first)
             return True
@@ -102,7 +103,13 @@ class DealArchive:
             for _,deal in self.live_pending():names.setdefault(deal['ign'].casefold(),deal['ign'])
             return tuple(names.values())
 
+    def selected_names(self):
+        with self.lock:
+            if self.focus not in {key for key,_ in self.live_pending()}:return ()
+            return (self._pending[self.focus]['deal']['ign'],)
+
     def _next_pending(self,key):
+        if self.manual_selection:return None
         # Retain legacy archive operations before a live page has ever connected.
         keys=self._pending if self._live_seen is None else [item for item,_ in self.live_pending()]
         return next((item for item in keys if item!=key),None)
@@ -125,10 +132,27 @@ class DealArchive:
             data=dict(self._pending[self.focus]['deal']);data['profit']=ProfitDecision(**data['profit'])
             return self.focus,Deal(**data)
 
+    def choose(self,key):
+        with self.lock:
+            if key not in self._pending:
+                row=self.db.execute('SELECT data FROM listings WHERE id=?',(key,)).fetchone()
+                if row is None or not json.loads(row[0]).get('skipped'):return False
+                self.reopen(key)
+            self.select(key)
+            return True
+
     def select(self,key):
         with self.lock:
             if key not in self._pending or key==self.focus:return
             self._save(key,self._pending[key],key)
+
+    def skip(self,key):
+        with self.lock:
+            if key not in self._pending:return False
+            record={**self._pending[key],'done':True,'skipped':True}
+            following=None if key==self.focus else self.focus
+            self._save(key,record,following,last_completed=key)
+            return True
 
     def complete_current(self):
         with self.lock:
@@ -151,7 +175,7 @@ class DealArchive:
         with self.lock:
             row=self.db.execute('SELECT data FROM listings WHERE id=?',(key,)).fetchone()
             if row is None:return False
-            record={**json.loads(row[0]),'done':False}
+            record={**json.loads(row[0]),'done':False,'skipped':False}
             self._save(key,record,key,last_completed=None if self.last_completed==key else _UNCHANGED)
             return True
 
@@ -161,7 +185,7 @@ class DealArchive:
             if key is None:return
             row=self.db.execute('SELECT data FROM listings WHERE id=?',(key,)).fetchone()
             if row is None:return
-            record={**json.loads(row[0]),'done':False}
+            record={**json.loads(row[0]),'done':False,'skipped':False}
             self._save(key,record,key,last_completed=None)
 
     def export_json(self,path):

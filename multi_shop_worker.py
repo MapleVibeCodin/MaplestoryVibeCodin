@@ -48,11 +48,12 @@ class Search:
 
 
 class MultiShopWorker(threading.Thread):
-    def __init__(self,frames,get_names,post,stop,get_versions=lambda:{},get_room_names=None,get_room_hint=None):
+    def __init__(self,frames,get_names,post,stop,get_versions=lambda:{},get_room_names=None,get_room_hint=None,single_target=False):
         super().__init__(daemon=True)
         self.frames,self.get_names,self.post,self.stop=frames,get_names,post,stop
         self.get_room_names=get_room_names
         self.get_room_hint=get_room_hint
+        self.single_target=single_target
         self.ready=threading.Event()
         self.entry_check=threading.Event()
         self.selection_check=threading.Event()
@@ -67,7 +68,7 @@ class MultiShopWorker(threading.Thread):
     def run_index(self,engine,rate):
         """One shared room index, independent of room-header OCR and IGN fonts."""
         engine.start_detector(self.frames,self.stop)
-        gate=SnapshotGate(settle_seconds=0.,first_visible=True);gate.loading=True
+        gate=SnapshotGate(settle_seconds=0.,first_visible=True,visible_level=26);gate.loading=True
         epoch=getattr(self.frames,'loading_epoch',0);version=-1;shape=None
         jobs={};active=False;deadline=0.;started=0.;last_read=0.;size=(1,1)
         def live():return {name.casefold():name for name in self.get_names() if name}
@@ -84,7 +85,7 @@ class MultiShopWorker(threading.Thread):
         while not self.stop.is_set():
             now=time.monotonic();allowed=live();expired=False
             for key,job in list(jobs.items()):
-                if key not in allowed and (job.found_at is None or now>=job.found_at+FOUND_HOLD_SECONDS):
+                if (self.single_target and key!=self.preferred) or (key not in allowed and (job.found_at is None or now>=job.found_at+FOUND_HOLD_SECONDS)):
                     del jobs[key];expired=True
             if expired:publish()
             if active and now>=deadline:

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "FM Rush \u2014 HeneFM Deal Scanner",
-  "version": "24.17.0",
-  "description": "Scan only sellers currently shown on HeneFM Deals; keep listing and purchase archives.",
+  "version": "24.22.0",
+  "description": "Click a HeneFM listing to chase one seller; skip any deal and keep purchase records.",
   "permissions": [
     "storage",
     "alarms",
