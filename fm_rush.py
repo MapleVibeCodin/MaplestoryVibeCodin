@@ -268,10 +268,11 @@ class ShopHighlighter(tk.Toplevel):
         if focus and focus!=getattr(self,'queue_focus',None):self.queue.see(focus)
         else:self.queue.yview_moveto(position)
         self.queue_focus=focus
-        off_page=' (off page)' if any(key==focus and deal.get('off_page') for key,deal in rows) else ''
-        self.target.set(f'{len(names)} live sellers · working on {self.last_name or "none"}{off_page}')
+        live_focus=bool(self.last_name) and self.last_name.casefold() in {name.casefold() for name in names}
+        priority=('priority '+self.last_name if live_focus else 'selected deal is off page' if self.last_name else 'current page')
+        self.target.set(f'{len(names)} live sellers · {priority}')
         if not names:self.notice.set('No live sellers · reload extension v24.17 and the HeneFM tab if needed.')
-        self.matches={name:hit for name,hit in self.matches.items() if name in names}
+        self.matches={name:hit for name,hit in self.matches.items() if name in names or time.monotonic()<hit.get('hold_until',0)}
         if self.last_size and self.app.shop_running:self.pin.show_many(self.selected_hwnd(),self.last_size,self.matches)
 
     def select_queue(self,event=None):
@@ -341,7 +342,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.20 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.21 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)

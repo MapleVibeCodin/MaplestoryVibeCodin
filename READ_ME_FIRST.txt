@@ -1,4 +1,4 @@
-FM RUSH — CLEAN EDITION (app v24.20 / extension 24.17.0)
+FM RUSH — CLEAN EDITION (app v24.21 / extension 24.17.0)
 
 1. Extract this entire ZIP into one folder. Do not run it from inside the ZIP.
 2. Double-click START_FM_RUSH.bat. Keep the other files in place.
@@ -13,9 +13,20 @@ FM RUSH — CLEAN EDITION (app v24.20 / extension 24.17.0)
    live deal after arrival also starts a bounded scan automatically.
 
 Only sellers on the current Deals page enter the scan queue. Old archive names
-are excluded. Found markers can remain for two minutes after their card leaves;
-loading or a lost label clears their screen position. CHECK NAME means the
-lettering is uncertain. The app never clicks or purchases for you.
+are excluded. Found markers stay eligible for two minutes from detection even if a card leaves;
+loading or a lost label clears their screen position. CHECK NAME means
+only three distinctive letters may have matched. The app never clicks or
+purchases for you.
+
+The replacement scanner reads actual English lettering once for all current
+sellers. Selected-name shapes propose locations; text recognition must verify them.
+Three clear letters that distinguish a live seller are enough for CHECK NAME.
+Full-name confirmation does not delay that marker. Room-header OCR never
+blocks searching. Cheap region detection
+keeps the newest readable frame while the single OCR worker is busy; old queued
+views are dropped. Scanning stops
+after a short entry burst; it does not perform continuous OCR while idle.
+The included English model is required. Keep the assets folder intact.
 
 Ctrl+Alt+B records the selected purchase. View prices in Trade Desk > Inventory.
 Ctrl+Alt+N selects the next live deal; Ctrl+Alt+F retries the name finder.
