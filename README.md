@@ -1,49 +1,55 @@
-# FM Rush v24.20 — native labels and selection-triggered scans
+# FM Rush v24.21 — replacement room text reader
 
-One workspace for current HeneFM deals, purchase receipts, two seller shops and buyer cash.
+Current HeneFM deals, purchase receipts and shop stock in one app.
 
-Buyer: **Unfkabe**. Sellers: **fkable** and **unfkable**, 18 slots each. No third selling shop is assumed.
+## Installation
 
-## Update
+Close the old app. Extract the entire clean ZIP and run **START_FM_RUSH.bat**.
+Keep the included assets folder: the English recognition model is essential.
+The clean download contains no screenshots, videos, old versions or update notes.
+Extracting over an existing app folder reuses its installed `.venv` and settings;
+a new folder installs dependencies on its first launch. Purchase records remain
+in `%LOCALAPPDATA%\FM_Rush\archives`.
 
-Close FM Rush and run **UPDATE_FM_RUSH.bat**, or copy the small ZIP's contents over the existing app folder. Keep `.venv` and `config.json`. Confirm app **v24.20**.
+The bundled browser extension remains **24.17.0**. If using a new folder,
+load that folder's `browser_extension` directory in `brave://extensions`, then
+reload HeneFM. Keep your three-minute Deals filter.
 
-Reload the extension from this app folder in `brave://extensions`, confirm **24.17.0**, then reload HeneFM. If your old extension points to another extracted folder, use Load unpacked on the updated `browser_extension` directory.
+Older in-place updaters cannot accept the new model asset. Use this complete
+clean ZIP for the transition to v24.21 instead of the old update launcher.
 
-The package excludes personal screenshots, replay data, bytecode and the older nested app. Updates preserve local archives, installed dependencies and settings.
+## Replacement scanner
 
-## Room-entry scanner
+The scan controller and reader are replaced. Selected-name shapes propose
+locations, and an English recognition model verifies the actual lettering.
+Other live sellers share a room text index. Location hints are retried during
+the entry fade; a shape proposal alone never establishes identity. Room-header
+OCR never blocks name recognition.
+Only the current HeneFM page supplies targets; archived sellers are excluded.
 
-Select the deal before travelling for the first entry search. Selecting a different
-live deal after arrival now also starts a bounded scan automatically; it no longer
-leaves the finder idle. Already-found labels remain marked when selection changes. Only the
-current HeneFM page supplies other names; keep your three-minute page filter.
-A found marker remains eligible for two minutes after detection even when its
-card disappears. Loading, a lost label or a changed capture window clears its
-screen position so an old square cannot point at a different shop.
+A separate region worker keeps the newest readable entry snapshot while OCR
+is busy. Old queued views are dropped rather than delaying the next scan. Results retain their source frame and are relocated against the newest
+capture before a marker is published. Loading, a changed capture size and lost
+lettering invalidate positions. Inference is confined to a three-second entry
+burst, with a bounded retry when selecting another live deal. There is no idle
+OCR. OCR uses one thread; Windows process affinity remains capped at two CPUs.
 
-The locator uses a brief entry burst, a small native-scale pass, fresh-frame
-contrast checks during fade-in, and local tracking after verification. A
-numbered minimap header can start the selected seller search using the selected
-route provisionally; room OCR remains the fallback. It does not read the current
-channel from game memory. Ambiguous lettering stays visibly CHECK NAME.
+Select the deal before travelling to put its seller first. **FIND AGAIN** or
+**Ctrl+Alt+F** starts another bounded scan. Found positions stay eligible for
+120 seconds from detection even if the page drops their card. Current live
+sellers can remain marked longer. Unfound off-page sellers are dropped promptly.
 
-The v24.20 validation used three real-time replays per supplied clip,
-with marker callbacks at
-8.662–8.664 s (Ceci), 11.832–11.837 s (Tounge), and 14.981–14.990 s
-(Gimchigirl, CHECK NAME). Each box was in the annotated shop region. These are
-Linux software callback times from compressed desktop video, excluding Windows
-capture, GUI/compositor latency, network freshness and other players' actions.
-The last deadline has little margin; live Windows racing performance is unverified.
+Three clearly read letters are enough for a fast **CHECK NAME** marker. The
+fragment must distinguish that seller from the other live targets; repeated
+identical letters and low-confidence fragments do not qualify. This intentionally
+accepts partial names and similar names sharing those letters. Full-name
+confirmation is no longer required before showing a useful location.
+The app never clicks a shop or buys an item automatically.
 
-The November 17 label regressions now cover six recovered positions (three exact,
-three CHECK). HisCapybara and Kethan remain unverified in their truncated crops;
-full game frames are needed. These crop tests isolate recognition and do not
-validate live capture or room-entry gating. Selecting a deal after arrival is
-separately covered by worker tests, including an unchanged capture frame.
-
-The full checkout includes `benchmark_video_entries.py` and accuracy regressions;
-recordings and developer files are excluded from downloads.
+The full source checkout includes real-time video replay and recognition tests.
+Video times measure the software marker callback, excluding native Windows
+capture, GUI/compositor latency and other players. Live Windows racing latency
+still needs checking; a replay is not a guarantee of winning a purchase.
 
 ## One-time setup
 
@@ -91,8 +97,8 @@ Ledger files are in `%LOCALAPPDATA%\FM_Rush\archives\trade_ledger.sqlite3` on Wi
 
 ## Scanner timing
 
-Room-entry-only bursts, one OCR thread, a three-second deadline, current-room scoping and large red markers remain. A new page list does not run continuous OCR. The first live list can request one guarded room-entry check when already inside an FM room.
+Room-entry bursts, one OCR thread, a three-second deadline, current-page scoping and large red markers remain. A new page list does not run continuous OCR. The first live list can request one guarded room-entry check when already inside an FM room.
 
-**Export scanner timing** records local page-to-app delivery, room-header, search, queue, frame age and software result-to-UI timing. It does not measure HeneFM server freshness, human travel, network competition or compositor display time. A scanner cannot guarantee winning a race against other buyers; saved-image speed is not proof of live end-to-end speed.
+**Export scanner timing** records local page-to-app delivery, search, queue, frame age and software result-to-UI timing. It does not measure HeneFM server freshness, human travel, network competition or compositor display time. A scanner cannot guarantee winning a race against other buyers; saved-image speed is not proof of live end-to-end speed.
 
-Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_20.txt` for validation and limits.
+Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_21.txt` for validation and limits.

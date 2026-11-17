@@ -1,0 +1,27 @@
+FM RUSH v24.21 — replacement scanner
+
+The scan controller is replaced with selected-word fast verification plus a
+shared English text index for difficult lettering. Visual shape proposals alone never establish identity. Region detection continues during OCR; only the newest queued view is indexed. Positions are checked against the latest frame before publication.
+Room-header recognition no longer blocks searching. Current-page targets only;
+three-second entry bursts; no idle OCR; found-marker retention is 120 seconds
+from detection. Three clearly read, distinctive letters now suffice for CHECK NAME, as requested.
+Shared fragments between live sellers require more evidence. Heavy full-scene
+OCR detection cannot block room-entry searches.
+
+Use the complete clean ZIP for this transition: older updater code does not
+allow the new model file. Keep all model/provenance/license assets together.
+No screenshots or videos are included in the clean package. Existing local
+purchase records and the current extension protocol are unchanged.
+
+Validation details are recorded in the source tests and benchmark results.
+Native Windows capture/display timing is not measured by Linux replay tests.
+
+Release validation:
+- 23 replacement-reader/controller tests pass, including uploaded pixels,
+  three-letter confidence, shared fragments, latest-frame queue and retention.
+- Clean 36-file ZIP startup and bundled model/checksum smoke check pass.
+- Five supplied videos replayed three times each: 15/15 correct shop locations.
+- Strict timestamp deadlines: 11/15; late callbacks were 0.025–0.123 seconds past the goal.
+These are software marker callbacks, with the selected seller and seven other
+current-page fixture sellers. Native Windows capture, compositor and network
+latency are excluded. A hard one-second Windows guarantee remains unverified.

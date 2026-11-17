@@ -25,6 +25,12 @@ CASES=[
          crop=(0,0,911,513),size=(1366,768),start=9.5,goal=12.,room=9,truth=(380,0,455,130)),
     dict(file='FM%20SCAN%203%20-%20under%2025MB (1).mp4',name='Gimchigirl',
          crop=(0,0,911,513),size=(1366,768),start=13.,goal=15.,room=13,truth=(1270,390,1355,425)),
+    # Additional November 17 recordings: one second from the new room becoming
+    # visible, rather than a user-specified clip timestamp deadline.
+    dict(file='NightxMare.mp4',name='NightxMare',crop=(0,0,1366,768),size=None,
+         start=1.75,goal=3.8,room=7,truth=(370,500,480,655)),
+    dict(file='MrKimchi.mp4',name='MrKimchi',crop=(0,0,1366,768),size=None,
+         start=22.,goal=24.5,room=16,truth=(810,480,920,555)),
 ]
 # Current-page workload from HENEFM SCANS.png; unrelated archive sellers never
 # enter this callback. The selected target is added when from a different clip.
@@ -106,6 +112,7 @@ def replay(case):
     finally:
         stop.set();worker.join(5)
     return dict(name=case['name'],goal=case['goal'],found=bool(result),**result,
+                errors=[event[1] for _,event in events if event[0]=='shop_note' and 'ERROR' in str(event[1])],
                 timing=next((event[1] for _,event in reversed(events) if event[0]=='shop_timing'),None))
 
 
@@ -116,7 +123,7 @@ def main():
     for repeat in range(args.repeats):
         for case in CASES:
             row={'repeat':repeat+1,**replay(case)};rows.append(row);print(json.dumps(row),flush=True)
-    Path(args.output).write_text(json.dumps({'scope':'Real-time 30fps compressed-video replay; software marker callback; selected target first; page-only workload; excludes native capture, GUI/compositor and network latency.',
+    Path(args.output).write_text(json.dumps({'scope':'Real-time 30/60fps desktop-video replay; software marker callback; selected target plus the seven sellers from the supplied HeneFM page fixture; excludes native capture, GUI/compositor and network latency.',
         'results':rows},indent=2)+'\n')
 
 if __name__=='__main__':main()

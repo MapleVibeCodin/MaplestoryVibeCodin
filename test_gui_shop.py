@@ -53,4 +53,18 @@ class TestShopUI(unittest.TestCase):
         finally:
             app.close()
 
+    def test_queue_refresh_keeps_verified_hold_and_does_not_claim_to_scan_archived_selection(self):
+        import time
+        app=FMApp()
+        try:
+            app.shop.set_focus('Old')
+            app.shop.last_size=(1000,600)
+            app.shop.matches={'Old':dict(box=(100,100,150,115),mode='EXACT',hold_until=time.monotonic()+120),
+                              'Expired':dict(box=(300,100,350,115),mode='EXACT',hold_until=time.monotonic()-1),
+                              'Live':dict(box=(500,100,550,115),mode='EXACT',hold_until=0)}
+            app.shop.render_queue([],None,('Live',))
+            self.assertEqual(set(app.shop.matches),{'Old','Live'})
+            self.assertIn('selected deal is off page',app.shop.target.get())
+        finally:app.close()
+
 if __name__=='__main__':unittest.main()
