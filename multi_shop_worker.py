@@ -5,7 +5,7 @@ import threading
 import time
 import cv2
 import numpy as np
-from room_text_reader import RoomTextReader
+from room_text_reader import RoomTextReader, entry_readable
 from fm_entry_gate import SnapshotGate
 from frame_motion import name_region_changed,relocate_label,follow_word
 
@@ -72,12 +72,14 @@ class MultiShopWorker(threading.Thread):
         epoch=getattr(self.frames,'loading_epoch',0);version=-1;shape=None
         jobs={};active=False;deadline=0.;started=0.;last_read=0.;size=(1,1)
         pending_loading_at=None;burst_loading_at=None
+        first_readable_at=None
         def live():return {name.casefold():name for name in self.get_names() if name}
         def publish(note=''):
             self.post(('shops_frame',size,{job.name:dict(box=job.hit.box,text=job.hit.text,mode=job.hit.mode,
                 hold_until=job.found_at+FOUND_HOLD_SECONDS) for job in jobs.values() if job.hit is not None},note))
         def begin(reset=False,loading_at=None):
-            nonlocal active,deadline,started,burst_loading_at
+            nonlocal active,deadline,started,burst_loading_at,first_readable_at
+            first_readable_at=None
             burst_loading_at=loading_at
             if reset:engine.reset()
             started=time.monotonic();deadline=started+ROOM_BURST_SECONDS;active=bool(live())
@@ -97,7 +99,7 @@ class MultiShopWorker(threading.Thread):
             frame=self.frames.latest(-1 if event else version)
             if frame is None and active and (now-last_read>.04 or getattr(engine,'pending_regions',False)):frame=self.frames.latest(-1)
             if frame is None:
-                self.stop.wait(.008);continue
+                self.stop.wait(.002 if active or gate.loading else .008);continue
             version,stamp,image=frame;h,w=image.shape[:2];size=(w,h)
             current_epoch=getattr(self.frames,'loading_epoch',epoch)
             if current_epoch!=epoch:
@@ -113,7 +115,7 @@ class MultiShopWorker(threading.Thread):
             if gate.invalidated:
                 engine.set_active(False);engine.reset();jobs={};active=False;rate(ACTIVE_CAPTURE_MS);publish('Loading · waiting for game pixels')
             if gate.loading:
-                self.stop.wait(.008);continue
+                self.stop.wait(.002);continue
             allowed=live()
             selected=self.selection_check.is_set();self.selection_check.clear()
             manual=self.retry.is_set();self.retry.clear()
@@ -143,6 +145,8 @@ class MultiShopWorker(threading.Thread):
                 active=False;engine.set_active(False);rate(IDLE_CAPTURE_MS);publish('All live sellers in view located');continue
             preferred=allowed.get(self.preferred)
             if preferred in missing:missing.remove(preferred);missing.insert(0,preferred)
+            if first_readable_at is None and entry_readable(image):
+                first_readable_at=stamp
             before=time.monotonic()
             if before>=deadline:continue
             start_epoch=epoch;last_read=before
@@ -178,6 +182,7 @@ class MultiShopWorker(threading.Thread):
                 quick_pass=True,header_ms=0.,recognition_ms=round((posted-before)*1000,1),queue_ms=0.,
                 frame_age_ms=round(max(0,(before-stamp)*1000),1),burst_to_result_ms=round((posted-started)*1000,1),
                 loading_to_result_ms=round((posted-burst_loading_at)*1000,1) if burst_loading_at is not None else None,
+                first_readable_to_result_ms=round((posted-first_readable_at)*1000,1) if first_readable_at is not None else None,
                 posted_at=posted,verification=engine.last_diagnostic)))
             publish(f'{sum(job.hit is not None for job in jobs.values())} located · reading visible labels')
 

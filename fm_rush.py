@@ -343,7 +343,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.23 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.24 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -982,12 +982,15 @@ class FMApp:
                 timing={**evt[1]}
                 timing['result_to_ui_queue_ms']=round(max(0,time.monotonic()-timing.pop('posted_at'))*1000,1)
                 timing['burst_to_ui_request_ms']=round(timing['burst_to_result_ms']+timing['result_to_ui_queue_ms'],1)
+                if timing.get('first_readable_to_result_ms') is not None:
+                    timing['first_readable_to_ui_queue_ms']=round(
+                        timing['first_readable_to_result_ms']+timing['result_to_ui_queue_ms'],1)
                 timing['local_page_to_app_ms']=getattr(self.archive,'last_feed_latency_ms',None)
                 self.latency_history.append(timing);self.latency_history=self.latency_history[-200:]
             elif evt[0]=='shop_note':
                 if self.shop_running and self.shop is not None and self.shop.winfo_exists():
                     self.shop.notice.set(evt[1])
-        self.schedule(10,self.pump)
+        self.schedule(5 if self.shop_running and self.scan_names else 10,self.pump)
 
     def snap(self):
         sw=self.root.winfo_screenwidth();sh=self.root.winfo_screenheight()

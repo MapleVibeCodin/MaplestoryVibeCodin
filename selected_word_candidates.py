@@ -18,7 +18,7 @@ def shapes(name,width):
         seen.add(size);result.append(cv2.resize(base,size,interpolation=cv2.INTER_AREA if scale<1 else cv2.INTER_CUBIC))
     return result
 
-def propose(frame,name,limit=24,fast=False):
+def propose(frame,name,limit=24,fast=False,polarity=None):
     h,w=frame.shape[:2];gray=cv2.cvtColor(frame[:round(h*.91)],cv2.COLOR_BGR2GRAY)
     high=max(1.,float(np.percentile(frame[::16,::16],98)));groups=[]
     templates=shapes(name,w)
@@ -27,7 +27,13 @@ def propose(frame,name,limit=24,fast=False):
         # scale first and allow later attempts to search the full scale set.
         index=min(1,len(templates)-1) if len(name)<5 else len(templates)-1
         templates=templates[index:index+1]
-    for dark in (True,False):
+    polarities=(True,False) if polarity is None else (polarity,)
+    # Dim labels tend to rank lower in the downsampled search. Refine more
+    # peaks there, but still require text recognition before marking a shop.
+    dim=polarity is not None and high<125
+    peak_limit=24 if len(name)<5 or dim else 12
+    min_score=(.44 if dim else .50) if len(name)<5 else .45
+    for dark in polarities:
         feature=cv2.morphologyEx(gray,cv2.MORPH_BLACKHAT if dark else cv2.MORPH_TOPHAT,np.ones((3,3),np.uint8))
         small=cv2.resize(feature,None,fx=.5,fy=.5,interpolation=cv2.INTER_AREA);candidates=[]
         for shape in templates:
@@ -36,13 +42,13 @@ def propose(frame,name,limit=24,fast=False):
             mini=cv2.resize(shape,None,fx=.5,fy=.5,interpolation=cv2.INTER_AREA)
             scores=cv2.matchTemplate(small,mini,cv2.TM_CCOEFF_NORMED)
             peaks=(scores>=.28)&(scores==cv2.dilate(scores,np.ones((5,5),np.uint8)))
-            ys,xs=np.where(peaks);order=np.argsort(scores[ys,xs])[-(24 if len(name)<5 else 12):][::-1]
+            ys,xs=np.where(peaks);order=np.argsort(scores[ys,xs])[-peak_limit:][::-1]
             for i in order:
                 x=int(xs[i])*2;y=int(ys[i])*2;l=max(0,x-4);t=max(0,y-4)
                 patch=feature[t:min(feature.shape[0],y+th+5),l:min(w,x+tw+5)]
                 if patch.shape[0]<th or patch.shape[1]<tw:continue
                 _,score,_,(dx,dy)=cv2.minMaxLoc(cv2.matchTemplate(patch,shape,cv2.TM_CCOEFF_NORMED))
-                if score<(.50 if len(name)<5 else .45):continue
+                if score<min_score:continue
                 box=(l+dx,t+dy,l+dx+tw,t+dy+th);a,b,r,d=box
                 pixels=frame[b:d,a:r];level=float(np.median(gray[b:d,a:r]))/high
                 if dark:
@@ -77,6 +83,7 @@ def propose(frame,name,limit=24,fast=False):
         groups.append(sorted(candidates,reverse=True))
     # Rank both text polarities together; a weak signboard must not delay
     # stronger player-name candidates merely because its text is dark.
+    if len(groups)==1:return groups[0][:limit]
     if len(name)<5:
         # Very short names have many incidental white-shape matches; give a
         # highlighted gray nameplate an immediate chance too.

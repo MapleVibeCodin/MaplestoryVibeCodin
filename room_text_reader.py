@@ -17,6 +17,8 @@ import numpy as np
 from fast_shop_match import Hit,norm
 from selected_word_candidates import propose as selected_proposals
 
+PRIORITY_SEARCH_SECONDS=.125
+
 MODEL_SHA='c3461add59bb4323ecba96a492ab75e06dda42467c9e3d0c18db5d1d21924be8'
 
 
@@ -120,7 +122,9 @@ class EnglishRecognizer:
         self.session=ort.InferenceSession(str(model),sess_options=options,providers=['CPUExecutionProvider'])
         self.characters=['']+self.session.get_modelmeta().custom_metadata_map['character'].splitlines()+[' ']
         self.input_name=self.session.get_inputs()[0].name
-        self([np.full((16,64,3),255,np.uint8)])
+        # Warm the usual nameplate widths while the locator is getting ready,
+        # so the first fade frame does not pay ONNX input-shape setup.
+        self([np.full((48,width,3),255,np.uint8) for width in (160,192,224,256,288,320,352,384)])
 
     def __call__(self,crops):
         if not crops:return []
@@ -193,7 +197,7 @@ class RoomTextReader:
         self.recovered=False;self.scene_started=time.monotonic()
         self.visual_focus=None;self.visual_attempts=0;self.visual_frame=None
         self.work_frame=None;self.source_frame=None
-        if self.producer:self.producer.reset()
+        if self.producer:self.producer.reset(defer_until=self.scene_started+PRIORITY_SEARCH_SECONDS)
 
     @staticmethod
     def patch(frame,box):
@@ -321,7 +325,7 @@ class RoomTextReader:
             self.labels.append(Label(box,dark,1.5,self.patch(frame,box),glyphs=max(3,round((r-x)/max(4,b-y-4)*1.6)),neural=True,source=frame,created=time.monotonic()))
 
     @staticmethod
-    def crop(frame,label,confirm=False,variant=0):
+    def crop(frame,label,confirm=False,variant=0,fade_boost=False):
         if label.source is not None:frame=label.source
         x,y,r,b=label.box
         pad=(1 if label.segmented else (4,4,12,16)[variant]) if confirm else (1 if label.segmented else 8)
@@ -329,7 +333,14 @@ class RoomTextReader:
         gray=cv2.cvtColor(patch,cv2.COLOR_BGR2GRAY)
         if not confirm:
             low,high=np.percentile(gray,(2,98))
-            if high-low>8 and high<160:gray=np.clip((gray.astype(np.float32)-low)*255/(high-low),0,255).astype(np.uint8)
+            if high-low>8 and high<160:
+                span=high-low
+                if fade_boost and high<85:
+                    # Clip more of the background on dim fade frames so the
+                    # letter strokes keep enough contrast after resizing.
+                    low+=span*.18
+                    span*=.64
+                gray=np.clip((gray.astype(np.float32)-low)*255/span,0,255).astype(np.uint8)
         if label.repeat:
             patch=frame[y:b,max(0,x-pad):min(frame.shape[1],r+pad)]
             gray=cv2.cvtColor(patch,cv2.COLOR_BGR2GRAY)
@@ -398,34 +409,45 @@ class RoomTextReader:
         if self.producer and not entry_readable(frame):
             self.last_diagnostic=dict(method='waiting for readable entry contrast',regions=0,recognized=0,words=[],elapsed_ms=0.)
             return {}
-        early_fade=self.producer is not None and time.monotonic()-self.scene_started<.45 and entry_level(frame)<85
+        scene_age=started-self.scene_started
+        early_fade=self.producer is not None and scene_age<.45 and entry_level(frame)<85
+        priority=self.producer is not None and len(names)==1 and scene_age<PRIORITY_SEARCH_SECONDS
+        retry_interval=0. if priority else .06
         focus=preferred if preferred in names else names[0]
         if focus!=self.visual_focus:
             self.visual_focus=focus;self.visual_attempts=0;self.visual_frame=None
-        if (self.visual_attempts<1 or time.monotonic()-getattr(self,"visual_at",0)>.06) and frame is not self.visual_frame and not cancelled():
+        if (self.visual_attempts<1 or time.monotonic()-getattr(self,"visual_at",0)>retry_interval) and frame is not self.visual_frame and not cancelled():
             self.visual_attempts+=1;self.visual_frame=frame;self.visual_at=time.monotonic()
             hints=[]
-            for score,box,dark in selected_proposals(frame,focus,fast=self.producer is not None and self.visual_attempts%2==1):
+            if priority:
+                # Read one crop on each fresh frame. Alternate text polarity
+                # periodically so dark text on a light plate can also match.
+                dark_first=len(focus)<5
+                polarity=not dark_first if self.visual_attempts%4==0 else dark_first
+                proposals=selected_proposals(frame,focus,limit=1,fast=True,polarity=polarity)
+            else:
+                proposals=selected_proposals(frame,focus,fast=self.producer is not None and self.visual_attempts%2==1)
+            for score,box,dark in proposals:
                 x,y,r,b=box
                 if b-y>=13:box=(x+1,y+2,min(frame.shape[1],r+1),b-2)
                 hints.append(Label(box,dark,2.5,self.patch(frame,box),glyphs=len(focus),source=frame,created=time.monotonic(),direct=True))
             for offset in range(len(hints)):
                 if cancelled() or time.monotonic()-started>(.075 if early_fade else .22):break
                 group=hints[offset:offset+1]
-                reads=self.recognizer([self.crop(frame,label) for label in group])
+                reads=self.recognizer([self.crop(frame,label,fade_boost=priority and early_fade) for label in group])
                 for label,reading in zip(group,reads):label.reading=reading;label.used_at=time.monotonic()
                 self.labels=group+self.labels
-                hits=self.lookup(frame,names,preferred,confirm=True,cancelled=cancelled)
+                hits=self.lookup(frame,names,preferred,confirm=not priority,cancelled=cancelled)
                 if focus in hits:
                     self.last_diagnostic=dict(method='selected-word English verification',regions=len(hints),recognized=offset+len(group),
                         words=[dict(text=label.reading[0],confidence=round(label.reading[1],3),box=label.box) for label in hints if label.reading],
                         elapsed_ms=round((time.monotonic()-started)*1000,1))
                     return hits
-        if early_fade:
+        if early_fade or priority:
             # Try during the first light frames, but do not let an unreadable
             # early view occupy the useful arrival window with recovery work.
             self.hit_sources={}
-            self.last_diagnostic=dict(method='early fade quick attempt',regions=len(self.labels),recognized=0,words=[],
+            self.last_diagnostic=dict(method='early fade quick attempt' if early_fade else 'priority frame search',regions=len(self.labels),recognized=0,words=[],
                 elapsed_ms=round((time.monotonic()-started)*1000,1))
             return {}
         self.targets=names
@@ -727,8 +749,10 @@ class SceneRegions(threading.Thread):
         super().__init__(daemon=True)
         self.frames=frames;self.stop=stop;self.active=False
         self.output=queue.Queue(maxsize=2);self.generation=0;self.shutdown=threading.Event()
+        self.defer_until=0.
 
-    def reset(self):
+    def reset(self,defer_until=0.):
+        self.defer_until=defer_until
         self.generation+=1
         while True:
             try:self.output.get_nowait()
@@ -737,7 +761,7 @@ class SceneRegions(threading.Thread):
     def run(self):
         version=-1
         while not self.stop.is_set() and not self.shutdown.is_set():
-            if not self.active:
+            if not self.active or time.monotonic()<self.defer_until:
                 self.stop.wait(.012);continue
             frame=self.frames.latest(version)
             if frame is None:

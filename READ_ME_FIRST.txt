@@ -1,4 +1,4 @@
-FM RUSH — CLEAN EDITION (app v24.23 / extension 24.22.0)
+FM RUSH — CLEAN EDITION (app v24.24 / extension 24.22.0)
 
 1. Extract this entire ZIP into one folder. Do not run it from inside the ZIP.
 2. Double-click START_FM_RUSH.bat. Keep the other files in place.
