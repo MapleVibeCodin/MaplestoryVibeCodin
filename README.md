@@ -1,4 +1,4 @@
-# FM Rush v24.22 — choose a listing, scan one seller
+# FM Rush v24.23 — choose a listing, scan one seller
 
 Current HeneFM deals, purchase receipts and shop stock in one app.
 
@@ -38,7 +38,7 @@ outline and arrow mark the chosen channel directly over the real menu. Its
 position is anchored to the menu from the uploaded screenshot; it follows the
 selected game window and hides when the menu closes. It never clicks for you.
 
-The name reader begins on the early light frames of the room fade. It retries
+The name reader begins on the early light frames of the room fade. The first search checks one likely font scale, with the full scale search available on a retry. It retries
 without the previous quarter-second delay, searches only the selected live IGN,
 and accepts three confidently read letters for a **CHECK NAME** shop marker.
 Repeated identical letters and weak readings do not qualify. Loading, resizing

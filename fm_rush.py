@@ -343,7 +343,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.22 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM RUSH v24.23 — BOTTOM ROUTE + WEB DEALS')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
         self.root.minsize(650,158)
@@ -980,7 +980,8 @@ class FMApp:
                     self.shop.set_target(self.shop_target,force=True)
             elif evt[0]=='shop_timing':
                 timing={**evt[1]}
-                timing['burst_to_ui_request_ms']=round(timing['burst_to_result_ms']+max(0,time.monotonic()-timing.pop('posted_at'))*1000,1)
+                timing['result_to_ui_queue_ms']=round(max(0,time.monotonic()-timing.pop('posted_at'))*1000,1)
+                timing['burst_to_ui_request_ms']=round(timing['burst_to_result_ms']+timing['result_to_ui_queue_ms'],1)
                 timing['local_page_to_app_ms']=getattr(self.archive,'last_feed_latency_ms',None)
                 self.latency_history.append(timing);self.latency_history=self.latency_history[-200:]
             elif evt[0]=='shop_note':

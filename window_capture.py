@@ -121,7 +121,7 @@ class WindowFrames:
             try:
                 # Watch sparse loading tiles even when idle frame copies slow down.
                 import numpy as np
-                now=time.perf_counter();a=frame.frame_buffer
+                now=time.monotonic();a=frame.frame_buffer
                 h,w=a.shape[:2]
                 dark=sum(float(a[int((y-.06)*h):int((y+.06)*h):16,
                                  int((x-.06)*w):int((x+.06)*w):16,:3].mean())<24

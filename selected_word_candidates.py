@@ -18,13 +18,19 @@ def shapes(name,width):
         seen.add(size);result.append(cv2.resize(base,size,interpolation=cv2.INTER_AREA if scale<1 else cv2.INTER_CUBIC))
     return result
 
-def propose(frame,name,limit=24):
+def propose(frame,name,limit=24,fast=False):
     h,w=frame.shape[:2];gray=cv2.cvtColor(frame[:round(h*.91)],cv2.COLOR_BGR2GRAY)
     high=max(1.,float(np.percentile(frame[::16,::16],98)));groups=[]
+    templates=shapes(name,w)
+    if fast:
+        # Most labels are close to native pixel size. Check one plausible
+        # scale first and allow later attempts to search the full scale set.
+        index=min(1,len(templates)-1) if len(name)<5 else len(templates)-1
+        templates=templates[index:index+1]
     for dark in (True,False):
         feature=cv2.morphologyEx(gray,cv2.MORPH_BLACKHAT if dark else cv2.MORPH_TOPHAT,np.ones((3,3),np.uint8))
         small=cv2.resize(feature,None,fx=.5,fy=.5,interpolation=cv2.INTER_AREA);candidates=[]
-        for shape in shapes(name,w):
+        for shape in templates:
             th,tw=shape.shape
             if th>feature.shape[0] or tw>feature.shape[1]:continue
             mini=cv2.resize(shape,None,fx=.5,fy=.5,interpolation=cv2.INTER_AREA)
@@ -45,9 +51,15 @@ def propose(frame,name,limit=24):
                 if any(abs((a+r)-(q[1][0]+q[1][2]))<max(14,r-a) and abs((b+d)-(q[1][1]+q[1][3]))<18 for q in candidates):continue
                 # Follow observed ink to the complete word boundary. A query
                 # template must never crop a prefix/suffix out of another IGN.
-                band=feature[max(0,b+2):max(b+3,d-2)]
-                neutral=frame[max(0,b+2):max(b+3,d-2)].max(2)-frame[max(0,b+2):max(b+3,d-2)].min(2)<80
-                columns=((band>30)&neutral).sum(0)>=2
+                band_top=b+2
+                band_bottom=max(b+3,d-2)
+                band_left=max(0,a-60)
+                band_right=min(w,r+61)
+                band=feature[band_top:band_bottom,band_left:band_right]
+                rgb=frame[band_top:band_bottom,band_left:band_right]
+                neutral=rgb.max(2)-rgb.min(2)<80
+                columns=np.zeros(w,dtype=bool)
+                columns[band_left:band_right]=((band>30)&neutral).sum(0)>=2
                 left=a;right=r
                 if columns[a:min(w,a+6)].any():
                     blank=0

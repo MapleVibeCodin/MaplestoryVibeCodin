@@ -405,7 +405,7 @@ class RoomTextReader:
         if (self.visual_attempts<1 or time.monotonic()-getattr(self,"visual_at",0)>.06) and frame is not self.visual_frame and not cancelled():
             self.visual_attempts+=1;self.visual_frame=frame;self.visual_at=time.monotonic()
             hints=[]
-            for score,box,dark in selected_proposals(frame,focus):
+            for score,box,dark in selected_proposals(frame,focus,fast=self.producer is not None and self.visual_attempts%2==1):
                 x,y,r,b=box
                 if b-y>=13:box=(x+1,y+2,min(frame.shape[1],r+1),b-2)
                 hints.append(Label(box,dark,2.5,self.patch(frame,box),glyphs=len(focus),source=frame,created=time.monotonic(),direct=True))
