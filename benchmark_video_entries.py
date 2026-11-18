@@ -18,19 +18,20 @@ import numpy as np
 from multi_shop_worker import MultiShopWorker
 
 ROOT=Path(__file__).parent
+# Fixed fade-frame references from visual inspection of the same five recordings.
 CASES=[
     dict(file='FM SHOP.mp4',name='Ceci',crop=(143,145,1611,964),size=None,
-         start=6.5,goal=9.,room=9,truth=(870,495,925,625)),
+         start=6.5,readable_at=8.466667,goal=9.,room=9,truth=(870,495,925,625)),
     dict(file='FM%20SCAN%202%20-%20under%2025MB (1).mp4',name='Tounge',
-         crop=(0,0,911,513),size=(1366,768),start=9.5,goal=12.,room=9,truth=(380,0,455,130)),
+         crop=(0,0,911,513),size=(1366,768),start=9.5,readable_at=11.8,goal=12.,room=9,truth=(380,0,455,130)),
     dict(file='FM%20SCAN%203%20-%20under%2025MB (1).mp4',name='Gimchigirl',
-         crop=(0,0,911,513),size=(1366,768),start=13.,goal=15.,room=13,truth=(1270,390,1355,425)),
+         crop=(0,0,911,513),size=(1366,768),start=13.,readable_at=14.766667,goal=15.,room=13,truth=(1270,390,1355,425)),
     # Additional November 17 recordings: one second from the new room becoming
     # visible, rather than a user-specified clip timestamp deadline.
     dict(file='NightxMare.mp4',name='NightxMare',crop=(0,0,1366,768),size=None,
-         start=1.75,goal=3.8,room=7,truth=(370,500,480,655)),
+         start=1.75,readable_at=2.766667,goal=3.8,room=7,truth=(370,500,480,655)),
     dict(file='MrKimchi.mp4',name='MrKimchi',crop=(0,0,1366,768),size=None,
-         start=22.,goal=24.5,room=16,truth=(810,480,920,555)),
+         start=22.,readable_at=23.416667,goal=24.5,room=16,truth=(810,480,920,555)),
 ]
 # Current-page workload from HENEFM SCANS.png; unrelated archive sellers never
 # enter this callback. The selected target is added when from a different clip.
@@ -86,7 +87,10 @@ def replay(case):
         if event[0]=='shops_frame' and case['name'] in event[2] and not result:
             hit=event[2][case['name']];l,t,r,b=hit['box'];x,y,q,d=case['truth']
             location_ok=x<=(l+r)/2<=q and y<=(t+b)/2<=d
-            result.update(marker_at=round(timestamp,4),mode=hit['mode'],box=hit['box'],
+            lag_ms=(timestamp-case['readable_at'])*1000
+            result.update(readable_at=case['readable_at'],readable_to_marker_ms=round(lag_ms,2),
+                          under_50_ms=location_ok and 0<=lag_ms<50,
+                          marker_at=round(timestamp,4),mode=hit['mode'],box=hit['box'],
                           location_ok=location_ok,deadline_met=location_ok and timestamp<=case['goal'])
             stop.set()
     worker=MultiShopWorker(frames,lambda:names,post,stop,get_room_names=room_names,

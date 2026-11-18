@@ -64,6 +64,29 @@ class ManualChaseTests(unittest.TestCase):
             self.assertEqual(reader.read(frame,['Target']),{})
         self.assertEqual(reader.last_diagnostic['method'],'early fade quick attempt')
 
+    def test_priority_miss_tries_next_frame_without_the_recovery_delay(self):
+        from unittest.mock import Mock, patch
+        from room_text_reader import RoomTextReader
+        reader=RoomTextReader.__new__(RoomTextReader)
+        reader.producer=object()
+        reader.scene_started=100.
+        reader.visual_focus=None
+        reader.visual_attempts=0
+        reader.visual_frame=None
+        reader.labels=[]
+        reader.update=Mock(side_effect=AssertionError('Recovery blocked the priority pass'))
+        reader.recognizer=Mock(return_value=[('Other',.99,[])])
+        frame=np.full((768,1366,3),90,np.uint8)
+        with patch('room_text_reader.time.monotonic',return_value=100.01) as clock, \
+             patch('room_text_reader.selected_proposals',return_value=[(.6,(40,40,100,55),False)]) as propose:
+            self.assertEqual(reader.read(frame,['Target']),{})
+            clock.return_value=100.02
+            self.assertEqual(reader.read(frame,['Target']),{})
+            self.assertEqual(reader.read(frame.copy(),['Target']),{})
+        self.assertEqual(propose.call_count,2)
+        self.assertEqual(reader.recognizer.call_count,2)
+        reader.update.assert_not_called()
+
 
 class ChannelMenuTests(unittest.TestCase):
     @classmethod

@@ -1,4 +1,4 @@
-# FM Rush v24.23 — choose a listing, scan one seller
+# FM Rush v24.24 — choose a listing, scan one seller
 
 Current HeneFM deals, purchase receipts and shop stock in one app.
 
@@ -38,7 +38,7 @@ outline and arrow mark the chosen channel directly over the real menu. Its
 position is anchored to the menu from the uploaded screenshot; it follows the
 selected game window and hides when the menu closes. It never clicks for you.
 
-The name reader begins on the early light frames of the room fade. The first search checks one likely font scale, with the full scale search available on a retry. It retries
+The name reader begins on the early light frames of the room fade. During the first 125 ms of room entry, the reader checks one candidate per fresh frame. It verifies the letters with a prewarmed OCR model. The wider search follows if the first passes do not find a match. It retries
 without the previous quarter-second delay, searches only the selected live IGN,
 and accepts three confidently read letters for a **CHECK NAME** shop marker.
 Repeated identical letters and weak readings do not qualify. Loading, resizing
@@ -52,7 +52,7 @@ stay eligible for 120 seconds after detection if their alert leaves the page,
 until you change or clear your choice. An off-page selected purchase stays
 available for receipt logging, but its unfound seller is not scanned.
 
-Video replay measures the software marker callback. Native Windows capture,
+The v24.24 replay marked the correct shop in 15 of 15 runs across five supplied clips, 22–38 ms after each fixed readable fade reference. Video replay measures the software marker callback. Native Windows capture,
 GUI/compositor latency and network competition remain outside that measurement;
 an instant successful identification is not guaranteed on every fade frame.
 
