@@ -1,4 +1,4 @@
-# FM Rush v24.24 — choose a listing, scan one seller
+# FM Rush v24.25 — choose a listing, scan one seller
 
 Current HeneFM deals, purchase receipts and shop stock in one app.
 
@@ -70,7 +70,7 @@ Old screenshots are not treated as proof that an item is still owned. To onboard
 
 All listings on the current HeneFM page remain available. Archived names do not enter the scan queue. Columns show the explicit HeneFM resale price, estimated profit per holding hour, and cash/slow-turnover warnings. Sale-time estimates are heuristics, not guarantees. No CozyFM lookup is required by this workflow.
 
-Choose a deal in the Chase tab. **CHASE MODE · HIDE DESK** hides the large desk while keeping the small target strip, hotkeys and game markers active. Open it again with **OPEN TRADE DESK**.
+The compact strip opens below MapleStory when there is room. **Tools → Place under game** repositions it after you move the game. **Trade Desk** opens the full desk, and **Inventory** opens your purchase and listing prices directly. **Hide desk** returns to the strip.
 
 - **Ctrl+Alt+N:** skip the chosen deal and wait for another choice.
 - **Ctrl+Alt+F:** explicitly retry the shop finder.

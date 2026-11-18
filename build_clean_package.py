@@ -3,7 +3,6 @@ import argparse
 import ast
 import json
 from pathlib import Path
-import re
 from zipfile import ZipFile,ZIP_DEFLATED
 
 ROOT=Path(__file__).parent
@@ -24,7 +23,7 @@ def runtime_modules(root=ROOT):
 
 
 def build(output,root=ROOT):
-    version=re.search(r"FM RUSH (v[0-9.]+) — BOTTOM",(root/'fm_rush.py').read_text()).group(1)
+    version=json.loads((root/'UPDATE_MANIFEST.json').read_text())['version']
     extension=json.loads((root/'browser_extension/manifest.json').read_text())['version']
     files=runtime_modules(root)+['START_FM_RUSH.bat','START_FM_RUSH.ps1','requirements.txt','requirements-fast.txt',
         'assets/english_name_rec.onnx','assets/english_name_rec.json','assets/ENGLISH_OCR_LICENSE.txt','assets/name_font.ttf','assets/name_font_LICENSE.txt','assets/channel_menu.npz']
@@ -40,7 +39,10 @@ def build(output,root=ROOT):
    Remove the old FM Rush extension, click Load unpacked, and select the
    browser_extension folder inside this new FM Rush folder.
 4. Reload https://henefm.com/flips/deals and select your buyer's game window.
-5. Keep your three-minute HeneFM filter. Click a listing or its CHASE button.
+5. The compact strip opens under MapleStory when there is room. Use
+   Tools > Place under game after moving your game window. Open Inventory
+   or the Trade Desk from the strip when you need the full controls.
+6. Keep your three-minute HeneFM filter. Click a listing or its CHASE button.
    Only that seller is searched. Incoming listings never select themselves.
    SKIP on HeneFM skips that listing; Ctrl+Alt+N skips your current selection.
    BOUGHT logs the selected purchase and clears the target. Choose the next

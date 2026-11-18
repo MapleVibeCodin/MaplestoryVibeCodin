@@ -16,7 +16,7 @@ import threading
 import time
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog, simpledialog
-from window_capture import windows as list_game_windows, WindowFrames
+from window_capture import windows as list_game_windows, WindowFrames, window_rect
 from multi_shop_worker import MultiShopWorker
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin,locate_channel
@@ -48,12 +48,11 @@ def settings():
         'version': 17,
         'start_channel': int(data.get('start_channel',START_CHANNEL)) if int(data.get('version',0)) >= 4 else START_CHANNEL,
         'discord_region':data.get('discord_region') or data.get('region'),
-        'bottom_geom':data.get('bottom_geom',''),
+        'strip_geom':data.get('strip_geom',''),
         'grid_geom':data.get('grid_geom',''),
         'map_geom':data.get('map_geom',''),
         'shop_geom':data.get('shop_geom',''),
         'screenshot_folder':data.get('screenshot_folder',''),
-        'compact_workspace':data.get('compact_workspace',True),
         'topmost':bool(data.get('topmost',True)),
     }
 
@@ -137,10 +136,10 @@ class SelectRegion(tk.Toplevel):
         from PIL import Image, ImageTk
         from mss import mss
         self.app=app
-        app.root.withdraw()
-        if app.grid is not None and app.grid.winfo_exists():app.grid.withdraw()
-        if app.map is not None and app.map.winfo_exists():app.map.withdraw()
-        if app.shop is not None and app.shop.winfo_exists():app.shop.withdraw()
+        app._picker_windows=[window for window in (app.root,app.grid,app.map,app.shop)
+                             if window is not None and window.winfo_exists() and window.state()=='normal']
+        for window in app._picker_windows:
+            window.withdraw()
         app.root.update()
         time.sleep(.16)
         try:
@@ -198,14 +197,16 @@ class ShopHighlighter(tk.Toplevel):
     """Compact controls; the result is marked directly on the game window."""
     def __init__(self,app):
         super().__init__(app.root)
+        self.withdraw()
         from shop_pin import ShopPin
         self.app=app
         self.title('FM RUSH — TRADE DESK')
         self.config(bg=BG)
         self.resizable(True,True)
-        self.minsize(1000,520)
+        self.minsize(1000,480)
         self.attributes('-topmost',app.conf['topmost'])
         self.protocol('WM_DELETE_WINDOW',self.withdraw)
+        self.bind('<Configure>',self.remember_geometry)
         self.last_image=None;self.last_size=None;self.last_box=None;self.last_name='';self.last_mode='SEARCHING'
         self.target=tk.StringVar(value='Waiting for a deal')
         self.notice=tk.StringVar(value='A marker will appear over the matching name in MapleStory.')
@@ -213,7 +214,7 @@ class ShopHighlighter(tk.Toplevel):
         self.matches={}
         top=tk.Frame(self,bg=BG);top.pack(fill='x',padx=10,pady=(7,3))
         tk.Label(top,textvariable=self.target,bg=BG,fg=YELLOW,font=('Segoe UI',17,'bold'),anchor='w').pack(side='left',fill='x',expand=True)
-        tk.Button(top,text='CHASE MODE · HIDE DESK',command=self.withdraw,bg=CARD2,fg=FG,relief='flat').pack(side='right',padx=4)
+        tk.Button(top,text='Hide desk',command=self.withdraw,bg=CARD2,fg=FG,relief='flat').pack(side='right',padx=4)
         tk.Button(top,text='SKIP (Ctrl+Alt+N)',command=app.next_live_deal,bg=CARD2,fg=FG,relief='flat').pack(side='right',padx=4)
         tk.Button(top,text='FIND AGAIN',command=app.retry_shop_once,bg=CARD2,fg=FG,relief='flat').pack(side='right')
         row=tk.Frame(self,bg=BG);row.pack(fill='x',padx=10,pady=3)
@@ -248,6 +249,10 @@ class ShopHighlighter(tk.Toplevel):
         self.trade_panels=TradePanels(app,self.tabs)
         self.refresh_windows()
 
+    def remember_geometry(self,event):
+        if event.widget is self and self.state()=='normal':
+            self.app.conf['shop_geom']=self.geometry()
+
     def render_queue(self,rows,focus,names):
         position=self.queue.yview()[0]
         updated={}
@@ -271,8 +276,7 @@ class ShopHighlighter(tk.Toplevel):
         self.queue_focus=focus
         live_focus=bool(self.last_name) and self.last_name.casefold() in {name.casefold() for name in names}
         priority=('priority '+self.last_name if live_focus else 'selected deal is off page' if self.last_name else 'click a listing to choose')
-        self.target.set(f'{len(names)} live sellers · {priority}')
-        if not names:self.notice.set('No live sellers · reload extension v24.22 and the HeneFM tab if needed.')
+        self.target.set(f'{len(names)} sellers · {priority}')
         self.matches={name:hit for name,hit in self.matches.items() if name.casefold()==self.last_name.casefold() and (name in names or time.monotonic()<hit.get('hold_until',0))}
         if self.last_size and self.app.shop_running:self.pin.show_many(self.selected_hwnd(),self.last_size,self.matches)
 
@@ -343,22 +347,22 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM RUSH v24.24 — BOTTOM ROUTE + WEB DEALS')
+        self.root.title('FM Rush v24.25')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
-        self.root.minsize(650,158)
+
         self.root.attributes('-topmost',self.conf['topmost'])
         self.current_cc=20
         self.current_fm=13
-        self.ccfm=tk.StringVar(value='CH 20 / FM 13')
-        self.keys=tk.StringVar(value='↵')
+        self.ccfm=tk.StringVar(value='Choose a deal')
+        self.keys=tk.StringVar(value='')
         self.item=tk.StringVar(value='ITEM: —')
         self.stats=tk.StringVar(value='STATS: —')
         self.ign=tk.StringVar(value='IGN: —')
         self.profit=tk.StringVar(value='PROFIT: —')
         self.buy=tk.StringVar(value='BUY AT: —')
         self.buy_quantity=tk.StringVar(value='1')
-        self.status=tk.StringVar(value=FILTER_LABEL+'  •  No alert yet')
+        self.status=tk.StringVar(value='Choose a listing on HeneFM')
         self.manual=tk.StringVar(value='CC 22 FM 13')
         self.events=queue.Queue()
         self.worker=None
@@ -389,29 +393,18 @@ class FMApp:
         self.root.protocol('WM_DELETE_WINDOW',self.close)
         self.channel_pin=ChannelPin(self.root)
         self.channel_frame_version=None
+        self.open_shop(show=False)
         self._make_bottom()
-        self.open_grid()
-        self.open_map()
-        self.open_shop()
-        if self.web_only and self.shop is not None:
-            self.shop.withdraw()
-        self.set_target(20,13)
-        if self.conf['bottom_geom'] and self.conf['grid_geom'] and self.conf['map_geom']:
-            self.root.geometry(self.conf['bottom_geom'])
-            self.grid.geometry(self.conf['grid_geom'])
-            self.map.geometry(self.conf['map_geom'])
-        else:
-            self.snap()
-        self.shop.geometry('1100x650+300+110')
-        if self.conf.get('compact_workspace',True):
-            self.grid.withdraw();self.map.withdraw()
+        self.root.update_idletasks()
+        self.root.minsize(max(640,self.control_bar.winfo_reqwidth()+24),self.root.winfo_reqheight())
+        self.snap(restore=True)
         self.sync_archive()
         self.schedule(35,self.pump)
         self.schedule(50,self.update_channel_overlay)
         try:
             self.browser_bridge=BrowserBridge(self.events,self.archive)
             self.browser_bridge.start()
-            self.status.set(FILTER_LABEL+' • HeneFM browser bridge READY on 127.0.0.1:18773'+(' • WEB ONLY (NO OCR)' if self.web_only else ''))
+            self.status.set('Choose a listing on HeneFM')
         except OSError as exc:
             self.status.set('HeneFM bridge not available: '+str(exc)[:100]+' • Discord OCR still works')
         if not self.web_only:self.schedule(0,self.try_start_shop)
@@ -438,49 +431,72 @@ class FMApp:
                          font=('Segoe UI',9,'bold'))
 
     def _make_bottom(self):
-        # The v11 bottom route is retained as a compact, user-resizable strip,
-        # with its movement-to-row directions removed and Buy At added.
-        top=tk.Frame(self.root,bg=BG)
-        top.pack(fill='x',padx=10,pady=(5,0))
-        self.lbl(top,var=self.ccfm,size=22,color=TEAL,bold=True).pack(side='left')
-        self.lbl(top,var=self.keys,size=22,color=YELLOW,bold=True).pack(side='right',padx=(6,0))
+        details=tk.Frame(self.root,bg=BG)
+        details.pack(fill='x',padx=12,pady=(5,0))
+        details.columnconfigure(2,weight=1)
+        self.lbl(details,var=self.ccfm,size=16,color=TEAL,bold=True).grid(row=0,column=0,sticky='w')
+        self.lbl(details,var=self.keys,size=13,color=MUTED).grid(row=1,column=0,sticky='w')
+        tk.Frame(details,bg=CARD2,width=1).grid(row=0,column=1,rowspan=3,sticky='ns',padx=12)
+        self.lbl(details,var=self.ign,size=12,color=YELLOW,bold=True).grid(row=0,column=2,sticky='ew')
+        self.lbl(details,var=self.item,size=11).grid(row=1,column=2,sticky='ew')
+        self.lbl(details,var=self.stats,size=9,color=MUTED).grid(row=2,column=2,sticky='ew')
+        self.lbl(details,var=self.buy,size=13,color=YELLOW,bold=True).grid(row=0,column=3,sticky='e',padx=(8,0))
+        self.lbl(details,var=self.profit,size=10,color=TEAL).grid(row=1,column=3,sticky='e',padx=(8,0))
 
-        summary=tk.Frame(self.root,bg=BG)
-        summary.pack(fill='x',padx=10,pady=(0,0))
-        summary.columnconfigure(0,weight=3)
-        summary.columnconfigure(1,weight=2)
-        left=tk.Frame(summary,bg=BG);left.grid(row=0,column=0,sticky='ew',padx=(0,6))
-        right=tk.Frame(summary,bg=BG);right.grid(row=0,column=1,sticky='ew',padx=(6,0))
-        self.lbl(left,var=self.item,size=16,color=FG,bold=True).pack(fill='x')
-        self.lbl(left,var=self.stats,size=12,color=MUTED,bold=True).pack(fill='x')
-        self.lbl(left,var=self.ign,size=12,color=YELLOW,bold=True).pack(fill='x')
-        self.lbl(right,var=self.buy,size=18,color=YELLOW,bold=True).pack(fill='x')
-        self.lbl(right,var=self.profit,size=12,color=TEAL,bold=True).pack(fill='x')
-        controls=tk.Frame(self.root,bg=BG)
-        controls.pack(fill='x',padx=10,pady=(1,0))
-        entry=tk.Entry(controls,textvariable=self.manual,bg=CARD2,fg=FG,
-                       font=('Segoe UI',10),insertbackground=FG,relief='flat',width=16)
-        entry.pack(side='left',fill='x',expand=True,ipady=3)
-        entry.bind('<Return>',lambda e:self.manual_go())
-        self.btn(controls,'GO',self.manual_go,True).pack(side='left',padx=2)
-        self.btn(controls,'GRID',self.open_grid).pack(side='left',padx=2)
-        self.btn(controls,'FM MAP',self.open_map).pack(side='left',padx=2)
+        controls=self.control_bar=tk.Frame(self.root,bg=BG)
+        controls.pack(fill='x',padx=12,pady=(4,0))
+        self.btn(controls,'Trade Desk',self.open_shop).pack(side='left')
+        self.btn(controls,'Inventory',self.open_inventory).pack(side='left',padx=4)
+        self.lbl(controls,text='Qty',size=9,color=MUTED).pack(side='left',padx=(10,3))
+        ttk.Spinbox(controls,from_=1,to=999,textvariable=self.buy_quantity,width=4).pack(side='left')
+        self.btn(controls,'Bought',self.log_purchase,True).pack(side='left',padx=4)
+        self.btn(controls,'Skip',self.complete_deal).pack(side='left')
         if not self.web_only:
-            self.btn(controls,'SHOP HIGHLIGHT',self.open_shop).pack(side='left',padx=2)
+            self.btn(controls,'Find again',self.retry_shop_once).pack(side='left',padx=4)
+        tools=tk.Menubutton(controls,text='Tools ▾',relief='flat',bg=CARD2,fg=FG,padx=8,pady=4)
+        menu=tk.Menu(tools,tearoff=False)
+        tools.configure(menu=menu)
+        for title,action in [('Place under game',self.snap),('Enter route',self.enter_route),
+                             ('Channel grid',self.open_grid),('FM map',self.open_map),
+                             ('Export scanner timing',self.export_latency)]:
+            menu.add_command(label=title,command=action)
         if not self.web_only:
-            self.btn(controls,'PICK DISCORD',self.pick_discord).pack(side='left',padx=2)
-            self.ocr_btn=self.btn(controls,'START OCR',self.toggle_discord,True)
-            self.ocr_btn.pack(side='left',padx=2)
-        else:
-            self.ocr_btn=None
-        self.btn(controls,'SNAP',self.snap).pack(side='left',padx=2)
-        self.lbl(self.root,var=self.status,size=9,color=MUTED).pack(fill='x',padx=10,pady=(2,4))
+            menu.add_separator()
+            menu.add_command(label='Start or pause locator',command=self.toggle_shop_scan)
+            menu.add_command(label='Choose Discord alert area',command=self.pick_discord)
+            self.ocr_menu_index=menu.index('end')+1
+            menu.add_command(label='Start Discord OCR',command=self.toggle_discord)
+            self.ocr_menu=menu
+        tools.pack(side='right')
+
+        footer=tk.Frame(self.root,bg=BG)
+        footer.pack(fill='x',padx=12,pady=(2,3))
+        footer.columnconfigure(0,weight=3,uniform='status')
+        footer.columnconfigure(1,weight=2,uniform='status')
+        status=self.lbl(footer,var=self.status,size=9,color=MUTED)
+        status.configure(width=1)
+        status.grid(row=0,column=0,sticky='ew',padx=(0,12))
+        scanner_status=self.lbl(footer,var=self.shop.notice,size=9,color=MUTED)
+        scanner_status.configure(width=1,anchor='e')
+        scanner_status.grid(row=0,column=1,sticky='ew')
+
+    def enter_route(self):
+        value=simpledialog.askstring('Enter route','Enter a channel and room, such as CH 22 FM 13.',
+                                     initialvalue=self.manual.get(),parent=self.root)
+        if value is not None:
+            self.manual.set(value)
+            self.manual_go()
+
+    def open_inventory(self):
+        self.open_shop()
+        self.shop.tabs.select(self.shop.trade_panels.inventory)
 
     def open_grid(self):
         if self.grid is not None and self.grid.winfo_exists():
             self.grid.deiconify();self.grid.lift();return
         self.grid=tk.Toplevel(self.root)
-        self.grid.title('FM RUSH — CHANNEL GRID')
+        self.grid.title('FM Rush — Channel grid')
+        if self.conf['grid_geom']:self.grid.geometry(self.conf['grid_geom'])
         self.grid.config(bg=BG)
         self.grid.resizable(True,True)
         self.grid.minsize(260,175)
@@ -522,7 +538,8 @@ class FMApp:
         if self.map is not None and self.map.winfo_exists():
             self.map.deiconify();self.map.lift();return
         self.map=tk.Toplevel(self.root)
-        self.map.title('FM RUSH — FM ENTRANCE MAP')
+        self.map.title('FM Rush — FM entrance map')
+        if self.conf['map_geom']:self.map.geometry(self.conf['map_geom'])
         self.map.config(bg=BG)
         self.map.resizable(True,True)
         self.map.minsize(300,180)
@@ -595,13 +612,28 @@ class FMApp:
         if self.grid is not None and self.grid.winfo_exists():self.draw_grid()
         if self.map is not None and self.map.winfo_exists():self.draw_map()
 
-    def open_shop(self):
-        if self.shop is not None and self.shop.winfo_exists():
-            if not self.web_only: self.shop.deiconify()
+    def open_shop(self,show=True):
+        if self.shop is None or not self.shop.winfo_exists():
+            self.shop=ShopHighlighter(self)
+            self.shop.set_target(self.shop_target)
+        if show:
+            if self.shop.state()=='withdrawn':
+                self.place_desk()
+            self.shop.deiconify()
             self.shop.lift()
-            return
-        self.shop=ShopHighlighter(self)
-        self.shop.set_target(self.shop_target)
+
+    def place_desk(self):
+        left,top,right,bottom=self.work_area()
+        width=min(1100,right-left-16)
+        height=min(650,bottom-top-self.title_margin()-16)
+        x=left+(right-left-width)//2
+        y=top+(bottom-top-height-self.title_margin())//2
+        game=self.selected_game_rect()
+        if game:
+            gx,gy,gw,gh=game
+            x=gx+(gw-width)//2
+            y=gy+(gh-height-self.title_margin())//2
+        self.place_window(self.shop,(width,height,x,y),self.conf['shop_geom'])
 
     def sync_archive(self):
         # Receipt runs on HTTP threads: take one consistent UI/search snapshot.
@@ -646,6 +678,8 @@ class FMApp:
                 self.accepted_ign(deal.ign)
             else:
                 self.accepted_ign('')
+                self.ccfm.set('Choose a deal');self.keys.set('')
+                if hasattr(self,'buy_quantity'):self.buy_quantity.set('1')
                 self.ign.set('IGN: —');self.item.set('ITEM: —');self.stats.set('STATS: —')
                 self.buy.set('BUY AT: —');self.profit.set('PROFIT: —')
         elif deal is not None:
@@ -791,7 +825,7 @@ class FMApp:
     def try_start_shop(self):
         if self.shop_running or self.shop_paused:return
         if self.shop is None or not self.shop.winfo_exists():
-            self.open_shop()
+            self.open_shop(show=False)
         index=self.shop.combo.current()
         if index>=0 and any(value in self.shop.available[index][1].lower() for value in ('maplestory','maple story')):
             self.start_shop_scan()
@@ -813,7 +847,7 @@ class FMApp:
         if self.web_only:
             self.status.set('WEB-ONLY MODE · shop OCR disabled. Run START_FM_RUSH.bat to enable shop scanning.')
             return
-        if self.shop is None or not self.shop.winfo_exists():self.open_shop()
+        if self.shop is None or not self.shop.winfo_exists():self.open_shop(show=False)
         hwnd=self.shop.selected_hwnd()
         if hwnd is None:
             self.shop.notice.set('Select the MapleStory window, then ARM LOCATOR')
@@ -895,15 +929,14 @@ class FMApp:
             self.status.set('Region picker failed: '+str(exc)[:100])
 
     def restore_windows(self):
-        self.root.deiconify()
-        if self.grid is not None and self.grid.winfo_exists():self.grid.deiconify()
-        if self.map is not None and self.map.winfo_exists():self.map.deiconify()
-        if self.shop is not None and self.shop.winfo_exists() and not self.web_only:self.shop.deiconify()
+        for window in getattr(self,'_picker_windows',[self.root]):
+            if window.winfo_exists():window.deiconify()
+        self._picker_windows=[]
 
     def toggle_discord(self):
         if self.running:
             self.stop.set();self.running=False
-            self.ocr_btn.config(text='START OCR',bg=TEAL)
+            self.ocr_menu.entryconfigure(self.ocr_menu_index,label='Start Discord OCR')
             self.status.set('Discord OCR stopped.')
             return
         if not self.conf['discord_region']:
@@ -912,7 +945,7 @@ class FMApp:
         self.stop=threading.Event()
         self.worker=DiscordWatcher(lambda:self.conf['discord_region'],self.events,self.stop)
         self.worker.start();self.running=True
-        self.ocr_btn.config(text='STOP OCR',bg=RED)
+        self.ocr_menu.entryconfigure(self.ocr_menu_index,label='Stop Discord OCR')
         self.status.set('DISCORD: ≥15,000 MESOS AND ≥15% · WATCHING')
 
     def pump(self):
@@ -992,28 +1025,55 @@ class FMApp:
                     self.shop.notice.set(evt[1])
         self.schedule(5 if self.shop_running and self.scan_names else 10,self.pump)
 
-    def snap(self):
-        sw=self.root.winfo_screenwidth();sh=self.root.winfo_screenheight()
-        # Matches user's 1646×926 screenshot: game on left, tools on right and below.
-        right_w=max(280,min(455,int(sw*.29)))
-        right_x=max(0,sw-right_w-8)
-        grid_h=max(175,min(240,int(sh*.27)))
-        map_y=32+grid_h+14
-        map_h=max(190,min(390,sh-map_y-70))
-        bottom_w=max(650,right_x-15)
-        bottom_h=max(158,min(198,int(sh*.22)))
-        bottom_y=max(5,sh-bottom_h-42)
-        self.root.geometry(f'{bottom_w}x{bottom_h}+5+{bottom_y}')
-        if self.grid is not None and self.grid.winfo_exists():
-            self.grid.geometry(f'{right_w}x{grid_h}+{right_x}+32')
-        if self.map is not None and self.map.winfo_exists():
-            self.map.geometry(f'{right_w}x{map_h}+{right_x}+{map_y}')
+    def work_area(self):
+        if os.name=='nt':
+            from ctypes import wintypes
+            area=wintypes.RECT()
+            if ctypes.windll.user32.SystemParametersInfoW(48,0,ctypes.byref(area),0):
+                return area.left,area.top,area.right,area.bottom
+        return 0,0,self.root.winfo_screenwidth(),self.root.winfo_screenheight()-40
+
+    def title_margin(self):
+        return max(44,round(.46*self.root.winfo_fpixels('1i')))
+
+    def place_window(self,window,default,saved=''):
+        left,top,right,bottom=self.work_area()
+        geometry=re.fullmatch(r'(\d+)x(\d+)([+-]\d+)([+-]\d+)',saved)
+        width,height,x,y=map(int,geometry.groups()) if geometry else default
+        min_width,min_height=window.minsize()
+        width=min(max(width,min_width),right-left-12)
+        height=min(max(height,min_height),bottom-top-self.title_margin()-8)
+        x=max(left+4,min(x,right-width-8))
+        y=max(top+4,min(y,bottom-height-self.title_margin()-4))
+        window.geometry(f'{width}x{height}+{x}+{y}')
+
+    def selected_game_rect(self):
+        hwnd=self.shop.selected_hwnd()
+        return window_rect(hwnd) if hwnd is not None else None
+
+    def snap(self,restore=False):
+        left,top,right,bottom=self.work_area()
+        height=self.root.winfo_reqheight()
+        margin=self.title_margin()
+        game=self.selected_game_rect()
+        width=min(900,right-left-12)
+        x=left+8
+        y=bottom-height-margin-6
+        if game:
+            gx,gy,gw,gh=game
+            if gx<right and gx+gw>left:
+                x=max(left+8,gx)
+                width=min(width,right-x-8,gw)
+                if gy+gh+height+margin+8<=bottom:
+                    y=gy+gh+4
+                elif gy-height-margin-8>=top:
+                    y=gy-height-margin-4
+        self.place_window(self.root,(width,height,x,y),self.conf['strip_geom'] if restore else '')
 
     def save(self):
-        self.conf['bottom_geom']=self.root.geometry()
+        self.conf['strip_geom']=self.root.geometry()
         if self.grid is not None and self.grid.winfo_exists():self.conf['grid_geom']=self.grid.geometry()
         if self.map is not None and self.map.winfo_exists():self.conf['map_geom']=self.map.geometry()
-        if self.shop is not None and self.shop.winfo_exists():self.conf['shop_geom']=self.shop.geometry()
         try:CONFIG.write_text(json.dumps(self.conf,indent=2),encoding='utf-8')
         except OSError:pass
 
