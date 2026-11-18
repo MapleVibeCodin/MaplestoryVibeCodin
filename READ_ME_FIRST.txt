@@ -1,4 +1,4 @@
-FM RUSH — CLEAN EDITION (app v24.24 / extension 24.22.0)
+FM RUSH — CLEAN EDITION (app v24.25 / extension 24.22.0)
 
 1. Extract this entire ZIP into one folder. Do not run it from inside the ZIP.
 2. Double-click START_FM_RUSH.bat. Keep the other files in place.
@@ -8,7 +8,10 @@ FM RUSH — CLEAN EDITION (app v24.24 / extension 24.22.0)
    Remove the old FM Rush extension, click Load unpacked, and select the
    browser_extension folder inside this new FM Rush folder.
 4. Reload https://henefm.com/flips/deals and select your buyer's game window.
-5. Keep your three-minute HeneFM filter. Click a listing or its CHASE button.
+5. The compact strip opens under MapleStory when there is room. Use
+   Tools > Place under game after moving your game window. Open Inventory
+   or the Trade Desk from the strip when you need the full controls.
+6. Keep your three-minute HeneFM filter. Click a listing or its CHASE button.
    Only that seller is searched. Incoming listings never select themselves.
    SKIP on HeneFM skips that listing; Ctrl+Alt+N skips your current selection.
    BOUGHT logs the selected purchase and clears the target. Choose the next
