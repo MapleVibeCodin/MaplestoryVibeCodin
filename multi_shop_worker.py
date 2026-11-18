@@ -71,12 +71,14 @@ class MultiShopWorker(threading.Thread):
         gate=SnapshotGate(settle_seconds=0.,first_visible=True,visible_level=26);gate.loading=True
         epoch=getattr(self.frames,'loading_epoch',0);version=-1;shape=None
         jobs={};active=False;deadline=0.;started=0.;last_read=0.;size=(1,1)
+        pending_loading_at=None;burst_loading_at=None
         def live():return {name.casefold():name for name in self.get_names() if name}
         def publish(note=''):
             self.post(('shops_frame',size,{job.name:dict(box=job.hit.box,text=job.hit.text,mode=job.hit.mode,
                 hold_until=job.found_at+FOUND_HOLD_SECONDS) for job in jobs.values() if job.hit is not None},note))
-        def begin(reset=False):
-            nonlocal active,deadline,started
+        def begin(reset=False,loading_at=None):
+            nonlocal active,deadline,started,burst_loading_at
+            burst_loading_at=loading_at
             if reset:engine.reset()
             started=time.monotonic();deadline=started+ROOM_BURST_SECONDS;active=bool(live())
             engine.set_active(active)
@@ -98,6 +100,8 @@ class MultiShopWorker(threading.Thread):
                 self.stop.wait(.008);continue
             version,stamp,image=frame;h,w=image.shape[:2];size=(w,h)
             current_epoch=getattr(self.frames,'loading_epoch',epoch)
+            if current_epoch!=epoch:
+                pending_loading_at=getattr(self.frames,'loading_started',None)
             if current_epoch!=epoch or (shape is not None and shape!=image.shape):
                 epoch=current_epoch;engine.set_active(False);engine.reset();jobs={};active=False
                 gate.reset();gate.loading=True;rate(ACTIVE_CAPTURE_MS);publish('Loading · waiting for game pixels')
@@ -113,7 +117,9 @@ class MultiShopWorker(threading.Thread):
             allowed=live()
             selected=self.selection_check.is_set();self.selection_check.clear()
             manual=self.retry.is_set();self.retry.clear()
-            if trigger:begin(reset=True)
+            if trigger:
+                begin(reset=True,loading_at=pending_loading_at)
+                pending_loading_at=None
             elif manual:
                 jobs={};begin(reset=True)
             elif selected and self.preferred in allowed:
@@ -171,7 +177,8 @@ class MultiShopWorker(threading.Thread):
             self.post(('shop_timing',dict(name=focus,found=focus in published,tracking_dropped=dropped,room=None,room_source='visible text index',
                 quick_pass=True,header_ms=0.,recognition_ms=round((posted-before)*1000,1),queue_ms=0.,
                 frame_age_ms=round(max(0,(before-stamp)*1000),1),burst_to_result_ms=round((posted-started)*1000,1),
-                loading_to_result_ms=None,posted_at=posted,verification=engine.last_diagnostic)))
+                loading_to_result_ms=round((posted-burst_loading_at)*1000,1) if burst_loading_at is not None else None,
+                posted_at=posted,verification=engine.last_diagnostic)))
             publish(f'{sum(job.hit is not None for job in jobs.values())} located · reading visible labels')
 
     def run(self):
