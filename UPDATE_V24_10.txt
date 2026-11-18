@@ -1,0 +1,43 @@
+FM Rush v24.10 — Faster scans with a shared CPU budget
+
+Extract into a new folder and run START_FM_RUSH.bat at the ZIP's top level.
+The title should say v24.10. Extension and dependencies are unchanged.
+Run TEST_LOCATOR.bat for locator, scheduling and identity-check regressions.
+
+Search:
+- Refine the best 24 half-size proposals per template first. Expand to 96
+  and retain full-resolution recovery on a miss. Tiny text starts at 96
+  because half-size correlation loses detail.
+- Reuse feature images, coarse peaks and refinements within each scan.
+- Sample a small scene grid between scans; check the highlighted name region
+  at full resolution.
+- Skip repeated verification of an identical proposal at the same OCR width.
+- Read context crops first. Read tight crops only for short-name consensus,
+  weak visual proposals or a possible extra border/overlap glyph. Existing
+  exact-name, confidence and ambiguous-marker rules remain.
+
+CPU:
+- OCR remains single-threaded; the Windows two-logical-CPU affinity guard stays.
+- After each search, measured worker-thread CPU time determines a cooldown.
+  The default sustained search budget is 35% of one logical CPU. Capture,
+  scene sampling, Discord OCR and other process activity are additional;
+  this is not a guarantee for whole-app or system CPU usage.
+- Initial search can start immediately after stable visible frames. New targets,
+  manual retries and movement recovery all share the cooldown, so they cannot
+  bypass it. Slow scans can delay the next search. No continuous OCR was added.
+
+Validation:
+- Python suite: 60 passed, four skipped (GUI/external fixtures).
+- Saved-image regression checks preserve coordinates, ambiguous markers and
+  rejection of absent names, prefixes and similar spellings.
+- Tests cover CPU cooldown, new-target/manual-retry scheduling and selective
+  recognition without weakening short-name or low-score verification.
+- benchmark_v24_10.json compares five warmed replays per case with v24.9
+  commit 8e60f1f. It records wall time, process CPU time and OCR crop counts.
+- Reproduce: python benchmark_name_finder.py --baseline-ref 8e60f1f --runs 5
+  Add --stress-seconds 6 for a simulated rapid-target CPU stress run.
+  An extracted ZIP can omit --baseline-ref to measure only the installed code.
+
+Timings exclude live capture, fades, scheduling, cooldown and marker drawing.
+Live Windows latency and whole-app CPU still need a game-session check.
+New inline-chat screenshots need original image files for pixel replay tests.

@@ -12,12 +12,12 @@ OK={
 }
 
 class TestBrowserBridge(unittest.TestCase):
-    def test_strict_browser_filter(self):
+    def test_all_visible_listings_without_profit_filter(self):
         d=parse_browser_deal(OK)
         self.assertIsNotNone(d)
         self.assertEqual(d.buy_label,'BUY AT: 65,000 MESOS')
         self.assertEqual((d.cc,d.fm,d.ign),(30,5,'Hyperborean'))
-        for field,val in [('profit_mesos',14999),('profit_percent',14.9),('buy_mesos',0),('cc',41),('fm',21)]:
+        for field,val in [('cc',41),('fm',21),('buy_mesos',-1),('profit_percent',float('nan'))]:
             self.assertIsNone(parse_browser_deal({**OK,field:val}),field)
         self.assertIsNone(parse_browser_deal({**OK,'ign':'bad name'}))
         self.assertIsNone(parse_browser_deal({'cc':30,'fm':5}))
@@ -25,8 +25,8 @@ class TestBrowserBridge(unittest.TestCase):
     def test_cheap_exception(self):
         raw={**OK, 'profit_mesos':8600, 'profit_percent':819, 'unusually_cheap':True}
         self.assertIsNotNone(parse_browser_deal(raw))
-        self.assertIsNone(parse_browser_deal({**raw,'unusually_cheap':'true'}))
-        self.assertIsNone(parse_browser_deal({**raw,'buy_mesos':0}))
+        self.assertIsNotNone(parse_browser_deal({**raw,'unusually_cheap':'true'}))
+        self.assertIsNotNone(parse_browser_deal({**raw,'buy_mesos':0}))
         self.assertIsNone(parse_browser_deal({**raw,'profit_percent':float('nan')}))
         self.assertIsNotNone(parse_browser_deal({**OK,'profit_percent':15}))
 
@@ -55,10 +55,46 @@ class TestBrowserBridge(unittest.TestCase):
             below={**OK,'profit_mesos':8000}
             c=http.client.HTTPConnection(HOST,PORT,timeout=2)
             c.request('POST','/deal',json.dumps(below),headers=valid_headers)
-            r=c.getresponse();self.assertEqual(r.status,422);r.read();c.close()
-            self.assertTrue(events.empty())
+            r=c.getresponse();self.assertEqual(r.status,200);r.read();c.close()
+            self.assertEqual(events.get_nowait()[1].profit.mesos,8000)
         finally:
             server.stop()
+
+    def test_missing_metrics_sold_and_negative_values_are_preserved(self):
+        for changes in [dict(profit_mesos=100,profit_percent=1),
+                        dict(profit_mesos=None,profit_percent=None,buy_mesos=None),
+                        dict(profit_mesos=-100,profit_percent=-5),dict(sold=True),dict(cc=None,fm=None)]:
+            with self.subTest(changes=changes):
+                d=parse_browser_deal({**OK,**changes})
+                self.assertIsNotNone(d)
+                self.assertTrue(d.profit.accepted)
+                if changes.get('sold'):self.assertTrue(d.sold)
+        self.assertIsNone(parse_browser_deal({**OK,'cc':1.5}))
+        self.assertIsNone(parse_browser_deal({**OK,'profit_mesos':True}))
+
+    def test_http_ack_requires_durable_archive_write(self):
+        from deal_archive import DealArchive
+        from pathlib import Path
+        import tempfile
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'archive.sqlite3'
+            archive=DealArchive(path);events=queue.Queue();server=BrowserBridge(events,archive)
+            server.start()
+            def send():
+                c=http.client.HTTPConnection(HOST,PORT,timeout=2)
+                c.request('POST','/deal',json.dumps(OK),headers={
+                    'Content-Type':'application/json','X-FM-Rush-Bridge':'v17-browser-view'})
+                response=c.getresponse();status=response.status;response.read();c.close();return status
+            try:
+                with patch.object(archive,'record',side_effect=OSError('disk full')):
+                    self.assertEqual(send(),503)
+                self.assertTrue(events.empty())
+                self.assertEqual(send(),200)
+                restored=DealArchive(path)
+                self.assertEqual(restored.names(),('Hyperborean',))
+                restored.close()
+            finally:server.stop();archive.close()
 
     def test_single_item_query(self):
         self.assertEqual(url_for_item('1082000','stats.crit_rate=3'),

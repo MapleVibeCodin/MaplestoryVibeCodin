@@ -1,0 +1,808 @@
+{
+  "baseline_ref": "8e60f1f",
+  "runs_per_case": 5,
+  "warmup_runs_per_case": 1,
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "opencv": "4.14.0",
+  "numpy": "2.5.5",
+  "onnxruntime": "1.32.0",
+  "opencv_threads": 1,
+  "recognizer_threads": 1,
+  "scope": "Saved-image algorithm time/CPU only. Excludes capture, waits, worker cooldown and marker drawing; not a live accuracy or whole-app CPU estimate.",
+  "cases": [
+    {
+      "image": "regression_samples/cernia.png",
+      "target": "Cernia",
+      "expected_point": [
+        1270,
+        585
+      ],
+      "crop": null,
+      "before": {
+        "median_ms": 56.77,
+        "median_cpu_ms": 56.74,
+        "median_ocr_images": 2,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          54.31,
+          56.77,
+          55.25,
+          57.7,
+          57.37
+        ],
+        "cpu_ms": [
+          54.28,
+          56.74,
+          55.22,
+          57.69,
+          57.37
+        ],
+        "last_hit": {
+          "text": "Cemia",
+          "box": [
+            1253,
+            577,
+            1295,
+            592
+          ],
+          "score": 0.8054966330528259,
+          "mode": "CONFUSABLE"
+        }
+      },
+      "after": {
+        "median_ms": 32.92,
+        "median_cpu_ms": 32.91,
+        "median_ocr_images": 1,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          35.69,
+          32.92,
+          32.81,
+          34.49,
+          32.74
+        ],
+        "cpu_ms": [
+          35.68,
+          32.91,
+          32.81,
+          34.49,
+          32.74
+        ],
+        "last_hit": {
+          "text": "Cemia",
+          "box": [
+            1253,
+            577,
+            1295,
+            592
+          ],
+          "score": 0.8054966330528259,
+          "mode": "CONFUSABLE"
+        }
+      }
+    },
+    {
+      "image": "regression_samples/rollermo.png",
+      "target": "Rollermo",
+      "expected_point": [
+        524,
+        352
+      ],
+      "crop": null,
+      "before": {
+        "median_ms": 117.86,
+        "median_cpu_ms": 117.81,
+        "median_ocr_images": 8,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          126.52,
+          112.17,
+          119.07,
+          116.25,
+          117.86
+        ],
+        "cpu_ms": [
+          126.49,
+          111.99,
+          119.05,
+          116.17,
+          117.81
+        ],
+        "last_hit": {
+          "text": "Rollemo",
+          "box": [
+            507,
+            347,
+            541,
+            356
+          ],
+          "score": 0.7166796922683716,
+          "mode": "CONFUSABLE"
+        }
+      },
+      "after": {
+        "median_ms": 65.92,
+        "median_cpu_ms": 65.92,
+        "median_ocr_images": 4,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          68.79,
+          66.48,
+          65.92,
+          64.23,
+          63.35
+        ],
+        "cpu_ms": [
+          68.78,
+          66.48,
+          65.92,
+          64.22,
+          63.35
+        ],
+        "last_hit": {
+          "text": "Rollemo",
+          "box": [
+            507,
+            347,
+            541,
+            356
+          ],
+          "score": 0.7166796922683716,
+          "mode": "CONFUSABLE"
+        }
+      }
+    },
+    {
+      "image": "regression_samples/jtedoigte_141333.png",
+      "target": "jtedoigte",
+      "expected_point": [
+        704,
+        87
+      ],
+      "crop": null,
+      "before": {
+        "median_ms": 54.51,
+        "median_cpu_ms": 54.42,
+        "median_ocr_images": 2,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          54.51,
+          52.55,
+          54.64,
+          55.35,
+          53.28
+        ],
+        "cpu_ms": [
+          54.42,
+          52.55,
+          54.47,
+          55.35,
+          53.28
+        ],
+        "last_hit": {
+          "text": "jtedoigte",
+          "box": [
+            676,
+            79,
+            731,
+            97
+          ],
+          "score": 0.6528264880180359,
+          "mode": "EXACT"
+        }
+      },
+      "after": {
+        "median_ms": 34.07,
+        "median_cpu_ms": 33.97,
+        "median_ocr_images": 1,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          33.02,
+          33.72,
+          34.73,
+          34.07,
+          45.28
+        ],
+        "cpu_ms": [
+          32.97,
+          33.68,
+          34.73,
+          33.97,
+          45.27
+        ],
+        "last_hit": {
+          "text": "jtedoigte",
+          "box": [
+            676,
+            79,
+            731,
+            97
+          ],
+          "score": 0.6528264880180359,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "image": "regression_samples/isadlyfe_143200.png",
+      "target": "iSadlyfe",
+      "expected_point": [
+        623,
+        289
+      ],
+      "crop": null,
+      "before": {
+        "median_ms": 62.71,
+        "median_cpu_ms": 62.71,
+        "median_ocr_images": 2,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          72.44,
+          65.1,
+          61.08,
+          62.71,
+          59.51
+        ],
+        "cpu_ms": [
+          72.43,
+          65.09,
+          61.08,
+          62.71,
+          59.5
+        ],
+        "last_hit": {
+          "text": "iSadlyfe",
+          "box": [
+            601,
+            281,
+            646,
+            297
+          ],
+          "score": 0.661727786064148,
+          "mode": "EXACT"
+        }
+      },
+      "after": {
+        "median_ms": 36.07,
+        "median_cpu_ms": 36.07,
+        "median_ocr_images": 1,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          36.85,
+          36.89,
+          35.31,
+          36.07,
+          32.56
+        ],
+        "cpu_ms": [
+          36.84,
+          36.89,
+          35.3,
+          36.07,
+          32.56
+        ],
+        "last_hit": {
+          "text": "iSadlyfe",
+          "box": [
+            601,
+            281,
+            646,
+            297
+          ],
+          "score": 0.661727786064148,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "image": "regression_samples/oral_222618.png",
+      "target": "Oral",
+      "expected_point": [
+        241,
+        617
+      ],
+      "crop": null,
+      "before": {
+        "median_ms": 95.43,
+        "median_cpu_ms": 95.39,
+        "median_ocr_images": 6,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          97.81,
+          98.66,
+          95.43,
+          91.88,
+          90.98
+        ],
+        "cpu_ms": [
+          97.78,
+          98.58,
+          95.39,
+          91.87,
+          90.98
+        ],
+        "last_hit": {
+          "text": "Oral",
+          "box": [
+            227,
+            610,
+            256,
+            625
+          ],
+          "score": 0.8592882752418518,
+          "mode": "EXACT"
+        }
+      },
+      "after": {
+        "median_ms": 63.53,
+        "median_cpu_ms": 63.52,
+        "median_ocr_images": 4,
+        "median_ocr_calls": 2,
+        "correct_runs": 5,
+        "wall_ms": [
+          63.31,
+          63.53,
+          63.22,
+          67.54,
+          68.55
+        ],
+        "cpu_ms": [
+          63.3,
+          63.52,
+          63.21,
+          67.53,
+          68.55
+        ],
+        "last_hit": {
+          "text": "Oral",
+          "box": [
+            227,
+            610,
+            256,
+            625
+          ],
+          "score": 0.8592882752418518,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "image": "regression_samples/foxgod_060516.png",
+      "target": "FoxGod",
+      "expected_point": [
+        1152,
+        179
+      ],
+      "crop": null,
+      "before": {
+        "median_ms": 52.66,
+        "median_cpu_ms": 52.56,
+        "median_ocr_images": 2,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          58.02,
+          55.25,
+          50.75,
+          52.66,
+          51.68
+        ],
+        "cpu_ms": [
+          57.27,
+          55.25,
+          50.73,
+          52.56,
+          51.64
+        ],
+        "last_hit": {
+          "text": "FoxGod",
+          "box": [
+            1127,
+            171,
+            1176,
+            186
+          ],
+          "score": 0.6031485795974731,
+          "mode": "EXACT"
+        }
+      },
+      "after": {
+        "median_ms": 32.24,
+        "median_cpu_ms": 32.23,
+        "median_ocr_images": 1,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          32.24,
+          31.75,
+          32.65,
+          31.64,
+          37.3
+        ],
+        "cpu_ms": [
+          32.23,
+          31.74,
+          32.65,
+          31.64,
+          37.29
+        ],
+        "last_hit": {
+          "text": "FoxGod",
+          "box": [
+            1127,
+            171,
+            1176,
+            186
+          ],
+          "score": 0.6031485795974731,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "image": "regression_samples/kilerious_085956.png",
+      "target": "Kilerious",
+      "expected_point": [
+        621,
+        296
+      ],
+      "crop": null,
+      "before": {
+        "median_ms": 93.31,
+        "median_cpu_ms": 93.3,
+        "median_ocr_images": 4,
+        "median_ocr_calls": 2,
+        "correct_runs": 5,
+        "wall_ms": [
+          93.31,
+          93.04,
+          95.14,
+          92.26,
+          99.79
+        ],
+        "cpu_ms": [
+          93.3,
+          93.03,
+          95.12,
+          92.26,
+          99.79
+        ],
+        "last_hit": {
+          "text": "Kilerious",
+          "box": [
+            593,
+            288,
+            647,
+            304
+          ],
+          "score": 0.6298761963844299,
+          "mode": "CONFUSABLE"
+        }
+      },
+      "after": {
+        "median_ms": 42.74,
+        "median_cpu_ms": 42.71,
+        "median_ocr_images": 2,
+        "median_ocr_calls": 2,
+        "correct_runs": 5,
+        "wall_ms": [
+          44.54,
+          42.51,
+          41.95,
+          42.74,
+          46.2
+        ],
+        "cpu_ms": [
+          44.51,
+          42.48,
+          41.9,
+          42.71,
+          46.2
+        ],
+        "last_hit": {
+          "text": "Kilerious",
+          "box": [
+            592,
+            288,
+            648,
+            304
+          ],
+          "score": 0.6142577528953552,
+          "mode": "CONFUSABLE"
+        }
+      }
+    },
+    {
+      "image": "Screenshot 2026-11-16 141643.png",
+      "target": "MilkToast",
+      "expected_point": [
+        888,
+        108
+      ],
+      "crop": [
+        1,
+        210,
+        1360,
+        978
+      ],
+      "before": {
+        "median_ms": 85.58,
+        "median_cpu_ms": 85.57,
+        "median_ocr_images": 2,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          88.55,
+          83.74,
+          84.07,
+          85.58,
+          89.93
+        ],
+        "cpu_ms": [
+          88.54,
+          83.73,
+          84.07,
+          85.57,
+          89.9
+        ],
+        "last_hit": {
+          "text": "MilkToast.",
+          "box": [
+            856,
+            100,
+            917,
+            116
+          ],
+          "score": 0.5377368927001953,
+          "mode": "EXACT"
+        }
+      },
+      "after": {
+        "median_ms": 67.24,
+        "median_cpu_ms": 67.23,
+        "median_ocr_images": 2,
+        "median_ocr_calls": 2,
+        "correct_runs": 5,
+        "wall_ms": [
+          67.24,
+          87.17,
+          70.42,
+          64.82,
+          65.53
+        ],
+        "cpu_ms": [
+          67.23,
+          83.2,
+          70.32,
+          64.69,
+          65.47
+        ],
+        "last_hit": {
+          "text": "MilkToast.",
+          "box": [
+            856,
+            100,
+            917,
+            116
+          ],
+          "score": 0.5377368927001953,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "image": "Screenshot 2026-11-16 141643.png",
+      "target": "FightClub",
+      "expected_point": [
+        766,
+        325
+      ],
+      "crop": [
+        1,
+        210,
+        1360,
+        978
+      ],
+      "before": {
+        "median_ms": 88.7,
+        "median_cpu_ms": 88.68,
+        "median_ocr_images": 2,
+        "median_ocr_calls": 1,
+        "correct_runs": 5,
+        "wall_ms": [
+          89.63,
+          89.53,
+          87.66,
+          87.65,
+          88.7
+        ],
+        "cpu_ms": [
+          89.62,
+          89.53,
+          87.66,
+          87.65,
+          88.68
+        ],
+        "last_hit": {
+          "text": "Fightclub",
+          "box": [
+            736,
+            316,
+            796,
+            334
+          ],
+          "score": 0.5584069490432739,
+          "mode": "EXACT"
+        }
+      },
+      "after": {
+        "median_ms": 64.16,
+        "median_cpu_ms": 64.12,
+        "median_ocr_images": 2,
+        "median_ocr_calls": 2,
+        "correct_runs": 5,
+        "wall_ms": [
+          61.58,
+          63.58,
+          70.58,
+          65.29,
+          64.16
+        ],
+        "cpu_ms": [
+          61.57,
+          63.58,
+          70.58,
+          65.23,
+          64.12
+        ],
+        "last_hit": {
+          "text": "Fightclub",
+          "box": [
+            736,
+            316,
+            796,
+            334
+          ],
+          "score": 0.5584069490432739,
+          "mode": "EXACT"
+        }
+      }
+    },
+    {
+      "image": "regression_samples/snapkin_072432.png",
+      "target": "Snapkin",
+      "expected_point": null,
+      "crop": null,
+      "before": {
+        "median_ms": 379.12,
+        "median_cpu_ms": 379.21,
+        "median_ocr_images": 20,
+        "median_ocr_calls": 2,
+        "correct_runs": 5,
+        "wall_ms": [
+          377.83,
+          385.49,
+          387.3,
+          379.12,
+          378.06
+        ],
+        "cpu_ms": [
+          377.81,
+          384.48,
+          397.13,
+          379.21,
+          377.86
+        ],
+        "last_hit": null
+      },
+      "after": {
+        "median_ms": 299.2,
+        "median_cpu_ms": 298.59,
+        "median_ocr_images": 11,
+        "median_ocr_calls": 4,
+        "correct_runs": 5,
+        "wall_ms": [
+          283.49,
+          300.46,
+          299.2,
+          306.6,
+          292.49
+        ],
+        "cpu_ms": [
+          283.03,
+          300.33,
+          298.59,
+          306.5,
+          292.32
+        ],
+        "last_hit": null
+      }
+    },
+    {
+      "image": "Screenshot 2026-11-16 141643.png",
+      "target": "Ballor",
+      "expected_point": null,
+      "crop": [
+        1,
+        210,
+        1360,
+        978
+      ],
+      "before": {
+        "median_ms": 518.04,
+        "median_cpu_ms": 517.92,
+        "median_ocr_images": 24,
+        "median_ocr_calls": 5,
+        "correct_runs": 5,
+        "wall_ms": [
+          499.04,
+          523.31,
+          518.04,
+          572.24,
+          501.73
+        ],
+        "cpu_ms": [
+          498.88,
+          523.29,
+          517.92,
+          572.22,
+          501.55
+        ],
+        "last_hit": null
+      },
+      "after": {
+        "median_ms": 353.5,
+        "median_cpu_ms": 352.26,
+        "median_ocr_images": 11,
+        "median_ocr_calls": 5,
+        "correct_runs": 5,
+        "wall_ms": [
+          332.5,
+          353.5,
+          334.97,
+          358.6,
+          354.74
+        ],
+        "cpu_ms": [
+          332.44,
+          352.26,
+          334.94,
+          357.85,
+          354.68
+        ],
+        "last_hit": null
+      }
+    }
+  ],
+  "scheduler_stress": {
+    "before": {
+      "simulated_fps": 60,
+      "target_period_s": 0.25,
+      "wall_seconds": 6.007,
+      "searches": 24,
+      "search_cpu_seconds": 5.467,
+      "search_cpu_fraction_of_one_core": 0.91,
+      "process_cpu_fraction_of_one_core": 0.951,
+      "scope": "Static in-memory replay frames; excludes real capture, GUI and Discord OCR; models prewarmed."
+    },
+    "after": {
+      "simulated_fps": 60,
+      "target_period_s": 0.25,
+      "wall_seconds": 6.038,
+      "searches": 13,
+      "search_cpu_seconds": 2.165,
+      "search_cpu_fraction_of_one_core": 0.359,
+      "process_cpu_fraction_of_one_core": 0.38,
+      "scope": "Static in-memory replay frames; excludes real capture, GUI and Discord OCR; models prewarmed."
+    }
+  }
+}

@@ -1,0 +1,48 @@
+FM RUSH v24.12 — FAST ROOM-ENTRY BURSTS
+
+Close the old app, extract this ZIP into a new folder, and run the top-level
+START_FM_RUSH.bat. Confirm v24.12 in the title. The browser extension remains
+24.11.0; this update changes the Windows locator only. Your existing local deal
+archive is reused automatically.
+
+The locator scans once after entering an FM room or changing channels. Starting
+it while already inside a room also triggers one burst. It reads the FM room
+number and checks archived pending sellers for that room, including unknown-room
+listings. It cannot identify the channel from this header.
+
+The first search pass is faster, with no per-seller CPU cooldown. One OCR thread
+is retained. A burst has a three-second deadline checked between inference
+batches, with at most two attempts per seller unless the camera moves during the
+burst. Native inference already in progress must return before cancellation.
+OCR then stays idle until another entry or an explicit FIND AGAIN. New listings,
+queue selection and movement do not restart idle OCR. Listings continue to save;
+the working deal and large red shop markers are retained.
+
+A lightweight loading-screen watcher remains active so the next entry can be
+detected. It uses sparse brightness samples and slower full-frame copies while
+idle. Brief black transitions during OCR are latched. PAUSE stops capture.
+Bursts can briefly use more of one CPU core than the old sustained cooldown mode.
+
+If a large queue exceeds the deadline, select the seller and press FIND AGAIN to
+prioritize it. If the room header cannot be read, automatic name search stays
+idle; FIND AGAIN allows a manual search across all pending sellers.
+
+VALIDATION
+101 unittest cases: 97 passed, 4 skipped (three need a GUI display; one needs an
+external reference fixture). Includes six real room-header layouts, real
+multi-seller name matches, loading during OCR, missed black-frame recovery,
+manual retry, room filtering, deadline cutoff and no idle scans on arrivals.
+
+Three-run warm saved-frame worker replay, same name recognition engine:
+- Two FM5 sellers: median 172.65 ms -> 118.66 ms.
+- Two other-room sellers queued before those FM5 sellers: 2380.48 -> 114.08 ms.
+Includes header OCR and old cooldowns; excludes model startup, live capture and
+GUI drawing. Results vary with the PC and queue. Full results and replay script:
+benchmark_entry_v24_12.json / benchmark_entry_burst.py.
+
+An eight-second simulated incoming-listing run made six name-search calls in the
+initial burst and zero after the burst, despite continued arrivals/revisions.
+benchmark_v24_12.json also records 33/33 correct saved-image recognition runs.
+
+Native Windows capture, marker placement and actual room-entry timing still need
+a game-session check. No game input is automated.

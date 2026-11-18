@@ -1,0 +1,105 @@
+{
+  "scope": "Prewarmed single-thread worker, static FM5 frame at simulated 60Hz. Includes v24.12 room header OCR and v24.11 cooldown; excludes model startup, live capture and GUI. Other-room scenario has two archived sellers from other rooms before the two visible FM5 sellers.",
+  "baseline_ref": "30b232a",
+  "runs": 3,
+  "results": {
+    "same_room_only": {
+      "v24_11": {
+        "median_ms": 172.65,
+        "runs_ms": [
+          223.17,
+          172.65,
+          162.59
+        ],
+        "searches": [
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ]
+        ]
+      },
+      "v24_12": {
+        "median_ms": 118.66,
+        "runs_ms": [
+          109.93,
+          118.66,
+          120.44
+        ],
+        "searches": [
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ]
+        ]
+      }
+    },
+    "other_rooms_queued_first": {
+      "v24_11": {
+        "median_ms": 2380.48,
+        "runs_ms": [
+          2325.12,
+          2508.23,
+          2380.48
+        ],
+        "searches": [
+          [
+            "NotHere",
+            "NobodyHere",
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "NotHere",
+            "NobodyHere",
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "NotHere",
+            "NobodyHere",
+            "Cernia",
+            "Melonade"
+          ]
+        ]
+      },
+      "v24_12": {
+        "median_ms": 114.08,
+        "runs_ms": [
+          113.59,
+          116.55,
+          114.08
+        ],
+        "searches": [
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ],
+          [
+            "Cernia",
+            "Melonade"
+          ]
+        ]
+      }
+    }
+  }
+}

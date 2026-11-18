@@ -22,3 +22,23 @@ def should_ocr(now: float, last: float, image_changed: bool,
     if ever_found:
         return elapsed >= (LOST_OCR_PERIOD_S if image_changed else STATIC_RETRY_S)
     return elapsed >= (SEARCH_OCR_PERIOD_S if image_changed else STATIC_RETRY_S)
+
+
+class ScanDutyBudget:
+    """Limit sustained search CPU time to a fraction of one logical processor.
+
+    A scan may burst immediately. Its measured thread CPU time buys a cooldown;
+    target changes and manual retries must share the same budget.
+    """
+    def __init__(self, fraction=.35):
+        if not 0 < fraction <= 1:
+            raise ValueError('CPU fraction must be in (0, 1]')
+        self.fraction=fraction
+        self.ready_at=0.
+
+    def remaining(self, now):
+        return max(0., self.ready_at-now)
+
+    def charge(self, cpu_seconds, now):
+        cooldown=max(0.,cpu_seconds)*(1/self.fraction-1)
+        self.ready_at=max(now,self.ready_at)+cooldown

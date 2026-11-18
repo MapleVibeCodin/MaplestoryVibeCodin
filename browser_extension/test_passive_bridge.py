@@ -40,9 +40,10 @@ async def main():
         await page.goto('about:blank')
         await page.set_content(HTML)
         await page.evaluate('''() => {
-            window.__routes=[];
+            window.__routes=[];window.__live=[];
             window.chrome={runtime:{lastError:null,sendMessage:(msg,cb)=>{
-                window.__routes.push(msg);cb({ok:true});
+                if(msg.kind==='fm-rush-route-deal')window.__routes.push(msg);
+                if(msg.kind==='fm-rush-visible-deals')window.__live.push(msg.snapshot);cb({ok:true});
             }}};
         }''')
         before=await page.locator('body').inner_html()
@@ -54,12 +55,12 @@ async def main():
         after=await page.locator('body').inner_html()
         assert before==after,'Extension changed HeneFM page DOM'
         assert await page.locator('#fm-rush-deals-only-view').count()==0
-        assert await page.evaluate('window.__routes.length')==1,'Currently visible active deals must route on startup'
+        assert await page.evaluate('window.__routes.length')==2,'All visible listings must route on startup, including displayed sold cards'
         await page.evaluate('(html) => document.querySelector("#list").insertAdjacentHTML("beforeend",html)',NEW_ACTIVE+NEW_SOLD+NEW_MULTI)
         await page.wait_for_timeout(550)
         routes=await page.evaluate('window.__routes.map(r=>r.deal)')
-        assert len(routes)==3,f'Expected 1 startup + 2 newly eligible deals, got {routes}'
-        assert set(x['ign'] for x in routes)=={'Hyperborean','FantonRR','UrMyVuln'},routes
+        assert len(routes)==5,f'Expected all five rendered listings, got {routes}'
+        assert set(x['ign'] for x in routes)=={'Hyperborean','Arkne','FantonRR','HazelGeek','UrMyVuln'},routes
         assert all(x['profit_percent']>=15 and x['profit_mesos']>=15000 for x in routes)
         assert await page.locator('#original').inner_text()=='HeneFM — original Flips'
         assert await page.locator('#apply').is_visible()
@@ -67,12 +68,16 @@ async def main():
         # Mutation on previously seen deal should never route a duplicate.
         await page.locator('#new-active').evaluate('(el)=>el.appendChild(document.createElement("small")).textContent="Updated"')
         await page.wait_for_timeout(220)
-        assert await page.evaluate('window.__routes.length')==3,'Duplicate deal on DOM mutation'
-        # A freshly added sold deal must not go through even if profit is high.
+        assert await page.evaluate('window.__routes.length')==5,'Duplicate deal on DOM mutation'
+        # Changing only the displayed age of a sold card must not duplicate it.
         await page.locator('#new-sold').evaluate('(el)=>el.querySelector("span").textContent="Sold 1h ago"')
         await page.wait_for_timeout(200)
-        assert await page.evaluate('window.__routes.length')==3
+        assert await page.evaluate('window.__routes.length')==5
+        assert set(await page.evaluate('window.__live.at(-1).deals.map(d=>d.ign)'))=={'Hyperborean','Arkne','FantonRR','HazelGeek','UrMyVuln'}
+        await page.locator('#list').evaluate('(el)=>el.innerHTML=""')
+        await page.wait_for_timeout(250)
+        assert await page.evaluate('window.__live.at(-1).deals.length')==0,'An empty page must clear active scan names'
         await browser.close()
-        print('PASS: page DOM unchanged, startup deals delivered, unsold-only routing, multi-item profit, no duplicate sends')
+        print('PASS: page DOM unchanged, all rendered active/sold listings delivered, multi-item profit, no duplicate sends; live snapshots follow page rotation')
 
 if __name__=='__main__':asyncio.run(main())

@@ -31,7 +31,7 @@ class ProfitDecision:
     def label(self):
         if self.mesos is None or self.percent is None:
             return 'PROFIT: —'
-        return ('UNUSUALLY CHEAP · ' if self.reason == 'unusually cheap' else '') + f'PROFIT: +{self.mesos:,} MESOS  ({self.percent:g}%)'
+        return ('UNUSUALLY CHEAP · ' if self.reason == 'unusually cheap' else '') + f'PROFIT: {self.mesos:+,} MESOS  ({self.percent:g}%)'
 
 
 def parse_mesos(value: str) -> int | None:

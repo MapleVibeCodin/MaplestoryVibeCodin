@@ -1,0 +1,43 @@
+FM RUSH v24.16 — SCAN ONLY THE CURRENT HENEFM LIST
+
+Close FM Rush and run UPDATE_FM_RUSH.bat. Alternatively copy the small ZIP's
+contents over your existing app folder, preserving .venv and config.json.
+
+IMPORTANT: Reload the extension in brave://extensions, confirm extension
+24.16.0, then reload the HeneFM Deals tab once. The app title should say v24.16.
+Both app and extension changes are required for current-page-only scanning.
+If reloading still shows 24.11.0, remove that old extension and use Load unpacked
+to select browser_extension inside the app folder you just updated.
+
+If the site currently shows languiwhisp and Hammy, only those two seller names
+enter the live scan list. Room scoping can reduce that further to one relevant
+seller. Fifty older archived names no longer compete with them.
+
+The active list is replaced when the page changes. Listings cycling out of the
+site's three-minute view stop being scanned as soon as the extension sees the
+updated page. No hardcoded three-minute timer guesses which cards should expire.
+The extension sends a lightweight heartbeat roughly every six seconds; after
+45 seconds with no live snapshot, the scan list becomes empty rather than
+falling back to old archived names. A restart also starts with no active names
+until the current page connects. Multiple Deals tabs use the latest received
+snapshot; keep the intended view open.
+
+History is preserved for exports and purchased screenshots. Your working deal
+remains available for BOUGHT if it disappears from the site: it is labelled
+OFF PAGE and excluded from scans. Other historic listings no longer fill the
+visible work queue. DONE / NEXT prefers another current-page deal.
+
+Room-entry-only bursts, manual FIND AGAIN, the strong-candidate quick sweep,
+large red markers, small downloads and the flat Downloads/Bought folder remain.
+New page arrivals update the work list without starting continuous OCR.
+
+The first nonempty live page can trigger one guarded entry check if the watcher
+was already waiting inside a room. Later rotations do not rearm idle OCR.
+
+Validation: 133 Python tests: 129 passed, 4 skipped (three GUI checks and one
+external fixture unavailable). Seven Node checks and the offline Chromium flow
+passed. Coverage includes 50 archived sellers versus two live names, rotation,
+empty lists, stale revisions, late archive delivery, disconnect expiry, restart,
+startup entry check, purchase workflow and durable snapshot acknowledgment.
+The compact package was installed through the updater with preferences and the
+installed environment preserved. Native Windows UI/capture remains unverified.

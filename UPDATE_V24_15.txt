@@ -1,0 +1,24 @@
+FM RUSH v24.15 — SMALL DOWNLOADS + IN-PLACE UPDATER
+
+Your uploaded screenshots, replay fixtures and the nested older app copy are now
+excluded from ZIP downloads. They remain in the Git repository for development.
+The app does not need them to scan. No screenshot-saving behavior was changed.
+
+THIS UPDATE
+Close FM Rush. Extract the small ZIP over your existing app folder and replace
+app files. Keep the .venv folder and config.json. Run START_FM_RUSH.bat and confirm
+v24.15. Your installed dependencies and settings can be reused.
+
+FUTURE UPDATES
+Close FM Rush, then double-click UPDATE_FM_RUSH.bat. It downloads the compact
+package, stages and validates it, backs up existing app files, and replaces only
+runtime files. Previous files are kept in updates_backup. Ordinary updates do
+not reinstall Python/OCR packages. It follows GitHub branch improve-name-locator.
+
+The updater preserves .venv, config.json, archives, existing screenshots and your
+Downloads/Bought folder. It never deletes your personal images. If a future
+update changes extension files, reload the extension and HeneFM tab once.
+
+No Windows PowerShell execution was available in the development environment;
+the updater's archive validation, file replacement, preservation and rollback
+paths are tested separately using Python.

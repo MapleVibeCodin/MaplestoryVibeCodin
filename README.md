@@ -1,69 +1,109 @@
-## New: Automatic HeneFM item screenshots (v24.8)
+# FM Rush v24.25 — choose a listing, scan one seller
 
-The Brave extension can save one actual PNG per unique rendered HeneFM Deals item card to `Downloads/FM_Rush_Item_Screenshots/YYYY-MM-DD/`. It captures off-screen rendered cards without scrolling, and includes cards outside the 15K/15% *alert* threshold. The extension popup has a screenshot toggle and capture diagnostics. It needs Brave debugger + downloads permissions; a browser debugging banner may appear. See `UPDATE_V24_8.txt`.
+Current HeneFM deals, purchase receipts and shop stock in one app.
 
-# FM Rush v24.7 — Earlier room-entry scan
+## Installation
 
-## Install
+Close the old app. Extract the entire clean ZIP and run **START_FM_RUSH.bat**.
+Keep the included assets folder: the English recognition model is essential.
+The clean download contains no screenshots, videos, old versions or update notes.
+Extracting over an existing app folder reuses its installed `.venv` and settings;
+a new folder installs dependencies on its first launch. Purchase records remain
+in `%LOCALAPPDATA%\FM_Rush\archives`.
 
-1. Close the running FM Rush app.
-2. Extract this ZIP into a new folder and run START_FM_RUSH.bat.
-3. Replace the older Brave extension with the bundled browser_extension folder (see browser_extension/README_INSTALL.txt), then reload the HeneFM tab.
-4. Select the MapleStory window in FIND NAME if needed. Enter the room, change channel, or press FIND AGAIN.
+Load the included **browser_extension (24.22.0)** in `brave://extensions`, replacing
+or reloading the old extension, then reload HeneFM. This step enables listing
+clicks and CHASE/SKIP buttons. Keep your three-minute Deals filter.
 
-The window title must say v24.7. Compact controls and the click-through in-game marker remain. Green HERE means exact text recognition. Yellow CHECK means ambiguous lettering or overlap: check the seller before buying.
+## Choose what to chase
 
-## Faster search
+Incoming listings are available without being assigned. Click a listing anywhere
+on HeneFM or press its **CHASE** button. That seller becomes the only OCR target;
+new arrivals do not replace it. A green outline confirms the choice was delivered.
+You can also choose a row in the desktop Chase tab.
 
-The first pass searches a half-size feature image for candidate locations. Each candidate is refined against ORIGINAL-resolution pixels and verified by text recognition before any marker is shown. This reduces full-window matching work without drawing speculative markers.
+**SKIP** on a HeneFM card dismisses that listing. Skipping another card leaves your
+current choice alone. **SKIP DEAL / Ctrl+Alt+N** clears the selected deal without
+recording a purchase or selecting another one. Click another listing whenever
+you want. Clicking CHASE on a skipped card reopens it.
 
-The fast recognition pass uses a 160-pixel minimum input width instead of padding every name to at least 320 pixels. Long names still expand to their required width. When this changes recognition on an overlapping tag, the original padding is retried on just those candidate patches. If no candidate verifies, the original full-resolution search remains as recovery.
+**Ctrl+Alt+B** confirms the selected purchase, records its item/stats/prices and
+clears the chase target. It does not automatically take the next deal.
+**FIND AGAIN / Ctrl+Alt+F**, or clicking the chosen listing again, retries scanning.
 
-Capture now accepts a frame every 16 ms instead of v24.6's 33 ms (up to approximately 60 copies/second). The loading gate scans on the first pair of stable visible samples, with no extra settling timer. It still rejects black frames and changing fade brightness. Nominal pre-recognition wait after brightness settles is approximately 16–32 ms, plus worker polling (up to about 8 ms) and scheduling; actual Windows/game frame delivery may be slower. Name recognition time and GUI dispatch are additional.
+## In-game highlights
 
-GUI event dispatch remains 10 ms. Recognition remains one thread and only runs on target changes, room transitions, camera movement or manual retry, with one bounded retry after a miss. The higher frame-copy rate can increase capture overhead; this does not enable continuous OCR.
+Open MapleStory's channel menu normally. A transparent, click-through red cell
+outline and arrow mark the chosen channel directly over the real menu. Its
+position is anchored to the menu from the uploaded screenshot; it follows the
+selected game window and hides when the menu closes. It never clicks for you.
 
-v24.7 validation: six timing-gate and worker tests passed, including fade rejection, repeat channel transitions, stale-target suppression and bounded retry. The recognition algorithm is byte-for-byte unchanged from v24.6; the following recognition tests and benchmark results are from that version.
+The name reader begins on the early light frames of the room fade. During the first 125 ms of room entry, the reader checks one candidate per fresh frame. It verifies the letters with a prewarmed OCR model. The wider search follows if the first passes do not find a match. It retries
+without the previous quarter-second delay, searches only the selected live IGN,
+and accepts three confidently read letters for a **CHECK NAME** shop marker.
+Repeated identical letters and weak readings do not qualify. Loading, resizing
+or lost lettering clears stale positions. Selecting another listing clears the
+old seller's marker, including queued results from the previous choice.
 
-v24.5 fixes remain: the top row is included, both crop contexts are checked, short names require two agreeing reads, and ambiguous extra border/overlap glyphs produce a yellow CHECK marker. There is no continuous OCR or large preview.
+A bounded worker indexes only the newest queued view. Room-header OCR and a
+heavy full-room detection pass cannot delay live searches. OCR stays within a
+three-second entry/retry burst; idle watching does no OCR. Found positions can
+stay eligible for 120 seconds after detection if their alert leaves the page,
+until you change or clear your choice. An off-page selected purchase stays
+available for receipt logging, but its unfound seller is not scanned.
 
-## Timing comparison
+The v24.24 replay marked the correct shop in 15 of 15 runs across five supplied clips, 22–38 ms after each fixed readable fade reference. Video replay measures the software marker callback. Native Windows capture,
+GUI/compositor latency and network competition remain outside that measurement;
+an instant successful identification is not guaranteed on every fade frame.
 
-Five warmed screenshot replays per sample, both versions measured in the same Linux runtime. These are algorithm times, excluding capture, fade settling and drawing the Windows marker.
+## One-time setup
 
-| Seller | v24.5 median | v24.6 median |
-| --- | ---: | ---: |
-| Cernia | 284.2 ms | 84.1 ms |
-| Rollermo | 467.2 ms | 195.6 ms |
-| jtedoigte | 170.7 ms | 84.4 ms |
-| iSadlyfe | 156.7 ms | 84.1 ms |
-| Oral | 311.1 ms | 165.3 ms |
-| FoxGod | 151.1 ms | 77.8 ms |
-| Kilerious | 170.2 ms | 159.2 ms |
-| Snapkin (no readable match) | 148.9 ms | 257.8 ms |
+Select **Unfkabe’s game window** in the capture dropdown; seller clients may have the same MapleStory title. A different client's window will show a different room.
 
-Recovery can be slower on unreadable names. Measurements vary with machine and load; this is not a guarantee of end-to-end speed on your PC. See benchmark_v24_6.json for the measured results. The 1.2-second HeneFM soft-refresh signal remains a separate upstream delay and does not guarantee a network update.
+Open **Shops & cash → Set current buyer cash / shop setup**. Confirm Unfkabe's actual spendable cash (the form starts at **2M**) and each seller's old occupied slots that are NOT already in this ledger. Blank occupancy means unknown; no automatic shop assignment is made while it is unknown.
 
-## Verification
+The planning defaults are a **500K cash reserve**, a warning above **20% of available cash per purchase**, and **3% estimated sale tax**. They are adjustable warnings, not hidden deal filters. Confirm the tax matches your actual setup. Collection uses actual cash received, not an inferred sale-tax result.
 
-Seven readable reported sellers locate correctly in saved-image replay: FoxGod, Oral, Kilerious, jtedoigte, iSadlyfe, Cernia and Rollermo. Marker coordinates are checked against the names, not desktop alert text. Game-only crops are used and visible desktop-panel occlusions are masked.
+Old screenshots are not treated as proof that an item is still owned. To onboard existing stock, save the blank CSV template and import only currently owned items. Fields: `stock_id,item,stats,quantity,unit_cost,list_price,seller,listed_hours,slots`. Use a stable, unique stock ID where possible. Leave unknown cost or listed age blank; leave seller blank for buyer inventory. Imports do not debit current cash. Imported shop stock replaces the corresponding count of untracked old occupied slots.
 
-Kilerious, Cernia and Rollermo produce CHECK markers in these samples. Snapkin is not legibly identifiable in its supplied frame. Kilerious is not present in the supplied FM15 frame; the readable sample is FM17. Those two samples remain no-match checks.
+## While chasing
 
-Existing tests cover Mora, dark lettering on light tags, duplicate names, absent names, prefixes, similar spellings, loading transitions, stale target suppression and bounded retries. All 15 finder, reported-miss, worker and new timing-gate tests passed. A further 20 resized/dimmed-image comparisons retained all 15 detections that v24.5 could make. Two small Rollermo variants remained unreadable in both versions.
+All listings on the current HeneFM page remain available. Archived names do not enter the scan queue. Columns show the explicit HeneFM resale price, estimated profit per holding hour, and cash/slow-turnover warnings. Sale-time estimates are heuristics, not guarantees. No CozyFM lookup is required by this workflow.
 
-See benchmark_v24_6.json for five-run warmed Linux replay timings. These exclude Windows capture, waiting for a stable frame, and drawing the native marker. Live Windows capture and end-to-end latency cannot be verified here. Obscured letters, different fonts and extreme resizing can still miss.
+The compact strip opens below MapleStory when there is room. **Tools → Place under game** repositions it after you move the game. **Trade Desk** opens the full desk, and **Inventory** opens your purchase and listing prices directly. **Hide desk** returns to the strip.
 
-Run TEST_LOCATOR.bat after setup to replay the included finder/worker tests.
+- **Ctrl+Alt+N:** skip the chosen deal and wait for another choice.
+- **Ctrl+Alt+F:** explicitly retry the shop finder.
+- **Ctrl+Alt+B:** after actually buying, record the selected purchase and clear the target.
 
-## Browser feed
+The purchase hotkey records the item, displayed numeric stats, quantity, alert Buy price, explicit HeneFM listing price and expected sale time. Quantity uses the lot count when read; otherwise it starts at one. Verify the visible quantity for bundles. If you paid a different price or bought a different quantity, use **Correct cost / qty** before listing. One receipt is retained per listing; adjust that receipt if you buy additional units from the same listing. A missing Buy price prompts for the actual paid amount; missing resale prices remain unknown rather than being reconstructed from profit.
 
-The bundled Brave extension is v24.4.1: 1.2-second soft-refresh default; unsold unusually-cheap flagged deals OR at least 15,000 mesos profit AND 15%; backup reload off. Install/update resets the saved refresh interval to 1.2 seconds. Discord/OCR alerts also use 15,000 mesos AND 15%.
+The text receipt is saved immediately. It does not wait for an image, a folder picker or a screenshot download. **Undo mistaken buy** reverses an unlisted receipt and reopens its deal. Duplicate retries do not debit cash twice, and a short debounce guards accidental double hotkeys.
 
+Screenshot saving is turned **off once on this workflow upgrade**. It can be enabled again in the extension popup; later upgrades preserve that opt-in. Existing PNGs remain untouched. The hotkey creates a text receipt, not another Bought PNG.
 
-## Deal scanner repair (v24.7.2 / Brave v24.5.0)
-- Deals are recorded as delivered **only after** FM Rush acknowledges receipt. Earlier builds marked them seen before delivery, so an app-disconnected tab reload could skip them permanently.
-- In Brave's FM Rush popup, watch Seller links seen / Listing cards found / Profit cards parsed / Qualified deals / Pending unsent / Sent to FM Rush / Windows app status.
-- Use Resend visible deals to reset the session's delivered list and route currently eligible cards again. May produce duplicate pings.
-- Keep HeneFM open at https://henefm.com/flips/deals; reload that tab once when updating the extension. Start the Windows app before browsing to route deals immediately.
-- Refresh signals run every 1200ms but HeneFM may ignore refresh events; the public site displays deal listings with a stated 60-second delay for free access.
+## Listing and stock
+
+Inventory shows only unsold stock by default, with stats, paid cost, suggested listing price, seller and actual listed age. Copy listing details when entering your store.
+
+When old occupancy is known, new receipts are assigned to the first seller with room, keeping transfer batches together. Equipment uses a slot per unit; explicit consumable lots use one listing slot. Unknown categories use conservative per-unit accounting. Imported stock can specify slots explicitly. Verify actual game slot usage.
+
+**Shops & cash** groups transfer batches from Unfkabe to each seller. After performing the actual transfer and listing, select the rows and click **Confirm LISTED**. Confirm multiple rows at once when appropriate. This starts their listing age; a restart or repricing does not reset the first-listed date. After at least 12 hours or twice the displayed expected sale time, items get a review reminder for the next planned visit. No automatic price cuts are made.
+
+## Sales and capital
+
+Select only items you verified sold, then use **Confirm SOLD at list price**. This is a user confirmation, not automatic sale detection. It records estimated seller proceeds using the planning tax; it does NOT immediately increase buyer cash.
+
+After the actual mesos transfer, click **Cash received from fkable/unfkable** and enter what Unfkabe really received. The amount can include proceeds from old untracked stock. Cash is credited once per recorded receipt action; the field returns to zero when tracked proceeds have been collected. Reconcile current buyer cash if actual spending, fees or sales outside the ledger caused drift.
+
+When buyer cash is below the reserve, the desk highlights the seller with the most recorded proceeds first. Group transfers and listings into visits instead of automatically restarting both stores or cutting every stale item's price.
+
+Ledger files are in `%LOCALAPPDATA%\FM_Rush\archives\trade_ledger.sqlite3` on Windows, alongside the existing deal archive. Export the ledger to JSON for backup or review. Sold history is hidden until requested. Actual game purchases, listings, sales and account transfers still require your action/confirmation; hotkeys do not send game inputs.
+
+## Scanner timing
+
+Room-entry bursts, one OCR thread, a three-second deadline, current-page scoping and large red markers remain. A new page list does not run continuous OCR. Choosing a live listing can request a guarded entry check when already inside an FM room.
+
+**Export scanner timing** records local page-to-app delivery, search, queue, frame age and software result-to-UI timing. It does not measure HeneFM server freshness, human travel, network competition or compositor display time. A scanner cannot guarantee winning a race against other buyers; saved-image speed is not proof of live end-to-end speed.
+
+Development tests and replay fixtures remain in the Git repository rather than the runtime ZIP. Run `TEST_LOCATOR.bat` from a full checkout. See `UPDATE_V24_22.txt` for validation and limits.

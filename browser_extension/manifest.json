@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "FM Rush — HeneFM Deal Scanner",
-  "version": "24.8.0",
-  "description": "HeneFM deal scanner + automatic unique per-listing PNG screenshots. 1.2s signal; 15K/15% alert.",
+  "name": "FM Rush \u2014 HeneFM Deal Scanner",
+  "version": "24.22.0",
+  "description": "Click a HeneFM listing to chase one seller; skip any deal and keep purchase records.",
   "permissions": [
     "storage",
     "alarms",
@@ -42,7 +42,7 @@
     }
   ],
   "action": {
-    "default_title": "FM Rush — refresh status",
+    "default_title": "FM Rush \u2014 refresh status",
     "default_popup": "popup.html"
   }
 }

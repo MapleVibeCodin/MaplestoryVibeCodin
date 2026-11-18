@@ -118,8 +118,10 @@ class SnapshotGate:
     The user arms this in FM. Any subsequent black loading transition can
     trigger, including a same-room channel change. Tiny samples only; no OCR.
     """
-    def __init__(self, settle_seconds=.25):
+    def __init__(self, settle_seconds=.25, first_visible=False,visible_level=55):
         self.settle_seconds=settle_seconds
+        self.first_visible=first_visible
+        self.visible_level=visible_level
         self.reset()
 
     def reset(self):
@@ -147,7 +149,7 @@ class SnapshotGate:
                      int((x-.07)*w):int((x+.07)*w):8]
             levels.append(float(tile.mean()))
         dark=sum(v<24 for v in levels)>=4
-        visible=sum(v>55 for v in levels)>=4
+        visible=sum(v>self.visible_level for v in levels)>=4
         if dark:
             if not self.loading:self.invalidated=True
             self.loading=True
@@ -156,6 +158,9 @@ class SnapshotGate:
             self.done=False
             return False
         if self.loading and visible:
+            if self.first_visible:
+                self.consume(bgr)
+                return True
             # A first nonblack frame is often halfway through the fade. Require
             # a brightness plateau for the configured interval; animation in one tile is tolerated.
             stable=(self.previous_levels is not None and

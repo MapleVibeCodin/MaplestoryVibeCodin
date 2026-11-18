@@ -1,0 +1,34 @@
+FM RUSH v24.22 — explicit choice and channel-menu overlay
+
+Click a HeneFM listing or CHASE to select exactly one seller. Incoming listings
+are archived/available but never assigned automatically. Newer explicit clicks
+win over an older choice arriving late. SKIP ignores a card; skipping the current
+choice or logging a purchase clears it without selecting another deal. Skipping
+a different card preserves the current chase. Skipped cards can be chosen again.
+
+Load/reload the included browser extension 24.22.0 and reload HeneFM once.
+The actual game channel-menu cell is marked with a transparent click-through
+outline and arrow, using a compact UI reference derived from the uploaded menu.
+It follows the chosen game window and disappears when the menu closes.
+
+Entry recognition begins during the early fade and retries sooner. Only the
+selected live seller is searched; three strong letters can produce CHECK NAME.
+Old selected markers are cleared from both the controller and GUI event queue.
+No automatic game clicks, purchases or forced next listing are introduced.
+Existing purchase/price records remain in the local archive.
+
+The clean download contains the app, extension and required model/UI assets.
+Uploaded screenshots, recordings, tests and old update files are excluded.
+Native Windows capture, transparent overlay behavior and display timing still
+need live confirmation; Linux replay cannot guarantee an immediate race win.
+
+Validation:
+- Full 184-test suite passes with one unavailable legacy fixture skipped.
+- 22 focused fade/controller/menu checks pass after the final early-fade cap.
+- All Node extension suites and real Chromium click/Chase/Skip DOM smoke pass.
+- All 40 menu cells match the uploaded screenshot; shifted/scaled captures and
+  closed-menu negatives are covered.
+- Five recordings, three replays each: 15/15 correct shop locations, 12/15 strict
+  timestamp goals. Gimchigirl callbacks were 0.059–0.101 seconds late.
+Replay uses one explicitly selected seller. Native capture, GUI/overlay rendering,
+HeneFM delivery and network/competition latency are excluded.

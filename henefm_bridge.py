@@ -2,46 +2,45 @@
 
 Receives only one HeneFM Flips deal at a time (as shown on the user's
 browser page) and hands it to the GUI. No API key, no network requests,
-no shop listing/price data downloaded or saved.
+listing metadata can be persisted locally before delivery is acknowledged.
 """
 from __future__ import annotations
 import json
 import math
 import queue
 import threading
-from dataclasses import dataclass
+import sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from deal_parser import Deal
 from profit_filter import ProfitDecision
 
-MIN_MESOS = 15_000
-MIN_PERCENT = 15.0
-
 HOST = '127.0.0.1'
 PORT = 18773
-MAX_REQUEST_BYTES = 10_240
+MAX_REQUEST_BYTES = 65_536
+MAX_VISIBLE_BYTES=4*1024*1024
 
 
 def parse_browser_deal(raw: dict) -> Deal | None:
-    """Strict fail-closed validation of a single browser-visible flip."""
+    """Validate listing structure; apply no profit or sold-status eligibility gate."""
     if not isinstance(raw, dict):
         return None
+    def integer(key,low,high):
+        value=raw.get(key)
+        if value is None:return None
+        if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or int(value)!=value:
+            raise ValueError(key)
+        if not low<=value<=high:raise ValueError(key)
+        return int(value)
     try:
-        cc = int(raw['cc'])
-        fm = int(raw['fm'])
-        buy = int(raw['buy_mesos'])
-        gain = int(raw['profit_mesos'])
-        pct = float(raw['profit_percent'])
-    except (KeyError, TypeError, ValueError, OverflowError):
-        return None
-    # Do not allow coercion of nonintegers, enormous values or percentages.
-    if not (1 <= cc <= 40 and 1 <= fm <= 20 and 1 <= buy <= 1_000_000_000_000):
-        return None
-    if not (0 <= gain <= 1_000_000_000_000 and math.isfinite(pct) and 0 <= pct <= 100_000_000_000_000):
-        return None
-    unusually_cheap = raw.get('unusually_cheap') is True
-    if not unusually_cheap and not (gain >= MIN_MESOS and pct >= MIN_PERCENT):
-        return None
+        cc=integer('cc',1,40);fm=integer('fm',1,20)
+        buy=integer('buy_mesos',0,1_000_000_000_000)
+        gain=integer('profit_mesos',-1_000_000_000_000,1_000_000_000_000)
+        pct=raw.get('profit_percent')
+        if pct is not None:
+            if isinstance(pct,bool) or not isinstance(pct,(int,float)) or not math.isfinite(pct) or abs(pct)>1e14:
+                return None
+            pct=float(pct)
+    except (ValueError,TypeError,OverflowError):return None
     item = raw.get('item')
     ign = raw.get('ign')
     stats = raw.get('stats', '')
@@ -54,18 +53,22 @@ def parse_browser_deal(raw: dict) -> Deal | None:
         return None
     return Deal(cc=cc, fm=fm, item=item, stats=stats, ign=ign,
                 buy_mesos=buy,
-                profit=ProfitDecision(True, gain, pct, 'unusually cheap' if unusually_cheap else 'passed'))
+                profit=ProfitDecision(True,gain,pct,'browser listing'),
+                listing_id=str(raw.get('listing_id',''))[:120],
+                sold=raw.get('sold') is True,raw_text=str(raw.get('raw_text',''))[:6000])
 
 
 class BrowserBridge:
     """Small receiver on 127.0.0.1; posts accepted deals into an existing queue."""
-    def __init__(self, out: queue.Queue):
+    def __init__(self, out: queue.Queue, archive=None):
         self.out = out
+        self.archive=archive
         self.server: ThreadingHTTPServer | None = None
         self.thread: threading.Thread | None = None
 
     def start(self):
         out = self.out
+        archive=self.archive
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, fmt, *args):
@@ -82,12 +85,12 @@ class BrowserBridge:
 
             def do_GET(self):
                 if self.path == '/health':
-                    self._send(200, {'ok': True, 'name': 'FM Rush v22.2'});
+                    self._send(200, {'ok': True, 'name': 'FM Rush v24.17'});
                 else:
                     self._send(404, {'ok': False})
 
             def do_POST(self):
-                if self.path != '/deal':
+                if self.path not in ('/deal','/visible','/select','/skip'):
                     self._send(404, {'ok': False})
                     return
                 # This is a local UI bridge, not a remote data service. Require
@@ -105,18 +108,52 @@ class BrowserBridge:
                     return
                 try:
                     size = int(self.headers.get('Content-Length', '0'))
-                    if size < 2 or size > MAX_REQUEST_BYTES:
+                    if size < 2 or size > (MAX_VISIBLE_BYTES if self.path=='/visible' else MAX_REQUEST_BYTES):
                         raise ValueError('invalid request size')
                     data = json.loads(self.rfile.read(size).decode('utf-8'))
+                    if self.path=='/visible':
+                        if not isinstance(data,dict):raise ValueError('snapshot')
+                        raw=data.get('deals');session=data.get('session');revision=data.get('revision')
+                        if not isinstance(raw,list) or len(raw)>500 or not isinstance(session,str) or not 1<=len(session)<=120:
+                            raise ValueError('snapshot')
+                        if isinstance(revision,bool) or not isinstance(revision,int) or not 0<=revision<=2**53:
+                            raise ValueError('revision')
+                        deals=[parse_browser_deal(item) for item in raw]
+                        if any(deal is None or not deal.listing_id for deal in deals):raise ValueError('listing')
+                        if archive is None:
+                            self._send(503,{'ok':False,'error':'archive_not_ready'});return
+                        try:
+                            applied=archive.apply_visible(deals,session,revision)
+                            observed=data.get('observed_at_ms')
+                            if applied and isinstance(observed,(int,float)) and not isinstance(observed,bool) and math.isfinite(observed):
+                                import time
+                                delay=time.time()*1000-observed
+                                archive.last_feed_latency_ms=round(delay,1) if 0<=delay<60000 else None
+                            out.put_nowait(('browser_visible',))
+                        except (queue.Full,OSError,ValueError,sqlite3.Error):
+                            self._send(503,{'ok':False,'error':'busy'});return
+                        self._send(200,{'ok':True,'live_listings':len(deals)});return
                     deal = parse_browser_deal(data)
                 except (ValueError, UnicodeError, json.JSONDecodeError):
                     deal = None
                 if deal is None:
-                    self._send(422, {'ok': False, 'error': 'deal_must_pass_filter'})
+                    self._send(422, {'ok': False, 'error': 'invalid_listing'})
                     return
                 try:
-                    out.put_nowait(('browser_deal', deal))
-                except queue.Full:
+                    new=True
+                    key=None
+                    if archive is not None:key,new=archive.record(deal)
+                    if self.path in ('/select','/skip'):
+                        if archive is None:
+                            self._send(503,{'ok':False,'error':'archive_not_ready'});return
+                        # Intent is applied on the GUI thread so click, skip,
+                        # receipt and screen updates have one ordered owner.
+                        session=data.get('_choice_session');revision=data.get('_choice_revision')
+                        if not isinstance(session,str) or not 1<=len(session)<=120 or isinstance(revision,bool) or not isinstance(revision,int) or not 1<=revision<=2**53:
+                            self._send(422,{'ok':False,'error':'invalid_choice_sequence'});return
+                        out.put_nowait(('browser_choice',self.path[1:],key,session,revision))
+                    else:out.put_nowait(('browser_deal', deal,new))
+                except (queue.Full,OSError,ValueError,sqlite3.Error):
                     self._send(503, {'ok': False, 'error': 'busy'})
                     return
                 self._send(200, {'ok': True, 'ign': deal.ign})

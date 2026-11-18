@@ -1,0 +1,815 @@
+{
+  "scope": "Real-time 30/60fps desktop-video replay; software marker callback; one explicitly selected seller; other page listings remain available but unscanned; excludes native capture, GUI/compositor and network latency.",
+  "results": [
+    {
+      "repeat": 1,
+      "name": "Ceci",
+      "goal": 9.0,
+      "found": true,
+      "marker_at": 8.7132,
+      "mode": "CONFUSABLE",
+      "box": [
+        880,
+        570,
+        912,
+        583
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "Ceci",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 149.8,
+        "queue_ms": 0.0,
+        "frame_age_ms": 29.8,
+        "burst_to_result_ms": 238.7,
+        "loading_to_result_ms": null,
+        "posted_at": 93251.298315594,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 7,
+          "recognized": 1,
+          "words": [
+            {
+              "text": "Ceci",
+              "confidence": 0.995,
+              "box": [
+                880,
+                587,
+                912,
+                600
+              ]
+            }
+          ],
+          "elapsed_ms": 138.9
+        }
+      }
+    },
+    {
+      "repeat": 1,
+      "name": "Tounge",
+      "goal": 12.0,
+      "found": true,
+      "marker_at": 11.9862,
+      "mode": "CONFUSABLE",
+      "box": [
+        397,
+        87,
+        442,
+        100
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "Tounge",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 96.4,
+        "queue_ms": 0.0,
+        "frame_age_ms": 22.7,
+        "burst_to_result_ms": 218.9,
+        "loading_to_result_ms": null,
+        "posted_at": 93255.866516419,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 12,
+          "recognized": 1,
+          "words": [
+            {
+              "text": "Tounge",
+              "confidence": 0.998,
+              "box": [
+                397,
+                99,
+                442,
+                112
+              ]
+            }
+          ],
+          "elapsed_ms": 94.7
+        }
+      }
+    },
+    {
+      "repeat": 1,
+      "name": "Gimchigirl",
+      "goal": 15.0,
+      "found": true,
+      "marker_at": 15.0592,
+      "mode": "CONFUSABLE",
+      "box": [
+        1282,
+        401,
+        1343,
+        414
+      ],
+      "location_ok": true,
+      "deadline_met": false,
+      "errors": [],
+      "timing": {
+        "name": "Gimchigirl",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 109.0,
+        "queue_ms": 0.0,
+        "frame_age_ms": 13.0,
+        "burst_to_result_ms": 284.3,
+        "loading_to_result_ms": null,
+        "posted_at": 93259.437407346,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 3,
+          "recognized": 2,
+          "words": [
+            {
+              "text": "Championne",
+              "confidence": 0.983,
+              "box": [
+                304,
+                581,
+                365,
+                594
+              ]
+            },
+            {
+              "text": "Gimchigit",
+              "confidence": 0.953,
+              "box": [
+                1282,
+                401,
+                1343,
+                414
+              ]
+            }
+          ],
+          "elapsed_ms": 108.9
+        }
+      }
+    },
+    {
+      "repeat": 1,
+      "name": "NightxMare",
+      "goal": 3.8,
+      "found": true,
+      "marker_at": 2.8647,
+      "mode": "CONFUSABLE",
+      "box": [
+        413,
+        626,
+        485,
+        640
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "NightxMare",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 92.9,
+        "queue_ms": 0.0,
+        "frame_age_ms": 4.8,
+        "burst_to_result_ms": 127.6,
+        "loading_to_result_ms": null,
+        "posted_at": 93269.471081512,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 2,
+          "recognized": 2,
+          "words": [
+            {
+              "text": "Unfkabe",
+              "confidence": 0.959,
+              "box": [
+                649,
+                536,
+                717,
+                549
+              ]
+            },
+            {
+              "text": "it NightMare",
+              "confidence": 0.953,
+              "box": [
+                413,
+                626,
+                485,
+                640
+              ]
+            }
+          ],
+          "elapsed_ms": 90.0
+        }
+      }
+    },
+    {
+      "repeat": 1,
+      "name": "MrKimchi",
+      "goal": 24.5,
+      "found": true,
+      "marker_at": 23.532,
+      "mode": "CONFUSABLE",
+      "box": [
+        839,
+        522,
+        894,
+        533
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "MrKimchi",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 113.2,
+        "queue_ms": 0.0,
+        "frame_age_ms": 1.7,
+        "burst_to_result_ms": 113.2,
+        "loading_to_result_ms": null,
+        "posted_at": 93273.259327768,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 1,
+          "recognized": 1,
+          "words": [
+            {
+              "text": "MrKimchi",
+              "confidence": 0.921,
+              "box": [
+                839,
+                522,
+                894,
+                533
+              ]
+            }
+          ],
+          "elapsed_ms": 100.8
+        }
+      }
+    },
+    {
+      "repeat": 2,
+      "name": "Ceci",
+      "goal": 9.0,
+      "found": true,
+      "marker_at": 8.616,
+      "mode": "CONFUSABLE",
+      "box": [
+        880,
+        583,
+        912,
+        596
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "Ceci",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 64.8,
+        "queue_ms": 0.0,
+        "frame_age_ms": 17.6,
+        "burst_to_result_ms": 143.0,
+        "loading_to_result_ms": null,
+        "posted_at": 93277.5283254,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 7,
+          "recognized": 1,
+          "words": [
+            {
+              "text": "Ceci",
+              "confidence": 0.995,
+              "box": [
+                880,
+                587,
+                912,
+                600
+              ]
+            }
+          ],
+          "elapsed_ms": 62.4
+        }
+      }
+    },
+    {
+      "repeat": 2,
+      "name": "Tounge",
+      "goal": 12.0,
+      "found": true,
+      "marker_at": 11.969,
+      "mode": "CONFUSABLE",
+      "box": [
+        397,
+        87,
+        442,
+        100
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "Tounge",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 92.5,
+        "queue_ms": 0.0,
+        "frame_age_ms": 9.5,
+        "burst_to_result_ms": 194.3,
+        "loading_to_result_ms": null,
+        "posted_at": 93281.838171416,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 12,
+          "recognized": 1,
+          "words": [
+            {
+              "text": "Tounge",
+              "confidence": 0.998,
+              "box": [
+                397,
+                99,
+                442,
+                112
+              ]
+            }
+          ],
+          "elapsed_ms": 91.0
+        }
+      }
+    },
+    {
+      "repeat": 2,
+      "name": "Gimchigirl",
+      "goal": 15.0,
+      "found": true,
+      "marker_at": 15.1011,
+      "mode": "CONFUSABLE",
+      "box": [
+        1282,
+        401,
+        1343,
+        414
+      ],
+      "location_ok": true,
+      "deadline_met": false,
+      "errors": [],
+      "timing": {
+        "name": "Gimchigirl",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 160.7,
+        "queue_ms": 0.0,
+        "frame_age_ms": 6.8,
+        "burst_to_result_ms": 333.1,
+        "loading_to_result_ms": null,
+        "posted_at": 93285.842364673,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 3,
+          "recognized": 2,
+          "words": [
+            {
+              "text": "Championne",
+              "confidence": 0.983,
+              "box": [
+                304,
+                581,
+                365,
+                594
+              ]
+            },
+            {
+              "text": "Gimchigit",
+              "confidence": 0.953,
+              "box": [
+                1282,
+                401,
+                1343,
+                414
+              ]
+            }
+          ],
+          "elapsed_ms": 160.5
+        }
+      }
+    },
+    {
+      "repeat": 2,
+      "name": "NightxMare",
+      "goal": 3.8,
+      "found": true,
+      "marker_at": 2.8666,
+      "mode": "CONFUSABLE",
+      "box": [
+        413,
+        626,
+        485,
+        640
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "NightxMare",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 98.7,
+        "queue_ms": 0.0,
+        "frame_age_ms": 0.5,
+        "burst_to_result_ms": 126.3,
+        "loading_to_result_ms": null,
+        "posted_at": 93289.67040037,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 2,
+          "recognized": 2,
+          "words": [
+            {
+              "text": "Unfkabe",
+              "confidence": 0.959,
+              "box": [
+                649,
+                536,
+                717,
+                549
+              ]
+            },
+            {
+              "text": "it NightMare",
+              "confidence": 0.953,
+              "box": [
+                413,
+                626,
+                485,
+                640
+              ]
+            }
+          ],
+          "elapsed_ms": 95.3
+        }
+      }
+    },
+    {
+      "repeat": 2,
+      "name": "MrKimchi",
+      "goal": 24.5,
+      "found": true,
+      "marker_at": 23.8067,
+      "mode": "CONFUSABLE",
+      "box": [
+        839,
+        522,
+        894,
+        533
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "MrKimchi",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 165.5,
+        "queue_ms": 0.0,
+        "frame_age_ms": 5.8,
+        "burst_to_result_ms": 385.8,
+        "loading_to_result_ms": null,
+        "posted_at": 93294.0027551,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 2,
+          "recognized": 1,
+          "words": [
+            {
+              "text": "Mrkimchi",
+              "confidence": 0.924,
+              "box": [
+                839,
+                522,
+                894,
+                533
+              ]
+            }
+          ],
+          "elapsed_ms": 165.4
+        }
+      }
+    },
+    {
+      "repeat": 3,
+      "name": "Ceci",
+      "goal": 9.0,
+      "found": true,
+      "marker_at": 8.6375,
+      "mode": "CONFUSABLE",
+      "box": [
+        880,
+        583,
+        912,
+        596
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "Ceci",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 85.7,
+        "queue_ms": 0.0,
+        "frame_age_ms": 18.0,
+        "burst_to_result_ms": 167.2,
+        "loading_to_result_ms": null,
+        "posted_at": 93298.216422333,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 7,
+          "recognized": 1,
+          "words": [
+            {
+              "text": "Ceci",
+              "confidence": 0.995,
+              "box": [
+                880,
+                587,
+                912,
+                600
+              ]
+            }
+          ],
+          "elapsed_ms": 81.1
+        }
+      }
+    },
+    {
+      "repeat": 3,
+      "name": "Tounge",
+      "goal": 12.0,
+      "found": true,
+      "marker_at": 11.973,
+      "mode": "CONFUSABLE",
+      "box": [
+        397,
+        87,
+        442,
+        100
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "Tounge",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 81.1,
+        "queue_ms": 0.0,
+        "frame_age_ms": 24.8,
+        "burst_to_result_ms": 197.8,
+        "loading_to_result_ms": null,
+        "posted_at": 93302.122698716,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 12,
+          "recognized": 1,
+          "words": [
+            {
+              "text": "Tounge",
+              "confidence": 0.998,
+              "box": [
+                397,
+                99,
+                442,
+                112
+              ]
+            }
+          ],
+          "elapsed_ms": 79.4
+        }
+      }
+    },
+    {
+      "repeat": 3,
+      "name": "Gimchigirl",
+      "goal": 15.0,
+      "found": true,
+      "marker_at": 15.0723,
+      "mode": "CONFUSABLE",
+      "box": [
+        1282,
+        401,
+        1343,
+        414
+      ],
+      "location_ok": true,
+      "deadline_met": false,
+      "errors": [],
+      "timing": {
+        "name": "Gimchigirl",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 134.3,
+        "queue_ms": 0.0,
+        "frame_age_ms": 3.6,
+        "burst_to_result_ms": 303.2,
+        "loading_to_result_ms": null,
+        "posted_at": 93305.385398804,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 3,
+          "recognized": 2,
+          "words": [
+            {
+              "text": "Championne",
+              "confidence": 0.983,
+              "box": [
+                304,
+                581,
+                365,
+                594
+              ]
+            },
+            {
+              "text": "Gimchigit",
+              "confidence": 0.953,
+              "box": [
+                1282,
+                401,
+                1343,
+                414
+              ]
+            }
+          ],
+          "elapsed_ms": 134.2
+        }
+      }
+    },
+    {
+      "repeat": 3,
+      "name": "NightxMare",
+      "goal": 3.8,
+      "found": true,
+      "marker_at": 2.8602,
+      "mode": "CONFUSABLE",
+      "box": [
+        413,
+        626,
+        485,
+        640
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "NightxMare",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 87.6,
+        "queue_ms": 0.0,
+        "frame_age_ms": 5.6,
+        "burst_to_result_ms": 121.5,
+        "loading_to_result_ms": null,
+        "posted_at": 93309.105983768,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 2,
+          "recognized": 2,
+          "words": [
+            {
+              "text": "Unfkabe",
+              "confidence": 0.959,
+              "box": [
+                649,
+                536,
+                717,
+                549
+              ]
+            },
+            {
+              "text": "it NightMare",
+              "confidence": 0.953,
+              "box": [
+                413,
+                626,
+                485,
+                640
+              ]
+            }
+          ],
+          "elapsed_ms": 84.6
+        }
+      }
+    },
+    {
+      "repeat": 3,
+      "name": "MrKimchi",
+      "goal": 24.5,
+      "found": true,
+      "marker_at": 23.4906,
+      "mode": "CONFUSABLE",
+      "box": [
+        839,
+        522,
+        894,
+        533
+      ],
+      "location_ok": true,
+      "deadline_met": true,
+      "errors": [],
+      "timing": {
+        "name": "MrKimchi",
+        "found": true,
+        "tracking_dropped": [],
+        "room": null,
+        "room_source": "visible text index",
+        "quick_pass": true,
+        "header_ms": 0.0,
+        "recognition_ms": 66.2,
+        "queue_ms": 0.0,
+        "frame_age_ms": 7.5,
+        "burst_to_result_ms": 66.2,
+        "loading_to_result_ms": null,
+        "posted_at": 93312.922464526,
+        "verification": {
+          "method": "selected-word English verification",
+          "regions": 1,
+          "recognized": 1,
+          "words": [
+            {
+              "text": "MrKimchi",
+              "confidence": 0.921,
+              "box": [
+                839,
+                522,
+                894,
+                533
+              ]
+            }
+          ],
+          "elapsed_ms": 66.1
+        }
+      }
+    }
+  ]
+}

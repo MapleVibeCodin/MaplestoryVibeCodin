@@ -1,0 +1,31 @@
+FM RUSH v24.13 — ONE BOUGHT FOLDER
+
+Close the old app, extract into a fresh folder, and run the top-level
+START_FM_RUSH.bat. Confirm v24.13. No extension update is needed if you already
+use extension 24.11.0; keep screenshot saving enabled.
+
+After buying an item:
+1. Select its listing in the FIND NAME queue.
+2. Click BOUGHT · SAVE PNG / NEXT.
+3. Click OPEN BOUGHT whenever you want to browse purchases for relisting.
+
+All purchase screenshots go directly into Downloads/Bought, with no seller/date
+subfolders. The original listing card retains its visible stats and resale
+information. Filenames include item, seller and purchase price.
+
+The app copies the exact listing PNG already saved by the extension, then marks
+that deal complete and advances the queue. Original screenshots remain intact.
+It never substitutes the newest card or a different listing from the same seller.
+If the screenshot cannot be found, choose the FM_Rush_Item_Screenshots folder;
+custom source folders are remembered. Cancel to wait for the original capture.
+Missing/broken images or copy failures leave the deal pending.
+
+Purchase status and screenshot path are kept in the persistent archive and its
+JSON export. UNDO DONE reopens the deal but keeps the PNG. Clicking BOUGHT again
+reuses that file. A failed archive write can be retried without duplicate PNGs.
+Existing listings, archives, room-entry scanning and red markers are preserved.
+
+Validation: 18 targeted purchase/archive/controller tests passed, including exact
+listing matching, flat folder layout, custom source directories, PNG validation,
+restart persistence, undo/retry, and disk/archive failure handling. Native Windows
+folder opening and button layout require a Windows session to verify visually.

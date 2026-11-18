@@ -6,11 +6,34 @@ import cv2
 import numpy as np
 from name_finder import NameFinder
 from fm_entry_gate import SnapshotGate
+from scan_budget import ScanDutyBudget
 from fast_shop_match import candidates
 
 
+MISS_RETRY_DELAYS = (.15, .35, .70, 1.20)
+
+
+def target_key(raw):
+    name,generation=raw if isinstance(raw,tuple) else (raw or '',0)
+    return ((name or '').strip(),generation)
+
+
+def name_region_changed(before, after, box):
+    if before.shape != after.shape:
+        return True
+    x,y,r,b=box
+    # Ignore the avatar animation above the label; watch the name itself.
+    a=before[max(0,y):b,max(0,x):r]
+    fresh=after[max(0,y):b,max(0,x):r]
+    return not a.size or float(np.mean(np.abs(a.astype(np.int16)-fresh.astype(np.int16))))>24
+
+
 def signature(bgr):
-    return cv2.resize(bgr,(48,28),interpolation=cv2.INTER_AREA).astype(np.int16)
+    # Motion needs a scene summary, not an area average over every source pixel.
+    # The name itself is checked at full resolution by name_region_changed().
+    h,w=bgr.shape[:2]
+    step=max(1,min(h//112,w//192))
+    return cv2.resize(bgr[::step,::step],(48,28),interpolation=cv2.INTER_AREA).astype(np.int16)
 
 
 class FastShopWorker(threading.Thread):
@@ -27,14 +50,18 @@ class FastShopWorker(threading.Thread):
             self.post(('shop_note','STARTUP ERROR: '+str(exc)[:150]))
             return
         gate=SnapshotGate(settle_seconds=0.0)
+        duty=ScanDutyBudget()
         last_key=None;last_version=-1;reference=None
-        pending=False;retry_at=None;retry_left=0
+        matched_frame=None;matched_box=None
+        pending=False;retry_at=None;retry_index=0
         while not self.stop.is_set():
-            raw=self.get_target()
-            raw=raw if isinstance(raw,tuple) else (raw or '',0)
-            key=((raw[0] or '').strip(),raw[1])
+            key=target_key(self.get_target())
             if key!=last_key:
-                last_key=key;pending=bool(key[0]);reference=None;retry_at=None;retry_left=0
+                last_key=key;pending=bool(key[0]);reference=None;retry_at=None;retry_index=0
+                matched_frame=None;matched_box=None
+                # Startup can happen halfway through a fade, before any black frame.
+                gate.reset()
+                gate.loading=True
                 self.post(('shop_clear',key))
                 self.post(('shop_note','READY · '+key[0]))
             frame=self.frames.latest(last_version)
@@ -45,44 +72,62 @@ class FastShopWorker(threading.Thread):
             sig=signature(bgr)
             if gate.invalidated:
                 self.post(('shop_clear',key));pending=False;retry_at=None;reference=None
+                matched_frame=None;matched_box=None
             manual=self.retry.is_set()
             if manual:self.retry.clear()
+            if manual or trigger:pending=True
             # Clear stale coordinates after camera movement. Settle briefly,
             # then search once; animated characters alone do not cause a loop.
-            if reference is not None and np.mean(np.abs(sig-reference))>28:
+            scene_changed=(reference is not None and np.mean(np.abs(sig-reference))>28)
+            label_changed=(matched_box is not None and
+                           name_region_changed(matched_frame,bgr,matched_box))
+            if scene_changed or label_changed:
                 self.post(('shop_clear',key));reference=sig
-                retry_at=time.monotonic()+.10;retry_left=0
+                retry_at=time.monotonic()+.10;retry_index=0
+                matched_frame=None;matched_box=None
             due=retry_at is not None and time.monotonic()>=retry_at
             if not (trigger or pending or manual or due) or gate.loading:
                 self.stop.wait(.008);continue
+            wait=duty.remaining(time.monotonic())
+            if wait>0:
+                self.stop.wait(min(.008,wait));continue
             # A stable visible frame is required even for a new deal/manual find.
             if float(np.mean(bgr[::24,::24]))<30:continue
-            if trigger or manual or pending:retry_left=1
+            if trigger or manual or pending:retry_index=0
             pending=False;retry_at=None
             started=time.perf_counter()
+            cpu_started=time.thread_time()
             try:
                 engine.prepare(key[0],bgr.shape[1])
-                hit=engine.scan(bgr,key[0])
+                hit=engine.scan(bgr,key[0],cancelled=lambda: self.stop.is_set() or
+                                target_key(self.get_target())!=key)
             except Exception as exc:
                 self.post(('shop_note','NAME FINDER ERROR: '+str(exc)[:150]));continue
+            finally:
+                duty.charge(time.thread_time()-cpu_started,time.monotonic())
             if self.stop.is_set():break
-            current=self.get_target();current=current if isinstance(current,tuple) else (current or '',0)
-            if ((current[0] or '').strip(),current[1])!=key:continue
+            if target_key(self.get_target())!=key:continue
             latest=self.frames.peek(ver) if hasattr(self.frames,'peek') else None
             if latest is not None:
                 _,fresh_ts,fresh=latest
-                if np.mean(np.abs(signature(fresh)-sig))>28:
+                if (fresh.shape!=bgr.shape or
+                        np.mean(np.abs(signature(fresh)-sig))>28 or
+                        (hit is not None and name_region_changed(bgr,fresh,hit.box))):
                     gate.observe(fresh,now=fresh_ts)
                     self.post(('shop_clear',key));pending=not gate.loading;reference=None
+                    matched_frame=None;matched_box=None
                     continue
             reference=sig
+            matched_frame=bgr if hit else None
+            matched_box=hit.box if hit else None
             ms=round((time.perf_counter()-started)*1000,1)
             h,w=bgr.shape[:2]
-            mode=('FOUND' if hit.mode=='EXACT' else 'LIKELY · CHECK NAME') if hit else 'NOT VISIBLE'
+            mode=('FOUND' if hit.mode=='EXACT' else 'LIKELY · CHECK NAME') if hit else ('RETRYING' if retry_index<len(MISS_RETRY_DELAYS) else 'NOT VISIBLE')
             self.post(('shop_frame',key,None,(w,h),hit.box if hit else None,
                        mode,hit.text if hit else '',ms,'NAME MATCH'))
-            if hit is None and retry_left:
-                retry_left-=1;retry_at=time.monotonic()+.15
+            if hit is None and retry_index<len(MISS_RETRY_DELAYS):
+                retry_at=time.monotonic()+MISS_RETRY_DELAYS[retry_index]
+                retry_index+=1
 
 def from_tesseract(data,target,offset_y=0):
     if not data or not data.get('text'):

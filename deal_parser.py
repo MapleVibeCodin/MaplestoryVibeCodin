@@ -18,13 +18,16 @@ HEADER_RE = re.compile(r'^(?:henefm|buy\b|resell\b|profit\b|sells?\s+in\b|where\
 
 @dataclass(frozen=True)
 class Deal:
-    cc: int
-    fm: int
+    cc: int | None
+    fm: int | None
     item: str
     stats: str
     ign: str
     buy_mesos: int | None
     profit: ProfitDecision
+    listing_id: str = ''
+    sold: bool = False
+    raw_text: str = ''
 
     @property
     def buy_label(self) -> str:

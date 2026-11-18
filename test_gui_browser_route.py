@@ -7,6 +7,19 @@ from henefm_bridge import HOST,PORT
 
 @unittest.skipIf(os.name!='nt' and not os.environ.get('DISPLAY'),'No GUI display available')
 class TestBrowserToApp(unittest.TestCase):
+    def tearDown(self):
+        import gc
+        gc.collect()
+
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        self.temp=tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        for field,path in [('ARCHIVE_DIR',Path(self.temp.name)/'archives'),('CONFIG',Path(self.temp.name)/'config.json')]:
+            patcher=patch('fm_rush.'+field,path);patcher.start();self.addCleanup(patcher.stop)
+
     def test_browser_deal_updates_bottom_and_target(self):
         app=FMApp()
         try:
@@ -18,6 +31,14 @@ class TestBrowserToApp(unittest.TestCase):
             result=conn.getresponse()
             self.assertEqual(result.status,200)
             result.read();conn.close()
+            app.pump()
+            self.assertEqual(app.shop_target,'')
+            self.assertEqual(app.scan_names,())
+            good.update(_choice_session='click-tab',_choice_revision=1)
+            conn=http.client.HTTPConnection(HOST,PORT,timeout=3)
+            conn.request('POST','/select',json.dumps(good),headers={'Content-Type':'application/json',
+                       'X-FM-Rush-Bridge':'v17-browser-view','Origin':'chrome-extension://test'})
+            response=conn.getresponse();self.assertEqual(response.status,200);response.read();conn.close()
             app.pump()
             self.assertEqual((app.current_cc,app.current_fm),(30,5))
             self.assertEqual(app.shop_target,'Hyperborean')

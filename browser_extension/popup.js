@@ -28,9 +28,10 @@ async function readStatus(){
     $('parsed').textContent=sc.parsedCards??'—';
     $('qualified').textContent=sc.qualifyingDeals??'—';
     $('sent').textContent=sc.sent??'—';
+    $('live-time').textContent=ago(sc.liveSentAt);
     $('queued').textContent=sc.queued??'—';
     $('scanner-time').textContent=ago(sc.lastScanAt);
-    $('scanner-error').textContent=sc.lastError||'None';
+    $('scanner-error').textContent=sc.liveError||sc.lastError||'None';
     const captureStatus=await chrome.runtime.sendMessage({kind:'fm-rush-capture-status'});
     if (captureStatus?.ok) {
       $('capture').checked=captureStatus.enabled;
@@ -48,8 +49,8 @@ async function init(){
   const saved=await chrome.storage.local.get({fmRushIntervalMs:1200,fmRushBackupReload:false});
   $('speed').value=String(intervals.has(saved.fmRushIntervalMs)?saved.fmRushIntervalMs:1200);
   $('backup').checked=saved.fmRushBackupReload===true;
-  const captureSettings=await chrome.storage.local.get({fmRushScreenshotEnabled:true});
-  $('capture').checked=captureSettings.fmRushScreenshotEnabled!==false;
+  const captureSettings=await chrome.storage.local.get({fmRushScreenshotEnabled:false});
+  $('capture').checked=captureSettings.fmRushScreenshotEnabled===true;
   $('capture').addEventListener('change',async()=>{
     await chrome.runtime.sendMessage({kind:'fm-rush-capture-toggle',enabled:$('capture').checked});
     readStatus();

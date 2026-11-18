@@ -1,0 +1,38 @@
+FM Rush v24.11 — All visible listings, persistent queue and large shop markers
+
+Update the Windows app AND reload the new browser_extension directory.
+Run the top-level START_FM_RUSH.bat; the title must say v24.11.
+
+- Browser forwarding has no profit/sold-status eligibility filter. All rendered
+  listings are retained, including missing metrics; unknown values stay unknown.
+- New listings are archived locally before acknowledgment. Offline pending
+  deliveries survive tab reloads and disappearance from the page; none are
+  evicted by the old 30-listing queue limit.
+- The working deal stays selected until you choose another row or DONE / NEXT
+  DEAL. UNDO DONE restores the last completed item. Pending and completed
+  listings persist across app restarts.
+- One worker searches every pending seller, retaining earlier results when
+  new sellers arrive. It shares the one-thread OCR / CPU cooldown budget,
+  retries each missing seller a bounded number of times, and rechecks on
+  room changes, movement, manual retry or another listing from that seller.
+- Multiple shops can remain marked at once: large red boxes, thick downward
+  arrows, white outlines and IGN labels. Ambiguity remains CHECK NAME.
+- Screenshots use IGN folders. Card locations are re-resolved before capture
+  so moved/vanished listings are not saved under stale seller labels.
+- EXPORT ARCHIVE writes JSON grouped by IGN. Windows stores live metadata in
+  %LOCALAPPDATA%\FM_Rush\archives\deal_archive.sqlite3.
+
+No new dependencies or extension permissions. Discord thresholds remain
+15,000 mesos AND 15%; only the browser feed is unfiltered.
+
+TEST_LOCATOR.bat covers recognition, durable receipt, queue selection,
+multiple-seller scheduling, CPU sharing and marker geometry. Offline Chromium
+checks verify that displayed active/sold cards route without changing the page.
+Live Windows rendering and end-to-end latency still require a game check.
+
+New screenshot replay covers suc2er, IamNotty, Meryelse, RavenNoir,
+Hyouden and BigChui with in-game marker-coordinate checks. Browser-only
+sellers from other rooms and incorrect spellings remain no-match checks.
+
+Validation: 84 Python tests passed; four GUI/external-fixture checks skipped.
+Five Node checks and an offline Chromium DOM/delivery check passed.

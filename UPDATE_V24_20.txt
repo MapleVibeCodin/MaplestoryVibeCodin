@@ -1,0 +1,41 @@
+FM RUSH v24.20 — NATIVE LABELS AND AFTER-ARRIVAL SCANNING
+
+Fixed a reproduced control-flow bug: changing to another live seller after an
+entry burst finished previously only changed priority, leaving the finder idle.
+A changed selection now starts a bounded, header-checked search inside the room.
+Repeated selections/heartbeats for the same target do not create an OCR loop.
+Expired/off-page selections cannot reactivate historical sellers.
+
+Changing the selection preserves still-visible verified labels and their original
+two-minute retention timestamps. Loading and capture changes still invalidate
+screen coordinates. Failed full recovery reads are included in the existing
+scan-timing export, with proposed text/confidence but no saved screenshot.
+
+The fast template pass now includes native 1:1 lettering again, alongside the
+video/display scales. A bounded weak-proposal path still requires two full-name
+reads. Repeated trailing characters get horizontally expanded verification that
+follows the visible run to its end; adjacent-name interference gets tight reads.
+A repeated visible internal gap can yield CHECK for one covered letter, never
+an exact identity claim.
+
+The eight new files were replayed unchanged within a native-size canvas to test
+recognition independently of the missing room headers. Six returned correct
+label positions: DeathVeil, MrSogiamo and Sykes exact; JwenZzzzz, SillySpend and
+Mechanicus CHECK. Five used the fast entry pass; rope-covered Mechanicus used
+recovery. HisCapybara and Kethan remain unverified because their crops physically
+cut through name lettering. Uncropped game frames are needed for those two.
+Wrong names, truncated prefixes and different repeated-letter counts are tested
+as negatives. No hidden letters are reconstructed from a filename.
+
+App v24.20; browser extension stays 24.17.0. Clean downloads contain no test
+fixtures, screenshots, videos, update tools or update notes. Existing purchase
+records and settings remain compatible.
+
+Validation: full 178-test suite passed 177 tests with one unavailable external
+fixture skipped. Three final selection/cached-frame regressions also passed.
+Three current-version real-time replays per movement clip returned correct
+marker positions before all supplied callback deadlines: Ceci 8.6620–8.6642 s,
+Tounge 11.8321–11.8365 s, Gimchigirl 14.9806–14.9895 s (CHECK NAME).
+These end at the software callback on Linux, not Windows screen rendering.
+The final deadline has almost no display margin. Native Windows capture and
+competitive timing remain unverified; no guaranteed racing advantage is claimed.

@@ -92,6 +92,20 @@ class WindowFrames:
         self._capture_control = None
         self.error = ''
         self._capture = None
+        self._dark=False
+        self._loading_epoch=0
+        self._loading_at=None
+
+    def set_interval(self,interval_ms):
+        self.interval_ms=max(16,int(interval_ms))
+
+    @property
+    def loading_epoch(self):
+        with self._lock:return self._loading_epoch
+
+    @property
+    def loading_started(self):
+        with self._lock:return self._loading_at
 
     def start(self):
         from windows_capture import WindowsCapture
@@ -100,20 +114,24 @@ class WindowFrames:
         self._capture = WindowsCapture(window_hwnd=self.hwnd,
                                        cursor_capture=False,
                                        draw_border=False,
-                                       minimum_update_interval=self.interval_ms)
+                                       minimum_update_interval=16)
 
         @self._capture.event
         def on_frame_arrived(frame, control):
             try:
-                # Enforce a second rate-limit in callback. Some capture backends
-                # ignore minimum_update_interval; cap copies at about 60 per second; recognition is still event-driven.
-                now = time.perf_counter()
-                if now - self._last_copied < self.interval_ms / 1000.0:
-                    return
-                self._last_copied = now
-                # BGRA -> BGR. Copy only after the cheap timestamp check.
+                # Watch sparse loading tiles even when idle frame copies slow down.
                 import numpy as np
-                a = frame.frame_buffer
+                now=time.monotonic();a=frame.frame_buffer
+                h,w=a.shape[:2]
+                dark=sum(float(a[int((y-.06)*h):int((y+.06)*h):16,
+                                 int((x-.06)*w):int((x+.06)*w):16,:3].mean())<24
+                         for x,y in ((.25,.25),(.75,.25),(.5,.5),(.25,.7),(.75,.7)))>=4
+                transition=dark!=self._dark
+                if dark and not self._dark:
+                    with self._lock:self._loading_epoch+=1;self._loading_at=now
+                self._dark=dark
+                if not transition and now-self._last_copied<self.interval_ms/1000.:return
+                self._last_copied=now
                 bgr = np.array(a[:, :, :3], copy=True, order="C")
                 with self._lock:
                     self._frame = bgr

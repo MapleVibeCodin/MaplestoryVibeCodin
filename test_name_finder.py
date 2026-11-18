@@ -56,3 +56,27 @@ class NameFinderTests(unittest.TestCase):
         self.assertIsNotNone(hit)
         self.assertEqual(hit.mode,'EXACT')
         self.assertTrue(hit.box[0]<430<hit.box[2])
+
+    def test_new_readable_names_below_old_visual_cutoff(self):
+        # Only the game client; the browser's seller text must never count as a hit.
+        image=cv2.imread(str(ROOT/'Screenshot 2026-11-16 141643.png'))[210:978,1:1360]
+        for name,point in [('MilkToast',(888,108)),('FightClub',(766,325))]:
+            with self.subTest(name=name):
+                hit=self.finder.scan(image,name)
+                self.assertIsNotNone(hit,self.finder.last_diagnostic)
+                self.assertEqual(hit.mode,'EXACT')
+                l,t,r,b=hit.box
+                self.assertTrue(l<=point[0]<=r and t<=point[1]<=b,hit)
+                self.assertEqual(self.finder.last_diagnostic['proposal_threshold'],.48)
+
+    def test_recovery_does_not_accept_prefixes_or_similar_sellers(self):
+        image=cv2.imread(str(ROOT/'Screenshot 2026-11-16 141643.png'))[210:978,1:1360]
+        for name in ('MilkToas','MilkT','MilkToost','FightClu','FightClubs','Ballor'):
+            with self.subTest(name=name):
+                self.assertIsNone(self.finder.scan(image,name),self.finder.last_diagnostic)
+
+    def test_superseded_target_cancels_before_expensive_search(self):
+        from unittest.mock import patch
+        with patch.object(self.finder,'_candidates',side_effect=AssertionError('stale search')):
+            self.assertIsNone(self.finder.scan(self.room,'Melonade',cancelled=lambda:True))
+        self.assertTrue(self.finder.last_diagnostic['cancelled'])

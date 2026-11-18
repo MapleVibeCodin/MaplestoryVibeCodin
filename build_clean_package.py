@@ -1,0 +1,86 @@
+"""Build the essential Windows app/extension ZIP, excluding development data."""
+import argparse
+import ast
+import json
+from pathlib import Path
+from zipfile import ZipFile,ZIP_DEFLATED
+
+ROOT=Path(__file__).parent
+
+
+def runtime_modules(root=ROOT):
+    modules={path.stem:path for path in root.glob('*.py')}
+    needed=set();todo=['fm_rush']
+    while todo:
+        name=todo.pop()
+        if name in needed:continue
+        needed.add(name)
+        for node in ast.walk(ast.parse(modules[name].read_text(encoding='utf-8'))):
+            imports=([node.module.split('.')[0]] if isinstance(node,ast.ImportFrom) and node.module else
+                     [alias.name.split('.')[0] for alias in node.names] if isinstance(node,ast.Import) else [])
+            todo.extend(value for value in imports if value in modules and value not in needed)
+    return [modules[name].relative_to(root).as_posix() for name in sorted(needed)]
+
+
+def build(output,root=ROOT):
+    version=json.loads((root/'UPDATE_MANIFEST.json').read_text())['version']
+    extension=json.loads((root/'browser_extension/manifest.json').read_text())['version']
+    files=runtime_modules(root)+['START_FM_RUSH.bat','START_FM_RUSH.ps1','requirements.txt','requirements-fast.txt',
+        'assets/english_name_rec.onnx','assets/english_name_rec.json','assets/ENGLISH_OCR_LICENSE.txt','assets/name_font.ttf','assets/name_font_LICENSE.txt','assets/channel_menu.npz']
+    files+=['browser_extension/'+name for name in ['manifest.json','background.js','content.js','popup.html',
+        'popup.js','refresh_2s.js','screenshot_worker.js']]
+    readme=f'''FM RUSH — CLEAN EDITION (app {version} / extension {extension})
+
+1. Extract this entire ZIP into one folder. Do not run it from inside the ZIP.
+2. Double-click START_FM_RUSH.bat. Keep the other files in place.
+   First launch installs Python 3.12 if needed and downloads dependencies.
+   Internet is required for setup. Later launches reuse the local environment.
+3. Open brave://extensions and enable Developer mode.
+   Remove the old FM Rush extension, click Load unpacked, and select the
+   browser_extension folder inside this new FM Rush folder.
+4. Reload https://henefm.com/flips/deals and select your buyer's game window.
+5. The compact strip opens under MapleStory when there is room. Use
+   Tools > Place under game after moving your game window. Open Inventory
+   or the Trade Desk from the strip when you need the full controls.
+6. Keep your three-minute HeneFM filter. Click a listing or its CHASE button.
+   Only that seller is searched. Incoming listings never select themselves.
+   SKIP on HeneFM skips that listing; Ctrl+Alt+N skips your current selection.
+   BOUGHT logs the selected purchase and clears the target. Choose the next
+   listing yourself; skipping never records a purchase or spends cash.
+
+A green outline confirms the browser choice was delivered. Install/reload this
+extension version (24.22.0) and reload HeneFM once for the new click controls.
+A transparent red cell/arrow highlights your destination on the actual game
+channel menu when it opens. The overlay follows the selected game window and
+lets your clicks pass through. It hides when the menu closes.
+
+The reader starts during the early room fade, searches one selected seller,
+and accepts three clear distinctive letters as CHECK NAME. The essential OCR
+model and small channel-menu reference are included. Keep assets intact.
+Live Windows capture/display timing still needs checking.
+
+Ctrl+Alt+B records the selected purchase. View prices in Trade Desk > Inventory.
+Ctrl+Alt+N skips the selected deal; Ctrl+Alt+F retries the name finder.
+Automatic screenshots are off by default. Optional screenshots can be enabled
+in the extension popup. This ZIP contains no screenshots or personal data.
+
+Existing Windows purchase records are reused automatically from:
+%LOCALAPPDATA%\\FM_Rush\\archives
+To retain old window/settings preferences, copy your old config.json into this
+folder before starting. Otherwise the app creates fresh local preferences.
+Do not delete your old folder until you have checked your records here.
+
+This package contains only the app, required assets, extension and launcher.
+No old versions, update tools, update notes, tests, sample images or videos.
+Dependencies are installed on first launch rather than bundled in the ZIP.
+'''
+    output=Path(output);output.parent.mkdir(parents=True,exist_ok=True)
+    with ZipFile(output,'w',ZIP_DEFLATED,compresslevel=9) as archive:
+        for name in sorted(files):archive.write(root/name,'FM_Rush/'+name)
+        archive.writestr('FM_Rush/READ_ME_FIRST.txt',readme)
+    return dict(version=version,files=len(files)+1,bytes=output.stat().st_size,path=str(output))
+
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser();parser.add_argument('--output',default=str(ROOT.parent/'FM_Rush_Clean.zip'))
+    print(json.dumps(build(parser.parse_args().output)))

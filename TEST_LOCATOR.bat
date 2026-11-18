@@ -5,5 +5,5 @@ if not exist ".venv\Scripts\python.exe" (
   pause
   exit /b 1
 )
-".venv\Scripts\python.exe" -m unittest test_name_finder test_reported_misses test_name_worker test_fast_gate -v
+".venv\Scripts\python.exe" -m unittest test_name_finder test_fast_queue_sweep test_reported_misses test_new_screenshot_names test_uploaded_reader_names test_video_entry_regressions test_failed_shop_labels test_name_worker test_fast_gate test_scan_budget test_verification_work test_multi_shop_worker test_room_entry_burst test_deal_archive test_trade_ledger test_trade_actions test_gui_trade_desk test_live_page test_bought_screenshots test_update_package test_deal_selection test_shop_marker test_browser_bridge -v
 pause
