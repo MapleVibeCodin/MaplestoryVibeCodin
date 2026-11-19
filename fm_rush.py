@@ -347,7 +347,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.25')
+        self.root.title('FM Rush v24.26')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -362,7 +362,8 @@ class FMApp:
         self.profit=tk.StringVar(value='PROFIT: —')
         self.buy=tk.StringVar(value='BUY AT: —')
         self.buy_quantity=tk.StringVar(value='1')
-        self.status=tk.StringVar(value='Choose a listing on HeneFM')
+        self.status=tk.StringVar(value='LIVE · following the newest HeneFM listing')
+        self.chase_label=tk.StringVar(value='LIVE · CHASE TO LOCK')
         self.manual=tk.StringVar(value='CC 22 FM 13')
         self.events=queue.Queue()
         self.worker=None
@@ -404,7 +405,7 @@ class FMApp:
         try:
             self.browser_bridge=BrowserBridge(self.events,self.archive)
             self.browser_bridge.start()
-            self.status.set('Choose a listing on HeneFM')
+            self.status.set('LIVE · following the newest HeneFM listing')
         except OSError as exc:
             self.status.set('HeneFM bridge not available: '+str(exc)[:100]+' • Discord OCR still works')
         if not self.web_only:self.schedule(0,self.try_start_shop)
@@ -451,6 +452,7 @@ class FMApp:
         ttk.Spinbox(controls,from_=1,to=999,textvariable=self.buy_quantity,width=4).pack(side='left')
         self.btn(controls,'Bought',self.log_purchase,True).pack(side='left',padx=4)
         self.btn(controls,'Skip',self.complete_deal).pack(side='left')
+        tk.Button(controls,textvariable=self.chase_label,command=self.toggle_chase,bg=YELLOW,fg=BG,relief='flat').pack(side='left',padx=4)
         if not self.web_only:
             self.btn(controls,'Find again',self.retry_shop_once).pack(side='left',padx=4)
         tools=tk.Menubutton(controls,text='Tools ▾',relief='flat',bg=CARD2,fg=FG,padx=8,pady=4)
@@ -546,6 +548,10 @@ class FMApp:
         self.map.attributes('-topmost',self.conf['topmost'])
         self.map.protocol('WM_DELETE_WINDOW',self.map.withdraw)
         tk.Label(self.map,text='FM ENTRANCE · 4 ROWS / 20 PORTALS',font=('Segoe UI',13,'bold'),bg=BG,fg=TEAL).pack(anchor='w',padx=10,pady=(8,0))
+        tk.Label(self.map,textvariable=self.ccfm,font=('Segoe UI',18,'bold'),bg=BG,fg=YELLOW).pack(anchor='w',padx=10)
+        tk.Label(self.map,textvariable=self.item,bg=BG,fg=FG).pack(anchor='w',padx=10)
+        tk.Label(self.map,textvariable=self.ign,bg=BG,fg=YELLOW).pack(anchor='w',padx=10)
+        tk.Button(self.map,textvariable=self.chase_label,command=self.toggle_chase,bg=YELLOW,fg=BG,relief='flat').pack(anchor='w',padx=10)
         self.map_canvas=tk.Canvas(self.map,bg=CARD,highlightthickness=0)
         self.map_canvas.pack(fill='both',expand=True,padx=8,pady=(5,8))
         self.map_canvas.bind('<Configure>',lambda _:self.draw_map())
@@ -576,7 +582,7 @@ class FMApp:
         for n,(x,y,_) in PORTALS.items():
             xx,yy=p(x,y)
             r=max(9,min(25,17*min(sx,sy)))
-            active=(n==self.current_fm)
+            active=(self.displayed_listing is not None and n==self.current_fm)
             c.create_oval(xx-r,yy-r,xx+r,yy+r,fill=YELLOW if active else '#2c425f',
                           outline=FG if active else '#8098ad',width=2,tags=(f'fm{n}',))
             c.create_text(xx,yy,text=str(n),fill=BG if active else FG,
@@ -594,6 +600,8 @@ class FMApp:
                     return
 
     def set_target(self,cc,fm,deal=None,keep_deal=False,source='MANUAL'):
+        if source=='MANUAL' and self.archive.chase_locked:
+            self.status.set('LOCKED · click UNLOCK before changing destination');return
         if deal is not None and source in ('WEB','DISCORD'):
             self.archive.record(deal);self.sync_archive();return
         self.current_cc=cc;self.current_fm=fm
@@ -662,6 +670,7 @@ class FMApp:
         grouped={}
         for _,deal in live_rows:grouped.setdefault(deal['fm'],[]).append(deal['ign'])
         self.scan_by_room={room:tuple(dict.fromkeys(values)) for room,values in grouped.items()}
+        self.chase_label.set('LOCKED · UNLOCK' if self.archive.chase_locked else 'LIVE · CHASE TO LOCK')
         key,deal=current if current else (None,None)
         if key!=self.displayed_listing:
             self.displayed_listing=key
@@ -676,6 +685,7 @@ class FMApp:
                     self.stats.set('STATS: '+deal.stats);self.profit.set(deal.profit.label)
                     self.buy.set(deal.buy_label);self.ccfm.set('CH / FM: not shown')
                 self.accepted_ign(deal.ign)
+                self.open_map()
             else:
                 self.accepted_ign('')
                 self.ccfm.set('Choose a deal');self.keys.set('')
@@ -685,6 +695,7 @@ class FMApp:
         elif deal is not None:
             self.item.set('ITEM: '+deal.item+(' · SOLD' if deal.sold else ''))
             self.profit.set(deal.profit.label)
+        if self.map is not None and self.map.winfo_exists():self.draw_map()
         if self.shop is not None and self.shop.winfo_exists():
             self.shop.render_queue(rows,key,available_names)
 
@@ -796,8 +807,18 @@ class FMApp:
                 subprocess.Popen(['open' if sys.platform=='darwin' else 'xdg-open',str(folder)])
         except OSError as exc:messagebox.showerror('Open Bought folder',str(exc))
 
+    def toggle_chase(self):
+        if self.archive.chase_locked:
+            self.archive.unlock()
+        else:
+            current=self.archive.current()
+            if current:self.archive.choose(current[0])
+        self.sync_archive()
+        self.status.set('LOCKED · incoming listings cannot replace this target' if self.archive.chase_locked else 'LIVE · following newest listing')
+
     def select_archived(self,key):
-        self.archive.select(key);self.sync_archive()
+        if not self.archive.choose(key):self.status.set('LOCKED · click UNLOCK first')
+        self.sync_archive()
 
     def undo_deal(self):
         self.archive.undo_complete();self.sync_archive()
@@ -960,20 +981,23 @@ class FMApp:
             elif evt[0]=='trade_find':
                 self.retry_shop_once()
             elif evt[0]=='browser_choice':
-                action,key,session,revision=evt[1:]
+                action,key,session,revision,reply=evt[1:]
                 versions=getattr(self,'choice_revisions',{})
-                if revision<=versions.get(session,0):continue
+                if revision<=versions.get(session,0):
+                    reply.put({'ok':False,'error':'stale_choice'});continue
                 versions[session]=revision
                 if len(versions)>32:versions.pop(next(iter(versions)))
                 self.choice_revisions=versions
                 if action=='select':
                     if not self.archive.choose(key):
-                        self.status.set('Listing already completed · choose another listing');continue
-                else:
-                    self.archive.skip(key)
+                        reply.put({'ok':False,'error':'LOCKED · click UNLOCK first, or listing completed'})
+                        self.status.set('LOCKED · click UNLOCK first, or listing completed');continue
+                elif action=='unlock':self.archive.unlock()
+                else:self.archive.skip(key)
                 self.sync_archive()
                 if action=='select':self.retry_shop_once()
-                self.status.set('Chasing selected listing' if action=='select' else 'Skipped · choose any listing')
+                reply.put({'ok':True})
+                self.status.set('LOCKED · UNLOCK to follow new listings' if self.archive.chase_locked else 'LIVE · following newest listing')
             elif evt[0]=='browser_visible':
                 self.sync_archive()
                 self.status.set(f'{len(self.archive.live_pending())} HeneFM listings available · selected: {self.shop_target or "none"}')
@@ -1102,3 +1126,4 @@ class FMApp:
 
 if __name__=='__main__':
     FMApp().root.mainloop()
+

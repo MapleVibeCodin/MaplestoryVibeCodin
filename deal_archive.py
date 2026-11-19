@@ -26,6 +26,7 @@ class DealArchive:
         self.db.execute('CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)')
         self._pending={key:json.loads(value) for key,value in self.db.execute(
             'SELECT id,data FROM listings WHERE done=0 ORDER BY seq')}
+        self.chase_locked=False
         self.focus=self._setting('focus')
         self.last_completed=self._setting('last_completed')
         self._live_keys=();self._live_seen=None;self._live_generation=0;self._live_revisions={}
@@ -85,7 +86,21 @@ class DealArchive:
             if not self.manual_selection and (self.focus is None or (first_page and self.focus not in keys)):
                 first=next((key for key in keys if key in self._pending),None)
                 if first:self.select(first)
+            if self.manual_selection:self.preview_latest()
             return True
+
+    def preview_latest(self):
+        """Follow the first pending card in page order, unless explicitly locked."""
+        with self.lock:
+            if self.chase_locked:return
+            key=next((key for key,_ in self.live_pending()),None)
+            if key is not None:self.select(key)
+            else:self.focus=None
+
+    def unlock(self):
+        with self.lock:
+            self.chase_locked=False
+            self.preview_latest()
 
     def live_state(self,now=None):
         with self.lock:
@@ -105,6 +120,8 @@ class DealArchive:
 
     def selected_names(self):
         with self.lock:
+            if self.chase_locked and self.focus in self._pending:
+                return (self._pending[self.focus]["deal"]["ign"],)
             if self.focus not in {key for key,_ in self.live_pending()}:return ()
             return (self._pending[self.focus]['deal']['ign'],)
 
@@ -134,15 +151,18 @@ class DealArchive:
 
     def choose(self,key):
         with self.lock:
+            if self.chase_locked and key!=self.focus:return False
             if key not in self._pending:
                 row=self.db.execute('SELECT data FROM listings WHERE id=?',(key,)).fetchone()
                 if row is None or not json.loads(row[0]).get('skipped'):return False
                 self.reopen(key)
             self.select(key)
+            self.chase_locked=True
             return True
 
     def select(self,key):
         with self.lock:
+            if self.chase_locked and key!=self.focus:return
             if key not in self._pending or key==self.focus:return
             self._save(key,self._pending[key],key)
 
@@ -173,6 +193,7 @@ class DealArchive:
 
     def reopen(self,key):
         with self.lock:
+            if self.chase_locked and key!=self.focus:return False
             row=self.db.execute('SELECT data FROM listings WHERE id=?',(key,)).fetchone()
             if row is None:return False
             record={**json.loads(row[0]),'done':False,'skipped':False}
@@ -181,6 +202,7 @@ class DealArchive:
 
     def undo_complete(self):
         with self.lock:
+            if self.chase_locked:return
             key=self.last_completed
             if key is None:return
             row=self.db.execute('SELECT data FROM listings WHERE id=?',(key,)).fetchone()
@@ -197,3 +219,4 @@ class DealArchive:
 
     def close(self):
         with self.lock:self.db.close()
+

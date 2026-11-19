@@ -90,7 +90,7 @@ class BrowserBridge:
                     self._send(404, {'ok': False})
 
             def do_POST(self):
-                if self.path not in ('/deal','/visible','/select','/skip'):
+                if self.path not in ('/deal','/visible','/select','/skip','/unlock'):
                     self._send(404, {'ok': False})
                     return
                 # This is a local UI bridge, not a remote data service. Require
@@ -111,6 +111,7 @@ class BrowserBridge:
                     if size < 2 or size > (MAX_VISIBLE_BYTES if self.path=='/visible' else MAX_REQUEST_BYTES):
                         raise ValueError('invalid request size')
                     data = json.loads(self.rfile.read(size).decode('utf-8'))
+                    if not isinstance(data,dict):raise ValueError('request')
                     if self.path=='/visible':
                         if not isinstance(data,dict):raise ValueError('snapshot')
                         raw=data.get('deals');session=data.get('session');revision=data.get('revision')
@@ -133,17 +134,17 @@ class BrowserBridge:
                         except (queue.Full,OSError,ValueError,sqlite3.Error):
                             self._send(503,{'ok':False,'error':'busy'});return
                         self._send(200,{'ok':True,'live_listings':len(deals)});return
-                    deal = parse_browser_deal(data)
+                    deal = parse_browser_deal(data) if self.path!='/unlock' else None
                 except (ValueError, UnicodeError, json.JSONDecodeError):
-                    deal = None
-                if deal is None:
+                    self._send(422, {'ok':False,'error':'invalid_request'});return
+                if deal is None and self.path!='/unlock':
                     self._send(422, {'ok': False, 'error': 'invalid_listing'})
                     return
                 try:
                     new=True
                     key=None
-                    if archive is not None:key,new=archive.record(deal)
-                    if self.path in ('/select','/skip'):
+                    if archive is not None and deal is not None:key,new=archive.record(deal)
+                    if self.path in ('/select','/skip','/unlock'):
                         if archive is None:
                             self._send(503,{'ok':False,'error':'archive_not_ready'});return
                         # Intent is applied on the GUI thread so click, skip,
@@ -151,7 +152,11 @@ class BrowserBridge:
                         session=data.get('_choice_session');revision=data.get('_choice_revision')
                         if not isinstance(session,str) or not 1<=len(session)<=120 or isinstance(revision,bool) or not isinstance(revision,int) or not 1<=revision<=2**53:
                             self._send(422,{'ok':False,'error':'invalid_choice_sequence'});return
-                        out.put_nowait(('browser_choice',self.path[1:],key,session,revision))
+                        reply=queue.Queue(maxsize=1)
+                        out.put_nowait(('browser_choice',self.path[1:],key,session,revision,reply))
+                        try:result=reply.get(timeout=2.5)
+                        except queue.Empty:result={'ok':False,'error':'GUI busy; check lock indicator','retryable':True}
+                        self._send(200 if result['ok'] else 409,result);return
                     else:out.put_nowait(('browser_deal', deal,new))
                 except (queue.Full,OSError,ValueError,sqlite3.Error):
                     self._send(503, {'ok': False, 'error': 'busy'})
@@ -170,3 +175,4 @@ class BrowserBridge:
             try: self.server.shutdown()
             finally: self.server.server_close()
             self.server = None
+

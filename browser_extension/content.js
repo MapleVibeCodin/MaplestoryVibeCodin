@@ -215,12 +215,12 @@
     const serial=++selectionSerial;
     const {id,...payload}=deal;
     choiceError(card,'');
-    try { chrome.runtime.sendMessage({kind:action==='skip'?'fm-rush-skip-deal':'fm-rush-select-deal',deal:{...payload,_choice_session:liveSession,_choice_revision:serial}},response=>{
+    try { chrome.runtime.sendMessage({kind:action==='unlock'?'fm-rush-unlock-deal':action==='skip'?'fm-rush-skip-deal':'fm-rush-select-deal',deal:{...payload,_choice_session:liveSession,_choice_revision:serial}},response=>{
       if(serial!==selectionSerial)return;
       if(response?.ok && !chrome.runtime.lastError){
         if(action==='select')selectedListingId=payload.listing_id;
-        else if(selectedListingId===payload.listing_id)selectedListingId=null;
-        for(const previous of (action==='select'?document.querySelectorAll('[data-fm-rush-selected]'):(card.dataset.fmRushSelected?[card]:[]))){
+        else if(action==='unlock'||selectedListingId===payload.listing_id)selectedListingId=null;
+        for(const previous of (action!=='skip'?document.querySelectorAll('[data-fm-rush-selected]'):(card.dataset.fmRushSelected?[card]:[]))){
           previous.style.outline=previous.dataset.fmRushOldOutline||'';
           delete previous.dataset.fmRushSelected;
         }
@@ -229,7 +229,7 @@
           card.dataset.fmRushSelected='true';card.style.outline='3px solid #00c99a';
         }
       }else {
-        choiceError(card,'NOT SENT · start FM Rush and try again');
+        choiceError(card,response?.error || 'NOT SENT · start FM Rush and try again');
         console.warn('[FM Rush] Choice not delivered:',response?.error||chrome.runtime.lastError?.message);
       }
     }); }catch(error){choiceError(card,'NOT SENT · reload HeneFM');}
@@ -238,7 +238,7 @@
     if(!card.querySelector || card.querySelector('[data-fm-rush-controls]') || !document.createElement)return;
     const controls=document.createElement('div');controls.dataset.fmRushControls='true';
     controls.style.cssText='display:flex;gap:6px;justify-content:flex-end;margin:4px 8px;';
-    for(const [action,label] of [['select','CHASE'],['skip','SKIP']]){
+    for(const [action,label] of [['select','CHASE'],['unlock','UNLOCK'],['skip','SKIP']]){
       const button=document.createElement('button');button.type='button';button.textContent=label;
       button.style.cssText='cursor:pointer;padding:4px 12px;border:1px solid #087962;border-radius:5px;background:#f0fffa;color:#075c49;font-weight:bold;';
       button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();chooseDeal(card,action);});
@@ -324,7 +324,7 @@
     }
   }
   function syncLivePage(deals) {
-    const hash=deals.map(d=>d.id).sort().join('|');
+    const hash=deals.map(d=>d.id).join('|');
     if(liveSending || (hash===liveHash && Date.now()-liveSentAt<5000))return;
     liveSending=true;
     try {
@@ -368,7 +368,7 @@
   }
   function scheduleScan() {
     if (scanTimer !== null) return;
-    scanTimer = setTimeout(scan, 80);
+    scanTimer = setTimeout(scan, 0);
   }
   function init() {
     console.info('[FM Rush] Click a listing or CHASE to select one seller; SKIP never records a purchase.');
@@ -457,3 +457,4 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
   else init();
 })();
+
