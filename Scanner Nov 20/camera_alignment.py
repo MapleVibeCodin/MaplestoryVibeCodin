@@ -13,7 +13,7 @@ import time
 # Relative to the reference grass doorway's bottom center (1135, 773)
 # in a native-pixel FM 4 screenshot. All grass rooms share this terrain.
 _SIGNATURES = (
-    (-315, -423, ('eeddcceeddcceeddcceeddcceeddcceeddcc778888556677556677556677667777', 'eeddccddddcceecccceeddcceeddccddccccbbbbaabbaaaa445555556677777777aaaa99', 'eeccccddddcceeccccddddccbbaa99aa9999555555666655443333226644226655227755')),
+    (-315, -423, ('eeddcceeddcceeddcceeddcceeddcceeddcceeddcc778888556677556677556677667777', 'eeddccddddcceecccceeddcceeddccddccccbbbbaabbaaaa445555556677777777aaaa99', 'eeccccddddcceeccccddddccbbaa99aa9999555555666655443333226644226655227755')),
     (-195, -273, ('112233112222112233224455114455224455224466224455114455224455224466224455', '113344223344113355224444113344113344223344113344223344113344113344113333', '112233112233112233002222111122112222001122114488114488004488114499004499')),
     (-420, -223, ('11775511664433443333554433333355444422886611774411774422443333554444bb88', '225588114477114488114477114488224477115588114488114488115588114488114488', 'ddccccddddccddcccceeddddeeddddeeddccddddccddccccbbaaaa999988555566667788')),
     (-635, -452, ('22665522775522aa7744cc99339977115533002211002211002211002211339977449977', '00225588eecc77ddcc77ccbb66ddbb55ccaa77ddcc77ddcc44bb9966bbaa66bb99225544', '11665522775511664422996633bb8833aa7722886611554422774422bb88226644226655')),
@@ -103,6 +103,7 @@ def capture_client(client):
             return None
         if not g.BitBlt(mem,0,0,width,height,screen,left,top,0x00CC0020):
             return None
+        g.GdiFlush()
         return ctypes.string_at(pixels, stride*height), width, height, stride
     finally:
         if old: g.SelectObject(mem, old)
