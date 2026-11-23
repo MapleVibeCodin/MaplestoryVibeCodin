@@ -40,13 +40,13 @@ def entry_portal_point(room, client_size):
     """Return the portal threshold in the room's calibrated entry view."""
     width, height = client_size
     if room_theme(room) == 'grass':
-        # FM 1 and the supplied QueenOfWands view of FM 13 show the bottom
-        # platform lower in the client than the older grass-room entry clips.
-        bottom_margin = {1: 11, 13: 47}.get(room, 192)
+        # The newer FM 1, 3, 13, and 14 screenshots show lower entry views
+        # than the older grass-room clips. Keep their measured offsets.
+        bottom_margin = {1: 11, 3: 48, 13: 47, 14: 48}.get(room, 192)
         return width - 225, height - bottom_margin
-    # The cave door stands on its own raised platform. FM 7 and FM 9 have
-    # different vertical offsets in the supplied screenshot and entry clips.
-    return width // 2 + 58, height // 2 + {7: 121, 9: 149}.get(room, 108)
+    # The cave door stands on its own raised platform. Use the vertical
+    # offset measured for each room where an entry view is available.
+    return width // 2 + 58, height // 2 + {7: 121, 9: 149, 11: 97}.get(room, 108)
 
 
 def entry_shop_point(position, room, client_size, aligned_portal=None):
@@ -66,8 +66,10 @@ def shop_marker(point, client, window):
     left, top, width, height = client
     # This part of the sign is shared by player-shop bubbles and merchant
     # boards. Exclude the avatar, platform, and the rest of the booth.
-    l, t, r, b = x - 50, feet - 125, x + 50, feet - 94
-    if not (2 <= l < r <= width - 2 and 2 <= t < b <= height - 2):
+    # Keep the visible part of a sign that extends past the client edge.
+    l, t = max(2, x - 50), max(2, feet - 125)
+    r, b = min(width - 2, x + 50), min(height - 2, feet - 94)
+    if r <= l or b <= t:
         return None
     dx, dy = left - window[0], top - window[1]
     return l + dx, t + dy, r + dx, b + dy

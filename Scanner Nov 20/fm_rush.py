@@ -92,7 +92,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.43')
+        self.root.title('FM Rush v24.44')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 

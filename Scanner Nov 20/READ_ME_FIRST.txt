@@ -1,4 +1,4 @@
-FM RUSH v24.43 — SHOP PREVIEW
+FM RUSH v24.44 — SHOP PREVIEW
 
 1. Extract the ZIP and run START_FM_RUSH.bat from Scanner Nov 20.
 2. If you already use extension v24.39.0, keep it loaded. For a first install,
@@ -7,8 +7,8 @@ FM RUSH v24.43 — SHOP PREVIEW
 3. Select MapleStory in the FM Rush strip. Use Refresh if you open or restart the
    game after FM Rush.
 4. Click CHASE on a HeneFM deal. The red box is drawn immediately around the
-   projected clickable part of the shop sign. The yellow channel guide marks
-   the destination cell.
+   projected clickable part of the shop sign, including signs partly visible
+   at the game window edge. The yellow channel guide marks the destination cell.
 5. Open Change Channel in MapleStory. Press Ctrl+Alt+C to move the pointer to
    the selected yellow channel cell, then click the cell and confirm yourself.
    You can also use Tools > Move pointer to channel.
