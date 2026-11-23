@@ -48,13 +48,20 @@ class OverlayPin:
     def can_show(self, hwnd, rect, size, hits):
         return ctypes.windll.user32.GetForegroundWindow()==hwnd
 
+    def visible_hits(self, hwnd, rect, size, hits):
+        return hits if self.can_show(hwnd, rect, size, hits) else {}
+
     def follow(self,schedule=True):
         if self.closed:return
         if self.data and self.ready:
             hwnd,(sw,sh),hits=self.data
             user=ctypes.windll.user32
             rect=window_rect(hwnd)
-            if rect and not user.IsIconic(hwnd) and self.can_show(hwnd, rect, (sw,sh), hits):
+            if rect and not user.IsIconic(hwnd):
+                hits = self.visible_hits(hwnd, rect, (sw, sh), hits)
+            else:
+                hits = {}
+            if hits:
                 left,top,w,h=rect
                 if rect!=self.last_rect:
                     self.window.geometry(f'{w}x{h}{left:+d}{top:+d}');self.last_rect=rect
@@ -74,19 +81,20 @@ class OverlayPin:
 
 
 class ShopPreviewPin(OverlayPin):
-    def can_show(self, hwnd, rect, size, hits):
+    def visible_hits(self, hwnd, rect, size, hits):
         if super().can_show(hwnd, rect, size, hits):
-            return True
+            return hits
         left, top, width, height = rect
         sw, sh = size
-        for hit in hits.values():
+        visible = {}
+        for name, hit in hits.items():
             l, t, r, b = hit['box']
-            for x in (l, (l + r) / 2, r):
-                for y in (max(0, t - 50), t, b):
-                    if window_at_point(round(left + x * width / sw),
-                                       round(top + y * height / sh)) != hwnd:
-                        return False
-        return bool(hits)
+            check_top = t if hit['mode'] == 'MINIMAP' else max(0, t - 50)
+            if all(window_at_point(round(left + x * width / sw),
+                                   round(top + y * height / sh)) == hwnd
+                   for x in (l, (l + r) / 2, r) for y in (check_top, t, b)):
+                visible[name] = hit
+        return visible
 
     def draw_markers(self, w, h, sw, sh, hits):
         canvas = self.canvas
@@ -98,6 +106,10 @@ class ShopPreviewPin(OverlayPin):
             left, top, right, bottom = left * sx, top * sy, right * sx, bottom * sy
             x = (left + right) / 2
             mode = hit['mode']
+            if mode == 'MINIMAP':
+                for color, width in (('#121212', 5), ('white', 3), (accent, 2)):
+                    canvas.create_oval(left, top, right, bottom, outline=color, width=width)
+                continue
             if mode == 'SHOP':
                 # The hollow box keeps the store and its click target visible.
                 for color, width in (('#121212', 12), ('white', 8), (accent, 5)):

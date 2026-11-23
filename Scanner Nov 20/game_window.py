@@ -22,6 +22,8 @@ if sys.platform == 'win32':
     u32.GetWindowRect.restype = wintypes.BOOL
     u32.GetClientRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
     u32.ClientToScreen.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
+    u32.GetCursorPos.argtypes = [ctypes.POINTER(wintypes.POINT)]
+    u32.GetCursorPos.restype = wintypes.BOOL
     u32.WindowFromPoint.argtypes = [wintypes.POINT]
     u32.WindowFromPoint.restype = wintypes.HWND
     u32.GetAncestor.argtypes = [wintypes.HWND, wintypes.UINT]
@@ -92,3 +94,17 @@ def window_at_point(x: int, y: int) -> int | None:
         return None
     hwnd = u32.WindowFromPoint(wintypes.POINT(x, y))
     return u32.GetAncestor(hwnd, 2) if hwnd else None
+
+
+def cursor_on_client(hwnd: int, client: tuple[int, int, int, int]) -> tuple[int, int] | None:
+    """Get the pointer's client position when it is over this game window."""
+    if sys.platform != 'win32':
+        return None
+    point = wintypes.POINT()
+    if not u32.GetCursorPos(ctypes.byref(point)):
+        return None
+    left, top, width, height = client
+    x, y = point.x - left, point.y - top
+    if 0 <= x < width and 0 <= y < height and window_at_point(point.x, point.y) == hwnd:
+        return x, y
+    return None

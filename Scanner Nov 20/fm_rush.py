@@ -9,11 +9,11 @@ import re
 import time
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog, simpledialog
-from game_window import windows as list_game_windows, window_rect, window_client_rect
+from game_window import cursor_on_client, windows as list_game_windows, window_rect, window_client_rect
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
 from shop_pin import ShopPreviewPin
-from shop_position import entry_shop_point, shop_marker
+from shop_position import ENTRY_CLIENTS, entry_shop_point, minimap_shop_marker, shop_marker
 from trade_hotkeys import TradeHotkeys
 
 from deal_parser import parse_deal
@@ -90,7 +90,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.39')
+        self.root.title('FM Rush v24.40')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -120,6 +120,7 @@ class FMApp:
         self.channel_pin=ChannelPin(self.root)
         self.shop_pin = ShopPreviewPin(self.root, interval_ms=25)
         self._shop_preview = None
+        self._portal_alignment = None
         self._channel_preview = None
         self.shop=GameWindow(self)
         self._make_bottom()
@@ -391,6 +392,15 @@ class FMApp:
                 _, size, channel, box, mode = channel_preview
                 self.channel_pin.show_many(hwnd, size, {f'CH {channel}': {'box': box, 'mode': mode}})
 
+        alignment_key = (current[0], hwnd, client[2:]) if deal and client else None
+        aligned_portal = None
+        if self._portal_alignment is not None:
+            saved_key, portal = self._portal_alignment
+            if saved_key == alignment_key:
+                aligned_portal = portal
+            else:
+                self._portal_alignment = None
+
         preview = None
         if self.web_only:
             status = 'Web-only mode'
@@ -401,14 +411,18 @@ class FMApp:
         elif deal.shop_position is None:
             status = 'No map pin on this HeneFM deal'
         else:
-            point = entry_shop_point(deal.shop_position, client[2:])
+            point = entry_shop_point(deal.shop_position, deal.fm, client[2:], aligned_portal)
             if point is None:
                 status = 'Shop preview requires 1280 × 720 or 1366 × 768'
             else:
                 box, mode = shop_marker(point, client, window)
                 label = f'CH {deal.cc} · FM {deal.fm} · {deal.ign}'
-                preview = (hwnd, window[2:], label, box, mode)
-                status = 'Shop preview ready' if mode == 'SHOP' else 'Shop is ' + mode.lower() + ' of the entry view'
+                minimap_box = minimap_shop_marker(deal.shop_position, client, window)
+                preview = (hwnd, window[2:], label, box, mode, minimap_box)
+                if mode != 'SHOP':
+                    status = 'Shop is ' + mode.lower() + ' of the current guide'
+                else:
+                    status = 'Shop aligned to entry portal' if aligned_portal else 'Shop preview ready'
 
         if self.shop.notice.get() != status:
             self.shop.notice.set(status)
@@ -417,8 +431,24 @@ class FMApp:
             if preview is None:
                 self.shop_pin.hide()
             else:
-                hwnd, size, label, box, mode = preview
-                self.shop_pin.show_many(hwnd, size, {label: {'box': box, 'mode': mode}})
+                hwnd, size, label, box, mode, minimap_box = preview
+                self.shop_pin.show_many(hwnd, size, {
+                    label: {'box': box, 'mode': mode},
+                    'minimap': {'box': minimap_box, 'mode': 'MINIMAP'},
+                })
+
+    def align_shop_preview(self):
+        current = self.archive.current()
+        if not current or not self.archive.chase_locked or current[1].shop_position is None:
+            return
+        hwnd = None if self.web_only else self.shop.selected_hwnd()
+        client = window_client_rect(hwnd) if hwnd else None
+        portal = cursor_on_client(hwnd, client) if client and client[2:] in ENTRY_CLIENTS else None
+        if portal is None:
+            self.status.set('Hover over the bottom center of the FM doorway and press Ctrl+Alt+F')
+            return
+        self._portal_alignment = ((current[0], hwnd, client[2:]), portal)
+        self.refresh_overlays(current)
 
     def follow_overlays(self):
         self.refresh_overlays(self.archive.current())
@@ -480,7 +510,7 @@ class FMApp:
             if evt[0]=='trade_next':
                 self.next_live_deal()
             elif evt[0]=='trade_find':
-                self.refresh_overlays(self.archive.current())
+                self.align_shop_preview()
             elif evt[0]=='browser_choice':
                 action,key,session,revision,reply=evt[1:]
                 versions=getattr(self,'choice_revisions',{})
