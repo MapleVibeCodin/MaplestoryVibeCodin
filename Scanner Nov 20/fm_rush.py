@@ -183,7 +183,7 @@ class SelectRegion(tk.Toplevel):
                     'left':self.mon['left']+min(x0,x1),
                     'top':self.mon['top']+min(y0,y1),
                     'width':w,'height':h}
-                self.app.status.set(f'Discord region saved: {w}×{h}. Press START OCR.')
+                self.app.status.set(f'Discord region saved: {w}×{h}. Open Tools > Discord > Start OCR.')
                 self.app.save()
         self.finish()
 
@@ -285,7 +285,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.35')
+        self.root.title('FM Rush v24.36')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -393,7 +393,6 @@ class FMApp:
         controls.pack(fill='x',padx=12,pady=(4,0))
         self.shop.add_controls(controls)
         self.btn(controls,'Skip',self.complete_deal).pack(side='left')
-        self.btn(controls,'SVG MAP',self.open_svg_map).pack(side='left',padx=4)
         tk.Button(controls,textvariable=self.chase_label,command=self.toggle_chase,bg=YELLOW,fg=BG,relief='flat').pack(side='left',padx=4)
         if not self.web_only:
             self.btn(controls,'Find again',self.retry_shop_once).pack(side='left',padx=4)
@@ -402,7 +401,7 @@ class FMApp:
         tools.configure(menu=menu)
         for title,action in [('Place under game',self.snap),('Enter route',self.enter_route),
                              ('Channel grid',self.open_grid),('FM map',self.open_map),
-                             ('Live SVG route',self.open_svg_map),
+                             ('SVG Map',self.open_svg_map),
                              ('Export scanner timing',self.export_latency),
                              ('Export deal archive',self.export_archive),
                              ('Reopen last skipped deal',self.undo_deal)]:
@@ -410,10 +409,11 @@ class FMApp:
         if not self.web_only:
             menu.add_separator()
             menu.add_command(label='Start or pause locator',command=self.toggle_shop_scan)
-            menu.add_command(label='Choose Discord alert area',command=self.pick_discord)
-            self.ocr_menu_index=menu.index('end')+1
-            menu.add_command(label='Start Discord OCR',command=self.toggle_discord)
-            self.ocr_menu=menu
+            self.ocr_menu=tk.Menu(menu,tearoff=False)
+            self.ocr_menu.add_command(label='Choose alert area',command=self.pick_discord)
+            self.ocr_menu.add_command(label='Start OCR',command=self.toggle_discord)
+            self.ocr_menu_index=self.ocr_menu.index('end')
+            menu.add_cascade(label='Discord',menu=self.ocr_menu)
         tools.pack(side='right')
 
         footer=tk.Frame(self.root,bg=BG)
@@ -868,16 +868,16 @@ class FMApp:
     def toggle_discord(self):
         if self.running:
             self.stop.set();self.running=False
-            self.ocr_menu.entryconfigure(self.ocr_menu_index,label='Start Discord OCR')
+            self.ocr_menu.entryconfigure(self.ocr_menu_index,label='Start OCR')
             self.status.set('Discord OCR stopped.')
             return
         if not self.conf['discord_region']:
-            self.status.set('First select a Discord alert area using PICK DISCORD.')
+            self.status.set('Open Tools > Discord > Choose alert area first.')
             return
         self.stop=threading.Event()
         self.worker=DiscordWatcher(lambda:self.conf['discord_region'],self.events,self.stop)
         self.worker.start();self.running=True
-        self.ocr_menu.entryconfigure(self.ocr_menu_index,label='Stop Discord OCR')
+        self.ocr_menu.entryconfigure(self.ocr_menu_index,label='Stop OCR')
         self.status.set('DISCORD: ≥15,000 MESOS AND ≥15% · WATCHING')
 
     def pump(self):

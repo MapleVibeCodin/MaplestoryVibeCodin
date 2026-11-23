@@ -11,7 +11,7 @@ QUICK START
      https://henefm.com/flips/deals
    If you moved/deleted the old extension folder, open brave://extensions and
    'Load unpacked' from the new latest/browser_extension folder.
-4. Click SVG MAP in the Windows app; OR double-click OPEN_SVG_MAP.bat.
+4. Open Tools > SVG Map in the Windows app or double-click OPEN_SVG_MAP.bat.
    Direct map address: http://127.0.0.1:18773/fm-map
 
 BEHAVIOR
