@@ -1,27 +1,19 @@
-"""FM Rush v24 — HeneFM browser deals + target-specific name finder.
-
-The shop target comes from the HeneFM browser feed. OCR of
-MapleStory is HWND window capture, handled in memory; a click-through on-game marker, no recording or input injection.
-"""
+"""FM Rush — HeneFM route and shop-position overlays."""
 from __future__ import annotations
-from cpu_guard import initialize as _init_cpu_guard
-CPU_GUARD_MESSAGE = _init_cpu_guard()  # before NumPy / RapidOCR can import
 import ctypes
 import json
 import os
 from pathlib import Path
 import queue
 import re
-import threading
 import time
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog, simpledialog
-from window_capture import windows as list_game_windows, WindowFrames, window_rect, window_client_rect
-from multi_shop_worker import MultiShopWorker
+from game_window import windows as list_game_windows, window_rect, window_client_rect
 from deal_archive import DealArchive
-from channel_overlay import ChannelPin,locate_channel,preview_channel
-from item_locator import IconTarget, ItemScanWorker, decode_reference, download_icon
-from shop_pin import ItemPin
+from channel_overlay import ChannelPin, preview_channel
+from shop_pin import ShopPreviewPin
+from shop_position import entry_shop_point, shop_marker
 from trade_hotkeys import TradeHotkeys
 
 from deal_parser import parse_deal
@@ -51,91 +43,45 @@ def settings():
     }
 
 
-class ShopHighlighter:
-    """Own the game-window picker and the in-game seller marker."""
-    def __init__(self,app):
-        from shop_pin import ShopPin
-        self.app=app
-        self.last_size=None
-        self.last_box=None
-        self.last_name=''
-        self.last_item=''
-        self.last_mode='SEARCHING'
-        self.notice=tk.StringVar(value='Select a MapleStory window.')
-        self.pin=ShopPin(app.root)
-        self.matches={}
-        self.chosen=tk.StringVar()
-        self.available=[]
+class GameWindow:
+    """Own the selected game window and the shop preview status."""
+    def __init__(self, app):
+        self.app = app
+        self.notice = tk.StringVar(value='Select a MapleStory window.')
+        self.chosen = tk.StringVar()
+        self.available = []
 
-    def add_controls(self,parent):
-        self.combo=ttk.Combobox(parent,textvariable=self.chosen,state='readonly',width=23)
-        self.combo.bind('<<ComboboxSelected>>',self.change_window)
-        self.start_btn=self.app.btn(parent,'Start locator',self.app.toggle_shop_scan,True)
+    def add_controls(self, parent):
+        self.combo = ttk.Combobox(parent, textvariable=self.chosen, state='readonly', width=23)
+        self.combo.bind('<<ComboboxSelected>>', self.change_window)
         self.refresh_windows()
         if not self.app.web_only:
-            self.combo.pack(side='left',padx=(0,3))
-            self.app.btn(parent,'Refresh',self.refresh_windows).pack(side='left',padx=(0,3))
-            self.start_btn.pack(side='left',padx=(0,8))
+            self.combo.pack(side='left', padx=(0, 3))
+            self.app.btn(parent, 'Refresh', self.refresh_windows).pack(side='left', padx=(0, 8))
 
-    def refresh_matches(self,names):
-        live={name.casefold() for name in names}
-        self.matches={name:hit for name,hit in self.matches.items()
-                      if name.casefold()==self.last_name.casefold()
-                      and (name.casefold() in live or time.monotonic()<hit.get('hold_until',0))}
-        if self.last_size and self.app.shop_running:
-            self.pin.show_many(self.selected_hwnd(),self.last_size,self.matches)
-
-    def draw_matches(self,size,hits,note):
-        self.last_size=size;self.matches={name:{**hit,'item':self.last_item} for name,hit in hits.items()}
-        self.pin.show_many(self.selected_hwnd(),size,self.matches)
-        if note:self.notice.set(note)
-
-    def change_window(self,event=None):
-        self.pin.hide()
-        if self.app.shop_running:
-            self.app.stop_shop_scan()
-            self.app.start_shop_scan()
+    def change_window(self, event=None):
+        self.app.refresh_overlays(self.app.archive.current())
 
     def refresh_windows(self):
-        current=self.chosen.get()
-        old_hwnd=self.selected_hwnd()
-        self.available=list_game_windows()
-        labels=[f'{title}  [HWND {hwnd}]' for hwnd,title in self.available]
-        self.combo['values']=labels
-        if current in labels:return
-        candidate=next((i for i,(hwnd,title) in enumerate(self.available)
-                        if 'maplestory' in title.lower() or 'maple story' in title.lower()),
-                       0 if self.available else -1)
-        if candidate>=0:self.combo.current(candidate)
-        else:self.chosen.set('')
-        if self.selected_hwnd()!=old_hwnd:
+        current = self.chosen.get()
+        self.available = list_game_windows()
+        labels = [f'{title}  [HWND {hwnd}]' for hwnd, title in self.available]
+        self.combo['values'] = labels
+        if current not in labels:
+            candidate = next((i for i, (_, title) in enumerate(self.available)
+                              if 'maplestory' in title.lower() or 'maple story' in title.lower()), -1)
+            if candidate >= 0:
+                self.combo.current(candidate)
+            else:
+                self.chosen.set('')
             self.change_window()
 
     def selected_hwnd(self):
-        index=self.combo.current()
-        if 0<=index<len(self.available):
+        index = self.combo.current()
+        if 0 <= index < len(self.available):
             return self.available[index][0]
         return None
 
-
-    def set_target(self,name,force=False,item=''):
-        if force or name.casefold()!=self.last_name.casefold():
-            self.last_size=None;self.last_box=None
-            self.last_mode='SEARCHING';self.matches.clear();self.pin.hide()
-        self.last_name=name
-        self.last_item=item or ''
-        self.notice.set('Looking for '+name if name else 'A marker will appear over the matching name in MapleStory.')
-
-    def draw(self,image,source_size,box,mode,seen_text,latency_ms,method):
-        self.last_size=source_size;self.last_box=box;self.last_mode=mode
-        if box is None:
-            self.pin.hide()
-            self.notice.set(f'No confident match · {latency_ms:.0f} ms · '+
-                            ('retrying automatically' if mode=='RETRYING' else 'press FIND AGAIN or change room'))
-        else:
-            likely=mode!='FOUND'
-            self.notice.set(f'{"CHECK NAME" if likely else "FOUND"} · {latency_ms:.0f} ms · marked in game'+(f' · read: {seen_text}' if likely else ''))
-            self.pin.show(self.selected_hwnd(),source_size,box,self.last_name,likely,item=self.last_item)
 
 class FMApp:
     def __init__(self):
@@ -144,7 +90,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.38')
+        self.root.title('FM Rush v24.39')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -165,50 +111,30 @@ class FMApp:
         self.browser_bridge=None
         self.grid=None
         self.map=None
-        self.shop_frames=None
-        self.shop_thread=None
-        self.shop_stop=threading.Event()
-        self.shop_running=False
-        self.shop_target=''
-        self.shop_generation=0
-        self.shop_session=0
-        self.scan_names=()
-        self.scan_revisions={}
-        self.scan_by_room={}
-        self.shop_paused=False
         self.displayed_listing=None
         self.archive=DealArchive(ARCHIVE_DIR/'deal_archive.sqlite3',manual_selection=True)
         self.manual_override_at=None
-        self.latency_history=[]
-        self.shop_events=queue.Queue(maxsize=32)
         self._pending_after=set()
         self._closing=False
         self.root.protocol('WM_DELETE_WINDOW',self.close)
         self.channel_pin=ChannelPin(self.root)
-        self.item_pin=ItemPin(self.root)
-        self.item_reference=IconTarget()
-        self.item_thread=None
-        self.item_status=tk.StringVar(value='ITEM ICON: waiting for HeneFM image')
-        self.channel_frame_version=None
-        self._channel_scan_results=queue.Queue(maxsize=1)
-        self._channel_scan_inflight=False
-        self._channel_scan_due=0.
-        self._channel_visible_token=None
-        self.shop=ShopHighlighter(self)
+        self.shop_pin = ShopPreviewPin(self.root, interval_ms=25)
+        self._shop_preview = None
+        self._channel_preview = None
+        self.shop=GameWindow(self)
         self._make_bottom()
         self.root.update_idletasks()
         self.root.minsize(max(640,self.control_bar.winfo_reqwidth()+24),self.root.winfo_reqheight())
         self.snap(restore=True)
         self.sync_archive()
         self.schedule(35,self.pump)
-        self.schedule(50,self.update_channel_overlay)
+        self.schedule(50,self.follow_overlays)
         try:
             self.browser_bridge=BrowserBridge(self.events,self.archive)
             self.browser_bridge.start()
             self.status.set('LIVE · following the newest HeneFM listing')
         except OSError as exc:
             self.status.set('HeneFM bridge not available: '+str(exc)[:100])
-        if not self.web_only:self.schedule(0,self.try_start_shop)
         self.trade_keys=TradeHotkeys(self.events.put_nowait);self.trade_keys.start()
         self.schedule(1000,self.resume_first_listing)
 
@@ -249,20 +175,14 @@ class FMApp:
         self.shop.add_controls(controls)
         self.btn(controls,'Skip',self.complete_deal).pack(side='left')
         tk.Button(controls,textvariable=self.chase_label,command=self.toggle_chase,bg=YELLOW,fg=BG,relief='flat').pack(side='left',padx=4)
-        if not self.web_only:
-            self.btn(controls,'Find again',self.retry_shop_once).pack(side='left',padx=4)
         tools=tk.Menubutton(controls,text='Tools ▾',relief='flat',bg=CARD2,fg=FG,padx=8,pady=4)
         menu=tk.Menu(tools,tearoff=False)
         tools.configure(menu=menu)
         for title,action in [('Place under game',self.snap),('Enter route',self.enter_route),
                              ('Channel grid',self.open_grid),('FM map',self.open_map),
-                             ('Export scanner timing',self.export_latency),
                              ('Export deal archive',self.export_archive),
                              ('Reopen last skipped deal',self.undo_deal)]:
             menu.add_command(label=title,command=action)
-        if not self.web_only:
-            menu.add_separator()
-            menu.add_command(label='Start or pause locator',command=self.toggle_shop_scan)
         tools.pack(side='right')
 
         footer=tk.Frame(self.root,bg=BG)
@@ -272,9 +192,9 @@ class FMApp:
         status=self.lbl(footer,var=self.status,size=9,color=MUTED)
         status.configure(width=1)
         status.grid(row=0,column=0,sticky='ew',padx=(0,12))
-        scanner_status=self.lbl(footer,var=self.shop.notice,size=9,color=MUTED)
-        scanner_status.configure(width=1,anchor='e')
-        scanner_status.grid(row=0,column=1,sticky='ew')
+        preview_status=self.lbl(footer,var=self.shop.notice,size=9,color=MUTED)
+        preview_status.configure(width=1,anchor='e')
+        preview_status.grid(row=0,column=1,sticky='ew')
 
     def enter_route(self):
         value=simpledialog.askstring('Enter route','Enter a channel and room, such as CH 22 FM 13.',
@@ -393,8 +313,6 @@ class FMApp:
         if source=='MANUAL' and self.archive.chase_locked:
             self.status.set('LOCKED · click UNLOCK before changing destination');return
         if source=='MANUAL':self.manual_override_at=time.monotonic()
-        if deal is not None and source=='WEB':
-            self.archive.record(deal);self.sync_archive();return
         self.current_cc=cc;self.current_fm=fm
         p=plan(cc,fm,start_channel=self.conf['start_channel'])
         self.ccfm.set(f'CH {cc:02d}  /  FM {fm:02d}')
@@ -412,38 +330,15 @@ class FMApp:
         if self.map is not None and self.map.winfo_exists():self.draw_map()
 
     def sync_archive(self):
-        # Receipt runs on HTTP threads: take one consistent UI/search snapshot.
         with self.archive.lock:
-            # Default always follows the first *visible, pending* listing.
-            # A deliberate CHASE/LOCK overrides this until UNLOCK.
-            if not self.archive.chase_locked:self.archive.preview_latest()
-            live_rows=self.archive.live_pending()
-            names=self.archive.selected_names()
-            available_names=self.archive.live_names()
-            current=self.archive.current()
-            self.live_stamp=self.archive.live_state()
-        revisions={}
-        for key,deal in live_rows:revisions.setdefault(deal['ign'].casefold(),[]).append(key)
-        self.scan_revisions={name:tuple(keys) for name,keys in revisions.items()}
-        previous_names=self.scan_names
-        self.scan_names=names
-        if names and names!=previous_names:
-            worker=getattr(self,'shop_thread',None)
-            if worker is not None and worker.is_alive():worker.selection_check.set()
-        if names and not getattr(self,'live_started',False):
-            self.live_started=True
-            worker=getattr(self,'shop_thread',None)
-            if worker is not None and worker.is_alive():worker.entry_check.set()
-        grouped={}
-        for _,deal in live_rows:grouped.setdefault(deal['fm'],[]).append(deal['ign'])
-        self.scan_by_room={room:tuple(dict.fromkeys(values)) for room,values in grouped.items()}
+            if not self.archive.chase_locked:
+                self.archive.preview_latest()
+            current = self.archive.current()
+            self.live_stamp = self.archive.live_state()
         self.chase_label.set('LOCKED · UNLOCK' if self.archive.chase_locked else 'LIVE · CHASE TO LOCK')
         key,deal=current if current else (None,None)
         if key!=self.displayed_listing:
             self.displayed_listing=key
-            self.item_reference.clear(deal.listing_id if deal is not None else '')
-            self.item_pin.hide()
-            self.item_status.set('ITEM ICON: waiting for HeneFM image' if deal else 'ITEM ICON: no selected listing')
             if deal is not None:
                 if deal.cc is not None and deal.fm is not None:
                     self.set_target(deal.cc,deal.fm,deal=deal,source='ARCHIVE')
@@ -451,20 +346,16 @@ class FMApp:
                     self.ign.set('IGN: '+deal.ign);self.item.set('ITEM: '+deal.item+(' · SOLD' if deal.sold else ''))
                     self.stats.set('STATS: '+deal.stats);self.profit.set(deal.profit.label)
                     self.buy.set(deal.buy_label);self.ccfm.set('CH / FM: not shown')
-                self.accepted_ign(deal.ign,deal.item)
                 self.open_map()
             else:
-                self.accepted_ign('','')
                 self.ccfm.set('Choose a deal');self.keys.set('')
                 self.ign.set('IGN: —');self.item.set('ITEM: —');self.stats.set('STATS: —')
                 self.buy.set('BUY AT: —');self.profit.set('PROFIT: —')
         elif deal is not None:
             self.item.set('ITEM: '+deal.item+(' · SOLD' if deal.sold else ''))
             self.profit.set(deal.profit.label)
-            self.shop.last_item=deal.item
         if self.map is not None and self.map.winfo_exists():self.draw_map()
-        self.shop.refresh_matches(available_names)
-        self.refresh_channel_target(current)
+        self.refresh_overlays(current)
 
     def export_archive(self):
         path=filedialog.asksaveasfilename(title='Export listings grouped by seller IGN',
@@ -477,89 +368,61 @@ class FMApp:
         # The hotkey skips; accepting the next deal always requires a choice.
         self.complete_deal()
 
-    def show_channel_preview(self, token):
-        _, hwnd, _, channel, locked = token
-        window = window_rect(hwnd)
-        if window is None:
-            self.channel_pin.hide()
-            return
-        _, _, width, height = window
-        box = preview_channel(channel, window, window_client_rect(hwnd)) if locked else None
-        if box:
-            mode = 'GUIDE'
-        else:
-            box = (max(5, width-270), 10, width-10, 48)
-            mode = 'PRE'
-        self.channel_pin.show_many(hwnd, (width, height),
-            {'CH '+str(channel): {'box': box, 'mode': mode}})
+    def refresh_overlays(self, current):
+        """Update both guides from the selected listing and game geometry."""
+        hwnd = None if self.web_only else self.shop.selected_hwnd()
+        deal = current[1] if current and self.archive.chase_locked else None
+        window = window_rect(hwnd) if hwnd else None
+        client = window_client_rect(hwnd) if window else None
 
-    def refresh_channel_target(self, current):
-        hwnd = self.shop.selected_hwnd()
-        locked = self.archive.chase_locked
-        token = None
-        if current and hwnd and (locked or self.shop_running):
-            key, deal = current
-            channel = deal.cc if locked else self.current_cc if deal.cc is not None else None
-            if channel is not None and 1 <= channel <= 40:
-                token = (self.shop_session, hwnd, key, channel, locked)
-        if token != self._channel_visible_token or (token is not None and self.channel_pin.data is None):
-            self._channel_visible_token = token
-            if token is None:
+        channel_preview = None
+        if deal and deal.cc and window:
+            _, _, width, height = window
+            box = preview_channel(deal.cc, window, client)
+            mode = 'GUIDE' if box else 'PRE'
+            if box is None:
+                box = (max(5, width - 270), 10, width - 10, 48)
+            channel_preview = (hwnd, (width, height), deal.cc, box, mode)
+        if channel_preview != self._channel_preview:
+            self._channel_preview = channel_preview
+            if channel_preview is None:
                 self.channel_pin.hide()
             else:
-                self.show_channel_preview(token)
-        return token
+                _, size, channel, box, mode = channel_preview
+                self.channel_pin.show_many(hwnd, size, {f'CH {channel}': {'box': box, 'mode': mode}})
 
-    def update_channel_overlay(self):
-        """Refine the immediate guide with a background match when the menu opens."""
-        if self._closing:return
-        frames=self.shop_frames
-        token=self.refresh_channel_target(self.archive.current())
-        try:latest=self._channel_scan_results.get_nowait()
-        except queue.Empty:latest=None
-        if latest is not None and token is not None and latest[0]==token:
-            _,box,size=latest
-            _,hwnd,_,channel,locked=token
-            if box:
-                mode='CHASE_CELL' if locked else 'EXACT'
-                self.channel_pin.show_many(hwnd,size,{'CH '+str(channel):{'box':box,'mode':mode}})
+        preview = None
+        if self.web_only:
+            status = 'Web-only mode'
+        elif client is None:
+            status = 'Open MapleStory, then click Refresh'
+        elif deal is None:
+            status = 'Click CHASE to preview the shop'
+        elif deal.shop_position is None:
+            status = 'No map pin on this HeneFM deal'
+        else:
+            point = entry_shop_point(deal.shop_position, client[2:])
+            if point is None:
+                status = 'Shop preview requires 1280 × 720 or 1366 × 768'
             else:
-                self.show_channel_preview(token)
-        if token is None:
-            self.channel_frame_version=None
-        elif frames is not None and not self._channel_scan_inflight and time.monotonic()>=self._channel_scan_due:
-            frame=frames.peek(-1)
-            if frame is not None:
-                version,stamp,image=frame
-                frame_token=(token,version)
-                if frame_token!=self.channel_frame_version:
-                    self.channel_frame_version=frame_token
-                    self._channel_scan_due=time.monotonic()+.10
-                    self._channel_scan_inflight=True
-                    channel=token[3]
-                    size=(image.shape[1],image.shape[0])
-                    def locate():
-                        try:box=locate_channel(image,channel)
-                        except Exception:box=None
-                        try:self._channel_scan_results.put_nowait((token,box,size))
-                        except queue.Full:
-                            try:self._channel_scan_results.get_nowait()
-                            except queue.Empty:pass
-                            try:self._channel_scan_results.put_nowait((token,box,size))
-                            except queue.Full:pass
-                        finally:self._channel_scan_inflight=False
-                    threading.Thread(target=locate,daemon=True,name='FM-ChannelLocator').start()
-        self.schedule(50,self.update_channel_overlay)
+                box, mode = shop_marker(point, client, window)
+                label = f'CH {deal.cc} · FM {deal.fm} · {deal.ign}'
+                preview = (hwnd, window[2:], label, box, mode)
+                status = 'Shop preview ready' if mode == 'SHOP' else 'Shop is ' + mode.lower() + ' of the entry view'
 
-    def export_latency(self):
-        path=filedialog.asksaveasfilename(defaultextension='.json',initialfile='FM_Rush_Scan_Timings.json')
-        if path:
-            Path(path).write_text(json.dumps({'scope':'Local page delivery and software room-entry stages; excludes HeneFM server freshness, human travel and compositor display latency.',
-                'live_names':list(self.scan_names),'selected_ign':self.shop_target,
-                'capture_hwnd':self.shop.selected_hwnd(),
-                'capture_error':getattr(self.shop_frames,'error',''),
-                'status':self.shop.notice.get(),
-                'cpu_guard':CPU_GUARD_MESSAGE,'latest':self.latency_history},indent=2)+'\n',encoding='utf-8')
+        if self.shop.notice.get() != status:
+            self.shop.notice.set(status)
+        if preview != self._shop_preview:
+            self._shop_preview = preview
+            if preview is None:
+                self.shop_pin.hide()
+            else:
+                hwnd, size, label, box, mode = preview
+                self.shop_pin.show_many(hwnd, size, {label: {'box': box, 'mode': mode}})
+
+    def follow_overlays(self):
+        self.refresh_overlays(self.archive.current())
+        self.schedule(50, self.follow_overlays)
 
     def toggle_chase(self):
         if self.archive.chase_locked:
@@ -589,99 +452,6 @@ class FMApp:
         self.sync_archive()
         self.status.set('Skipped · click a HeneFM listing to chase')
 
-    def accepted_ign(self, name, item=''):
-        # The selected seller and item update together on every automatic preview.
-        name=(name or '').strip()
-        self.shop_target=name
-        self.shop_generation+=1
-        self.shop.set_target(name,item=item)
-        worker=getattr(self,'shop_thread',None)
-        self.shop.matches.clear()
-        self.shop.pin.hide()
-        if worker is not None and worker.is_alive():worker.prioritize(name)
-        if name and not self.shop_running and not self.web_only and not getattr(self,'shop_paused',False):
-            self.schedule(0,self.try_start_shop)
-
-    def try_start_shop(self):
-        if self.shop_running or self.shop_paused:return
-        index=self.shop.combo.current()
-        if index>=0 and any(value in self.shop.available[index][1].lower() for value in ('maplestory','maple story')):
-            self.start_shop_scan()
-        else:
-            self.shop.notice.set('Open MapleStory, then click Refresh.')
-
-    def _post_shop(self, item):
-        # Each multi-seller result is a complete marker snapshot, so coalescing is safe.
-        try:
-            self.shop_events.put_nowait(item)
-        except queue.Full:
-            try:self.shop_events.get_nowait()
-            except queue.Empty:pass
-            try:self.shop_events.put_nowait(item)
-            except queue.Full:pass
-
-    def start_shop_scan(self):
-        if self.shop_running:return
-        if self.web_only:
-            self.status.set('WEB-ONLY MODE · shop OCR disabled. Run START_FM_RUSH.bat to enable shop scanning.')
-            return
-        hwnd=self.shop.selected_hwnd()
-        if hwnd is None:
-            self.shop.notice.set('Select MapleStory, then click Start locator.')
-            return
-        self.shop_stop=threading.Event()
-        self.shop_session+=1
-        session=self.shop_session
-        try:
-            self.shop_frames=WindowFrames(hwnd, interval_ms=16)
-            self.shop_frames.start()
-            self.shop_thread=MultiShopWorker(self.shop_frames,lambda:self.scan_names,
-                                             lambda item:self._post_shop(('shop_epoch',session,item)),
-                                             self.shop_stop,lambda:self.scan_revisions,self.names_for_room,
-                                             lambda:(self.shop_target,self.current_fm),single_target=True)
-            if self.shop_target:self.shop_thread.prioritize(self.shop_target)
-            self.shop_thread.start()
-            self.item_thread=ItemScanWorker(self.shop_frames,self.item_reference,
-                lambda item:self._post_shop(('shop_epoch',session,item)),self.shop_stop)
-            self.item_thread.start()
-        except Exception as exc:
-            if self.shop_frames:
-                try:self.shop_frames.stop()
-                except Exception:pass
-            self.shop_frames=None
-            self.shop.notice.set('Window capture failed: '+str(exc)[:150])
-            return
-        self.shop_running=True
-        self.shop.start_btn.config(text='Pause locator',bg=RED)
-        self.shop.notice.set('Preparing name finder…')
-
-    def names_for_room(self,room):
-        values=self.scan_by_room.get(room,())+self.scan_by_room.get(None,())
-        return tuple(dict.fromkeys(values))
-
-    def retry_shop_once(self):
-        if self.shop_thread is not None and self.shop_thread.is_alive():
-            self.shop_thread.retry.set()
-
-    def toggle_shop_scan(self):
-        self.shop_paused=self.shop_running
-        if self.shop_running:self.stop_shop_scan()
-        else:self.start_shop_scan()
-
-    def stop_shop_scan(self):
-        self.shop_session+=1
-        self.shop_stop.set()
-        if self.shop_frames is not None:
-            try:self.shop_frames.stop()
-            except Exception:pass
-        self.shop_frames=None
-        self.shop_running=False
-        self.item_pin.hide()
-        self.shop.start_btn.config(text='Start locator',bg=TEAL)
-        self.shop.matches.clear()
-        self.shop.last_size=None
-        self.shop.pin.hide()
-
     def manual_go(self):
         raw=self.manual.get().strip()
         if not raw:return
@@ -710,7 +480,7 @@ class FMApp:
             if evt[0]=='trade_next':
                 self.next_live_deal()
             elif evt[0]=='trade_find':
-                self.retry_shop_once()
+                self.refresh_overlays(self.archive.current())
             elif evt[0]=='browser_choice':
                 action,key,session,revision,reply=evt[1:]
                 versions=getattr(self,'choice_revisions',{})
@@ -727,90 +497,16 @@ class FMApp:
                 elif action=='unlock':self.archive.unlock()
                 else:self.archive.skip(key)
                 self.sync_archive()
-                if action=='select':self.retry_shop_once()
                 reply.put({'ok':True})
                 self.status.set('LOCKED · UNLOCK to follow new listings' if self.archive.chase_locked else 'LIVE · following first listing')
-            elif evt[0]=='browser_item_icon':
-                listing_id,png,url=evt[1:]
-                current=self.archive.current()
-                if current and current[1].listing_id==listing_id:
-                    icon=decode_reference(listing_id,current[1].item,png) if png else None
-                    if icon and self.item_reference.install(icon):
-                        self.item_status.set('ITEM ICON: ready · matching visible shop art, stats not verified')
-                    elif url:
-                        self.item_status.set('ITEM ICON: fetching HeneFM item art in advance…')
-                        item=current[1].item
-                        def fetch_icon():
-                            encoded=download_icon(url)
-                            self.events.put(('item_icon_loaded',listing_id,item,encoded))
-                        threading.Thread(target=fetch_icon,daemon=True,name='FM-HeneFM-Item-Icon').start()
-                    else:
-                        self.item_status.set('ITEM ICON: reference unavailable · cannot confirm item')
-            elif evt[0]=='item_icon_loaded':
-                listing_id,item,encoded=evt[1:]
-                current=self.archive.current()
-                if current and current[1].listing_id==listing_id and current[1].item==item:
-                    icon=decode_reference(listing_id,item,encoded) if encoded else None
-                    if icon and self.item_reference.install(icon):
-                        self.item_status.set('ITEM ICON: ready · matching visible shop art, stats not verified')
-                    else:
-                        self.item_status.set('ITEM ICON: HeneFM image unavailable · no confirmed item match')
             elif evt[0]=='browser_visible':
                 self.sync_archive()
-                self.status.set(f'{len(self.archive.live_pending())} HeneFM listings available · selected: {self.shop_target or "none"}')
-            elif evt[0]=='browser_deal':
-                deal=evt[1]
-                if deal.profit.accepted:
-                    self.set_target(deal.cc,deal.fm,deal=deal,source='WEB')
-                    self.status.set(f'{len(self.archive.live_pending())} listings available · click one on HeneFM to chase')
+                current = self.archive.current()
+                seller = current[1].ign if current else 'none'
+                self.status.set(f'{len(self.archive.live_pending())} HeneFM listings available · selected: {seller}')
             elif evt[0]=='status':
                 self.status.set(evt[1])
-        for _ in range(24):
-            try:evt=self.shop_events.get_nowait()
-            except queue.Empty:break
-            if evt[0]=='shop_epoch':
-                if evt[1]!=self.shop_session:continue
-                evt=evt[2]
-            if evt[0]=='shops_frame':
-                if self.shop_running:
-                    _,size,hits,note=evt
-                    hits={name:hit for name,hit in hits.items() if name.casefold()==self.shop_target.casefold() and (name in self.scan_names or
-                          time.monotonic()<hit.get('hold_until',0))}
-                    self.shop.draw_matches(size,hits,note)
-            elif evt[0]=='shop_frame':
-                _,key,image,source_size,box,mode,seen,latency,method=evt
-                if key==(self.shop_target,self.shop_generation):
-                    self.shop.draw(image,source_size,box,mode,seen,latency,method)
-            elif evt[0]=='shop_clear':
-                if evt[1]==(self.shop_target,self.shop_generation):
-                    self.shop.set_target(self.shop_target,force=True)
-            elif evt[0]=='item_found':
-                revision,listing_id,size,hits,scan_ms=evt[1:]
-                selected=self.archive.current()
-                if (self.shop_running and selected and selected[1].listing_id==listing_id and
-                        self.item_reference.snapshot()[1]==revision):
-                    self.item_pin.show_many(self.shop.selected_hwnd(),size,
-                        {str(i):hit for i,hit in enumerate(hits)})
-                    self.item_status.set(
-                        f'ITEM ICON: {len(hits)} visual candidate(s) · {scan_ms:.1f} ms matching · CHECK STATS/PRICE'
-                        if hits else f'ITEM ICON: looking in opened shop · {scan_ms:.1f} ms matching')
-                else:
-                    self.item_pin.hide()
-            elif evt[0]=='item_scan_error':
-                self.item_status.set('ITEM SCAN ERROR: '+evt[1])
-            elif evt[0]=='shop_timing':
-                timing={**evt[1]}
-                timing['result_to_ui_queue_ms']=round(max(0,time.monotonic()-timing.pop('posted_at'))*1000,1)
-                timing['burst_to_ui_request_ms']=round(timing['burst_to_result_ms']+timing['result_to_ui_queue_ms'],1)
-                if timing.get('first_readable_to_result_ms') is not None:
-                    timing['first_readable_to_ui_queue_ms']=round(
-                        timing['first_readable_to_result_ms']+timing['result_to_ui_queue_ms'],1)
-                timing['local_page_to_app_ms']=getattr(self.archive,'last_feed_latency_ms',None)
-                self.latency_history.append(timing);self.latency_history=self.latency_history[-200:]
-            elif evt[0]=='shop_note':
-                if self.shop_running:
-                    self.shop.notice.set(evt[1])
-        self.schedule(5 if self.shop_running and self.scan_names else 10,self.pump)
+        self.schedule(10, self.pump)
 
     def resume_first_listing(self):
         """Return to the top HeneFM card after 60s, unless CHASE is locked.
@@ -886,7 +582,6 @@ class FMApp:
     def close(self):
         if self._closing:return
         self._closing=True
-        self.shop_stop.set()
         for job in list(self._pending_after):
             try:self.root.after_cancel(job)
             except Exception:pass
@@ -895,10 +590,8 @@ class FMApp:
         if self.browser_bridge is not None:
             try:self.browser_bridge.stop()
             except Exception:pass
-        self.stop_shop_scan()
-        self.item_pin.close()
         self.channel_pin.close()
-        self.shop.pin.close()
+        self.shop_pin.close()
         self.archive.close()
         if hasattr(self,'trade_keys'):self.trade_keys.close()
         self.root.destroy()

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "FM Rush — HeneFM Deal Scanner",
-  "version": "24.34.0",
-  "description": "FM Rush v24.34 clear item brackets, instant CC prehighlight, visual item-icon finder, chase/lock selection.",
+  "version": "24.39.0",
+  "description": "Choose a HeneFM deal and preview its shop and channel in FM Rush.",
   "permissions": [
     "storage",
     "alarms",

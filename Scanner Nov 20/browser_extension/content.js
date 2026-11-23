@@ -1,4 +1,4 @@
-/* FM Rush v24.22 — click-to-chase HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.39 — click-to-chase HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Adds Chase/Skip controls and selection feedback only; no automatic game inputs.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -10,7 +10,7 @@
 
   const isDealsPage = () => /^\/flips\/deals\/?$/.test(location.pathname);
   const cardDeals=new WeakMap();
-  let selectionSerial=0,selectedListingId=null;
+  let selectionSerial=0;
   let activeListingId=null, lockedListingId=null, liveLocked=false;
   const SELLER_LINKS = 'a[href*="/shops/"],a[href*="/shop/"]';
   const SEEN_KEY = 'fmRushDeliveredV2411';
@@ -28,7 +28,6 @@
   const queued = [];
   const liveSession=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
   let liveRevision=0,liveSending=false,liveHash=null,liveSentAt=-Infinity;
-  let currentCardRows=[];
   const diagnostics = {lastScanAt:0, sellerLinks:0, cardsFound:0, soldCards:0, parsedCards:0, qualifyingDeals:0, sent:0, rejected:0, lastSentAt:0, lastError:'', lastRejectAt:0};
 
   try {
@@ -122,6 +121,21 @@
     return lines.some(line =>
       /^Sold(?:$|\s+(?:\d+\s*(?:s|sec|m|min|h|hr|d|day)\b|just\b|out\b|Equipment\b|Use\b|Cash\b)|\s*[·•:])/i.test(line));
   }
+  function readShopPosition(card) {
+    const plot = card.querySelector('.deal-shop-map-plot');
+    const image = plot?.querySelector('img[src]');
+    const pin = plot?.querySelector('.deal-shop-pin');
+    if (!image || !pin) return null;
+    let path;
+    try { path = new URL(image.getAttribute('src'), location.href).pathname; }
+    catch (_) { return null; }
+    const theme = path.match(/^\/api\/flips\/shop-map\/(grass|cave)$/)?.[1];
+    const percent = value => /^\d+(?:\.\d+)?%$/.test(value) ? Number(value.slice(0, -1)) : NaN;
+    const left = percent(pin.style.left);
+    const top = percent(pin.style.top);
+    return theme && left >= 0 && left <= 100 && top >= 0 && top <= 100
+      ? {theme, left, top} : null;
+  }
   function extract() {
     const results = [];
     const captureResults = [];
@@ -189,7 +203,7 @@
       const listing_id=captureId;
       const deal = {cc,fm,ign,item,stats:stats.slice(0,160),listing_id,sold,
         buy_mesos:buy,profit_mesos:profit?.gain??null,profit_percent:profit?.pct??null,
-        unusually_cheap:unusuallyCheap,raw_text:lines.join('\n').slice(0,6000)};
+        unusually_cheap:unusuallyCheap,shop_position:readShopPosition(card),raw_text:lines.join('\n').slice(0,6000)};
       deal.id=fingerprint([listing_id,sold,deal.profit_mesos,deal.profit_percent].join('|'));
       if (unique.has(deal.id)) continue;
       unique.add(deal.id);
@@ -207,7 +221,6 @@
       card.classList.toggle('fm-rush-focus',selected);
       card.classList.toggle('fm-rush-locked',selected && liveLocked);
     }
-    currentCardRows=cardRows;
     screenshotCandidates = captureResults;
     counts.qualifyingDeals = results.length;
     Object.assign(diagnostics, counts, {lastScanAt:Date.now()});
@@ -222,20 +235,20 @@
     if(!deal)return;
     const serial=++selectionSerial;
     const {id,...payload}=deal;
+    if (action === 'select') payload.shop_position = readShopPosition(card);
     choiceError(card,'');
     try { chrome.runtime.sendMessage({kind:action==='unlock'?'fm-rush-unlock-deal':action==='skip'?'fm-rush-skip-deal':'fm-rush-select-deal',deal:{...payload,_choice_session:liveSession,_choice_revision:serial}},response=>{
       if(serial!==selectionSerial)return;
       if(response?.ok && !chrome.runtime.lastError){
         if(action==='select'){
-          selectedListingId=payload.listing_id;
           lockedListingId=payload.listing_id;
           activeListingId=payload.listing_id;
           liveLocked=true;
         } else if(action==='unlock') {
-          selectedListingId=null;lockedListingId=null;activeListingId=null;
+          lockedListingId=null;activeListingId=null;
           liveLocked=false;
-        } else if(selectedListingId===payload.listing_id){
-          selectedListingId=null;lockedListingId=null;activeListingId=null;
+        } else if(lockedListingId===payload.listing_id){
+          lockedListingId=null;activeListingId=null;
           liveLocked=false;
         }
         scheduleScan();
@@ -334,53 +347,13 @@
       console.warn('[FM Rush] Extension context invalidated; reload the HeneFM tab.');
     }
   }
-  function imageForSelectedDeal(deals) {
-    // Extract only from an image already rendered on the visible HeneFM item
-    // card. Cross-origin/tainted canvases fail closed: no fake item match.
-    const focus=liveLocked ? (lockedListingId || activeListingId) : deals[0]?.listing_id;
-    const selected=currentCardRows.find(row=>row.deal.listing_id===focus);
-    if (!selected) return null;
-    const card=selected.card;
-    const anchor=[...card.querySelectorAll('a[href]')]
-      .find(a => /\/items?\//i.test(a.getAttribute('href')||''));
-    if(!anchor) return null;
-    const itemId=anchor.getAttribute('href')?.match(/\/items?\/(\d{5,9})(?:[/?#]|$)/i)?.[1];
-    if(!itemId) return null;
-    const iconUrl=location.origin+`/classic/items/${itemId}.png`;
-    const candidates=[...anchor.querySelectorAll('img')];
-    for(let node=anchor.parentElement,i=0;node&&node!==card&&i<2;node=node.parentElement,i++){
-      candidates.push(...node.querySelectorAll('img'));
-    }
-    // Avoid the seller's avatar and other unrelated images.
-    const seenImages=new Set();
-    for(const img of candidates){
-      if(seenImages.has(img)) continue;
-      seenImages.add(img);
-      // Never use the shop owner's avatar or unrelated card graphics.
-      if(!String(img.currentSrc||img.src||'').includes(`/classic/items/${itemId}.png`))continue;
-      if(!img.complete||!img.naturalWidth||!img.naturalHeight)continue;
-      const w=img.naturalWidth,h=img.naturalHeight;
-      if(w<12||h<12||w>96||h>96)continue;
-      try {
-        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-        canvas.getContext('2d',{willReadFrequently:true}).drawImage(img,0,0,w,h);
-        const png=canvas.toDataURL('image/png');
-        if(png.length>100 && png.length<60000)
-          return {listing_id:focus,png,url:iconUrl};
-      }catch(_){/* Remote icon blocked by canvas CORS: do not claim found. */}
-    }
-    return {listing_id:focus,url:iconUrl};
-  }
   function syncLivePage(deals) {
-    const icon=imageForSelectedDeal(deals);
-    const hash=deals.map(d=>d.id).join('|')+'|'+(icon?.listing_id||'')+'|'+
-      (icon ? fingerprint(icon.png||icon.url||'') : 'no-icon');
+    const hash=deals.map(d=>d.id+':'+JSON.stringify(d.shop_position)).join('|');
     if(liveSending || (hash===liveHash && Date.now()-liveSentAt<5000))return;
     liveSending=true;
     try {
       chrome.runtime.sendMessage({kind:'fm-rush-visible-deals',snapshot:{session:liveSession,
-        revision:++liveRevision,observed_at_ms:Date.now(),deals:deals.map(({id,...deal})=>deal),
-        focus_item_icon:icon}},response=>{
+        revision:++liveRevision,observed_at_ms:Date.now(),deals:deals.map(({id,...deal})=>deal)}},response=>{
         liveSending=false;
         if(response?.ok && !chrome.runtime.lastError){
           const wasLocked=liveLocked;
@@ -388,7 +361,6 @@
           liveLocked=response.chase_locked===true;
           activeListingId=response.focused_listing_id||null;
           lockedListingId=liveLocked ? activeListingId : null;
-          if(!liveLocked)selectedListingId=null;
           liveHash=hash;liveSentAt=Date.now();
           if(wasLocked!==liveLocked || previousFocus!==activeListingId)scheduleScan();
           diagnostics.liveListings=deals.length;diagnostics.liveSentAt=liveSentAt;
@@ -453,12 +425,13 @@
     // Listing controls are excluded from parser text; normal site data stays intact.
     const observer = new MutationObserver(mutations => {
       if (mutations.some(m => m.type === 'childList' || m.type === 'characterData' ||
-          (m.type === 'attributes' && m.target.matches?.('[data-sold],[data-status],[hidden]')))) {
+          (m.type === 'attributes' &&
+            (m.attributeName !== 'style' || m.target.matches?.('.deal-shop-pin'))))) {
         scheduleScan();
       }
     });
     observer.observe(document.documentElement, {subtree: true, childList: true,
-      characterData: true, attributes: true, attributeFilter: ['data-sold', 'data-status', 'hidden']});
+      characterData: true, attributes: true, attributeFilter: ['data-sold', 'data-status', 'hidden', 'style']});
     document.addEventListener('visibilitychange', scheduleScan);
     window.addEventListener('pageshow', scheduleScan);
     window.addEventListener('popstate', scheduleScan);

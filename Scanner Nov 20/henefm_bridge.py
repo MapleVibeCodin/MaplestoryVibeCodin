@@ -8,11 +8,11 @@ from __future__ import annotations
 import json
 import math
 import queue
-import re
 import threading
 import sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from deal_parser import Deal
+from shop_position import read_shop_position
 from profit_filter import ProfitDecision
 
 HOST = '127.0.0.1'
@@ -56,7 +56,8 @@ def parse_browser_deal(raw: dict) -> Deal | None:
                 buy_mesos=buy,
                 profit=ProfitDecision(True,gain,pct,'browser listing'),
                 listing_id=str(raw.get('listing_id',''))[:120],
-                sold=raw.get('sold') is True,raw_text=str(raw.get('raw_text',''))[:6000])
+                sold=raw.get('sold') is True,raw_text=str(raw.get('raw_text',''))[:6000],
+                shop_position=read_shop_position(raw.get('shop_position'),fm))
 
 
 class BrowserBridge:
@@ -119,20 +120,6 @@ class BrowserBridge:
                             raise ValueError('snapshot')
                         if isinstance(revision,bool) or not isinstance(revision,int) or not 0<=revision<=2**53:
                             raise ValueError('revision')
-                        icon_payload=data.get('focus_item_icon')
-                        if icon_payload is not None:
-                            if not isinstance(icon_payload,dict):raise ValueError('icon')
-                            lid,png,url=icon_payload.get('listing_id'),icon_payload.get('png'),icon_payload.get('url')
-                            if not isinstance(lid,str) or not 1<=len(lid)<=120:
-                                raise ValueError('icon-id')
-                            if png is not None and (not isinstance(png,str) or
-                                not 40<=len(png)<=61000 or
-                                not png.startswith('data:image/png;base64,')):
-                                raise ValueError('icon-png')
-                            if url is not None and (not isinstance(url,str) or
-                                not re.fullmatch(r'https://(?:www\.)?henefm\.com/classic/items/\d{5,9}\.png',url)):
-                                raise ValueError('icon-url')
-                            if png is None and url is None:raise ValueError('icon-source')
                         deals=[parse_browser_deal(item) for item in raw]
                         if any(deal is None or not deal.listing_id for deal in deals):raise ValueError('listing')
                         if archive is None:
@@ -145,10 +132,6 @@ class BrowserBridge:
                                 delay=time.time()*1000-observed
                                 archive.last_feed_latency_ms=round(delay,1) if 0<=delay<60000 else None
                             out.put_nowait(('browser_visible',))
-                            if applied and icon_payload:
-                                # The selected listing is checked once again by the
-                                # GUI, after it has synchronized current focus.
-                                out.put_nowait(('browser_item_icon',icon_payload['listing_id'],icon_payload.get('png'),icon_payload.get('url')))
                         except (queue.Full,OSError,ValueError,sqlite3.Error):
                             self._send(503,{'ok':False,'error':'busy'});return
                         with archive.lock:
@@ -166,7 +149,7 @@ class BrowserBridge:
                 try:
                     new=True
                     key=None
-                    if archive is not None and deal is not None:key,new=archive.record(deal)
+                    if archive is not None and deal is not None:key,new=archive.record(deal, update_position=self.path=='/select')
                     if self.path in ('/select','/skip','/unlock'):
                         if archive is None:
                             self._send(503,{'ok':False,'error':'archive_not_ready'});return

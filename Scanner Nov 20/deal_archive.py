@@ -56,7 +56,7 @@ class DealArchive:
         self.focus=focus
         if last_completed is not _UNCHANGED:self.last_completed=last_completed
 
-    def record(self,deal):
+    def record(self,deal,*,update_position=True):
         payload=asdict(deal)
         identity=[deal.listing_id,deal.ign.casefold(),deal.cc,deal.fm,deal.item,deal.stats,deal.buy_mesos]
         key=sha256(json.dumps(identity,ensure_ascii=False).encode()).hexdigest()[:24]
@@ -66,6 +66,9 @@ class DealArchive:
                 row=self.db.execute('SELECT data FROM listings WHERE id=?',(key,)).fetchone()
                 existing=json.loads(row[0]) if row else None
             new=existing is None
+            if existing is not None and not update_position:
+                # Queued archive deliveries can arrive after the live snapshot.
+                payload['shop_position']=existing['deal'].get('shop_position')
             if existing is not None and existing['deal']==payload:return key,False
             record={'deal':payload,'first_seen':time.time(),'last_seen':time.time(),'done':False} if new else {
                 **existing,'deal':payload,'last_seen':time.time()}
@@ -74,7 +77,7 @@ class DealArchive:
             return key,new
 
     def apply_visible(self,deals,session,revision,now=None):
-        """Replace the live scan set after all listings have been durably archived."""
+        """Replace the live listings after all listings have been durably archived."""
         with self.lock:
             if revision<=self._live_revisions.get(session,-1):return False
             first_page=self._live_seen is None
@@ -170,8 +173,11 @@ class DealArchive:
         with self.lock:
             if key not in self._pending:return False
             record={**self._pending[key],'done':True,'skipped':True}
-            following=None if key==self.focus else self.focus
-            self._save(key,record,following,last_completed=key)
+            was_focused = key == self.focus
+            following = None if was_focused else self.focus
+            self._save(key, record, following, last_completed=key)
+            if was_focused:
+                self.chase_locked = False
             return True
 
     def complete_current(self):

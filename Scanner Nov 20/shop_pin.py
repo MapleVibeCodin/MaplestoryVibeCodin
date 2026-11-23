@@ -1,10 +1,10 @@
-"""Large click-through Windows shop markers, positioned in selected-window pixels."""
+"""Click-through Windows overlays aligned to the MapleStory window."""
 import sys
 import ctypes
 import tkinter as tk
-from window_capture import window_rect
+from game_window import window_at_point, window_rect
 
-class ShopPin:
+class OverlayPin:
     def __init__(self,master,interval_ms=80):
         self.window=tk.Toplevel(master)
         self.window.withdraw()
@@ -36,9 +36,6 @@ class ShopPin:
         self.interval_ms=interval_ms
         self.timer=self.window.after(self.interval_ms,self.follow)
 
-    def show(self,hwnd,size,box,name,likely=False,item=""):
-        self.show_many(hwnd,size,{name:{'box':box,'mode':'CONFUSABLE' if likely else 'EXACT','item':item}})
-
     def show_many(self,hwnd,size,hits):
         self.data=(hwnd,size,dict(hits)) if hits else None
         if not hits:self.window.withdraw();self.visible=False;self.drawn=None
@@ -47,43 +44,6 @@ class ShopPin:
     def hide(self):
         self.data=None
         self.window.withdraw();self.visible=False;self.drawn=None
-
-    def draw_markers(self,w,h,sw,sh,hits):
-        c=self.canvas;c.delete('all')
-        sx,sy=w/sw,h/sh
-        groups=[]
-        for name,hit in hits.items():
-            x,y,r,b=hit['box']
-            group=None
-            for candidate in groups:
-                l,t,q,d=candidate['box']
-                intersection=max(0,min(r,q)-max(x,l))*max(0,min(b,d)-max(y,t))
-                union=(r-x)*(b-y)+(q-l)*(d-t)-intersection
-                if union>0 and intersection/union>.55:group=candidate;break
-            if group is None:groups.append({'box':hit['box'],'names':[name],'likely':hit['mode']!='EXACT','item':hit.get('item','')})
-            else:group['names'].append(name);group['likely']=True
-        for hit in groups:
-            name=' / '.join(hit['names'])
-            x,y,r,b=hit['box'];cx=(x+r)/2*sx
-            left=max(6,cx-58*sx);right=min(w-6,cx+58*sx)
-            top=max(2,y*sy-95*sy);bottom=min(h-6,b*sy+16*sy)
-            likely=hit['likely']
-            for color,width in [('#000000',14),('#ffffff',10),('#ff1744',7)]:
-                c.create_rectangle(left,top,right,bottom,outline=color,width=width,
-                                   dash=(12,5) if likely else ())
-            end=max(6,top-5);start=max(2,end-62)
-            for color,width in [('#000000',18),('#ffffff',13),('#ff1744',9)]:
-                c.create_line(cx,start,cx,end,fill=color,width=width,
-                              arrow='last',arrowshape=(24,30,16))
-            label=name+(' · CHECK NAME' if likely else ' · HERE')
-            if hit.get('item'):label+='\nITEM: '+str(hit['item'])[:72]
-            tx=min(max(80,cx),max(80,w-80));ty=(max(16,top-82) if top>=100 else min(h-18,bottom+24))
-            text=c.create_text(tx,ty,text=label,fill='white',font=('Segoe UI',14,'bold'),width=min(450,w-20),justify='center')
-            bounds=c.bbox(text)
-            if bounds:
-                l,t,r,b=bounds
-                badge=c.create_rectangle(l-7,t-4,r+7,b+4,fill='#a12d00' if likely else '#d00025',outline='white',width=2)
-                c.tag_lower(badge,text)
 
     def can_show(self, hwnd, rect, size, hits):
         return ctypes.windll.user32.GetForegroundWindow()==hwnd
@@ -98,7 +58,7 @@ class ShopPin:
                 left,top,w,h=rect
                 if rect!=self.last_rect:
                     self.window.geometry(f'{w}x{h}{left:+d}{top:+d}');self.last_rect=rect
-                drawing=(w,h,sw,sh,tuple(sorted((name,tuple(hit['box']),hit['mode'],hit.get('item','')) for name,hit in hits.items())))
+                drawing=(w,h,sw,sh,tuple(sorted((name,tuple(hit['box']),hit['mode']) for name,hit in hits.items())))
                 if drawing!=self.drawn:
                     self.draw_markers(w,h,sw,sh,hits);self.drawn=drawing
                 if not self.visible:self.window.deiconify();self.visible=True
@@ -113,41 +73,48 @@ class ShopPin:
         self.window.destroy()
 
 
-class ItemPin(ShopPin):
-    """Click-through, unobtrusive brackets OUTSIDE a matched item icon.
-
-    The icon art stays unobscured: no filled rectangle, no opaque name badge,
-    and no strokes crossing the matching pixels. Selection details stay in
-    FM Finder, so they do not cover neighboring shop inventory slots.
-    """
-    def __init__(self, master):
-        super().__init__(master, interval_ms=25)
+class ShopPreviewPin(OverlayPin):
+    def can_show(self, hwnd, rect, size, hits):
+        if super().can_show(hwnd, rect, size, hits):
+            return True
+        left, top, width, height = rect
+        sw, sh = size
+        for hit in hits.values():
+            l, t, r, b = hit['box']
+            for x in (l, (l + r) / 2, r):
+                for y in (max(0, t - 50), t, b):
+                    if window_at_point(round(left + x * width / sw),
+                                       round(top + y * height / sh)) != hwnd:
+                        return False
+        return bool(hits)
 
     def draw_markers(self, w, h, sw, sh, hits):
-        c = self.canvas
-        c.delete('all')
-        if not sw or not sh:
-            return
+        canvas = self.canvas
+        canvas.delete('all')
         sx, sy = w / sw, h / sh
-        for hit in hits.values():
-            x, y, r, b = hit['box']
-            x, y, r, b = x * sx, y * sy, r * sx, b * sy
-            if r <= x or b <= y:
-                continue
-            # Short outside brackets on just the four corners. The margin is
-            # deliberately tiny to fit tightly packed MapleStory item grids.
-            margin = 2.5
-            arm = max(4.0, min(7.0, (r - x) * .22, (b - y) * .22))
-            l, t, q, d = x - margin, y - margin, r + margin, b + margin
-            corners = (
-                (l, t + arm, l, t, l + arm, t),
-                (q - arm, t, q, t, q, t + arm),
-                (l, d - arm, l, d, l + arm, d),
-                (q - arm, d, q, d, q, d - arm),
-            )
-            for points in corners:
-                # Black hairline contrasts against light shop backgrounds;
-                # a thin lime line remains visible on dark ones. Both remain
-                # entirely outside the actual item icon bounding box.
-                c.create_line(*points, fill='#101a11', width=3, joinstyle='round')
-                c.create_line(*points, fill='#64ff85', width=1.5, joinstyle='round')
+        accent = '#ff1744'
+        for name, hit in hits.items():
+            left, top, right, bottom = hit['box']
+            left, top, right, bottom = left * sx, top * sy, right * sx, bottom * sy
+            x = (left + right) / 2
+            mode = hit['mode']
+            if mode == 'SHOP':
+                # The hollow box keeps the store and its click target visible.
+                for color, width in (('#121212', 12), ('white', 8), (accent, 5)):
+                    canvas.create_rectangle(left, top, right, bottom, outline=color, width=width)
+                    if top >= 55:
+                        canvas.create_line(x, top - 34, x, top - 3, fill=color, width=width,
+                                           arrow='last', arrowshape=(17, 20, 10))
+                label = name + ' · SHOP PREVIEW'
+                label_y = top - 49 if top >= 60 else min(h - 16, bottom + 16)
+            else:
+                label = f'SHOP {mode} · {name}'
+                label_y = (top + bottom) / 2
+
+            label_x = min(w - 135, max(135, x))
+            badge = canvas.create_text(label_x, label_y, text=label, fill='white',
+                                       font=('Segoe UI', 11, 'bold'))
+            l, t, r, b = canvas.bbox(badge)
+            background = canvas.create_rectangle(l - 6, t - 3, r + 6, b + 3,
+                                                 fill='#b80028', outline='white', width=2)
+            canvas.tag_lower(background, badge)

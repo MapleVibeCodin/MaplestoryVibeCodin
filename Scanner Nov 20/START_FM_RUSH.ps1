@@ -56,16 +56,6 @@ try {
     }
     if (-not (Test-CompatiblePython $EnvPython)) { throw 'Environment verification failed: FM Rush must use 64-bit Python 3.12.' }
     Write-Host 'Verified: FM Rush uses 64-bit Python 3.12.'
-    $DepsReady = $false
-    try {
-        & $EnvPython -c 'import PIL,numpy,windows_capture,onnxruntime,cv2,rapidocr_onnxruntime' 2>$null | Out-Null
-        $DepsReady = ($LASTEXITCODE -eq 0)
-    } catch {}
-    if (-not $DepsReady) {
-        Write-Host 'Installing capture and OCR dependencies...'
-        & $EnvPython -m pip install -r (Join-Path $PSScriptRoot 'requirements.txt') -r (Join-Path $PSScriptRoot 'requirements-fast.txt')
-        if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed. Keep the error above for diagnosis; do not switch to Python 3.13 or 3.14.' }
-    }
     if (-not $SetupOnly) {
         & $EnvPython (Join-Path $PSScriptRoot 'fm_rush.py')
         exit $LASTEXITCODE

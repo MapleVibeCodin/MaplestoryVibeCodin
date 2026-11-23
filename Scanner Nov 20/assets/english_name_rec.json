@@ -1,7 +1,0 @@
-{
-  "model": "en_PP-OCRv5_rec_mobile",
-  "source": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.10.0/onnx/PP-OCRv5/rec/en_PP-OCRv5_rec_mobile.onnx",
-  "sha256": "c3461add59bb4323ecba96a492ab75e06dda42467c9e3d0c18db5d1d21924be8",
-  "license": "Apache-2.0",
-  "license_url": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/LICENSE"
-}

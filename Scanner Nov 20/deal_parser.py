@@ -28,6 +28,7 @@ class Deal:
     listing_id: str = ''
     sold: bool = False
     raw_text: str = ''
+    shop_position: dict | None = None
 
     @property
     def buy_label(self) -> str:
