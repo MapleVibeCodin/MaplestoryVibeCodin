@@ -1,4 +1,4 @@
-FM RUSH v24.45 — SHOP PREVIEW
+FM RUSH v24.46 — SHOP PREVIEW
 
 1. Extract the ZIP and run START_FM_RUSH.bat from Scanner Nov 20.
 2. If you already use extension v24.39.0, keep it loaded. For a first install,
@@ -13,9 +13,11 @@ FM RUSH v24.45 — SHOP PREVIEW
 5. Open Change Channel in MapleStory. Press Ctrl+Alt+C to move the pointer to
    the selected yellow channel cell, then click the cell and confirm yourself.
    You can also use Tools > Move pointer to channel.
-6. Press Ctrl+Alt+M to move the desktop pointer to the center of the red box.
-   It works while Brave has focus. You still click yourself. You can also
-   choose Tools > Move pointer to shop.
+6. Press Ctrl+Alt+M or Ctrl+Alt+J to move the desktop pointer to the red box.
+   FM Rush takes focus first if MapleStory was active. Click the shop yourself.
+   If the game intercepts the shortcut, select Tools > Move pointer to shop.
+   That menu also shows the shortcuts Windows registered. Close any older
+   FM Rush copies and restart FM Rush if they have a shortcut reserved.
 7. If the camera puts the sign elsewhere, point at the bottom center of the
    numbered doorway and press Ctrl+Alt+F to realign the box for this chase.
 8. Press Shift+2 to unlock and return to the first live deal. Use Skip to

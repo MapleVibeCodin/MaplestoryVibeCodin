@@ -13,6 +13,7 @@ class TradeHotkeys(threading.Thread):
         user.GetMessageW.argtypes=[ctypes.POINTER(wintypes.MSG),wintypes.HWND,wintypes.UINT,wintypes.UINT]
         self.thread_id=kernel.GetCurrentThreadId()
         registered=[]
+        shop_shortcuts = []
         try:
             ctrl_alt = 0x0002 | 0x0001
             shift = 0x0004
@@ -23,13 +24,18 @@ class TradeHotkeys(threading.Thread):
                 (5, 'C', ctrl_alt, 'trade_move_channel'),
                 (6, '1', shift, 'trade_lock'),
                 (7, '2', shift, 'trade_unlock'),
+                (8, 'J', ctrl_alt, 'trade_move_pointer'),
             )
             for key_id, key, modifiers, action in shortcuts:
+                label = 'Shift' if modifiers == shift else 'Ctrl+Alt'
+                shortcut = f'{label}+{key}'
                 if user.RegisterHotKey(None, key_id, 0x4000 | modifiers, ord(key)):
                     registered.append((key_id, action))
-                else:
-                    label = 'Shift' if modifiers == shift else 'Ctrl+Alt'
-                    self.post(('status', f'Hotkey unavailable · {label}+{key}'))
+                    if action == 'trade_move_pointer':
+                        shop_shortcuts.append(shortcut)
+                elif action != 'trade_move_pointer':
+                    self.post(('status', f'Hotkey unavailable · {shortcut}'))
+            self.post(('shop_pointer_shortcuts', tuple(shop_shortcuts)))
             msg=wintypes.MSG()
             while not self.stopping.is_set() and user.GetMessageW(ctypes.byref(msg),None,0,0)>0:
                 if msg.message==0x0312:

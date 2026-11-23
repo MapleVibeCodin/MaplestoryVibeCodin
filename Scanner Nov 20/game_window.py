@@ -12,6 +12,7 @@ if sys.platform == 'win32':
     u32.IsWindowVisible.restype = wintypes.BOOL
     u32.IsWindow.argtypes = [wintypes.HWND]
     u32.IsWindow.restype = wintypes.BOOL
+    u32.GetForegroundWindow.restype = wintypes.HWND
     u32.IsIconic.argtypes = [wintypes.HWND]
     u32.IsIconic.restype = wintypes.BOOL
     u32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
@@ -102,6 +103,10 @@ def window_at_point(x: int, y: int) -> int | None:
     return u32.GetAncestor(hwnd, 2) if hwnd else None
 
 
+def window_has_focus(hwnd: int) -> bool:
+    return sys.platform == 'win32' and u32.GetForegroundWindow() == hwnd
+
+
 def cursor_on_client(hwnd: int, client: tuple[int, int, int, int]) -> tuple[int, int] | None:
     """Get the pointer's client position when it is over this game window."""
     if sys.platform != 'win32':
@@ -116,15 +121,22 @@ def cursor_on_client(hwnd: int, client: tuple[int, int, int, int]) -> tuple[int,
     return None
 
 
-def move_cursor_on_screen(hwnd: int, x: int, y: int) -> bool:
-    """Move the desktop pointer without activating the window or clicking."""
-    if sys.platform != 'win32' or not u32.IsWindowVisible(hwnd) or u32.IsIconic(hwnd):
-        return False
+def move_cursor_on_screen(hwnd: int, x: int, y: int) -> str | None:
+    """Move the desktop pointer and return an explanation if it fails."""
+    if sys.platform != 'win32':
+        return 'Desktop pointer movement is available on Windows.'
+    if not u32.IsWindowVisible(hwnd) or u32.IsIconic(hwnd):
+        return 'Restore the selected MapleStory window and try again.'
     if not u32.MonitorFromPoint(wintypes.POINT(x, y), 0):
-        return False
+        return 'The target is off-screen. Move the MapleStory window and try again.'
     clip = wintypes.RECT()
-    if not u32.GetClipCursor(ctypes.byref(clip)):
-        return False
-    if not (clip.left <= x < clip.right and clip.top <= y < clip.bottom):
-        return False
-    return bool(u32.SetCursorPos(x, y))
+    if u32.GetClipCursor(ctypes.byref(clip)) and not (
+        clip.left <= x < clip.right and clip.top <= y < clip.bottom
+    ):
+        return 'The pointer is confined. Release it and try again.'
+    if not u32.SetCursorPos(x, y):
+        return 'Windows declined the pointer move. Try again from the regular desktop.'
+    point = wintypes.POINT()
+    if u32.GetCursorPos(ctypes.byref(point)) and (point.x, point.y) != (x, y):
+        return 'Windows or the active app moved the pointer away from the target.'
+    return None

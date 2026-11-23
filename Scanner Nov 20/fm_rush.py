@@ -10,7 +10,8 @@ import time
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog, simpledialog
 from game_window import (
-    cursor_on_client, move_cursor_on_screen, window_client_rect, window_rect, windows as list_game_windows,
+    cursor_on_client, move_cursor_on_screen, window_client_rect, window_has_focus, window_rect,
+    windows as list_game_windows,
 )
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
@@ -92,7 +93,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.45')
+        self.root.title('FM Rush v24.46')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -179,7 +180,7 @@ class FMApp:
         self.btn(controls,'Skip',self.complete_deal).pack(side='left')
         tk.Button(controls,textvariable=self.chase_label,command=self.toggle_chase,bg=YELLOW,fg=BG,relief='flat').pack(side='left',padx=4)
         tools=tk.Menubutton(controls,text='Tools ▾',relief='flat',bg=CARD2,fg=FG,padx=8,pady=4)
-        menu=tk.Menu(tools,tearoff=False)
+        menu=self.tools_menu=tk.Menu(tools,tearoff=False)
         tools.configure(menu=menu)
         for title,action in [('Move pointer to shop',self.move_pointer_to_shop),
                              ('Move pointer to channel',self.move_pointer_to_channel),
@@ -436,10 +437,26 @@ class FMApp:
                 hwnd, size, box = preview
                 self.shop_pin.show_many(hwnd, size, {'shop': {'box': box, 'mode': 'SHOP'}})
 
-    def move_pointer_to_shop(self):
-        self.refresh_overlays(self.archive.current())
+    def move_pointer_to_shop(self, *, after_focus_for=None):
+        current = self.archive.current()
+        self.refresh_overlays(current)
         if self._shop_preview is None:
-            self.status.set(self.shop.notice.get())
+            if after_focus_for is None:
+                self.status.set('Shop pointer · ' + self.shop.notice.get())
+            return
+        hwnd = self._shop_preview[0]
+        target = (current[0], hwnd)
+        if after_focus_for is not None and after_focus_for != target:
+            return
+        if window_has_focus(hwnd):
+            if after_focus_for is not None:
+                self.status.set('MapleStory kept focus. Switch to FM Rush and try the shop shortcut again.')
+                return
+            if self.root.state() in ('iconic', 'withdrawn'):
+                self.root.deiconify()
+            self.root.focus_force()
+            # Let MapleStory process losing focus before moving its pointer.
+            self.schedule(25, lambda: self.move_pointer_to_shop(after_focus_for=target))
             return
         self.move_pointer_to_box(*self._shop_preview)
 
@@ -462,8 +479,8 @@ class FMApp:
         left, top, right, bottom = box
         screen_x = window[0] + (left + right) // 2
         screen_y = window[1] + (top + bottom) // 2
-        if not move_cursor_on_screen(hwnd, screen_x, screen_y):
-            self.status.set('Could not move the desktop pointer to that position.')
+        problem = move_cursor_on_screen(hwnd, screen_x, screen_y)
+        self.status.set(problem or 'Pointer moved to the highlighted spot')
 
     def align_shop_preview(self):
         current = self.archive.current()
@@ -557,6 +574,13 @@ class FMApp:
                 self.set_chase_locked(True)
             elif evt[0]=='trade_unlock':
                 self.set_chase_locked(False)
+            elif evt[0]=='shop_pointer_shortcuts':
+                shortcuts = evt[1]
+                self.tools_menu.entryconfigure('Move pointer to shop',
+                    accelerator=' / '.join(shortcuts) or 'Hotkeys unavailable')
+                if 'Ctrl+Alt+M' not in shortcuts:
+                    fallback = shortcuts[0] if shortcuts else 'Tools > Move pointer to shop'
+                    self.status.set(f'Ctrl+Alt+M unavailable · use {fallback}')
             elif evt[0]=='browser_choice':
                 action,key,session,revision,reply=evt[1:]
                 versions=getattr(self,'choice_revisions',{})
