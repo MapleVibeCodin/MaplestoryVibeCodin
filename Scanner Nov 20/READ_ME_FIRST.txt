@@ -1,4 +1,4 @@
-FM RUSH v24.49 — SHOP PREVIEW
+FM RUSH v24.50 — SHOP PREVIEW
 
 1. Extract the ZIP and run START_FM_RUSH.bat from Scanner Nov 20.
 2. If you already use extension v24.39.0, keep it loaded. For a first install,

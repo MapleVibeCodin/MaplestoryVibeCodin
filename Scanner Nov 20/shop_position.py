@@ -40,9 +40,8 @@ def entry_portal_point(room, client_size):
     """Return the portal threshold in the room's calibrated entry view."""
     width, height = client_size
     if room_theme(room) == 'grass':
-        # The newer FM 1, 3, 5, 13, and 14 screenshots show lower entry views
-        # than the older grass-room clips. Keep their measured offsets.
-        bottom_margin = {1: 11, 3: 48, 5: 45, 13: 47, 14: 48}.get(room, 192)
+        # Use the updated entry camera measurements where a screenshot exists.
+        bottom_margin = {1: 11, 2: 44, 3: 48, 5: 45, 13: 47, 14: 48}.get(room, 192)
         return width - 225, height - bottom_margin
     # The cave door stands on its own raised platform. Use the vertical
     # offset measured for each room where an entry view is available.
