@@ -16,10 +16,10 @@ import threading
 import time
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog, simpledialog
-from window_capture import windows as list_game_windows, WindowFrames, window_rect
+from window_capture import windows as list_game_windows, WindowFrames, window_rect, window_client_rect
 from multi_shop_worker import MultiShopWorker
 from deal_archive import DealArchive
-from channel_overlay import ChannelPin,locate_channel
+from channel_overlay import ChannelPin,locate_channel,preview_channel
 from item_locator import IconTarget, ItemScanWorker, decode_reference, download_icon
 from shop_pin import ItemPin
 from trade_hotkeys import TradeHotkeys
@@ -144,7 +144,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.37')
+        self.root.title('FM Rush v24.38')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -464,6 +464,7 @@ class FMApp:
             self.shop.last_item=deal.item
         if self.map is not None and self.map.winfo_exists():self.draw_map()
         self.shop.refresh_matches(available_names)
+        self.refresh_channel_target(current)
 
     def export_archive(self):
         path=filedialog.asksaveasfilename(title='Export listings grouped by seller IGN',
@@ -476,48 +477,57 @@ class FMApp:
         # The hotkey skips; accepting the next deal always requires a choice.
         self.complete_deal()
 
-    def update_channel_overlay(self):
-        """Never run channel-menu template matching on Tk's UI thread.
-
-        Previously a full 1080p match could consume an entire 50 ms UI tick,
-        starving overlay updates and the browser bridge. One daemon worker
-        uses the latest image every ~220 ms; old sessions are ignored.
-        """
-        if self._closing:return
-        current=self.archive.current()
-        frames=self.shop_frames
-        token=(self.shop_session,current[0],self.current_cc) if self.shop_running and current and frames else None
-        if token!=self._channel_visible_token:
+    def show_channel_preview(self, token):
+        _, hwnd, _, channel, locked = token
+        window = window_rect(hwnd)
+        if window is None:
             self.channel_pin.hide()
-            self._channel_visible_token=token
-        latest=None
-        while True:
-            try:latest=self._channel_scan_results.get_nowait()
-            except queue.Empty:break
+            return
+        _, _, width, height = window
+        box = preview_channel(channel, window, window_client_rect(hwnd)) if locked else None
+        if box:
+            mode = 'GUIDE'
+        else:
+            box = (max(5, width-270), 10, width-10, 48)
+            mode = 'PRE'
+        self.channel_pin.show_many(hwnd, (width, height),
+            {'CH '+str(channel): {'box': box, 'mode': mode}})
+
+    def refresh_channel_target(self, current):
+        hwnd = self.shop.selected_hwnd()
+        locked = self.archive.chase_locked
+        token = None
+        if current and hwnd and (locked or self.shop_running):
+            key, deal = current
+            channel = deal.cc if locked else self.current_cc if deal.cc is not None else None
+            if channel is not None and 1 <= channel <= 40:
+                token = (self.shop_session, hwnd, key, channel, locked)
+        if token != self._channel_visible_token or (token is not None and self.channel_pin.data is None):
+            self._channel_visible_token = token
+            if token is None:
+                self.channel_pin.hide()
+            else:
+                self.show_channel_preview(token)
+        return token
+
+    def update_channel_overlay(self):
+        """Refine the immediate guide with a background match when the menu opens."""
+        if self._closing:return
+        frames=self.shop_frames
+        token=self.refresh_channel_target(self.archive.current())
+        try:latest=self._channel_scan_results.get_nowait()
+        except queue.Empty:latest=None
         if latest is not None and token is not None and latest[0]==token:
             _,box,size=latest
+            _,hwnd,_,channel,locked=token
             if box:
-                self.channel_pin.show_many(self.shop.selected_hwnd(),size,
-                    {'CH '+str(self.current_cc):{'box':box,'mode':'EXACT'}})
+                mode='CHASE_CELL' if locked else 'EXACT'
+                self.channel_pin.show_many(hwnd,size,{'CH '+str(channel):{'box':box,'mode':mode}})
             else:
-                # Keep immediate destination visible; a missing menu is NOT a
-                # failed channel selection. The menu cell is highlighted when
-                # the menu locator subsequently sees the open panel.
-                if frames is not None:
-                    snap=frames.peek(-1)
-                    if snap is not None:
-                        _,_,img=snap;h,w=img.shape[:2]
-                        self.channel_pin.show_many(self.shop.selected_hwnd(),(w,h),
-                            {'TARGET CH '+str(self.current_cc):{'box':(max(5,w-270),10,w-10,48),'mode':'PRE'}})
-        if token is not None and latest is None and self.channel_pin.data is None:
-            snap=frames.peek(-1)
-            if snap is not None:
-                _,_,img=snap;h,w=img.shape[:2]
-                self.channel_pin.show_many(self.shop.selected_hwnd(),(w,h),
-                    {'TARGET CH '+str(self.current_cc):{'box':(max(5,w-270),10,w-10,48),'mode':'PRE'}})
+                self.show_channel_preview(token)
         if token is None:
             self.channel_frame_version=None
-        elif not self._channel_scan_inflight and time.monotonic()>=self._channel_scan_due:
+        elif frames is not None and not self._channel_scan_inflight and time.monotonic()>=self._channel_scan_due:
             frame=frames.peek(-1)
             if frame is not None:
                 version,stamp,image=frame
@@ -526,7 +536,7 @@ class FMApp:
                     self.channel_frame_version=frame_token
                     self._channel_scan_due=time.monotonic()+.10
                     self._channel_scan_inflight=True
-                    channel=self.current_cc
+                    channel=token[3]
                     size=(image.shape[1],image.shape[0])
                     def locate():
                         try:box=locate_channel(image,channel)
@@ -556,9 +566,19 @@ class FMApp:
             self.archive.unlock()
         else:
             current=self.archive.current()
-            if current:self.archive.choose(current[0])
+            if current and self.archive.choose(current[0]):self.restore_chase_route()
         self.sync_archive()
         self.status.set('LOCKED · incoming listings cannot replace this target' if self.archive.chase_locked else 'LIVE · first listing restored')
+
+    def restore_chase_route(self):
+        if self.manual_override_at is None:
+            return
+        self.manual_override_at=None
+        current=self.archive.current()
+        if current:
+            _,deal=current
+            if deal.cc is not None and deal.fm is not None:
+                self.set_target(deal.cc,deal.fm,deal=deal,source='ARCHIVE')
 
     def undo_deal(self):
         self.archive.undo_complete();self.sync_archive()
@@ -703,6 +723,7 @@ class FMApp:
                     if not self.archive.choose(key):
                         reply.put({'ok':False,'error':'LOCKED · click UNLOCK first, or listing completed'})
                         self.status.set('LOCKED · click UNLOCK first, or listing completed');continue
+                    self.restore_chase_route()
                 elif action=='unlock':self.archive.unlock()
                 else:self.archive.skip(key)
                 self.sync_archive()

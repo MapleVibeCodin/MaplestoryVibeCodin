@@ -1,4 +1,4 @@
-FM RUSH v24.37 — SCANNER
+FM RUSH v24.38 — SCANNER
 
 INSTALL
 1. Extract the ZIP and open the Scanner Nov 20 folder.
@@ -12,7 +12,9 @@ INSTALL
 
 HOW IT WORKS
 - Before the game OCR finishes, the top listing already sets the channel and FM
-  route. A click-through yellow target-channel reminder appears in MapleStory.
+  route. CHASE immediately outlines the destination cell on a 1280 × 720
+  MapleStory client, even before you open Change Channel. Other sizes use
+  the target-channel reminder until the menu is recognized.
 - When the actual channel-change menu is open, its destination cell is outlined.
 - The seller IGN is located by the existing nameplate finder.
 - NEW: The browser passes HeneFM's own item icon (or its official image URL) to

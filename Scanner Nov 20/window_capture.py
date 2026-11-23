@@ -27,6 +27,12 @@ if sys.platform == 'win32':
     u32.GetWindowTextW.restype = ctypes.c_int
     u32.GetWindowRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
     u32.GetWindowRect.restype = wintypes.BOOL
+    u32.GetClientRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
+    u32.ClientToScreen.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
+    u32.WindowFromPoint.argtypes = [wintypes.POINT]
+    u32.WindowFromPoint.restype = wintypes.HWND
+    u32.GetAncestor.argtypes = [wintypes.HWND, wintypes.UINT]
+    u32.GetAncestor.restype = wintypes.HWND
     CALLBACK = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 
 
@@ -76,6 +82,24 @@ def window_rect(hwnd: int) -> tuple[int, int, int, int] | None:
     if not u32.GetWindowRect(hwnd, ctypes.byref(rect)):
         return None
     return rect.left, rect.top, rect.right-rect.left, rect.bottom-rect.top
+
+
+def window_client_rect(hwnd: int) -> tuple[int, int, int, int] | None:
+    """Screen-space client rectangle, excluding the title bar and borders."""
+    if sys.platform != 'win32':
+        return None
+    bounds = wintypes.RECT()
+    origin = wintypes.POINT()
+    if not u32.GetClientRect(hwnd, ctypes.byref(bounds)) or not u32.ClientToScreen(hwnd, ctypes.byref(origin)):
+        return None
+    return origin.x, origin.y, bounds.right, bounds.bottom
+
+
+def window_at_point(x: int, y: int) -> int | None:
+    if sys.platform != 'win32':
+        return None
+    hwnd = u32.WindowFromPoint(wintypes.POINT(x, y))
+    return u32.GetAncestor(hwnd, 2) if hwnd else None
 
 
 class WindowFrames:

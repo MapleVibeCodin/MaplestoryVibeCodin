@@ -85,13 +85,16 @@ class ShopPin:
                 badge=c.create_rectangle(l-7,t-4,r+7,b+4,fill='#a12d00' if likely else '#d00025',outline='white',width=2)
                 c.tag_lower(badge,text)
 
+    def can_show(self, hwnd, rect, size, hits):
+        return ctypes.windll.user32.GetForegroundWindow()==hwnd
+
     def follow(self,schedule=True):
         if self.closed:return
         if self.data and self.ready:
             hwnd,(sw,sh),hits=self.data
             user=ctypes.windll.user32
             rect=window_rect(hwnd)
-            if rect and not user.IsIconic(hwnd) and user.GetForegroundWindow()==hwnd:
+            if rect and not user.IsIconic(hwnd) and self.can_show(hwnd, rect, (sw,sh), hits):
                 left,top,w,h=rect
                 if rect!=self.last_rect:
                     self.window.geometry(f'{w}x{h}{left:+d}{top:+d}');self.last_rect=rect
