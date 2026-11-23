@@ -1,4 +1,21 @@
-FM RUSH v24.53 — AUTOMATIC GRASS CAMERA ALIGNMENT
+FM RUSH v24.54 — ENTRANCE NAVIGATION + GRASS CAMERA ALIGNMENT
+
+ENTRANCE NAVIGATION (v24.54)
+- Keep the minimap title expanded and wait at the usual upper rope.
+- The newest live deal gets a green door/route guide without first opening the
+  route map. Shift+1 locks the current deal before leaving the starting rope.
+- Enter its numbered FM room FIRST; then open the channel menu and use the
+  yellow channel guide; then follow the red shop sign. All game inputs are manual.
+- The directional text is measured from the fixed waiting rope, not from a
+  continuously tracked player. Max Teleport range is 150 px. Use horizontal
+  Teleport plus walking; the visible floors are approximately 240 px apart.
+- FM 1-6: follow the right down-warp guide, then go left toward the numbered
+  door. Exact bottom-row rectangles are not yet calibrated.
+- The minimap title and two agreeing static door landmarks are required for a
+  precise rectangle. If only the title matches, show route text only.
+- Only the supplied native screenshot and synthetic translations were tested
+  offline. Confirm the green guide, transitions, and Windows behavior in game.
+
 
 START
 1. Run START_FM_RUSH.bat. The launcher prepares 64-bit Python 3.12.
