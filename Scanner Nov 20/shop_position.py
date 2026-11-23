@@ -63,7 +63,7 @@ def _shop_sign_bounds(point):
     x, feet = point
     # This part of the sign is shared by player-shop bubbles and merchant
     # boards. Exclude the avatar, platform, and the rest of the booth.
-    return x - 50, feet - 125, x + 50, feet - 94
+    return x - 50, feet - 113, x + 50, feet - 82
 
 
 def shop_marker(point, client, window):
