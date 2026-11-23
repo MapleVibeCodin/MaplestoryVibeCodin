@@ -2,6 +2,11 @@
 
 Last updated: 2026-11-24. Current desktop release: v24.53; browser extension: v24.39.0. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
+## Clickable session continuation
+- [Start a new ChatGPT chat with the checkpoint prompt](https://chatgpt.com/?q=Resume%20FM%20Rush%20checkpoint%20from%20https%3A%2F%2Fgithub.com%2FMapleVibeCodin%2FMaplestoryVibeCodin%2Fblob%2Fmain%2FAGENTS.md.%20Inspect%20the%20latest%20source%20and%20run%20the%2010%20continuity%20checks%20before%20proceeding.). The web q parameter may prefill or submit depending on the client; verify the prompt and send if necessary.
+- [Start a new Codex desktop chat](codex://new?originUrl=https%3A%2F%2Fgithub.com%2FMapleVibeCodin%2FMaplestoryVibeCodin.git&prompt=Resume%20FM%20Rush%20checkpoint.%20Read%20the%20latest%20AGENTS.md%20at%20https%3A%2F%2Fgithub.com%2FMapleVibeCodin%2FMaplestoryVibeCodin%2Fblob%2Fmain%2FAGENTS.md%20and%20inspect%20current%20source%20before%20proceeding.). The installed app must handle the codex:// protocol; originUrl selects a matching existing workspace, and the prompt is prefilled but not sent. If the workspace is not resolved, select the repository manually. See https://learn.chatgpt.com/docs/reference/commands for deep-link syntax.
+- Bookmark these links. They reference this live checkpoint, not a frozen version of its contents. On each future Save checkpoint, provide clickable resume links as well as a plain prompt fallback. Do not claim a new session has been tested unless actually verified.
+
 ## Resume now — authoritative short checkpoint (2026-11-24)
 - Project: MapleVibeCodin/MaplestoryVibeCodin; main; desktop folder Scanner Nov 20/. Published desktop v24.53, extension v24.39.0; inspect source to verify any later release. Last verified pre-checkpoint repository ref d4d89f92e911557d808dd2b34802f6ab9fcde27e.
 - Latest working change on GitHub: passive grass-room camera alignment (FM 1–6, 13–16); seven fixed terrain signatures, at least two agreeing matches, no tied winner, background capture at most 10Hz. Hide uncertain grass marker; cave remains estimated/manual. Camera recognition is not seller verification. Local installation and live Windows accuracy are unconfirmed.
