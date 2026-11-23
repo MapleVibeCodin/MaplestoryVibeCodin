@@ -1,12 +1,13 @@
-FM RUSH v24.34 — COMPLETE PACKAGE (clear item brackets + instant channel prehighlight)
+FM RUSH v24.35 — SCANNER
 
 INSTALL
-1. Extract latest.zip into a NEW folder. Do not stack old hotfixes on top.
+1. Extract the ZIP and open the Scanner Nov 20 folder.
 2. Run START_FM_RUSH.bat. The launcher provisions its Python 3.12 environment as needed.
 3. Brave > chrome://extensions > Developer mode > Load unpacked > choose this NEW
-   latest/browser_extension folder. Remove/reload the older FM Rush extension.
+   browser_extension folder if the FM Rush extension is not already installed.
 4. Open https://henefm.com/flips/deals in Brave.
-5. In FM Rush select the running MapleStory window and START/ARM the locator.
+5. Choose MapleStory in the main strip and click Start locator if needed.
+   Click Refresh after opening or restarting the game.
 6. Click SVG MAP or run OPEN_SVG_MAP.bat for the live route view.
 
 HOW IT WORKS

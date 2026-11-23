@@ -14,7 +14,7 @@ class TradeHotkeys(threading.Thread):
         self.thread_id=kernel.GetCurrentThreadId()
         registered=[]
         try:
-            for key_id,key,action in [(1,ord('B'),'trade_buy'),(2,ord('F'),'trade_find'),(3,ord('N'),'trade_next')]:
+            for key_id,key,action in [(2,ord('F'),'trade_find'),(3,ord('N'),'trade_next')]:
                 if user.RegisterHotKey(None,key_id,0x4000|0x0002|0x0001,key):registered.append((key_id,action))
                 else:self.post(('status','Hotkey unavailable: Ctrl+Alt+'+chr(key)+'; use the app button.'))
             msg=wintypes.MSG()

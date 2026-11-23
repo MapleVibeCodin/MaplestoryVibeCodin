@@ -44,8 +44,7 @@ VERIFICATION
 - Actual Windows + MapleStory speed and live app UI have NOT been measured here.
 
 IMPORTANT
-This ZIP does not include your prior trade ledger/config. The archive and
-purchases normally live under %%LOCALAPPDATA%%\FM_Rush\archives and are reused.
+The scanner reuses its deal archive in %LOCALAPPDATA%\FM_Rush\archives.
 If you changed any local config.json, copy that file to the NEW folder manually
 (after backing it up). Keep your previous scanner folder until this version runs.
 
