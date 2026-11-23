@@ -2,6 +2,12 @@
 
 Last updated: 2026-11-24. Current desktop release: v24.53; browser extension: v24.39.0. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
+## Mandatory continuity check (ChatGPT and Codex)
+- On "Resume checkpoint" or "Resume FM Rush checkpoint", fetch this root AGENTS.md from GitHub main first, then inspect the latest relevant source files and GitHub commit. Do not use old conversation summaries or previously downloaded copies as the authoritative version. Current source and recent commits take precedence over historical notes; the user's current request takes precedence over historical preferences.
+- Before editing, recover: (1) repository/versions, (2) architecture, (3) grass/cave coverage, (4) camera confidence and fallback, (5) calibration history, (6) chase/hotkeys, (7) reusable updater, (8) local-data protection and past System32 failure, (9) unverified live behavior and remaining tasks, (10) checkpoint workflow. Report conflicts or missing access, do not guess.
+- The supported new-chat prompt is: "Resume FM Rush checkpoint. Read https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/AGENTS.md and inspect current relevant source before proceeding." This prompt works without assuming the new chat remembers the repository URL.
+- 2026-11-24 continuity audit: all ten static checkpoint/source-consistency checks passed against commit 842dcf4c8b44090ec6d4751d464b96d648c5c0b9. Independent prior-context retrieval recovered v24.53, terrain alignment, PowerShell workflow and checkpoint phrases but also older v24.25/v24.31 information and missed the reusable updater. A real new authenticated ChatGPT conversation was not launched; account memory persistence and Windows runtime remain unverified. This audit is evidence of documented continuity, not a guarantee of cross-chat recall or scanner accuracy.
+
 ## Start every session
 - Read this file, inspect the current branch/working tree and recent commits, and read the actual affected source before changing it. GitHub main is the published baseline, not proof of what is running on a local PC.
 - Repository: MapleVibeCodin/MaplestoryVibeCodin. Application directory: `Scanner Nov 20/`. Do not assume a local absolute path.
