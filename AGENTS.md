@@ -1,0 +1,40 @@
+# FM Rush — persistent engineering instructions and handoff
+
+Last updated: 2026-11-24. This is project-only context, not a transcript or personal profile.
+
+## Start every session
+- Read this file, inspect the current branch/working tree and recent commits, and read the actual affected source before changing it. GitHub main is the published baseline, not proof of what is running on a local PC.
+- Repository: MapleVibeCodin/MaplestoryVibeCodin. Application directory: `Scanner Nov 20/`. Do not assume a local absolute path.
+- User wants quick, practical, precise improvements with minimal manual work. Preserve the current UI and existing working features unless the task explicitly asks for changes. Make a small targeted fix rather than a wholesale rewrite.
+- After a meaningful change, update the handoff below with changed files, commit/ref, rationale, tests actually run, and unresolved issues. Keep confirmed results separate from unverified hypotheses. Never claim a Windows/game test was performed when it was not.
+- Keep personal details, credentials, screenshots containing private data, and local archives out of the public repository.
+
+## Mandatory delivery workflow
+Every scanner/shop update response MUST include one complete copy-paste PowerShell block that can be run from ANY working directory, including elevated C:\Windows\System32. A GitHub link alone is not sufficient.
+1. Locate the actual scanner installation, preferably from the running fm_rush.py process's absolute command line; otherwise look for START_FM_RUSH.bat alongside fm_rush.py under the user's folders. Prefer Scanner Nov 20, but do not silently select an unrelated or ambiguous installation. If there are multiple plausible copies, display paths and safely resolve the active one or request a selection within the script.
+2. Fetch the exact changed runtime files from the verified GitHub commit or main using raw.githubusercontent.com/MapleVibeCodin/MaplestoryVibeCodin/<ref>/Scanner%20Nov%2020/<file>. Use absolute destination paths, -UseBasicParsing and terminating errors. Stage downloads first; verify nonempty files and syntax where practical. Do not overwrite config.json, archives, or unrelated files.
+3. Close only the identified installation's FM Rush Python process (never all Python processes). Back up affected files when useful, replace them, then launch START_FM_RUSH.bat with its absolute path and explicit working directory. Report errors clearly and do not say restart succeeded merely because a launch was attempted.
+4. No manual cd, ZIP extraction, file copying or separate restart command for ordinary updates. Only require browser extension reload if extension files were changed.
+- Previous failed delivery: commands used relative paths from C:\Windows\System32, downloaded shop_position.py there, stopped the scanner, then failed to find START_FM_RUSH.bat. Never repeat that pattern.
+
+## Current architecture
+- Desktop application: Python 3.12 x64, Tkinter, Windows ctypes. START_FM_RUSH.bat launches START_FM_RUSH.ps1, which finds Python 3.12 and uses a local .venv. Baseline UI label FM Rush v24.51 (inspect latest source rather than assuming version).
+- fm_rush.py: GUI, live deal state, chase locking, overlay refresh, manual pointer movement, portal alignment. game_window.py: selected Windows HWND/client geometry, focus and cursor helpers.
+- shop_position.py: pure projection from HeneFM map percentages -> world position -> room entry camera -> clickable sign rectangle. shop_pin.py: transparent click-through overlay (red outline, not an opaque fill). channel_overlay.py: yellow channel destination guide. route_logic.py: FM route diagram and directions.
+- browser_extension/: inspect latest extension before changing; receives rendered HeneFM deals, sends to localhost bridge. henefm_bridge.py: localhost 127.0.0.1:18773, validated browser snapshots/actions. deal_archive.py: durable SQLite archive under LOCALAPPDATA/FM_Rush/archives on Windows, pending/live state, revision tracking and chase locking. deal_parser.py and profit_filter.py: parsing/filtering for pasted alerts. Do not assume pasted-alert thresholds govern browser deals; inspect actual path.
+- Preserve passive, read-only game overlay and manual clicks. No game memory reading, client modification, or automated game inputs. Current projection is not OCR and does not detect actual sign text.
+- Preserve immediate target preview, chase hard lock until unlock, clear non-obscuring red box, yellow channel guide and route. Shift+1 locks, Shift+2 unlocks; Ctrl+Alt+N skips; Ctrl+Alt+C moves pointer to channel; Ctrl+Alt+M/J moves pointer to shop; Ctrl+Alt+F aligns to doorway under cursor for the current chase. Actual clicks remain manual. Verify shortcuts in current code.
+- Supported entry client sizes: 1280x720 and 1366x768. Projection assumes entry camera; movement or alternate spawn can invalidate it. Room geometry is not the same as desktop window borders. Keep DPI, client offsets and clipping correct.
+- FM entrance layout: rows 1–6, 7–12, 13–16, 17–20; rope spine between 3–4, 9–10, 14–15, 18–19. Current route code should be consulted for start assumptions.
+
+## Shop calibration: current published fixes and open issues
+Baseline before 2026-11-24: grass portal bottom margins 1:11, 2:44, 3:48, 5:45, 6:8, 13:47, 14:48, 15:40; other grass rooms default 192. Cave vertical offsets 7:121, 9:149, 11:97, 17:97; default 108, relative to client center. Grass theme rooms 1–6, 13–16; cave theme the rest. These are heuristic calibrations, not universally verified.
+- 2026-11-24 commit 79e824ffdb7b27c6a9530c99285c7706727ba6bd: user reported red shop rectangle consistently a little high. Shifted both Y edges down 12 pixels in _shop_sign_bounds (feet-125/-94 -> feet-113/-82), same X and box size (100x31 before clipping). This affects both visual marker and manual pointer target.
+- 2026-11-24 commit a0e8f488f4b216c8b98afcc9dd2a99d8e176e409: screenshot of FM 16 showed incorrect target for "Clean +4 Golden Mole", approximately a platform above intended shop. Added grass room 16 bottom margin 0 instead of fallback 192, moving FM 16 projection down 192 px. Other room offsets and global sign shift unchanged. This is an estimated correction, NOT confirmed in game. User has not reported a successful retest; local installation status unknown after failed relative-path update.
+- The latest source was re-read from main and contains both changes. Do not revert or stack global Y offsets blindly. The FM 16 margin of 0 is suspicious as a physical portal reference; measure actual portal threshold and target sign centers from a screenshot before asserting it is correct. Check if the target listing/pin itself is stale or mismatched, as well as camera origin.
+- Future improvement: use room-specific calibration with explicit confidence; measure client-space portal coordinates and signed pixel error from screenshots. If a correction is based on one screenshot, isolate the room/resolution rather than altering all maps. Investigate persistent per-room alignment and a simple manual fine-adjustment only if requested. Test clipping, both resolutions, unchanged rooms, and consistency between the red rectangle and manual pointer target. Never invent measurements or present an unverified projection as exact.
+- Current issue to resume: confirm the FM 16 fix was actually installed and whether the Golden Mole shop is now marked correctly; if not, use fresh screenshots and source to resolve the remaining discrepancy.
+
+## Session close / next chat
+- Update this document after meaningful implementation changes, especially if a previous fix failed. Include a compact dated log, current commit/ref, exact files, validation evidence, and next action. Do not overwrite newer work or accumulate stale assumptions.
+- New ChatGPT conversation: ask it to read the latest AGENTS.md and actual relevant files from GitHub before continuing. Codex reads repository AGENTS.md when working in this repository; pull latest changes first.
