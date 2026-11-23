@@ -1,4 +1,4 @@
-FM RUSH v24.44 — SHOP PREVIEW
+FM RUSH v24.45 — SHOP PREVIEW
 
 1. Extract the ZIP and run START_FM_RUSH.bat from Scanner Nov 20.
 2. If you already use extension v24.39.0, keep it loaded. For a first install,
@@ -6,7 +6,8 @@ FM RUSH v24.44 — SHOP PREVIEW
    unpacked to select browser_extension. Refresh the HeneFM Deals tab once.
 3. Select MapleStory in the FM Rush strip. Use Refresh if you open or restart the
    game after FM Rush.
-4. Click CHASE on a HeneFM deal. The red box is drawn immediately around the
+4. Press Shift+1 to lock the deal shown in FM Rush, or click CHASE on a specific
+   HeneFM card. The red box is drawn immediately around the
    projected clickable part of the shop sign, including signs partly visible
    at the game window edge. The yellow channel guide marks the destination cell.
 5. Open Change Channel in MapleStory. Press Ctrl+Alt+C to move the pointer to
@@ -17,7 +18,11 @@ FM RUSH v24.44 — SHOP PREVIEW
    choose Tools > Move pointer to shop.
 7. If the camera puts the sign elsewhere, point at the bottom center of the
    numbered doorway and press Ctrl+Alt+F to realign the box for this chase.
-8. Skip or unlock to clear the preview and choose a different listing.
+8. Press Shift+2 to unlock and return to the first live deal. Use Skip to
+   remove a deal from the current list.
+
+Use the 1 and 2 keys above the letters. These Windows-wide shortcuts reserve
+Shift+1 and Shift+2 while FM Rush runs, including ! and @ on a US keyboard.
 
 Shop previews support 1280 × 720 and 1366 × 768 game clients. The box is
 projected from the HeneFM position and the room's entry camera. An alternate

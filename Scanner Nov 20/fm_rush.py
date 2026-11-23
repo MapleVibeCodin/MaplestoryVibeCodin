@@ -92,7 +92,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.44')
+        self.root.title('FM Rush v24.45')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -107,7 +107,7 @@ class FMApp:
         self.profit=tk.StringVar(value='PROFIT: —')
         self.buy=tk.StringVar(value='BUY AT: —')
         self.status=tk.StringVar(value='LIVE · first visible HeneFM listing')
-        self.chase_label=tk.StringVar(value='LIVE · CHASE TO LOCK')
+        self.chase_label=tk.StringVar(value='LIVE · LOCK (Shift+1)')
         self.manual=tk.StringVar(value='CC 22 FM 13')
         self.events=queue.Queue()
         self.browser_bridge=None
@@ -341,7 +341,7 @@ class FMApp:
             current = self.archive.current()
             self.live_stamp = self.archive.live_state()
         self.refresh_overlays(current)
-        self.chase_label.set('LOCKED · UNLOCK' if self.archive.chase_locked else 'LIVE · CHASE TO LOCK')
+        self.chase_label.set('LOCKED · UNLOCK (Shift+2)' if self.archive.chase_locked else 'LIVE · LOCK (Shift+1)')
         key,deal=current if current else (None,None)
         if key!=self.displayed_listing:
             self.displayed_listing=key
@@ -483,13 +483,23 @@ class FMApp:
         self.schedule(50, self.follow_overlays)
 
     def toggle_chase(self):
-        if self.archive.chase_locked:
-            self.archive.unlock()
-        else:
-            current=self.archive.current()
-            if current and self.archive.choose(current[0]):self.restore_chase_route()
+        self.set_chase_locked(not self.archive.chase_locked)
+
+    def set_chase_locked(self, locked):
+        with self.archive.lock:
+            if locked == self.archive.chase_locked:
+                return
+            if locked:
+                current = self.archive.current()
+                if current is None or not self.archive.choose(current[0]):
+                    self.status.set('Waiting for a HeneFM deal to lock')
+                    return
+            else:
+                self.archive.unlock()
+        if locked:
+            self.restore_chase_route()
         self.sync_archive()
-        self.status.set('LOCKED · incoming listings cannot replace this target' if self.archive.chase_locked else 'LIVE · first listing restored')
+        self.status.set('LOCKED · Shift+2 to unlock' if locked else 'LIVE · following the first listing')
 
     def restore_chase_route(self):
         if self.manual_override_at is None:
@@ -543,6 +553,10 @@ class FMApp:
                 self.move_pointer_to_shop()
             elif evt[0]=='trade_move_channel':
                 self.move_pointer_to_channel()
+            elif evt[0]=='trade_lock':
+                self.set_chase_locked(True)
+            elif evt[0]=='trade_unlock':
+                self.set_chase_locked(False)
             elif evt[0]=='browser_choice':
                 action,key,session,revision,reply=evt[1:]
                 versions=getattr(self,'choice_revisions',{})

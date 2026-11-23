@@ -14,13 +14,22 @@ class TradeHotkeys(threading.Thread):
         self.thread_id=kernel.GetCurrentThreadId()
         registered=[]
         try:
-            shortcuts = ((2, 'F', 'trade_find'), (3, 'N', 'trade_next'),
-                         (4, 'M', 'trade_move_pointer'), (5, 'C', 'trade_move_channel'))
-            for key_id, key, action in shortcuts:
-                if user.RegisterHotKey(None, key_id, 0x4000 | 0x0002 | 0x0001, ord(key)):
+            ctrl_alt = 0x0002 | 0x0001
+            shift = 0x0004
+            shortcuts = (
+                (2, 'F', ctrl_alt, 'trade_find'),
+                (3, 'N', ctrl_alt, 'trade_next'),
+                (4, 'M', ctrl_alt, 'trade_move_pointer'),
+                (5, 'C', ctrl_alt, 'trade_move_channel'),
+                (6, '1', shift, 'trade_lock'),
+                (7, '2', shift, 'trade_unlock'),
+            )
+            for key_id, key, modifiers, action in shortcuts:
+                if user.RegisterHotKey(None, key_id, 0x4000 | modifiers, ord(key)):
                     registered.append((key_id, action))
                 else:
-                    self.post(('status', f'Hotkey unavailable · Ctrl+Alt+{key}'))
+                    label = 'Shift' if modifiers == shift else 'Ctrl+Alt'
+                    self.post(('status', f'Hotkey unavailable · {label}+{key}'))
             msg=wintypes.MSG()
             while not self.stopping.is_set() and user.GetMessageW(ctypes.byref(msg),None,0,0)>0:
                 if msg.message==0x0312:
