@@ -41,7 +41,7 @@ def entry_portal_point(room, client_size):
     width, height = client_size
     if room_theme(room) == 'grass':
         # Use the updated entry camera measurements where a screenshot exists.
-        bottom_margin = {1: 11, 2: 44, 3: 48, 5: 45, 6: 8, 13: 47, 14: 48, 15: 40}.get(room, 192)
+        bottom_margin = {1: 11, 2: 44, 3: 48, 5: 45, 6: 8, 13: 47, 14: 48, 15: 40, 16: 0}.get(room, 192)
         return width - 225, height - bottom_margin
     # The cave door stands on its own raised platform. Use the vertical
     # offset measured for each room where an entry view is available.
