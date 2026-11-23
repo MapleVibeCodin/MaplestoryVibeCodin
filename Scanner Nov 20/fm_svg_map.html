@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FM Rush · Live SVG route</title>
+<style>
+:root{color-scheme:dark;--bg:#080d19;--panel:#111b2c;--panel2:#17253b;--line:#31465c;--text:#f6f7fa;--muted:#8fa5bb;--mint:#34edba;--gold:#ffd76b;--red:#f48fa0}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,system-ui,sans-serif}
+body{background-image:radial-gradient(ellipse at 45% -25%,#203653 0,transparent 66%);padding:20px}
+.shell{max-width:1390px;margin:auto}.head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:17px;flex-wrap:wrap}
+.brand{display:flex;gap:13px;align-items:center}.logo{background:linear-gradient(135deg,#26dbaa,#0a8f8a);border-radius:13px;width:45px;height:45px;display:grid;place-items:center;color:#081526;font-size:23px;font-weight:900;box-shadow:0 0 30px #1ecba53b}
+.eyebrow{font-size:10px;letter-spacing:2.4px;font-weight:850;color:var(--mint)}h1{font-size:22px;margin:3px 0 0;letter-spacing:-.5px}
+.state{display:flex;gap:8px;align-items:center}.pill{border-radius:999px;padding:8px 12px;border:1px solid #34546a;background:#0e2230;font-weight:800;font-size:12px;white-space:nowrap}.pill.live{color:var(--mint)}.pill.locked{color:#101827;background:var(--gold);border-color:var(--gold)}.pill.off{color:var(--red)}
+button,select{font-family:inherit}button{cursor:pointer;background:#24364d;color:var(--text);border:1px solid #3f566f;border-radius:9px;padding:10px 14px;font-weight:800}button:hover{filter:brightness(1.17)}button:focus-visible,select:focus-visible{outline:2px solid var(--mint)}button.cta{color:#08201e;background:var(--mint);border-color:var(--mint)}button.lock{background:var(--gold);border-color:var(--gold);color:#172234}button:disabled{opacity:.4;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:minmax(0,2.15fr) minmax(270px,.9fr);gap:16px}.panel{background:linear-gradient(170deg,#142034,#101a2a);border:1px solid #2b3e54;border-radius:16px;box-shadow:0 18px 48px #03091059;min-width:0}
+.hero{padding:19px 22px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.hello{font-size:11px;letter-spacing:1.6px;color:var(--muted);font-weight:800;text-transform:uppercase}.seller{font-size:clamp(21px,3vw,33px);font-weight:900;line-height:1.1;letter-spacing:-1px;margin:7px 0 4px}.item{font-size:clamp(15px,2vw,19px);font-weight:830;color:var(--gold);margin:2px 0 0;max-width:600px;overflow-wrap:anywhere}.icon-status{font-size:12px;font-weight:760;color:var(--mint);margin-top:8px;max-width:590px;line-height:1.4}.target{color:var(--mint);font-size:29px;letter-spacing:-1px;font-weight:950;font-variant-numeric:tabular-nums}.overline{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:1.5px;text-align:right}
+.mapbox{background:linear-gradient(160deg,#0a1423,#102239);margin:0 12px;border:1px solid #2a4558;border-radius:12px;overflow:hidden;position:relative}
+.mapbox svg{width:100%;height:auto;display:block;user-select:none;touch-action:manipulation}
+.portal{cursor:pointer}.portal .orb{fill:#1f354d;stroke:#64829c;stroke-width:1.3;transition:stroke-width .12s,fill .12s}.portal .num{fill:#e5f0fa;font-size:15px;font-weight:860;text-anchor:middle;dominant-baseline:central;pointer-events:none}.portal:hover .orb{fill:#255e6b;stroke:var(--mint);stroke-width:2.5}.portal.active .orb{fill:var(--gold);stroke:#fff4b6;stroke-width:2.5;filter:url(#lit)}.portal.active .num{fill:#0c1828}
+.floor-label{font-size:9px;letter-spacing:1px;fill:#86a9c3;font-weight:850}.floor{stroke:#39536b;stroke-width:5;stroke-linecap:round}.rope{stroke:#8c9eac;stroke-width:4;stroke-dasharray:5 6;opacity:.78}.route-shadow{stroke:#2a746c;stroke-width:14;opacity:.33;fill:none;stroke-linejoin:round;stroke-linecap:round}.route{stroke:var(--mint);stroke-width:4.5;fill:none;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:14 6;animation:flow 12s linear infinite;}@keyframes flow{to{stroke-dashoffset:-600}}
+.legend{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 17px 16px;font-size:12px;color:var(--muted);flex-wrap:wrap}.dot{display:inline-block;background:var(--mint);width:7px;height:7px;border-radius:50%;margin-right:6px}.hint{color:#b8ccdc}
+.route-info{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 18px 19px}.infobox{border:1px solid #30465b;background:#0d1b2b;border-radius:11px;padding:13px;min-width:0}.infobox .tag{font-size:10px;font-weight:800;letter-spacing:1.2px;color:var(--muted)}.infobox .value{font-size:15px;font-weight:850;line-height:1.45;margin-top:5px;overflow-wrap:anywhere}.infobox .value.mono{font-family:Consolas,monospace;color:var(--gold);letter-spacing:1px;font-size:17px}
+.sidehead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:19px 17px 10px}.sidehead h2{font-size:14px;margin:0}.count{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}.list{padding:2px 10px 10px;max-height:515px;overflow:auto}.deal{display:block;width:100%;text-align:left;padding:11px 12px;margin-bottom:7px;border:1px solid #273f53;background:#0d1b2a;border-radius:10px;color:#e7f3f8}.deal.chosen{border-color:var(--mint);background:#16373e}.deal:hover{background:#1a3145}.deal .topline{display:flex;gap:7px;align-items:center;justify-content:space-between}.deal .ign{font-size:14px;font-weight:900}.deal .loc{color:var(--mint);font-weight:850;font-size:11px}.deal .thing{font-size:12px;font-weight:800;color:var(--gold);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:5px}.deal .money{font-size:11px;color:var(--muted);margin-top:4px}.empty{padding:25px 12px;color:var(--muted);font-size:13px;line-height:1.6}
+.control{padding:14px 16px 17px;border-top:1px solid #2b3e54;display:grid;gap:10px}.control p{color:var(--muted);font-size:12px;margin:0;line-height:1.5}.control .inputs{display:flex;align-items:center;gap:8px}.control select{background:#1b2e44;border:1px solid #3b5670;border-radius:8px;color:var(--text);padding:9px 6px;flex:1;min-width:0}.buttonrow{display:flex;gap:9px}.buttonrow button{flex:1}.footer{margin:12px 1px;color:#8298ae;font-size:11px;line-height:1.5;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}.notice{color:var(--muted);font-size:12px;min-height:18px;margin-top:7px}.notice.error{color:var(--red)}
+@media(max-width:850px){body{padding:10px}.grid{grid-template-columns:1fr}.hero{padding:15px}.route-info{grid-template-columns:1fr}.list{max-height:310px}.target{font-size:26px}}@media(prefers-reduced-motion:reduce){.route{animation:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="head">
+    <div class="brand"><div class="logo">↗</div><div><div class="eyebrow">FM RUSH · LIVE ROUTING</div><h1>Free Market Navigator</h1></div></div>
+    <div class="state"><span class="pill live" id="connection">CONNECTING</span><span class="pill live" id="mode">FIRST LISTING</span><button class="cta" id="chase">CHASE / LOCK</button><button id="unlock">UNLOCK</button></div>
+  </header>
+  <main class="grid">
+    <section class="panel">
+      <div class="hero"><div><div class="hello" id="subtitle">Live selection · HeneFM</div><div class="seller" id="seller">Waiting for a listing…</div><div class="item" id="item">The first visible item appears here</div><div class="icon-status" id="itemStatus">Item icon: preloading</div></div><div><div class="overline">PREHIGHLIGHT · CHANGE CHANNEL TO</div><div class="target" id="target">— / —</div></div></div>
+      <div class="mapbox"><svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 294" role="img" aria-label="FM entrance schematic: 20 portal rooms on four floors, with live path from the rope starting position">
+        <defs><filter id="lit" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="routeGlow"><feGaussianBlur stdDeviation="1.1"/></filter></defs>
+        <g id="background"><path d="M0 0 H760 V294 H0 Z" fill="url(#backgroundGradient)"/><defs><linearGradient id="backgroundGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a1728"/><stop offset="1" stop-color="#132943"/></linearGradient></defs></g>
+        <g id="floors"></g><path class="rope" d="M385 67 V246"/><path class="route-shadow" id="routeShadow" d=""/><path class="route" id="routePath" d=""/>
+        <g id="portals"></g>
+        <g id="start"><circle cx="385" cy="81" r="10" fill="#072b2a" stroke="#34edba" stroke-width="2.5"/><circle cx="385" cy="81" r="3.5" fill="#34edba"/><text x="401" y="77" fill="#34edba" font-size="11" font-weight="900">START</text><text x="401" y="89" fill="#8fbbbd" font-size="8">ROPE</text></g>
+        <g id="destination" style="display:none" aria-hidden="true"><circle id="destRing" cx="0" cy="0" r="26" fill="none" stroke="#ffd76b" stroke-width="2.5" stroke-dasharray="4 4" opacity=".8"></circle></g>
+      </svg></div>
+      <div class="legend"><span><span class="dot"></span> LIVE SVG ROUTE <span class="hint">· click any FM circle to preview</span></span><span id="reset">Manual preview resets after 60s</span></div>
+      <div class="route-info"><div class="infobox"><div class="tag">WALKING ROUTE</div><div class="value" id="directions">Waiting for a target…</div></div><div class="infobox"><div class="tag">CHANGE CHANNEL · STARTING CH <span id="startChannel">20</span></div><div class="value mono" id="arrows">—</div></div></div>
+    </section>
+    <aside class="panel"><div class="sidehead"><h2>HeneFM deals · first visible first</h2><span class="count" id="count">0 listings</span></div><div class="list" id="list"><div class="empty">Waiting for the HeneFM Flips feed from FM Rush.</div></div>
+      <div class="control"><div class="hello">MAP CONTROL</div><div class="inputs"><label for="channel" style="font-size:12px;color:var(--muted)">Preview CH</label><select id="channel" aria-label="Channel to preview"></select><span style="font-size:11px;color:var(--muted)">then click an FM</span></div><div class="buttonrow"><button class="cta" id="first">FOLLOW FIRST</button><button id="refresh">REFRESH</button></div><p>CHASE locks the selected seller and item. Without a lock, FM Finder follows the first listing. Clicking a portal is a 60-second manual preview. All route instructions are schematic, not measured travel times.</p><div class="notice" id="notice"></div></div>
+    </aside>
+  </main>
+  <div class="footer"><span>LOCAL ONLY · 127.0.0.1 · No external map service · No extra OCR load</span><span>Uses the same FM portal and route coordinates as FM Rush</span></div>
+</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const SVG_NS='http://www.w3.org/2000/svg';
+const P={};
+for(const [start,end,y,x0] of [[17,20,48,232],[13,16,114,232],[7,12,180,130],[1,6,246,130]]){
+  for(let n=start;n<=end;n++) P[n]={x:x0+(n-start)*102,y};
+}
+const els={};
+const newSVG=(tag,attrs,parent)=>{
+  const n=document.createElementNS(SVG_NS,tag);
+  for(const [k,v] of Object.entries(attrs))n.setAttribute(k,String(v));
+  if(parent)parent.appendChild(n);
+  return n;
+};
+for(const [key,names,start,end] of [['ROW 4','17–20',17,20],['ROW 3','13–16',13,16],['ROW 2','7–12',7,12],['ROW 1','1–6',1,6]]){
+  const arr=Array.from({length:end-start+1},(_,i)=>P[start+i]);
+  const y=arr[0].y;
+  newSVG('line',{x1:arr[0].x-49,y1:y+20,x2:arr.at(-1).x+49,y2:y+20,class:'floor'},$('floors'));
+  const txt=newSVG('text',{x:18,y:y-22,class:'floor-label'},$('floors'));
+  txt.textContent=`${key}  /  FM ${names}`;
+}
+for(let n=1;n<=20;n++){
+  const p=P[n],g=newSVG('g',{class:'portal',role:'button',tabindex:0,'aria-label':`Preview FM ${n}`},$('portals'));
+  newSVG('circle',{cx:p.x,cy:p.y,r:17,class:'orb'},g);
+  const t=newSVG('text',{x:p.x,y:p.y+0.5,class:'num'},g);t.textContent=n;
+  const activate=()=>manual(n);
+  g.addEventListener('click',activate);
+  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
+  els[n]=g;
+}
+for(let cc=1;cc<=40;cc++){
+  const opt=document.createElement('option');opt.value=cc;opt.textContent=`CH ${String(cc).padStart(2,'0')}`;$('channel').appendChild(opt);
+}
+let state=null,doing=false,lastRoute='',lastRows='',polling=false;
+const nf=new Intl.NumberFormat('en-US');
+function notice(message,isError=false){$('notice').textContent=message;$('notice').classList.toggle('error',isError);}
+async function action(verb,props={}){
+  if(doing)return;
+  doing=true;
+  try{
+    const response=await fetch('/fm-map/action',{method:'POST',headers:{'Content-Type':'application/json','X-FM-Rush-Map':'svg-route-v1'},body:JSON.stringify({action:verb,...props}),cache:'no-store'});
+    const payload=await response.json();
+    if(!response.ok||!payload.ok)throw new Error(payload.error||`HTTP ${response.status}`);
+    notice(verb==='unlock'?'Back to first listing':verb==='target'?'Manual preview selected':'Seller chase locked');
+    await poll();
+  }catch(e){notice(e.message||String(e),true)}finally{doing=false}
+}
+function manual(fm){if(!state)return;if(state.locked){notice('UNLOCK before choosing another FM',true);return}
+  const cc=Number($('channel').value||state.route?.cc||state.start_channel||20);action('target',{cc,fm});}
+$('chase').addEventListener('click',()=>{if(!state?.focused_id){notice('No listing to lock',true);return}action('select',{id:state.focused_id});});
+$('unlock').addEventListener('click',()=>action('unlock'));
+$('first').addEventListener('click',()=>action('unlock'));
+$('refresh').addEventListener('click',()=>poll());
+function setText(id,text){const el=$(id);if(el.textContent!==String(text))el.textContent=String(text);}
+function routeDraw(s){
+  const route=s.route,has=!!route;
+  const key=has?`${route.cc}/${route.fm}/${JSON.stringify(route.waypoints)}`:'none';
+  if(key===lastRoute)return;lastRoute=key;
+  const active=has?route.fm:null;
+  for(let n=1;n<=20;n++)els[n].classList.toggle('active',n===active);
+  const d=has?route.waypoints.map((xy,i)=>`${i?'L':'M'}${xy[0]} ${xy[1]}`).join(' '):'';
+  $('routePath').setAttribute('d',d);$('routeShadow').setAttribute('d',d);
+  const p=has?P[route.fm]:null;
+  $('destination').style.display=p?'':'none';
+  if(p){$('destRing').setAttribute('cx',p.x);$('destRing').setAttribute('cy',p.y)}
+}
+function drawDeals(s){
+  const signature=JSON.stringify({listings:s.listings,focus:s.focused_id,locked:s.locked});
+  if(lastRows===signature)return;lastRows=signature;
+  const host=$('list');host.replaceChildren();
+  for(const deal of s.listings){
+    const btn=document.createElement('button');btn.className='deal'+(deal.id===s.focused_id?' chosen':'');
+    const top=document.createElement('div');top.className='topline';
+    const ign=document.createElement('span');ign.className='ign';ign.textContent=deal.ign;
+    const loc=document.createElement('span');loc.className='loc';loc.textContent=`CH ${deal.cc} · FM ${deal.fm}`;
+    top.append(ign,loc);
+    const item=document.createElement('div');item.className='thing';item.textContent=deal.item;
+    const money=document.createElement('div');money.className='money';
+    money.textContent=`Buy ${deal.buy_mesos==null?'—':nf.format(deal.buy_mesos)} · Profit ${deal.profit_mesos==null?'—':nf.format(deal.profit_mesos)}`;
+    btn.append(top,item,money);btn.title='Click to CHASE and LOCK this listing';
+    btn.addEventListener('click',()=>action('select',{id:deal.id}));
+    host.appendChild(btn);
+  }
+  if(!s.listings.length){const el=document.createElement('div');el.className='empty';el.textContent='No visible listings yet. Keep HeneFM /flips/deals open with the FM Rush extension enabled.';host.appendChild(el);}
+  setText('count',`${s.listings.length} visible`);
+}
+function draw(s){
+  const isDemo=!s.route;
+  setText('connection',s.feed_fresh?'FEED LIVE':'WAITING FOR FEED');
+  $('connection').className='pill '+(s.feed_fresh?'live':'off');
+  setText('mode',s.locked?'CHASE LOCKED':s.manual?'MANUAL PREVIEW':'FIRST LISTING');
+  $('mode').className='pill '+(s.locked?'locked':'live');
+  $('unlock').disabled=!s.locked&&!s.manual;
+  $('chase').disabled=!s.focused_id||s.locked;
+  setText('subtitle',s.manual?'Temporary route override':s.locked?'Fixed seller · new deals will not override':'Auto-following first visible HeneFM deal');
+  setText('seller',s.seller||(!isDemo?'Manual route':'Waiting for a listing…'));
+  setText('item',s.item||(!isDemo?'Choose a deal to highlight an item':'The first visible item appears here'));
+  setText('itemStatus',s.item_detection||'ITEM ICON: waiting for HeneFM image');
+  setText('target',s.route?`CH ${String(s.route.cc).padStart(2,'0')}  /  FM ${String(s.route.fm).padStart(2,'0')}`:'— / —');
+  setText('startChannel',s.start_channel);
+  setText('directions',s.route?.directions||'Waiting for a target…');
+  setText('arrows',s.route?.channel_arrows||'—');
+  if(document.activeElement!==$('channel'))$('channel').value=String(s.route?.cc||s.start_channel||20);
+  setText('reset',s.manual?`Return to first in ${Math.ceil(s.reset_ms/1000)}s`:s.locked?'LOCKED until UNLOCK':'Click a portal to preview for 60s');
+  routeDraw(s);drawDeals(s);
+}
+async function poll(){
+  if(polling)return;polling=true;
+  try{
+    const r=await fetch('/fm-map/state',{cache:'no-store',signal:AbortSignal.timeout(2500)});
+    if(!r.ok)throw Error(`FM Rush disconnected (${r.status})`);
+    state=await r.json();draw(state);
+  }catch(e){$('connection').textContent='APP DISCONNECTED';$('connection').className='pill off';notice('Launch FM Rush to reconnect this map',true)}finally{polling=false}
+}
+window.addEventListener('focus',poll);
+setInterval(poll,120);
+poll();
+</script>
+</body></html>

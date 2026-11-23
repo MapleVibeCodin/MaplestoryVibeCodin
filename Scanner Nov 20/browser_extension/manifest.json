@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "FM Rush — HeneFM Deal Scanner",
+  "version": "24.34.0",
+  "description": "FM Rush v24.34 clear item brackets, instant CC prehighlight, visual item-icon finder, chase/lock selection.",
+  "permissions": [
+    "storage",
+    "alarms",
+    "debugger",
+    "downloads",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:18773/*",
+    "https://henefm.com/*",
+    "https://www.henefm.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://henefm.com/flips*",
+        "https://www.henefm.com/flips*"
+      ],
+      "js": [
+        "refresh_2s.js"
+      ],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://henefm.com/flips*",
+        "https://www.henefm.com/flips*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "FM Rush — refresh status",
+    "default_popup": "popup.html"
+  }
+}
