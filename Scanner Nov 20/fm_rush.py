@@ -1,6 +1,6 @@
 """FM Rush v24 — HeneFM browser deals + target-specific name finder.
 
-The shop target comes from an accepted HeneFM browser deal or Discord alert. OCR of
+The shop target comes from the HeneFM browser feed. OCR of
 MapleStory is HWND window capture, handled in memory; a click-through on-game marker, no recording or input injection.
 """
 from __future__ import annotations
@@ -14,7 +14,6 @@ import queue
 import re
 import threading
 import time
-import webbrowser
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog, simpledialog
 from window_capture import windows as list_game_windows, WindowFrames, window_rect
@@ -27,8 +26,6 @@ from trade_hotkeys import TradeHotkeys
 
 from deal_parser import parse_deal
 from henefm_bridge import BrowserBridge
-from profit_filter import FILTER_LABEL
-FILTER_LABEL = "BROWSER: ALL SHOWN LISTINGS · NO PROFIT FILTER"
 from route_logic import parse_alert, plan, arrows, PORTALS, START_POINT, ROW_Y, ROPE_X, BOTTOM_WARP, START_CHANNEL
 
 BASE = Path(__file__).resolve().parent
@@ -44,152 +41,14 @@ def settings():
         data=json.loads(CONFIG.read_text('utf-8'))
     except (OSError,ValueError):
         data={}
-    # Compatible with v11's `discord_region` and older versions' `region` keys.
     return {
         'version': 17,
         'start_channel': int(data.get('start_channel',START_CHANNEL)) if int(data.get('version',0)) >= 4 else START_CHANNEL,
-        'discord_region':data.get('discord_region') or data.get('region'),
         'strip_geom':data.get('strip_geom',''),
         'grid_geom':data.get('grid_geom',''),
         'map_geom':data.get('map_geom',''),
         'topmost':bool(data.get('topmost',True)),
     }
-
-
-def get_ocr():
-    # Prefer a persistent RapidOCR instance to avoid launching Tesseract per frame.
-    try:
-        from rapidocr import RapidOCR
-        import numpy as np
-        from PIL import Image, ImageDraw
-        engine=RapidOCR()
-        warm=Image.new('RGB',(330,80),'white')
-        ImageDraw.Draw(warm).text((12,20),'CH 22 FM 13 sample',fill='black')
-        engine(np.asarray(warm)[:,:,::-1].copy(),use_cls=False)
-        def read(img):
-            result=engine(np.asarray(img)[:,:,::-1].copy(),use_cls=False)
-            return '\n'.join(result.txts or ())
-        return read
-    except Exception:
-        pass
-    try:
-        import pytesseract
-        from PIL import ImageOps
-        for path in [os.environ.get('TESSERACT_PATH',''),
-                     r'C:\Program Files\Tesseract-OCR\tesseract.exe',
-                     r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe']:
-            if path and Path(path).is_file():
-                pytesseract.pytesseract.tesseract_cmd=path
-                break
-        pytesseract.get_tesseract_version()
-        return lambda im: pytesseract.image_to_string(ImageOps.autocontrast(ImageOps.grayscale(im)), config='--psm 6')
-    except Exception:
-        return None
-
-
-class DiscordWatcher(threading.Thread):
-    def __init__(self, get_region, out, stop):
-        super().__init__(daemon=True)
-        self.get_region=get_region; self.out=out; self.stop=stop
-
-    def run(self):
-        ocr=get_ocr()
-        if ocr is None:
-            self.out.put(('status','OCR missing. Run START_FM_RUSH.bat to install dependencies.'))
-            return
-        try:
-            from PIL import Image
-            from mss import mss
-            previous_fp=None
-            last_accepted_fp=None
-            last_ocr_at=0.0
-            with mss() as capturer:
-                while not self.stop.is_set():
-                    rect=self.get_region()
-                    if not rect:
-                        self.stop.wait(.08);continue
-                    try:
-                        tick=time.perf_counter()
-                        raw=capturer.grab(rect)
-                        img=Image.frombytes('RGB',raw.size,raw.rgb)
-                        fp=hash(img.resize((80,32),Image.Resampling.BILINEAR).tobytes())
-                        # Changed alert is read immediately; retry a missed OCR
-                        # briefly without re-alerting for unchanged accepted text.
-                        if tick-last_ocr_at >= .30 and (fp!=previous_fp or (fp!=last_accepted_fp and tick-last_ocr_at>1.0)):
-                            previous_fp=fp;last_ocr_at=tick
-                            txt=ocr(img)
-                            deal=parse_deal(txt)
-                            if deal and deal.profit.accepted and fp != last_accepted_fp:
-                                last_accepted_fp=fp
-                                self.out.put(('deal',deal,round((time.perf_counter()-tick)*1000,1)))
-                        self.stop.wait(.05)
-                    except Exception as exc:
-                        self.out.put(('status','Discord capture: '+str(exc)[:90]))
-                        self.stop.wait(.35)
-        except Exception as exc:
-            self.out.put(('status','Discord watcher failed: '+str(exc)[:90]))
-
-
-class SelectRegion(tk.Toplevel):
-    def __init__(self, app):
-        from PIL import Image, ImageTk
-        from mss import mss
-        self.app=app
-        app._picker_windows=[window for window in (app.root,app.grid,app.map)
-                             if window is not None and window.winfo_exists() and window.state()=='normal']
-        for window in app._picker_windows:
-            window.withdraw()
-        app.root.update()
-        time.sleep(.16)
-        try:
-            with mss() as sct:
-                monitor=sct.monitors[0]
-                raw=sct.grab(monitor)
-            picture=Image.frombytes('RGB',raw.size,raw.rgb)
-        except Exception:
-            app.restore_windows()
-            raise
-        super().__init__(app.root)
-        self.mon=monitor;self.start=None;self.current=None
-        self.overrideredirect(True)
-        self.attributes('-topmost',True)
-        self.geometry(f'{picture.width}x{picture.height}{monitor["left"]:+d}{monitor["top"]:+d}')
-        self.photo=ImageTk.PhotoImage(picture)
-        self.canvas=tk.Canvas(self,highlightthickness=0,cursor='crosshair')
-        self.canvas.pack(fill='both',expand=True)
-        self.canvas.create_image(0,0,anchor='nw',image=self.photo)
-        self.canvas.create_rectangle(4,4,900,50,fill=BG,outline=TEAL,width=2)
-        self.canvas.create_text(16,26,anchor='w',text='DRAG ONLY OVER HENEFM ALERT TEXT  •  ESC TO CANCEL',fill=FG,font=('Segoe UI',17,'bold'))
-        self.canvas.bind('<ButtonPress-1>',self.down)
-        self.canvas.bind('<B1-Motion>',self.move)
-        self.canvas.bind('<ButtonRelease-1>',self.up)
-        self.bind('<Escape>',lambda _:self.finish())
-        self.focus_force()
-
-    def down(self,e):
-        self.start=(e.x,e.y)
-        if self.current:self.canvas.delete(self.current)
-        self.current=self.canvas.create_rectangle(e.x,e.y,e.x,e.y,outline=YELLOW,width=4)
-
-    def move(self,e):
-        if self.start:self.canvas.coords(self.current,*self.start,e.x,e.y)
-
-    def up(self,e):
-        if self.start:
-            x0,y0=self.start;x1,y1=e.x,e.y
-            w=abs(x1-x0);h=abs(y1-y0)
-            if w>60 and h>30:
-                self.app.conf['discord_region']={
-                    'left':self.mon['left']+min(x0,x1),
-                    'top':self.mon['top']+min(y0,y1),
-                    'width':w,'height':h}
-                self.app.status.set(f'Discord region saved: {w}×{h}. Open Tools > Discord > Start OCR.')
-                self.app.save()
-        self.finish()
-
-    def finish(self):
-        self.destroy()
-        self.app.restore_windows()
 
 
 class ShopHighlighter:
@@ -285,7 +144,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.36')
+        self.root.title('FM Rush v24.37')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -303,10 +162,7 @@ class FMApp:
         self.chase_label=tk.StringVar(value='LIVE · CHASE TO LOCK')
         self.manual=tk.StringVar(value='CC 22 FM 13')
         self.events=queue.Queue()
-        self.worker=None
         self.browser_bridge=None
-        self.stop=threading.Event()
-        self.running=False
         self.grid=None
         self.map=None
         self.shop_frames=None
@@ -333,7 +189,6 @@ class FMApp:
         self.item_reference=IconTarget()
         self.item_thread=None
         self.item_status=tk.StringVar(value='ITEM ICON: waiting for HeneFM image')
-        self.item_web_status='ITEM ICON: waiting for HeneFM image'
         self.channel_frame_version=None
         self._channel_scan_results=queue.Queue(maxsize=1)
         self._channel_scan_inflight=False
@@ -348,11 +203,11 @@ class FMApp:
         self.schedule(35,self.pump)
         self.schedule(50,self.update_channel_overlay)
         try:
-            self.browser_bridge=BrowserBridge(self.events,self.archive,state_provider=self.svg_route_view)
+            self.browser_bridge=BrowserBridge(self.events,self.archive)
             self.browser_bridge.start()
             self.status.set('LIVE · following the newest HeneFM listing')
         except OSError as exc:
-            self.status.set('HeneFM bridge not available: '+str(exc)[:100]+' • Discord OCR still works')
+            self.status.set('HeneFM bridge not available: '+str(exc)[:100])
         if not self.web_only:self.schedule(0,self.try_start_shop)
         self.trade_keys=TradeHotkeys(self.events.put_nowait);self.trade_keys.start()
         self.schedule(1000,self.resume_first_listing)
@@ -401,7 +256,6 @@ class FMApp:
         tools.configure(menu=menu)
         for title,action in [('Place under game',self.snap),('Enter route',self.enter_route),
                              ('Channel grid',self.open_grid),('FM map',self.open_map),
-                             ('SVG Map',self.open_svg_map),
                              ('Export scanner timing',self.export_latency),
                              ('Export deal archive',self.export_archive),
                              ('Reopen last skipped deal',self.undo_deal)]:
@@ -409,11 +263,6 @@ class FMApp:
         if not self.web_only:
             menu.add_separator()
             menu.add_command(label='Start or pause locator',command=self.toggle_shop_scan)
-            self.ocr_menu=tk.Menu(menu,tearoff=False)
-            self.ocr_menu.add_command(label='Choose alert area',command=self.pick_discord)
-            self.ocr_menu.add_command(label='Start OCR',command=self.toggle_discord)
-            self.ocr_menu_index=self.ocr_menu.index('end')
-            menu.add_cascade(label='Discord',menu=self.ocr_menu)
         tools.pack(side='right')
 
         footer=tk.Frame(self.root,bg=BG)
@@ -426,26 +275,6 @@ class FMApp:
         scanner_status=self.lbl(footer,var=self.shop.notice,size=9,color=MUTED)
         scanner_status.configure(width=1,anchor='e')
         scanner_status.grid(row=0,column=1,sticky='ew')
-
-    def set_item_status(self, message):
-        self.item_web_status=str(message)
-        self.item_status.set(message)
-
-    def svg_route_view(self):
-        """Plain Python attributes only. Called from the HTTP server thread."""
-        return {
-            'cc': self.current_cc, 'fm': self.current_fm,
-            'manual_override_at': self.manual_override_at,
-            'start_channel': self.conf['start_channel'],
-            'item_detection': self.item_web_status,
-        }
-
-    def open_svg_map(self):
-        """SVG runs in a real browser; OCR and the Tk map remain untouched."""
-        if self.browser_bridge is None or self.browser_bridge.server is None:
-            self.status.set('SVG map needs the local bridge on port 18773');return
-        webbrowser.open('http://127.0.0.1:18773/fm-map')
-        self.status.set('Live SVG map opened · follows first listing / CHASE / manual preview')
 
     def enter_route(self):
         value=simpledialog.askstring('Enter route','Enter a channel and room, such as CH 22 FM 13.',
@@ -564,7 +393,7 @@ class FMApp:
         if source=='MANUAL' and self.archive.chase_locked:
             self.status.set('LOCKED · click UNLOCK before changing destination');return
         if source=='MANUAL':self.manual_override_at=time.monotonic()
-        if deal is not None and source in ('WEB','DISCORD'):
+        if deal is not None and source=='WEB':
             self.archive.record(deal);self.sync_archive();return
         self.current_cc=cc;self.current_fm=fm
         p=plan(cc,fm,start_channel=self.conf['start_channel'])
@@ -614,7 +443,7 @@ class FMApp:
             self.displayed_listing=key
             self.item_reference.clear(deal.listing_id if deal is not None else '')
             self.item_pin.hide()
-            self.set_item_status('ITEM ICON: waiting for HeneFM image' if deal else 'ITEM ICON: no selected listing')
+            self.item_status.set('ITEM ICON: waiting for HeneFM image' if deal else 'ITEM ICON: no selected listing')
             if deal is not None:
                 if deal.cc is not None and deal.fm is not None:
                     self.set_target(deal.cc,deal.fm,deal=deal,source='ARCHIVE')
@@ -853,33 +682,6 @@ class FMApp:
             self.set_target(*target)
             self.status.set('MANUAL NAV: '+self.ccfm.get())
 
-    def pick_discord(self):
-        if self.running:self.toggle_discord()
-        try:SelectRegion(self)
-        except Exception as exc:
-            self.restore_windows()
-            self.status.set('Region picker failed: '+str(exc)[:100])
-
-    def restore_windows(self):
-        for window in getattr(self,'_picker_windows',[self.root]):
-            if window.winfo_exists():window.deiconify()
-        self._picker_windows=[]
-
-    def toggle_discord(self):
-        if self.running:
-            self.stop.set();self.running=False
-            self.ocr_menu.entryconfigure(self.ocr_menu_index,label='Start OCR')
-            self.status.set('Discord OCR stopped.')
-            return
-        if not self.conf['discord_region']:
-            self.status.set('Open Tools > Discord > Choose alert area first.')
-            return
-        self.stop=threading.Event()
-        self.worker=DiscordWatcher(lambda:self.conf['discord_region'],self.events,self.stop)
-        self.worker.start();self.running=True
-        self.ocr_menu.entryconfigure(self.ocr_menu_index,label='Stop OCR')
-        self.status.set('DISCORD: ≥15,000 MESOS AND ≥15% · WATCHING')
-
     def pump(self):
         if hasattr(self,'live_stamp') and self.live_stamp!=self.archive.live_state():self.sync_archive()
         for _ in range(20):
@@ -889,28 +691,6 @@ class FMApp:
                 self.next_live_deal()
             elif evt[0]=='trade_find':
                 self.retry_shop_once()
-            elif evt[0]=='svg_action':
-                action,data,reply=evt[1:]
-                try:
-                    if action=='select':
-                        if not self.archive.choose(data['id']):
-                            reply.put({'ok':False,'error':'Locked or listing not available'});continue
-                        self.manual_override_at=None
-                        self.sync_archive()
-                        self.retry_shop_once()
-                    elif action=='unlock':
-                        self.archive.unlock()
-                        self.manual_override_at=None
-                        self.sync_archive()
-                    elif action=='target':
-                        if self.archive.chase_locked:
-                            reply.put({'ok':False,'error':'UNLOCK before manual navigation'});continue
-                        self.set_target(data['cc'],data['fm'],keep_deal=True,source='MANUAL')
-                    else:
-                        reply.put({'ok':False,'error':'unknown_action'});continue
-                    reply.put({'ok':True})
-                except (OSError,ValueError,TypeError) as exc:
-                    reply.put({'ok':False,'error':str(exc)[:120]})
             elif evt[0]=='browser_choice':
                 action,key,session,revision,reply=evt[1:]
                 versions=getattr(self,'choice_revisions',{})
@@ -935,25 +715,25 @@ class FMApp:
                 if current and current[1].listing_id==listing_id:
                     icon=decode_reference(listing_id,current[1].item,png) if png else None
                     if icon and self.item_reference.install(icon):
-                        self.set_item_status('ITEM ICON: ready · matching visible shop art, stats not verified')
+                        self.item_status.set('ITEM ICON: ready · matching visible shop art, stats not verified')
                     elif url:
-                        self.set_item_status('ITEM ICON: fetching HeneFM item art in advance…')
+                        self.item_status.set('ITEM ICON: fetching HeneFM item art in advance…')
                         item=current[1].item
                         def fetch_icon():
                             encoded=download_icon(url)
                             self.events.put(('item_icon_loaded',listing_id,item,encoded))
                         threading.Thread(target=fetch_icon,daemon=True,name='FM-HeneFM-Item-Icon').start()
                     else:
-                        self.set_item_status('ITEM ICON: reference unavailable · cannot confirm item')
+                        self.item_status.set('ITEM ICON: reference unavailable · cannot confirm item')
             elif evt[0]=='item_icon_loaded':
                 listing_id,item,encoded=evt[1:]
                 current=self.archive.current()
                 if current and current[1].listing_id==listing_id and current[1].item==item:
                     icon=decode_reference(listing_id,item,encoded) if encoded else None
                     if icon and self.item_reference.install(icon):
-                        self.set_item_status('ITEM ICON: ready · matching visible shop art, stats not verified')
+                        self.item_status.set('ITEM ICON: ready · matching visible shop art, stats not verified')
                     else:
-                        self.set_item_status('ITEM ICON: HeneFM image unavailable · no confirmed item match')
+                        self.item_status.set('ITEM ICON: HeneFM image unavailable · no confirmed item match')
             elif evt[0]=='browser_visible':
                 self.sync_archive()
                 self.status.set(f'{len(self.archive.live_pending())} HeneFM listings available · selected: {self.shop_target or "none"}')
@@ -962,14 +742,6 @@ class FMApp:
                 if deal.profit.accepted:
                     self.set_target(deal.cc,deal.fm,deal=deal,source='WEB')
                     self.status.set(f'{len(self.archive.live_pending())} listings available · click one on HeneFM to chase')
-            elif evt[0]=='deal':
-                deal,ms=evt[1],evt[2]
-                # Defense-in-depth: checked in watcher and UI, never show low-profit deals.
-                if deal.profit.accepted:
-                    self.set_target(deal.cc,deal.fm,deal=deal,source='DISCORD')
-                    self.status.set(f'ACCEPTED • DISCORD OCR {ms:.0f} ms • ≥15,000 MESOS AND ≥15%')
-                    try:self.root.bell()
-                    except Exception:pass
             elif evt[0]=='status':
                 self.status.set(evt[1])
         for _ in range(24):
@@ -998,13 +770,13 @@ class FMApp:
                         self.item_reference.snapshot()[1]==revision):
                     self.item_pin.show_many(self.shop.selected_hwnd(),size,
                         {str(i):hit for i,hit in enumerate(hits)})
-                    self.set_item_status(
+                    self.item_status.set(
                         f'ITEM ICON: {len(hits)} visual candidate(s) · {scan_ms:.1f} ms matching · CHECK STATS/PRICE'
                         if hits else f'ITEM ICON: looking in opened shop · {scan_ms:.1f} ms matching')
                 else:
                     self.item_pin.hide()
             elif evt[0]=='item_scan_error':
-                self.set_item_status('ITEM SCAN ERROR: '+evt[1])
+                self.item_status.set('ITEM SCAN ERROR: '+evt[1])
             elif evt[0]=='shop_timing':
                 timing={**evt[1]}
                 timing['result_to_ui_queue_ms']=round(max(0,time.monotonic()-timing.pop('posted_at'))*1000,1)
@@ -1093,7 +865,6 @@ class FMApp:
     def close(self):
         if self._closing:return
         self._closing=True
-        self.stop.set()
         self.shop_stop.set()
         for job in list(self._pending_after):
             try:self.root.after_cancel(job)

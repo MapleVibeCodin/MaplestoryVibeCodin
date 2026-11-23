@@ -8,7 +8,7 @@ import re
 from route_logic import parse_alert
 from profit_filter import filter_profit, parse_mesos, ProfitDecision
 
-# HeneFM embeds have multiple columns and Discord OCR may put column labels
+# HeneFM embeds have multiple columns and pasted text may put column labels
 # together on one line and their values on the next.
 MONEY = r'(?P<price>\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(?P<suffix>[KMBkmb]?)'
 MONEY_RE = re.compile(MONEY, re.I)

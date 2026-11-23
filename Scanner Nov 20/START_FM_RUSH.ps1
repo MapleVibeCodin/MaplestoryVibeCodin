@@ -58,7 +58,7 @@ try {
     Write-Host 'Verified: FM Rush uses 64-bit Python 3.12.'
     $DepsReady = $false
     try {
-        & $EnvPython -c 'import PIL,mss,pytesseract,numpy,windows_capture,rapidocr,onnxruntime,cv2,rapidocr_onnxruntime' 2>$null | Out-Null
+        & $EnvPython -c 'import PIL,numpy,windows_capture,onnxruntime,cv2,rapidocr_onnxruntime' 2>$null | Out-Null
         $DepsReady = ($LASTEXITCODE -eq 0)
     } catch {}
     if (-not $DepsReady) {

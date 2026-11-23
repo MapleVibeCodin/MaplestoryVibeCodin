@@ -1,6 +1,6 @@
-"""Strict, screen-OCR-only HeneFM alert profit gate.
+"""Strict, profit gate for pasted HeneFM alerts.
 
-A Discord alert is displayed only when a LOCAL profit amount and percentage
+A pasted alert is accepted only when a LOCAL profit amount and percentage
 belong to the same price statement and both thresholds are reached.
 If either value is missing/uncertain, fail closed instead of showing it.
 """
@@ -81,7 +81,7 @@ def filter_profit(text: str, min_mesos: int = MIN_MESOS,
     # '+12-7K'. Reconstruct that specific signed currency notation only.
     clean = re.sub(r'\+\s*(\d+)\s*-\s*(\d{1,2})(?=\s*[KMB]\b)',
                    r'+\1.\2', clean, flags=re.I)
-    # Common Discord/OCR variants: "+10,000 (15%)", "+10K (15%)".
+    # Common pasted alert variants: "+10,000 (15%)", "+10K (15%)".
     labels = list(_LABEL.finditer(clean))
     if labels:
         # Prefer pairs near the literal Profit label, allowing HeneFM's multi-column layout.

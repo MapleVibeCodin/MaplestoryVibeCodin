@@ -1,4 +1,4 @@
-"""Pure matching and persistence logic for the Discord-IGN-driven shop highlighter.
+"""Pure matching and persistence logic for the seller IGN shop highlighter.
 
 No manual-name input. Partial matches are treated as candidates, not proof of identity.
 Only screen pixels are used; never game memory or the network.
@@ -84,7 +84,7 @@ def pick_unique(hits: list[Hit]) -> Hit | None:
 
 @dataclass
 class StickyResult:
-    """Keep a last-known highlighted location until next accepted Discord alert."""
+    """Keep a last-known highlighted location until the next selected deal."""
     target: str=''
     box: tuple[int,int,int,int]|None=None
     mode: str='SEARCHING'

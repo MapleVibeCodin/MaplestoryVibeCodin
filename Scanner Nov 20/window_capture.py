@@ -31,7 +31,7 @@ if sys.platform == 'win32':
 
 
 def windows() -> list[tuple[int, str]]:
-    """List visible top-level windows; prefer MapleStory and Discord."""
+    """List visible top-level windows; prefer MapleStory."""
     if sys.platform != 'win32':
         return []
     found = []
@@ -57,7 +57,7 @@ def windows() -> list[tuple[int, str]]:
     u32.EnumWindows(cb, 0)
     def order(pair):
         title = pair[1].lower()
-        return (0 if ('maplestory' in title or 'maple story' in title) else 1 if 'discord' in title else 2, title)
+        return (0 if ('maplestory' in title or 'maple story' in title) else 1, title)
     return sorted(found, key=order)
 
 

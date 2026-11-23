@@ -1,4 +1,4 @@
-FM RUSH v24.36 — SCANNER
+FM RUSH v24.37 — SCANNER
 
 INSTALL
 1. Extract the ZIP and open the Scanner Nov 20 folder.
@@ -8,8 +8,7 @@ INSTALL
 4. Open https://henefm.com/flips/deals in Brave.
 5. Choose MapleStory in the main strip and click Start locator if needed.
    Click Refresh after opening or restarting the game.
-6. Open Tools > SVG Map for the live route view.
-   If you use Discord alerts, their controls are under Tools > Discord.
+6. Use Tools > FM map for the built-in portal map.
 
 HOW IT WORKS
 - Before the game OCR finishes, the top listing already sets the channel and FM
@@ -40,5 +39,3 @@ LATENCY
   are guaranteed under 50 ms on your particular Windows machine.
 - Matching is CPU-bound, single-scale, performed on existing window capture.
   The game window must be in front for in-game markers to appear.
-
-The complete folder contains all v24.31 OCR assets and v24.32 SVG map assets.

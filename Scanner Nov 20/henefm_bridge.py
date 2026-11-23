@@ -9,14 +9,11 @@ import json
 import math
 import queue
 import re
-import time
-from pathlib import Path
 import threading
 import sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from deal_parser import Deal
 from profit_filter import ProfitDecision
-from route_logic import plan, arrows, START_CHANNEL
 
 HOST = '127.0.0.1'
 PORT = 18773
@@ -62,74 +59,17 @@ def parse_browser_deal(raw: dict) -> Deal | None:
                 sold=raw.get('sold') is True,raw_text=str(raw.get('raw_text',''))[:6000])
 
 
-def make_svg_map_state(archive, view=None):
-    """Immutable, light-weight snapshot used by the local SVG route viewer.
-
-    Derive paths with the exact existing FM route planner; never ask the OCR
-    worker to build a map or access Tk widgets on the HTTP server thread.
-    """
-    view = view or {}
-    with archive.lock:
-        current = archive.current()
-        listings = archive.live_pending()
-        locked = bool(archive.chase_locked)
-        generation, fresh = archive.live_state()
-    focus, selected = current if current else (None, None)
-    top = []
-    for key, deal in listings[:40]:
-        top.append({
-            'id': key, 'cc': deal.get('cc'), 'fm': deal.get('fm'),
-            'ign': str(deal.get('ign') or '')[:24],
-            'item': str(deal.get('item') or '')[:100],
-            'buy_mesos': deal.get('buy_mesos'),
-            'profit_mesos': (deal.get('profit') or {}).get('mesos'),
-        })
-    manual_at = view.get('manual_override_at')
-    manual = not locked and isinstance(manual_at, (int, float)) and manual_at > 0
-    reset_ms = max(0, int(60000-(time.monotonic()-manual_at)*1000)) if manual else None
-    if manual and reset_ms == 0: manual = False
-    cc = view.get('cc') if manual else getattr(selected, 'cc', None)
-    fm = view.get('fm') if manual else getattr(selected, 'fm', None)
-    start_channel = view.get('start_channel', START_CHANNEL)
-    if not isinstance(start_channel, int) or not 1 <= start_channel <= 40:
-        start_channel = START_CHANNEL
-    routing = None
-    if isinstance(cc, int) and isinstance(fm, int) and 1 <= cc <= 40 and 1 <= fm <= 20:
-        p = plan(cc, fm, start_channel=start_channel)
-        routing = {
-            'cc': cc, 'fm': fm, 'waypoints': [list(x) for x in p.waypoints],
-            'directions': p.route_text,
-            'channel_keys': list(p.channel_keys), 'channel_arrows': arrows(p.channel_keys),
-            'row': p.tier, 'direction': p.direction,
-        }
-    return {
-        'ok': True, 'feed_fresh': bool(fresh), 'feed_generation': generation,
-        'locked': locked, 'manual': manual, 'reset_ms': reset_ms,
-        'focused_id': focus, 'start_channel': start_channel,
-        'seller': selected.ign if selected else '',
-        'item': selected.item if selected else '',
-        'selected_listing_id': selected.listing_id if selected else '',
-        'route': routing, 'listings': top,
-        'item_detection': str(view.get('item_detection') or '')[:160],
-    }
-
-
 class BrowserBridge:
     """Small receiver on 127.0.0.1; posts accepted deals into an existing queue."""
-    def __init__(self, out: queue.Queue, archive=None, state_provider=None):
+    def __init__(self, out: queue.Queue, archive=None):
         self.out = out
         self.archive=archive
-        self.state_provider=state_provider
         self.server: ThreadingHTTPServer | None = None
         self.thread: threading.Thread | None = None
 
     def start(self):
         out = self.out
         archive=self.archive
-        state_provider=self.state_provider
-        map_path=Path(__file__).with_name('fm_svg_map.html')
-        map_html=map_path.read_bytes() if map_path.is_file() else None
-
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, fmt, *args):
                 return
@@ -145,63 +85,11 @@ class BrowserBridge:
 
             def do_GET(self):
                 if self.path == '/health':
-                    self._send(200, {'ok': True, 'name': 'FM Rush SVG Route'});
-                elif self.path in ('/fm-map', '/fm-map/'):
-                    if map_html is None:
-                        self._send(503, {'ok': False, 'error': 'svg_map_file_missing'});return
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'text/html; charset=utf-8')
-                    self.send_header('X-Content-Type-Options', 'nosniff')
-                    self.send_header('Cache-Control', 'no-store')
-                    self.send_header('Content-Length', str(len(map_html)))
-                    self.end_headers()
-                    self.wfile.write(map_html)
-                elif self.path == '/fm-map/state':
-                    if archive is None:
-                        self._send(503, {'ok': False, 'error': 'archive_not_ready'});return
-                    try:
-                        view=state_provider() if state_provider is not None else None
-                        self._send(200, make_svg_map_state(archive, view))
-                    except (OSError, ValueError, TypeError) as exc:
-                        self._send(503, {'ok': False, 'error': type(exc).__name__})
+                    self._send(200, {'ok': True, 'name': 'FM Rush'})
                 else:
                     self._send(404, {'ok': False})
 
             def do_POST(self):
-                if self.path == '/fm-map/action':
-                    # Only the locally served map may control the GUI. Web pages
-                    # cannot set this custom header without a CORS preflight.
-                    if (self.headers.get('Origin') != f'http://{HOST}:{PORT}'
-                            or self.headers.get('X-FM-Rush-Map') != 'svg-route-v1'):
-                        self._send(403, {'ok': False, 'error': 'same_origin_required'});return
-                    if 'application/json' not in self.headers.get('Content-Type', ''):
-                        self._send(415, {'ok': False});return
-                    try:
-                        length=int(self.headers.get('Content-Length', '0'))
-                        if not 2 <= length <= 4096: raise ValueError('size')
-                        data=json.loads(self.rfile.read(length).decode('utf-8'))
-                        if not isinstance(data,dict): raise ValueError('payload')
-                        action=data.get('action')
-                        if action not in ('select', 'unlock', 'target'): raise ValueError('action')
-                        if action=='select':
-                            key=data.get('id')
-                            if not isinstance(key,str) or not 1 <= len(key) <= 120: raise ValueError('id')
-                        elif action=='target':
-                            cc, fm = data.get('cc'), data.get('fm')
-                            if type(cc) is not int or type(fm) is not int or not (1<=cc<=40 and 1<=fm<=20):
-                                raise ValueError('target')
-                        if archive is None:
-                            self._send(503, {'ok':False, 'error':'archive_not_ready'});return
-                        reply=queue.Queue(maxsize=1)
-                        out.put_nowait(('svg_action', action, data, reply))
-                        try: result=reply.get(timeout=2.5)
-                        except queue.Empty: result={'ok':False,'error':'GUI busy','retryable':True}
-                        self._send(200 if result.get('ok') else 409, result)
-                    except (ValueError, TypeError, UnicodeError, json.JSONDecodeError):
-                        self._send(422, {'ok': False, 'error': 'invalid_request'})
-                    except queue.Full:
-                        self._send(503, {'ok': False, 'error': 'busy'})
-                    return
                 if self.path not in ('/deal','/visible','/select','/skip','/unlock'):
                     self._send(404, {'ok': False})
                     return
