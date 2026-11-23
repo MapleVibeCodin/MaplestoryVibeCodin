@@ -16,7 +16,8 @@ from game_window import (
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
 from shop_pin import ShopPreviewPin
-from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice
+from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice, room_theme
+from camera_alignment import GrassCameraTracker
 from trade_hotkeys import TradeHotkeys
 
 from deal_parser import parse_deal
@@ -94,7 +95,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.52')
+        self.root.title('FM Rush v24.53 - Camera alignment')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -125,6 +126,8 @@ class FMApp:
         self.shop_pin = ShopPreviewPin(self.root, interval_ms=25)
         self._shop_preview = None
         self._portal_alignment = None
+        self._grass_camera = GrassCameraTracker()
+        self._grass_offset = (0, 0)
         self._channel_preview = None
         self._chase_keys_down = None
         self.shop=GameWindow(self)
@@ -411,6 +414,14 @@ class FMApp:
             else:
                 self._portal_alignment = None
 
+        grass = bool(deal and deal.shop_position and client and client[2:] in ENTRY_CLIENTS
+                     and room_theme(deal.fm) == 'grass')
+        auto_portal = self._grass_camera.get(hwnd, client) if grass else None
+        if not grass:
+            self._grass_camera.reset()
+        if grass and aligned_portal is None and auto_portal is not None:
+            aligned_portal = tuple(a + b for a, b in zip(auto_portal, self._grass_offset))
+
         preview = None
         offscreen_notice = ''
         if self.web_only:
@@ -421,6 +432,8 @@ class FMApp:
             status = 'Click CHASE to preview the shop'
         elif deal.shop_position is None:
             status = 'No map pin on this HeneFM deal'
+        elif grass and aligned_portal is None:
+            status = offscreen_notice = 'Waiting for grass FM scenery · Ctrl+Alt+F to align manually'
         else:
             point = entry_shop_point(deal.shop_position, deal.fm, client[2:], aligned_portal)
             if point is None:
@@ -431,7 +444,9 @@ class FMApp:
                     status = offscreen_notice = shop_offscreen_notice(point, client[2:])
                 else:
                     preview = (hwnd, window[2:], box)
-                    status = 'Shop aligned to entry portal' if aligned_portal else 'Shop preview ready'
+                    status = ('Camera aligned · grass terrain' if grass and auto_portal is not None and self._portal_alignment is None
+                              else 'Shop aligned manually' if aligned_portal is not None
+                              else 'Estimated cave position · Ctrl+Alt+F to align')
 
         if self.shop.notice.get() != status:
             self.shop.notice.set(status)
@@ -504,7 +519,15 @@ class FMApp:
         if portal is None:
             self.status.set('Hover over the bottom center of the FM doorway and press Ctrl+Alt+F')
             return
-        self._portal_alignment = ((current[0], hwnd, client[2:]), portal)
+        auto_portal = (self._grass_camera.get(hwnd, client)
+                       if room_theme(current[1].fm) == 'grass' else None)
+        if auto_portal is not None:
+            # A manual doorway correction now follows future camera movement.
+            self._grass_offset = tuple(a - b for a, b in zip(portal, auto_portal))
+            self._portal_alignment = None
+            self.status.set('Grass camera fine-tuned for this session')
+        else:
+            self._portal_alignment = ((current[0], hwnd, client[2:]), portal)
         self.refresh_overlays(current)
 
     def follow_overlays(self):
