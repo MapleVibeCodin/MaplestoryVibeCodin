@@ -13,7 +13,7 @@ from game_window import cursor_on_client, windows as list_game_windows, window_r
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
 from shop_pin import ShopPreviewPin
-from shop_position import ENTRY_CLIENTS, entry_shop_point, minimap_shop_marker, shop_marker
+from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker
 from trade_hotkeys import TradeHotkeys
 
 from deal_parser import parse_deal
@@ -90,7 +90,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.40')
+        self.root.title('FM Rush v24.41')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -336,6 +336,7 @@ class FMApp:
                 self.archive.preview_latest()
             current = self.archive.current()
             self.live_stamp = self.archive.live_state()
+        self.refresh_overlays(current)
         self.chase_label.set('LOCKED · UNLOCK' if self.archive.chase_locked else 'LIVE · CHASE TO LOCK')
         key,deal=current if current else (None,None)
         if key!=self.displayed_listing:
@@ -356,7 +357,6 @@ class FMApp:
             self.item.set('ITEM: '+deal.item+(' · SOLD' if deal.sold else ''))
             self.profit.set(deal.profit.label)
         if self.map is not None and self.map.winfo_exists():self.draw_map()
-        self.refresh_overlays(current)
 
     def export_archive(self):
         path=filedialog.asksaveasfilename(title='Export listings grouped by seller IGN',
@@ -415,13 +415,11 @@ class FMApp:
             if point is None:
                 status = 'Shop preview requires 1280 × 720 or 1366 × 768'
             else:
-                box, mode = shop_marker(point, client, window)
-                label = f'CH {deal.cc} · FM {deal.fm} · {deal.ign}'
-                minimap_box = minimap_shop_marker(deal.shop_position, client, window)
-                preview = (hwnd, window[2:], label, box, mode, minimap_box)
-                if mode != 'SHOP':
-                    status = 'Shop is ' + mode.lower() + ' of the current guide'
+                box = shop_marker(point, client, window)
+                if box is None:
+                    status = 'Shop sign is outside the entry view'
                 else:
+                    preview = (hwnd, window[2:], box)
                     status = 'Shop aligned to entry portal' if aligned_portal else 'Shop preview ready'
 
         if self.shop.notice.get() != status:
@@ -431,11 +429,8 @@ class FMApp:
             if preview is None:
                 self.shop_pin.hide()
             else:
-                hwnd, size, label, box, mode, minimap_box = preview
-                self.shop_pin.show_many(hwnd, size, {
-                    label: {'box': box, 'mode': mode},
-                    'minimap': {'box': minimap_box, 'mode': 'MINIMAP'},
-                })
+                hwnd, size, box = preview
+                self.shop_pin.show_many(hwnd, size, {'shop': {'box': box, 'mode': 'SHOP'}})
 
     def align_shop_preview(self):
         current = self.archive.current()

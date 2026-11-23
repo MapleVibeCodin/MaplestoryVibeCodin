@@ -40,9 +40,10 @@ def entry_portal_point(room, client_size):
     """Return the portal threshold in the room's calibrated entry view."""
     width, height = client_size
     if room_theme(room) == 'grass':
-        # Grass rooms are right/bottom clamped in the recorded entry views.
-        # FM 1 shows the bottom platform close to the bottom of the client.
-        return width - 225, height - (11 if room == 1 else 192)
+        # FM 1 and the supplied QueenOfWands view of FM 13 show the bottom
+        # platform lower in the client than the older grass-room entry clips.
+        bottom_margin = {1: 11, 13: 47}.get(room, 192)
+        return width - 225, height - bottom_margin
     # The cave door stands on its own raised platform. FM 7 and FM 9 have
     # different vertical offsets in the supplied screenshot and entry clips.
     return width // 2 + 58, height // 2 + {7: 121, 9: 149}.get(room, 108)
@@ -59,39 +60,14 @@ def entry_shop_point(position, room, client_size, aligned_portal=None):
     return round(screen_x + shop_x - portal_x), round(screen_y + shop_y - portal_y)
 
 
-def minimap_shop_marker(position, client, window):
-    """Mark the target on the default minimap, which follows world coordinates."""
-    # The default FM minimaps are placed at (32, 72) in the game client and
-    # use 1:16 world scale. Their origins differ from the HeneFM map origins.
-    client_x, client_y = client[:2]
-    center_x, center_y = (438, 716) if position['theme'] == 'grass' else (649, -737)
-    world_x, world_y = world_shop_point(position)
-    x = (client_x - window[0]) + 32 + (world_x + center_x) / 16
-    y = (client_y - window[1]) + 72 + (world_y + center_y) / 16
-    return (round(x) - 6, round(y) - 6, round(x) + 6, round(y) + 6)
-
-
 def shop_marker(point, client, window):
-    """Build an on-screen box or an edge cue if the shop starts out of view."""
+    """Outline the clickable part of the shop sign at the projected position."""
     x, feet = point
     left, top, width, height = client
+    # This part of the sign is shared by player-shop bubbles and merchant
+    # boards. Exclude the avatar, platform, and the rest of the booth.
+    l, t, r, b = x - 50, feet - 125, x + 50, feet - 94
+    if not (2 <= l < r <= width - 2 and 2 <= t < b <= height - 2):
+        return None
     dx, dy = left - window[0], top - window[1]
-    y = feet - 52
-    if 4 <= x <= width - 4 and 4 <= y <= height - 4:
-        box = (max(6, x - 77), max(6, feet - 120),
-               min(width - 6, x + 77), min(height - 6, feet + 17))
-        if box[2] > box[0] and box[3] > box[1]:
-            l, t, r, b = box
-            return (l + dx, t + dy, r + dx, b + dy), 'SHOP'
-
-    if x < 4:
-        direction = 'LEFT'
-    elif x > width - 4:
-        direction = 'RIGHT'
-    elif y < 4:
-        direction = 'UP'
-    else:
-        direction = 'DOWN'
-    x = min(width - 145, max(145, x)) + dx
-    y = min(height - 30, max(55, y)) + dy
-    return (x - 115, y - 16, x + 115, y + 16), direction
+    return l + dx, t + dy, r + dx, b + dy
