@@ -1,4 +1,4 @@
-FM RUSH v24.41 — SHOP PREVIEW
+FM RUSH v24.42 — SHOP PREVIEW
 
 1. Extract the ZIP and run START_FM_RUSH.bat from Scanner Nov 20.
 2. If you already use extension v24.39.0, keep it loaded. For a first install,
@@ -9,9 +9,12 @@ FM RUSH v24.41 — SHOP PREVIEW
 4. Click CHASE on a HeneFM deal. The red box is drawn immediately around the
    projected clickable part of the shop sign. The yellow channel guide marks
    the destination cell.
-5. If the camera puts the sign elsewhere, point at the bottom center of the
+5. Press Ctrl+Alt+M to move the desktop pointer to the center of the red box.
+   It works while Brave has focus. You still click yourself. You can also
+   choose Tools > Move pointer to shop.
+6. If the camera puts the sign elsewhere, point at the bottom center of the
    numbered doorway and press Ctrl+Alt+F to realign the box for this chase.
-6. Skip or unlock to clear the preview and choose a different listing.
+7. Skip or unlock to clear the preview and choose a different listing.
 
 Shop previews support 1280 × 720 and 1366 × 768 game clients. The box is
 projected from the HeneFM position and the room's entry camera. An alternate

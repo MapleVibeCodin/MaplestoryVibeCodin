@@ -14,9 +14,13 @@ class TradeHotkeys(threading.Thread):
         self.thread_id=kernel.GetCurrentThreadId()
         registered=[]
         try:
-            for key_id,key,action in [(2,ord('F'),'trade_find'),(3,ord('N'),'trade_next')]:
-                if user.RegisterHotKey(None,key_id,0x4000|0x0002|0x0001,key):registered.append((key_id,action))
-                else:self.post(('status','Hotkey unavailable: Ctrl+Alt+'+chr(key)+'; use the app button.'))
+            shortcuts = ((2, 'F', 'trade_find'), (3, 'N', 'trade_next'),
+                         (4, 'M', 'trade_move_pointer'))
+            for key_id, key, action in shortcuts:
+                if user.RegisterHotKey(None, key_id, 0x4000 | 0x0002 | 0x0001, ord(key)):
+                    registered.append((key_id, action))
+                else:
+                    self.post(('status', f'Hotkey unavailable · Ctrl+Alt+{key}'))
             msg=wintypes.MSG()
             while not self.stopping.is_set() and user.GetMessageW(ctypes.byref(msg),None,0,0)>0:
                 if msg.message==0x0312:

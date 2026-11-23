@@ -9,7 +9,9 @@ import re
 import time
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog, simpledialog
-from game_window import cursor_on_client, windows as list_game_windows, window_rect, window_client_rect
+from game_window import (
+    cursor_on_client, move_cursor_on_screen, window_client_rect, window_rect, windows as list_game_windows,
+)
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
 from shop_pin import ShopPreviewPin
@@ -90,7 +92,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.41')
+        self.root.title('FM Rush v24.42')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -179,7 +181,8 @@ class FMApp:
         tools=tk.Menubutton(controls,text='Tools ▾',relief='flat',bg=CARD2,fg=FG,padx=8,pady=4)
         menu=tk.Menu(tools,tearoff=False)
         tools.configure(menu=menu)
-        for title,action in [('Place under game',self.snap),('Enter route',self.enter_route),
+        for title,action in [('Move pointer to shop',self.move_pointer_to_shop),
+                             ('Place under game',self.snap),('Enter route',self.enter_route),
                              ('Channel grid',self.open_grid),('FM map',self.open_map),
                              ('Export deal archive',self.export_archive),
                              ('Reopen last skipped deal',self.undo_deal)]:
@@ -432,6 +435,22 @@ class FMApp:
                 hwnd, size, box = preview
                 self.shop_pin.show_many(hwnd, size, {'shop': {'box': box, 'mode': 'SHOP'}})
 
+    def move_pointer_to_shop(self):
+        self.refresh_overlays(self.archive.current())
+        if self._shop_preview is None:
+            self.status.set(self.shop.notice.get())
+            return
+        hwnd, size, box = self._shop_preview
+        window = window_rect(hwnd)
+        if window is None or window[2:] != size:
+            self.status.set('Shop position changed. Press Ctrl+Alt+M again.')
+            return
+        left, top, right, bottom = box
+        screen_x = window[0] + (left + right) // 2
+        screen_y = window[1] + (top + bottom) // 2
+        if not move_cursor_on_screen(hwnd, screen_x, screen_y):
+            self.status.set('Could not move the pointer to the shop on this desktop.')
+
     def align_shop_preview(self):
         current = self.archive.current()
         if not current or not self.archive.chase_locked or current[1].shop_position is None:
@@ -506,6 +525,8 @@ class FMApp:
                 self.next_live_deal()
             elif evt[0]=='trade_find':
                 self.align_shop_preview()
+            elif evt[0]=='trade_move_pointer':
+                self.move_pointer_to_shop()
             elif evt[0]=='browser_choice':
                 action,key,session,revision,reply=evt[1:]
                 versions=getattr(self,'choice_revisions',{})

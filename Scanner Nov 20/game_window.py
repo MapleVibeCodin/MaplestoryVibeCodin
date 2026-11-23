@@ -24,6 +24,12 @@ if sys.platform == 'win32':
     u32.ClientToScreen.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.POINT)]
     u32.GetCursorPos.argtypes = [ctypes.POINTER(wintypes.POINT)]
     u32.GetCursorPos.restype = wintypes.BOOL
+    u32.GetClipCursor.argtypes = [ctypes.POINTER(wintypes.RECT)]
+    u32.GetClipCursor.restype = wintypes.BOOL
+    u32.MonitorFromPoint.argtypes = [wintypes.POINT, wintypes.DWORD]
+    u32.MonitorFromPoint.restype = wintypes.HMONITOR
+    u32.SetCursorPos.argtypes = [ctypes.c_int, ctypes.c_int]
+    u32.SetCursorPos.restype = wintypes.BOOL
     u32.WindowFromPoint.argtypes = [wintypes.POINT]
     u32.WindowFromPoint.restype = wintypes.HWND
     u32.GetAncestor.argtypes = [wintypes.HWND, wintypes.UINT]
@@ -108,3 +114,17 @@ def cursor_on_client(hwnd: int, client: tuple[int, int, int, int]) -> tuple[int,
     if 0 <= x < width and 0 <= y < height and window_at_point(point.x, point.y) == hwnd:
         return x, y
     return None
+
+
+def move_cursor_on_screen(hwnd: int, x: int, y: int) -> bool:
+    """Move the desktop pointer without activating the window or clicking."""
+    if sys.platform != 'win32' or not u32.IsWindowVisible(hwnd) or u32.IsIconic(hwnd):
+        return False
+    if not u32.MonitorFromPoint(wintypes.POINT(x, y), 0):
+        return False
+    clip = wintypes.RECT()
+    if not u32.GetClipCursor(ctypes.byref(clip)):
+        return False
+    if not (clip.left <= x < clip.right and clip.top <= y < clip.bottom):
+        return False
+    return bool(u32.SetCursorPos(x, y))
