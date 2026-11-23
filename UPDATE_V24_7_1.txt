@@ -1,7 +1,0 @@
-FM Rush v24.7.1 — Browser refresh and profit filter update
-
-Browser extension v24.4.1 now defaults to 1200 ms soft refresh.
-Filter: Unusually cheap (unsold) OR profit >=15,000 mesos AND >=15%.
-Windows Discord/OCR path also uses >=15,000 mesos AND >=15%.
-All prior name-finder logic, browser read-only DOM handling, and disabled backup reload are retained.
-Upgrade the extracted browser_extension directory in brave://extensions and reload your HeneFM tab.
