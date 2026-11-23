@@ -1,4 +1,4 @@
-FM RUSH v24.46 — SHOP PREVIEW
+FM RUSH v24.47 — SHOP PREVIEW
 
 1. Extract the ZIP and run START_FM_RUSH.bat from Scanner Nov 20.
 2. If you already use extension v24.39.0, keep it loaded. For a first install,
@@ -11,7 +11,8 @@ FM RUSH v24.46 — SHOP PREVIEW
    projected clickable part of the shop sign, including signs partly visible
    at the game window edge. The yellow channel guide marks the destination cell.
 5. Open Change Channel in MapleStory. Press Ctrl+Alt+C to move the pointer to
-   the selected yellow channel cell, then click the cell and confirm yourself.
+   the selected yellow channel cell. FM Rush takes focus first if MapleStory
+   was active. Click the cell and confirm yourself.
    You can also use Tools > Move pointer to channel.
 6. Press Ctrl+Alt+M or Ctrl+Alt+J to move the desktop pointer to the red box.
    FM Rush takes focus first if MapleStory was active. Click the shop yourself.

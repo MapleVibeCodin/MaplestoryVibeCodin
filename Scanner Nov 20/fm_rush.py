@@ -93,7 +93,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.46')
+        self.root.title('FM Rush v24.47')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -437,41 +437,45 @@ class FMApp:
                 hwnd, size, box = preview
                 self.shop_pin.show_many(hwnd, size, {'shop': {'box': box, 'mode': 'SHOP'}})
 
-    def move_pointer_to_shop(self, *, after_focus_for=None):
+    def move_pointer_to_shop(self):
+        self.move_pointer_to_target('shop')
+
+    def move_pointer_to_channel(self):
+        self.move_pointer_to_target('channel')
+
+    def move_pointer_to_target(self, kind, *, after_focus_for=None):
         current = self.archive.current()
         self.refresh_overlays(current)
-        if self._shop_preview is None:
+        if kind == 'shop':
+            preview = self._shop_preview
+            unavailable = 'Shop pointer · ' + self.shop.notice.get()
+        elif self._channel_preview is None:
+            preview = None
+            unavailable = 'Select MapleStory and lock a deal with a destination channel.'
+        else:
+            hwnd, size, _, box, mode = self._channel_preview
+            preview = (hwnd, size, box) if mode == 'GUIDE' else None
+            unavailable = 'Channel pointer requires a 1280 × 720 or 1366 × 768 game window.'
+
+        if preview is None:
             if after_focus_for is None:
-                self.status.set('Shop pointer · ' + self.shop.notice.get())
+                self.status.set(unavailable)
             return
-        hwnd = self._shop_preview[0]
+        hwnd, size, box = preview
         target = (current[0], hwnd)
         if after_focus_for is not None and after_focus_for != target:
             return
         if window_has_focus(hwnd):
             if after_focus_for is not None:
-                self.status.set('MapleStory kept focus. Switch to FM Rush and try the shop shortcut again.')
+                self.status.set('MapleStory kept focus. Switch to FM Rush and try the shortcut again.')
                 return
             if self.root.state() in ('iconic', 'withdrawn'):
                 self.root.deiconify()
             self.root.focus_force()
             # Let MapleStory process losing focus before moving its pointer.
-            self.schedule(25, lambda: self.move_pointer_to_shop(after_focus_for=target))
+            self.schedule(25, lambda: self.move_pointer_to_target(kind, after_focus_for=target))
             return
-        self.move_pointer_to_box(*self._shop_preview)
 
-    def move_pointer_to_channel(self):
-        self.refresh_overlays(self.archive.current())
-        if self._channel_preview is None:
-            self.status.set('Select MapleStory and lock a deal with a destination channel.')
-            return
-        hwnd, size, _, box, mode = self._channel_preview
-        if mode != 'GUIDE':
-            self.status.set('Channel pointer requires a 1280 × 720 or 1366 × 768 game window.')
-            return
-        self.move_pointer_to_box(hwnd, size, box)
-
-    def move_pointer_to_box(self, hwnd, size, box):
         window = window_rect(hwnd)
         if window is None or window[2:] != size:
             self.status.set('Game window changed. Try the shortcut again.')
