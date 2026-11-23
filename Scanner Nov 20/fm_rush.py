@@ -10,7 +10,7 @@ import time
 import tkinter as tk
 from tkinter import messagebox, ttk, filedialog, simpledialog
 from game_window import (
-    cursor_on_client, move_cursor_on_screen, window_client_rect, window_has_focus, window_rect,
+    chase_shortcut_state, cursor_on_client, move_cursor_on_screen, window_client_rect, window_has_focus, window_rect,
     windows as list_game_windows,
 )
 from deal_archive import DealArchive
@@ -93,7 +93,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.47')
+        self.root.title('FM Rush v24.48')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -125,6 +125,7 @@ class FMApp:
         self._shop_preview = None
         self._portal_alignment = None
         self._channel_preview = None
+        self._chase_keys_down = None
         self.shop=GameWindow(self)
         self._make_bottom()
         self.root.update_idletasks()
@@ -561,8 +562,22 @@ class FMApp:
             self.set_target(*target)
             self.status.set('MANUAL NAV: '+self.ccfm.get())
 
+    def poll_game_chase_shortcuts(self, handled):
+        hwnd = None if self.web_only else self.shop.selected_hwnd()
+        if hwnd is None or not window_has_focus(hwnd):
+            self._chase_keys_down = None
+            return
+        shift_only, keys_down = chase_shortcut_state()
+        previous = self._chase_keys_down
+        self._chase_keys_down = keys_down
+        if shift_only and previous is not None:
+            for locked, down, was_down in zip((True, False), keys_down, previous):
+                if down and not was_down and locked not in handled:
+                    self.set_chase_locked(locked)
+
     def pump(self):
         if hasattr(self,'live_stamp') and self.live_stamp!=self.archive.live_state():self.sync_archive()
+        handled = set()
         for _ in range(20):
             try:evt=self.events.get_nowait()
             except queue.Empty:break
@@ -574,10 +589,10 @@ class FMApp:
                 self.move_pointer_to_shop()
             elif evt[0]=='trade_move_channel':
                 self.move_pointer_to_channel()
-            elif evt[0]=='trade_lock':
-                self.set_chase_locked(True)
-            elif evt[0]=='trade_unlock':
-                self.set_chase_locked(False)
+            elif evt[0] in ('trade_lock', 'trade_unlock'):
+                locked = evt[0] == 'trade_lock'
+                self.set_chase_locked(locked)
+                handled.add(locked)
             elif evt[0]=='shop_pointer_shortcuts':
                 shortcuts = evt[1]
                 self.tools_menu.entryconfigure('Move pointer to shop',
@@ -610,6 +625,7 @@ class FMApp:
                 self.status.set(f'{len(self.archive.live_pending())} HeneFM listings available · selected: {seller}')
             elif evt[0]=='status':
                 self.status.set(evt[1])
+        self.poll_game_chase_shortcuts(handled)
         self.schedule(10, self.pump)
 
     def resume_first_listing(self):

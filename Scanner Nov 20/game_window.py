@@ -13,6 +13,8 @@ if sys.platform == 'win32':
     u32.IsWindow.argtypes = [wintypes.HWND]
     u32.IsWindow.restype = wintypes.BOOL
     u32.GetForegroundWindow.restype = wintypes.HWND
+    u32.GetAsyncKeyState.argtypes = [ctypes.c_int]
+    u32.GetAsyncKeyState.restype = wintypes.SHORT
     u32.IsIconic.argtypes = [wintypes.HWND]
     u32.IsIconic.restype = wintypes.BOOL
     u32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
@@ -105,6 +107,18 @@ def window_at_point(x: int, y: int) -> int | None:
 
 def window_has_focus(hwnd: int) -> bool:
     return sys.platform == 'win32' and u32.GetForegroundWindow() == hwnd
+
+
+def chase_shortcut_state() -> tuple[bool, tuple[bool, bool]]:
+    """Read the Shift modifier and top-row 1/2 states on the Windows desktop."""
+    if sys.platform != 'win32':
+        return False, (False, False)
+
+    def held(key):
+        return bool(u32.GetAsyncKeyState(key) & 0x8000)
+
+    shift_only = held(0x10) and not any(held(key) for key in (0x11, 0x12, 0x5B, 0x5C))
+    return shift_only, (held(ord('1')), held(ord('2')))
 
 
 def cursor_on_client(hwnd: int, client: tuple[int, int, int, int]) -> tuple[int, int] | None:

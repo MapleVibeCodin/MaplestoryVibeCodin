@@ -1,4 +1,4 @@
-FM RUSH v24.47 — SHOP PREVIEW
+FM RUSH v24.48 — SHOP PREVIEW
 
 1. Extract the ZIP and run START_FM_RUSH.bat from Scanner Nov 20.
 2. If you already use extension v24.39.0, keep it loaded. For a first install,
@@ -26,6 +26,8 @@ FM RUSH v24.47 — SHOP PREVIEW
 
 Use the 1 and 2 keys above the letters. These Windows-wide shortcuts reserve
 Shift+1 and Shift+2 while FM Rush runs, including ! and @ on a US keyboard.
+While the selected MapleStory window has focus, FM Rush also checks these
+key combinations when Windows hotkey delivery is missed.
 
 Shop previews support 1280 × 720 and 1366 × 768 game clients. The box is
 projected from the HeneFM position and the room's entry camera. An alternate
