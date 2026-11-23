@@ -15,7 +15,7 @@ class TradeHotkeys(threading.Thread):
         registered=[]
         try:
             shortcuts = ((2, 'F', 'trade_find'), (3, 'N', 'trade_next'),
-                         (4, 'M', 'trade_move_pointer'))
+                         (4, 'M', 'trade_move_pointer'), (5, 'C', 'trade_move_channel'))
             for key_id, key, action in shortcuts:
                 if user.RegisterHotKey(None, key_id, 0x4000 | 0x0002 | 0x0001, ord(key)):
                     registered.append((key_id, action))

@@ -92,7 +92,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.42')
+        self.root.title('FM Rush v24.43')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -182,6 +182,7 @@ class FMApp:
         menu=tk.Menu(tools,tearoff=False)
         tools.configure(menu=menu)
         for title,action in [('Move pointer to shop',self.move_pointer_to_shop),
+                             ('Move pointer to channel',self.move_pointer_to_channel),
                              ('Place under game',self.snap),('Enter route',self.enter_route),
                              ('Channel grid',self.open_grid),('FM map',self.open_map),
                              ('Export deal archive',self.export_archive),
@@ -440,16 +441,29 @@ class FMApp:
         if self._shop_preview is None:
             self.status.set(self.shop.notice.get())
             return
-        hwnd, size, box = self._shop_preview
+        self.move_pointer_to_box(*self._shop_preview)
+
+    def move_pointer_to_channel(self):
+        self.refresh_overlays(self.archive.current())
+        if self._channel_preview is None:
+            self.status.set('Select MapleStory and lock a deal with a destination channel.')
+            return
+        hwnd, size, _, box, mode = self._channel_preview
+        if mode != 'GUIDE':
+            self.status.set('Channel pointer requires a 1280 × 720 or 1366 × 768 game window.')
+            return
+        self.move_pointer_to_box(hwnd, size, box)
+
+    def move_pointer_to_box(self, hwnd, size, box):
         window = window_rect(hwnd)
         if window is None or window[2:] != size:
-            self.status.set('Shop position changed. Press Ctrl+Alt+M again.')
+            self.status.set('Game window changed. Try the shortcut again.')
             return
         left, top, right, bottom = box
         screen_x = window[0] + (left + right) // 2
         screen_y = window[1] + (top + bottom) // 2
         if not move_cursor_on_screen(hwnd, screen_x, screen_y):
-            self.status.set('Could not move the pointer to the shop on this desktop.')
+            self.status.set('Could not move the desktop pointer to that position.')
 
     def align_shop_preview(self):
         current = self.archive.current()
@@ -527,6 +541,8 @@ class FMApp:
                 self.align_shop_preview()
             elif evt[0]=='trade_move_pointer':
                 self.move_pointer_to_shop()
+            elif evt[0]=='trade_move_channel':
+                self.move_pointer_to_channel()
             elif evt[0]=='browser_choice':
                 action,key,session,revision,reply=evt[1:]
                 versions=getattr(self,'choice_revisions',{})
