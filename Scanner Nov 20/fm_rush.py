@@ -16,7 +16,7 @@ from game_window import (
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
 from shop_pin import ShopPreviewPin
-from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker
+from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice
 from trade_hotkeys import TradeHotkeys
 
 from deal_parser import parse_deal
@@ -51,6 +51,7 @@ class GameWindow:
     def __init__(self, app):
         self.app = app
         self.notice = tk.StringVar(value='Select a MapleStory window.')
+        self.offscreen_notice = tk.StringVar(value='')
         self.chosen = tk.StringVar()
         self.available = []
 
@@ -93,7 +94,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.48')
+        self.root.title('FM Rush v24.49')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -268,7 +269,10 @@ class FMApp:
         tk.Label(self.map,textvariable=self.ccfm,font=('Segoe UI',18,'bold'),bg=BG,fg=YELLOW).pack(anchor='w',padx=10)
         tk.Label(self.map,textvariable=self.item,bg=BG,fg=YELLOW,font=('Segoe UI',12,'bold')).pack(anchor='w',padx=10)
         tk.Label(self.map,textvariable=self.ign,bg=BG,fg=YELLOW).pack(anchor='w',padx=10)
-        tk.Button(self.map,textvariable=self.chase_label,command=self.toggle_chase,bg=YELLOW,fg=BG,relief='flat').pack(anchor='w',padx=10)
+        actions = tk.Frame(self.map, bg=BG)
+        actions.pack(fill='x', padx=10)
+        tk.Button(actions,textvariable=self.chase_label,command=self.toggle_chase,bg=YELLOW,fg=BG,relief='flat').pack(side='left')
+        self.lbl(actions, var=self.shop.offscreen_notice, size=9, color=YELLOW).pack(side='left', padx=(8, 0))
         self.map_canvas=tk.Canvas(self.map,bg=CARD,highlightthickness=0)
         self.map_canvas.pack(fill='both',expand=True,padx=8,pady=(5,8))
         self.map_canvas.bind('<Configure>',lambda _:self.draw_map())
@@ -408,6 +412,7 @@ class FMApp:
                 self._portal_alignment = None
 
         preview = None
+        offscreen_notice = ''
         if self.web_only:
             status = 'Web-only mode'
         elif client is None:
@@ -423,13 +428,15 @@ class FMApp:
             else:
                 box = shop_marker(point, client, window)
                 if box is None:
-                    status = 'Shop sign is outside the entry view'
+                    status = offscreen_notice = shop_offscreen_notice(point, client[2:])
                 else:
                     preview = (hwnd, window[2:], box)
                     status = 'Shop aligned to entry portal' if aligned_portal else 'Shop preview ready'
 
         if self.shop.notice.get() != status:
             self.shop.notice.set(status)
+        if self.shop.offscreen_notice.get() != offscreen_notice:
+            self.shop.offscreen_notice.set(offscreen_notice)
         if preview != self._shop_preview:
             self._shop_preview = preview
             if preview is None:

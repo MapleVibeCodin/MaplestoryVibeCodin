@@ -40,13 +40,13 @@ def entry_portal_point(room, client_size):
     """Return the portal threshold in the room's calibrated entry view."""
     width, height = client_size
     if room_theme(room) == 'grass':
-        # The newer FM 1, 3, 13, and 14 screenshots show lower entry views
+        # The newer FM 1, 3, 5, 13, and 14 screenshots show lower entry views
         # than the older grass-room clips. Keep their measured offsets.
-        bottom_margin = {1: 11, 3: 48, 13: 47, 14: 48}.get(room, 192)
+        bottom_margin = {1: 11, 3: 48, 5: 45, 13: 47, 14: 48}.get(room, 192)
         return width - 225, height - bottom_margin
     # The cave door stands on its own raised platform. Use the vertical
     # offset measured for each room where an entry view is available.
-    return width // 2 + 58, height // 2 + {7: 121, 9: 149, 11: 97}.get(room, 108)
+    return width // 2 + 58, height // 2 + {7: 121, 9: 149, 11: 97, 17: 97}.get(room, 108)
 
 
 def entry_shop_point(position, room, client_size, aligned_portal=None):
@@ -60,16 +60,36 @@ def entry_shop_point(position, room, client_size, aligned_portal=None):
     return round(screen_x + shop_x - portal_x), round(screen_y + shop_y - portal_y)
 
 
-def shop_marker(point, client, window):
-    """Outline the clickable part of the shop sign at the projected position."""
+def _shop_sign_bounds(point):
     x, feet = point
-    left, top, width, height = client
     # This part of the sign is shared by player-shop bubbles and merchant
     # boards. Exclude the avatar, platform, and the rest of the booth.
+    return x - 50, feet - 125, x + 50, feet - 94
+
+
+def shop_marker(point, client, window):
+    """Outline the clickable part of the shop sign at the projected position."""
+    left, top, width, height = client
     # Keep the visible part of a sign that extends past the client edge.
-    l, t = max(2, x - 50), max(2, feet - 125)
-    r, b = min(width - 2, x + 50), min(height - 2, feet - 94)
+    l, t, r, b = _shop_sign_bounds(point)
+    l, t = max(2, l), max(2, t)
+    r, b = min(width - 2, r), min(height - 2, b)
     if r <= l or b <= t:
         return None
     dx, dy = left - window[0], top - window[1]
     return l + dx, t + dy, r + dx, b + dy
+
+
+def shop_offscreen_notice(point, client_size):
+    """Describe which edge the shop sign lies beyond."""
+    width, height = client_size
+    l, t, r, b = _shop_sign_bounds(point)
+    if b <= 2:
+        return 'Shop sign above view'
+    if t >= height - 2:
+        return 'Shop sign below view'
+    if r <= 2:
+        return 'Shop sign left of view'
+    if l >= width - 2:
+        return 'Shop sign right of view'
+    return 'Shop sign outside view'

@@ -1,4 +1,4 @@
-FM RUSH v24.48 — SHOP PREVIEW
+FM RUSH v24.49 — SHOP PREVIEW
 
 1. Extract the ZIP and run START_FM_RUSH.bat from Scanner Nov 20.
 2. If you already use extension v24.39.0, keep it loaded. For a first install,
@@ -10,6 +10,7 @@ FM RUSH v24.48 — SHOP PREVIEW
    HeneFM card. The red box is drawn immediately around the
    projected clickable part of the shop sign, including signs partly visible
    at the game window edge. The yellow channel guide marks the destination cell.
+   If the sign is off-screen, the FM entrance panel shows which edge it is past.
 5. Open Change Channel in MapleStory. Press Ctrl+Alt+C to move the pointer to
    the selected yellow channel cell. FM Rush takes focus first if MapleStory
    was active. Click the cell and confirm yourself.
