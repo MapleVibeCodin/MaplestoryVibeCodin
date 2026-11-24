@@ -95,7 +95,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.53 - Camera alignment')
+        self.root.title('FM Rush v24.53.1 - Camera alignment')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
