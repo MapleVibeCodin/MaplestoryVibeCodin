@@ -37,6 +37,10 @@ chrome.alarms.onAlarm.addListener(async alarm => {
 ensureHealthAlarm();
 
 chrome.runtime.onMessage.addListener((msg, sender, respond) => {
+  if (msg?.kind === 'fm-rush-capture-clicked') {
+    fmCaptureClicked(msg.card,msg.deal,sender).then(respond).catch(err=>respond({ok:false,error:String(err)}));
+    return true;
+  }
   if (msg?.kind === 'fm-rush-capture-cards') {
     fmCaptureEnqueue(msg.cards, sender).then(respond).catch(err=>respond({ok:false,error:String(err)}));
     return true;
