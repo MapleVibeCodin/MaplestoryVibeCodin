@@ -10,6 +10,7 @@ const FM_CAPTURE_RETENTION_MS = 48 * 60 * 60 * 1000;
 const FM_CAPTURE_QUEUE_LIMIT = 800;
 const FM_CAPTURE_RETRY_MS = 20000;
 const fmCaptureQueue = [];
+const fmClickedQueue = [];
 const fmCapturePending = new Set();
 const fmCaptureFailures = new Map();
 const fmCaptureSaved = new Map();
@@ -97,34 +98,67 @@ async function fmCaptureEnqueue(cards, sender) {
   if(!fmCaptureRunning) void fmCaptureDrain();
   return {ok:true,...fmCaptureStatus()};
 }
+async function fmCaptureClicked(card, deal, sender) {
+  const tabId=sender?.tab?.id;
+  if (!Number.isInteger(tabId) || sender.frameId !== 0 ||
+      !/^https:\/\/(?:www\.)?henefm\.com\/flips\/deals(?:[/?#]|$)/.test(sender.url||'') ||
+      !fmCaptureValidCard(card) || deal?.listing_id!==card.id) {
+    return {ok:false,error:'Invalid clicked listing'};
+  }
+  if(fmClickedQueue.length>=24)return {ok:false,error:'Screenshot queue busy'};
+  return new Promise(resolve=>{
+    fmClickedQueue.push({tabId,card,deal,resolve,clicked:true});
+    if(!fmCaptureRunning)void fmCaptureDrain();
+  });
+}
+async function fmCaptureSaveClicked(card,deal,png) {
+  const response=await fetch('http://127.0.0.1:18773/listing-screenshot',{
+    method:'POST',headers:{'Content-Type':'application/json','X-FM-Rush-Bridge':'v17-browser-view'},
+    body:JSON.stringify({deal,png}),signal:AbortSignal.timeout(8000)
+  });
+  const result=await response.json();
+  if(!response.ok || !result.ok)throw Error(result.error||'Screenshot save failed');
+  return result;
+}
 async function fmCaptureDrain() {
   if(fmCaptureRunning)return;
   fmCaptureRunning=true;
   let attachedTabId=null;
   try {
-    while(fmCaptureQueue.length && fmCaptureEnabled){
-      let {tabId,card}=fmCaptureQueue.shift();
+    while(fmClickedQueue.length || (fmCaptureQueue.length && fmCaptureEnabled)){
+      const task=fmClickedQueue.length?fmClickedQueue.shift():fmCaptureQueue.shift();
+      let {tabId,card}=task;
       try {
         const tab=await chrome.tabs.get(tabId);
         if(!/^https:\/\/(?:www\.)?henefm\.com\/flips\/deals(?:[/?#]|$)/.test(tab.url||'')) {
           throw Error('HeneFM Deals tab navigated away');
+        }
+        if(attachedTabId!==tabId){
+          if(attachedTabId!==null){await chrome.debugger.detach({tabId:attachedTabId});attachedTabId=null;}
+          await chrome.debugger.attach({tabId},'1.3');
+          attachedTabId=tabId;
         }
         const current=await chrome.tabs.sendMessage(tabId,{kind:'fm-rush-locate-capture',id:card.id});
         if(!current?.ok || !fmCaptureValidCard(current.card) || current.card.id!==card.id) {
           throw Error('Listing no longer rendered; skipped stale screenshot');
         }
         card=current.card;
-        if(attachedTabId!==tabId){
-          if(attachedTabId!==null){await chrome.debugger.detach({tabId:attachedTabId});attachedTabId=null;}
-          await chrome.debugger.attach({tabId},'1.3');
-          attachedTabId=tabId;
-        }
         const result=await chrome.debugger.sendCommand({tabId},'Page.captureScreenshot',{
           format:'png', fromSurface:true, captureBeyondViewport:true, optimizeForSpeed:true,
           clip:{x:card.rect.x,y:card.rect.y,width:card.rect.width,
             height:card.rect.height,scale:1}
         });
         if(!result?.data || result.data.length<100)throw Error('Empty screenshot from browser');
+        if(task.clicked){
+          // Do not label a neighboring card as the clicked one after a refresh.
+          const after=await chrome.tabs.sendMessage(tabId,{kind:'fm-rush-locate-capture',id:card.id});
+          if(!after?.ok || !fmCaptureValidCard(after.card) ||
+              after.card.id!==card.id || ['x','y','width','height'].some(k=>Math.abs(after.card.rect[k]-card.rect[k])>2))
+            throw Error('Listing moved during capture; click again');
+          const saved=await fmCaptureSaveClicked(card,task.deal,result.data);
+          task.resolve(saved);
+          continue;
+        }
         const downloadId=await chrome.downloads.download({
           url:`data:image/png;base64,${result.data}`,
           filename:fmCaptureFileName(card),
@@ -138,6 +172,7 @@ async function fmCaptureDrain() {
         // Persist once per file so a reload will not duplicate saved screenshots.
         await fmCapturePersist();
       } catch (err) {
+        if(task.clicked)task.resolve({ok:false,error:String(err?.message||err)});
         fmCaptureFailedInSession++;
         fmCaptureLastError=String(err?.message||err);
         fmCaptureFailures.set(card.id,Date.now());
@@ -148,12 +183,12 @@ async function fmCaptureDrain() {
         if(attachedTabId===tabId && /debugger|attached|detached|target closed|DevTools/i.test(fmCaptureLastError)){
           attachedTabId=null;
         }
-      } finally {fmCapturePending.delete(card.id);}
+      } finally {if(!task.clicked)fmCapturePending.delete(card.id);}
     }
   } finally {
     if(attachedTabId!==null){try{await chrome.debugger.detach({tabId:attachedTabId});}catch(_){}}
     fmCaptureRunning=false;
-    if(fmCaptureEnabled && fmCaptureQueue.length)void fmCaptureDrain();
+    if(fmClickedQueue.length || (fmCaptureEnabled && fmCaptureQueue.length))void fmCaptureDrain();
   }
 }
 async function fmCaptureSetEnabled(enabled){
