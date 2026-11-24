@@ -5,7 +5,14 @@ browser page) and hands it to the GUI. No API key, no network requests,
 listing metadata can be persisted locally before delivery is acknowledged.
 """
 from __future__ import annotations
+import base64
+import binascii
+from datetime import datetime
 import json
+from pathlib import Path
+import re
+import struct
+import uuid
 import math
 import queue
 import threading
@@ -19,6 +26,41 @@ HOST = '127.0.0.1'
 PORT = 18773
 MAX_REQUEST_BYTES = 65_536
 MAX_VISIBLE_BYTES=4*1024*1024
+MAX_SCREENSHOT_BYTES=12*1024*1024
+CLICK_SCREENSHOT_DIR=Path.home() / 'Desktop' / 'Shit to sell'
+
+
+def save_clicked_listing(data, folder=None):
+    """Write a bounded PNG from the local extension; never accept a client path."""
+    if not isinstance(data,dict):raise ValueError('invalid screenshot')
+    deal=parse_browser_deal(data.get('deal'))
+    if deal is None or not re.fullmatch(r'[a-f0-9]{8,24}',deal.listing_id):
+        raise ValueError('invalid screenshot listing')
+    encoded=data.get('png')
+    if not isinstance(encoded,str) or len(encoded)>MAX_SCREENSHOT_BYTES:
+        raise ValueError('invalid screenshot size')
+    try: png=base64.b64decode(encoded,validate=True)
+    except (ValueError,binascii.Error) as exc:raise ValueError('invalid PNG encoding') from exc
+    if len(png)<45 or png[:16]!=b'\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR' or not png.endswith(b'\x00\x00\x00\x00IEND\xaeB`\x82'):
+        raise ValueError('invalid PNG')
+    width,height=struct.unpack('>II',png[16:24])
+    if not (1<=width<=6000 and 1<=height<=6000 and width*height<=18_000_000):
+        raise ValueError('invalid PNG dimensions')
+    def safe(value,limit):
+        return re.sub(r'[^\w .+-]','_',str(value))[:limit].strip(' .') or 'unknown'
+    directory=Path(folder) if folder is not None else CLICK_SCREENSHOT_DIR
+    directory.mkdir(parents=True,exist_ok=True)
+    stamp=datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
+    price=deal.buy_mesos if deal.buy_mesos is not None else 'unknown'
+    name=f'{stamp}_CH{deal.cc or 0}-FM{deal.fm or 0}_{safe(deal.item,65)}_{safe(deal.ign,24)}_{price}_{uuid.uuid4().hex[:8]}.png'
+    path=directory / name
+    try:
+        with path.open('xb') as output:output.write(png)
+    except OSError:
+        # A failed write is never reported as a successful capture.
+        raise
+    return path
+
 
 
 def parse_browser_deal(raw: dict) -> Deal | None:
@@ -91,7 +133,7 @@ class BrowserBridge:
                     self._send(404, {'ok': False})
 
             def do_POST(self):
-                if self.path not in ('/deal','/visible','/select','/skip','/unlock'):
+                if self.path not in ('/deal','/visible','/select','/skip','/unlock','/listing-screenshot'):
                     self._send(404, {'ok': False})
                     return
                 # This is a local UI bridge, not a remote data service. Require
@@ -109,10 +151,15 @@ class BrowserBridge:
                     return
                 try:
                     size = int(self.headers.get('Content-Length', '0'))
-                    if size < 2 or size > (MAX_VISIBLE_BYTES if self.path=='/visible' else MAX_REQUEST_BYTES):
+                    if size < 2 or size > (MAX_SCREENSHOT_BYTES if self.path=='/listing-screenshot' else MAX_VISIBLE_BYTES if self.path=='/visible' else MAX_REQUEST_BYTES):
                         raise ValueError('invalid request size')
                     data = json.loads(self.rfile.read(size).decode('utf-8'))
                     if not isinstance(data,dict):raise ValueError('request')
+                    if self.path=='/listing-screenshot':
+                        try:path=save_clicked_listing(data)
+                        except OSError:
+                            self._send(503,{'ok':False,'error':'Could not write screenshot folder'});return
+                        self._send(200,{'ok':True,'file':path.name});return
                     if self.path=='/visible':
                         if not isinstance(data,dict):raise ValueError('snapshot')
                         raw=data.get('deals');session=data.get('session');revision=data.get('revision')
