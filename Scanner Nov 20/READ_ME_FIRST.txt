@@ -52,3 +52,7 @@ the updater. Python environments, caches and backups are ignored.
 
 Project history and future-session instructions: ../AGENTS.md
 Entry portal data: https://osmsdataexplorer.com/data/current/portals.json
+
+CLICKED LISTING SCREENSHOTS (desktop v24.53.1 / extension v24.39.1)
+Click a HeneFM deal or CHASE to save a cropped PNG of that listing in Desktop\Shit to sell (under your Windows user profile). Every explicit selection click saves independently of the chase lock and optional bulk screenshot archive. Auto-preview, SKIP and UNLOCK do not save. FM Rush must be running. The PNG includes the item, seller and price as displayed, not a game screenshot. If the card moves during capture, retry the click; failures are shown in the existing card status. The folder is created automatically.
+Update desktop and unpacked extension together using UPDATE_FM_RUSH.ps1 -UpdateExtension. If the active extension lives elsewhere, add -ExtensionDir with its unpacked folder. Then reload FM Rush in brave://extensions and refresh HeneFM. No changes to navigation overlays.
