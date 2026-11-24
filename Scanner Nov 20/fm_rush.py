@@ -15,9 +15,9 @@ from game_window import (
 )
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
-from shop_pin import ShopPreviewPin, EntranceGuidePin, entrance_route_hits
+from shop_pin import ShopPreviewPin
 from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice, room_theme
-from camera_alignment import GrassCameraTracker, locate_entrance
+from camera_alignment import GrassCameraTracker
 from trade_hotkeys import TradeHotkeys
 
 from deal_parser import parse_deal
@@ -95,7 +95,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.54 - Entrance navigation')
+        self.root.title('FM Rush v24.53 - Camera alignment')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -124,9 +124,6 @@ class FMApp:
         self.root.protocol('WM_DELETE_WINDOW',self.close)
         self.channel_pin=ChannelPin(self.root)
         self.shop_pin = ShopPreviewPin(self.root, interval_ms=25)
-        self.entrance_pin = EntranceGuidePin(self.root, interval_ms=25)
-        self._entrance_camera = GrassCameraTracker(matcher=locate_entrance)
-        self._entrance_preview = None
         self._shop_preview = None
         self._portal_alignment = None
         self._grass_camera = GrassCameraTracker()
@@ -392,28 +389,8 @@ class FMApp:
         window = window_rect(hwnd) if hwnd else None
         client = window_client_rect(hwnd) if window else None
 
-        # Warm the passive entrance detector before the next listing arrives.
-        supported = bool(hwnd and client and client[2:] in ENTRY_CLIENTS)
-        scene = self._entrance_camera.get(hwnd, client) if supported else None
-        if not supported:
-            self._entrance_camera.reset()
-        in_entrance = scene is not None and scene[0]
-        # A live listing previews the route immediately; locking still pins it.
-        route_deal = current[1] if current else None
-        entrance_preview = None
-        if in_entrance and route_deal and route_deal.fm and route_deal.cc and window:
-            hits = entrance_route_hits(route_deal.fm, route_deal.cc, scene[1], client, window)
-            if hits:
-                entrance_preview = (hwnd, window[2:], hits)
-        if entrance_preview != self._entrance_preview:
-            self._entrance_preview = entrance_preview
-            if entrance_preview is None:
-                self.entrance_pin.hide()
-            else:
-                self.entrance_pin.show_many(*entrance_preview)
-
         channel_preview = None
-        if deal and deal.cc and window and not in_entrance:
+        if deal and deal.cc and window:
             _, _, width, height = window
             box = preview_channel(deal.cc, window, client)
             mode = 'GUIDE' if box else 'PRE'
@@ -437,7 +414,7 @@ class FMApp:
             else:
                 self._portal_alignment = None
 
-        grass = bool(not in_entrance and deal and deal.shop_position and client and client[2:] in ENTRY_CLIENTS
+        grass = bool(deal and deal.shop_position and client and client[2:] in ENTRY_CLIENTS
                      and room_theme(deal.fm) == 'grass')
         auto_portal = self._grass_camera.get(hwnd, client) if grass else None
         if not grass:
@@ -451,8 +428,6 @@ class FMApp:
             status = 'Web-only mode'
         elif client is None:
             status = 'Open MapleStory, then click Refresh'
-        elif in_entrance:
-            status = 'Entrance guide · enter FM first, then change channel'
         elif deal is None:
             status = 'Click CHASE to preview the shop'
         elif deal.shop_position is None:
@@ -765,7 +740,6 @@ class FMApp:
         if self.browser_bridge is not None:
             try:self.browser_bridge.stop()
             except Exception:pass
-        self.entrance_pin.close()
         self.channel_pin.close()
         self.shop_pin.close()
         self.archive.close()
