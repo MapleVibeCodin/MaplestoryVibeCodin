@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "FM Rush — HeneFM Deal Scanner",
-  "version": "24.39.0",
-  "description": "Choose a HeneFM deal and preview its shop and channel in FM Rush.",
+  "version": "24.39.1",
+  "description": "Choose a HeneFM deal, save clicked listing screenshots, and preview its shop and channel in FM Rush.",
   "permissions": [
     "storage",
     "alarms",
