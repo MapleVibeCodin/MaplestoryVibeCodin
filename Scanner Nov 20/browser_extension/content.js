@@ -257,6 +257,24 @@
         console.warn('[FM Rush] Choice not delivered:',response?.error||chrome.runtime.lastError?.message);
       }
     }); }catch(error){choiceError(card,'NOT SENT · reload HeneFM');}
+    // A user click saves this listing, independently of chase acceptance.
+    // Do not capture auto-previewed cards, skip, unlock or background scans.
+    if(action==='select'){
+      const r=card.getBoundingClientRect();
+      const clicked={id:payload.listing_id,item:payload.item,ign:payload.ign,cc:payload.cc,fm:payload.fm,
+        buy_mesos:payload.buy_mesos,sold:payload.sold,rect:{
+          x:Math.max(0,Math.floor(r.left+window.scrollX-2)),
+          y:Math.max(0,Math.floor(r.top+window.scrollY-2)),
+          width:Math.ceil(r.width+4),height:Math.ceil(r.height+4)
+        }};
+      try {chrome.runtime.sendMessage({kind:'fm-rush-capture-clicked',card:clicked,deal:payload},response=>{
+        const error=chrome.runtime.lastError?.message||response?.error;
+        if(!response?.ok){
+          choiceError(card,'Screenshot not saved · '+(error||'start FM Rush'));
+          console.warn('[FM Rush] Click screenshot:',error);
+        }
+      });} catch(error){choiceError(card,'Screenshot not saved · reload HeneFM');}
+    }
   }
   function addChoiceControls(card){
     if(!card.querySelector || card.querySelector('[data-fm-rush-controls]') || !document.createElement)return;
