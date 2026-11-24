@@ -1,8 +1,10 @@
 # Download a consistent desktop release from GitHub and restart FM Rush.
-# Run from any directory; never overwrite local config, archive, or extension.
+# Run from any directory; never overwrite local config or archive. Extension update is opt-in.
 param(
     [string]$Ref = 'main',
-    [string]$InstallDir
+    [string]$InstallDir,
+    [switch]$UpdateExtension,
+    [string]$ExtensionDir
 )
 $ErrorActionPreference = 'Stop'
 $repo = 'MapleVibeCodin/MaplestoryVibeCodin'
@@ -61,6 +63,27 @@ if ($InstallDir) {
     } else { $dir = $dirs[0] }
     $dir = (Resolve-Path -LiteralPath $dir).Path
 }
+# Update the unpacked extension only when explicitly requested.
+if ($ExtensionDir) { $UpdateExtension = $true }
+if ($UpdateExtension) {
+    if (-not $ExtensionDir) { $ExtensionDir = Join-Path $dir 'browser_extension' }
+    $manifest = Join-Path $ExtensionDir 'manifest.json'
+    if (-not (Test-Path -LiteralPath $manifest -PathType Leaf)) {
+        throw 'FM Rush extension folder not found. Open brave://extensions, inspect the unpacked FM Rush extension path, then rerun with -UpdateExtension -ExtensionDir "that folder". No files changed.'
+    }
+    $installedManifest = Get-Content -LiteralPath $manifest -Raw | ConvertFrom-Json
+    if ($installedManifest.name -notlike 'FM Rush*') { throw 'Extension folder is not FM Rush. No files changed.' }
+    $ExtensionDir = (Resolve-Path -LiteralPath $ExtensionDir).Path
+    $files += @('browser_extension/manifest.json','browser_extension/background.js',
+        'browser_extension/content.js','browser_extension/refresh_2s.js',
+        'browser_extension/screenshot_worker.js','browser_extension/popup.html','browser_extension/popup.js')
+}
+function Get-UpdateDestination([string]$File) {
+    if ($File.StartsWith('browser_extension/')) {
+        return (Join-Path $ExtensionDir ($File.Substring('browser_extension/'.Length)))
+    }
+    return (Join-Path $dir $File)
+}
 # Resolve main once so a concurrent commit cannot mix versions across files.
 if ($Ref -eq 'main') {
     $Ref = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/commits/main" -UserAgent 'FM-Rush-Updater').sha
@@ -78,6 +101,7 @@ try {
     Write-Host "GitHub commit: $Ref"
     foreach ($file in $files) {
         $out = Join-Path $incoming $file
+        New-Item -ItemType Directory -Path (Split-Path -Parent $out) -Force | Out-Null
         Invoke-WebRequest -UseBasicParsing -Uri "$base/$file" -OutFile $out
         if ((Get-Item -LiteralPath $out).Length -eq 0) { throw "Empty download: $file" }
         Write-Host "Downloaded $file"
@@ -90,9 +114,11 @@ try {
         Write-Warning 'Local Python environment unavailable; launcher will check it.'
     }
     foreach ($file in $files) {
-        $dest = Join-Path $dir $file
+        $dest = Get-UpdateDestination $file
         if (Test-Path -LiteralPath $dest) {
-            Copy-Item -LiteralPath $dest -Destination (Join-Path $backup $file)
+            $old = Join-Path $backup $file
+            New-Item -ItemType Directory -Path (Split-Path -Parent $old) -Force | Out-Null
+            Copy-Item -LiteralPath $dest -Destination $old
         }
     }
     $targets = @(Get-ScannerProcesses | Where-Object {
@@ -111,14 +137,14 @@ try {
     try {
         foreach ($file in $files) {
             $changed.Add($file)
-            Copy-Item -LiteralPath (Join-Path $incoming $file) -Destination (Join-Path $dir $file) -Force
+            Copy-Item -LiteralPath (Join-Path $incoming $file) -Destination (Get-UpdateDestination $file) -Force
         }
     } catch {
         $originalError = $_
         try {
             foreach ($file in $changed) {
                 $old = Join-Path $backup $file
-                $dest = Join-Path $dir $file
+                $dest = Get-UpdateDestination $file
                 if (Test-Path -LiteralPath $old) {
                     Copy-Item -LiteralPath $old -Destination $dest -Force
                 } elseif (Test-Path -LiteralPath $dest) {
@@ -135,6 +161,10 @@ try {
     Set-Content -LiteralPath $hintFile -Value $dir -Encoding UTF8
     Start-Process -FilePath (Join-Path $dir 'START_FM_RUSH.bat') -WorkingDirectory $dir
     Write-Host 'Desktop update installed; restart launched. Check the FM Rush version and status.' -ForegroundColor Green
+    if ($UpdateExtension) {
+        Write-Host "Extension updated at $ExtensionDir" -ForegroundColor Green
+        Write-Host 'Open brave://extensions, click Reload on FM Rush, then refresh HeneFM.' -ForegroundColor Yellow
+    }
 } finally {
     if (-not $keepStage -and (Test-Path -LiteralPath $stage)) {
         Remove-Item -LiteralPath $stage -Recurse -Force
