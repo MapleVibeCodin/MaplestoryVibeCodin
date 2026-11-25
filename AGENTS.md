@@ -2,6 +2,10 @@
 
 Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.4; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
+## 2026-11-26 — cross-game source archive and executed recognition experiments (research only)
+
+Read [cross-game experiments](research/upstream-scanners/2026-11-26/cross-game-experiments.md). Five additional pinned projects, 39 original text files and 13 repository refs total. Executed synthetic ABI hash test (median 0.096ms, p95 0.140ms, collisions demonstrate candidate-only evidence) and exhaustive 527418 digit bitmap corruption cases (80 wrong unique-nearest results at 3 flips, zero wrong accepted with <=1 mismatch but 526736 rejects across corpus). Not a live game benchmark; no full upstream app run. Production v24.63.4 and browser v24.56.0 unchanged; next native shadow replay on independently labelled screenshots. Preserve all files.
+
 ## 2026-11-26 — public scanner source archive (research only)
 
 Read [upstream scanner research archive](research/upstream-scanners/2026-11-26/README.md) and [pinned manifest](research/upstream-scanners/2026-11-26/manifest.json). 31 selected original text files across Classic Tool, Minerva, mpl-ocr, MapleScanner and Free Market Tracker (the last is README/license only) preserved in three verified JSON bundles with source blob SHAs and licenses. Eight full upstream checkouts pinned; Club FM, Maple Price Checker and Lupin are references only because redistribution licenses were not verified. Local-only source unpack and checkout scripts provided; Windows execution not tested. Research included actual atlas comparison (68 entries, ten digits, minimum same-width digit difference five pixels) and native/dual-OCR/tooltip/cache audits. Prioritize shadow native-glyph replay, independent held-out labels, no stale-negative cache, strict scroll/seller/price validation. No runtime changes or testing claims; retain v24.63.4/browser v24.56.0 and all historical files.
