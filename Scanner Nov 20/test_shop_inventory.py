@@ -19,8 +19,14 @@ class InventoryTests(unittest.TestCase):
         for i in (0,5):
             lines.extend([{'text':'Bazlud','y':(28+i*40+9)*SCALE},
                           {'text':'1 for 12,000 mesos','y':(28+i*40+27)*SCALE}])
-        self.assertEqual(pick_rows(lines,[True]*6,'Suzanoo','Bazlud',12000)[0],[(0,'SOLD'),(5,'SOLD')])
-        self.assertEqual(pick_rows(lines,[False]*6,'Suzanoo','Bazlud',12000)[0],[(0,'AMBIGUOUS'),(5,'AMBIGUOUS')])
+        # Current safety policy: duplicates must not produce any highlight.
+        for seller in ('Suzanoo',None):
+            self.assertEqual(pick_rows(lines,[True]*6,seller,'Bazlud',12000),
+                             ([], 'Multiple sold matches · no highlight'))
+            self.assertEqual(pick_rows(lines,[False]*6,seller,'Bazlud',12000),
+                             ([], 'Multiple exact matches · no highlight'))
+            self.assertEqual(pick_rows(lines[:3],[True]*6,seller,'Bazlud',12000)[0],[(0,'SOLD')])
+            self.assertEqual(pick_rows(lines[:3],[False]*6,seller,'Bazlud',12000)[0],[(0,'MATCH')])
         self.assertEqual(pick_rows(lines,[False]*6,'Other','Bazlud',12000)[0],[])
         self.assertEqual(pick_rows(lines,[False]*6,'Suzanoo','Bazlud',13000)[0],[])
 
