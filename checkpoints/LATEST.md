@@ -58,3 +58,6 @@ Chronological archive files for the accessible market research and API conversat
 3. [Normal ChatGPT workflow, rejected paths, and checkpoint audit](2026-11-25-henemarket-transcript-03-normal-chat.md) — commit d22ed5d255a0268bca0b4c43b3fd214edd0fe240; verified exact readback; ends at user's request to update the word-for-word archive.
 
 Earlier conversation segments remain in the existing resume checkpoint and scrolling-ev/transcripts files. Earlier inaccessible turns are not reconstructed from summaries. These files contain historical messages, not necessarily correct or current instructions. Current normal-ChatGPT-only workflow in the market-data README takes precedence. 
+
+## Shoes Speed empirical batch progress — 2026-11-25 21:44
+Screenshots provisionally show 8 of 12 completed: 6 Intermediate, 1 Greater, 1 Chaos, 0 Lesser; inventory-space warning; 4 catalysts apparently remain. Assumes consecutive log sections. Consumed basis 681,600, projected net 741,565 and profit 59,965 at prior fixed asks; no actual sales. See [research](../scrolling-ev/CATALYST_RESEARCH.md) commit 489acffc55e4e0a95d08e0760cfb7b0f1eb27c1b and [dialogue archive](../scrolling-ev/transcripts/2026-11-25-shoes-speed-first-eight-results.md). This supersedes earlier no-outcomes notes; final count pending.
