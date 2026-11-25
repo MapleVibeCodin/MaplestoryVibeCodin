@@ -18,6 +18,7 @@ from channel_overlay import ChannelPin, preview_channel
 from shop_pin import ShopPreviewPin, EntranceGuidePin, entrance_marker
 from camera_alignment import EntranceCameraTracker, room_title_present
 from shop_inventory import ShopInventoryTracker
+from shop_screenshot import ShopScreenshotRecorder
 from shop_pin import ItemInventoryPin
 from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice, channel_entry_portal
 from trade_hotkeys import TradeHotkeys
@@ -83,7 +84,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.63.4 - Sold-row contrast retry')
+        self.root.title('FM Rush v24.63.5 - Automatic shop screenshots')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -121,6 +122,7 @@ class FMApp:
         self._entrance_preview = None
         self.item_pin = ItemInventoryPin(self.root, interval_ms=50)
         self._inventory = ShopInventoryTracker()
+        self._shop_capture = ShopScreenshotRecorder(ARCHIVE_DIR.parent/'shop_screenshots')
         self.performance = PerformanceRecorder(ARCHIVE_DIR.parent/'performance', capture=capture_client,
             focused=window_has_focus, geometry=window_client_rect, point_window=window_at_point,
             init_capture=enable_capture_cache, release_capture=release_capture_cache)
@@ -192,6 +194,8 @@ class FMApp:
                              ('Other deals at this shop',self.show_same_shop_deals),
                              ('Export deal archive',self.export_archive),
                              ('Export performance report',self.export_performance),
+                             ('Open shop screenshots folder',self.open_shop_screenshots),
+                             ('Pause/resume shop screenshots',self.toggle_shop_screenshots),
                              ('Pause/resume performance recording',self.toggle_performance),
                              ('Reopen last skipped deal',self.undo_deal)]:
             menu.add_command(label=title,command=action)
@@ -428,6 +432,19 @@ class FMApp:
         self.performance.set_enabled(not self.performance.enabled)
         self.status.set('Performance recorder '+('active' if self.performance.enabled else 'paused'))
 
+    def open_shop_screenshots(self):
+        try:
+            self._shop_capture.folder.mkdir(parents=True,exist_ok=True)
+            os.startfile(str(self._shop_capture.folder))
+            self.status.set(f'Shop screenshots saved: {self._shop_capture.saved}'+
+                            (f' · {self._shop_capture.error}' if self._shop_capture.error else ''))
+        except OSError as exc:messagebox.showerror('Shop screenshots',str(exc))
+
+    def toggle_shop_screenshots(self):
+        recorder=self._shop_capture
+        recorder.set_enabled(not recorder.enabled)
+        self.status.set('Automatic shop screenshots '+('active' if recorder.enabled else 'paused'))
+
     def next_live_deal(self):
         # Skip current target; auto-lock remains armed for a new listing.
         self.complete_deal()
@@ -451,6 +468,8 @@ class FMApp:
 
         valid_size=bool(client and client[2:] in ENTRY_CLIENTS)
         focused=bool(valid_size and hwnd and window_has_focus(hwnd))
+        screenshots=getattr(self,'_shop_capture',None)
+        if screenshots is not None:screenshots.observe(hwnd if focused else None,client if focused else None)
         supported=bool(deal and focused)
         inventory_supported=bool(inventory_deal and focused)
         # Only a positive minimap room-title signature permits inventory OCR.
@@ -1027,6 +1046,7 @@ class FMApp:
         self.item_pin.close()
         self.performance.close()
         self._inventory.close()
+        if hasattr(self,'_shop_capture'):self._shop_capture.close()
         self._entrance_camera.close()
         self.archive.close()
         if hasattr(self,'trade_keys'):self.trade_keys.close()
