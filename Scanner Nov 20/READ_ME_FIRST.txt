@@ -1,4 +1,4 @@
-FM RUSH v24.54.9 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.54.10 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -42,3 +42,5 @@ If the local bridge is unavailable, JSON falls back to Downloads/FM_Rush_Clicked
 A moved/disappeared card may prevent a PNG; the click record is still retained when writable.
 Auto-lock, SKIP, UNLOCK and passive scans never trigger clicked capture. Bulk archive unchanged.
 Project history: ../AGENTS.md
+
+UI: channel navigation arrow text removed from bottom strip; channel and FM overlays unchanged.

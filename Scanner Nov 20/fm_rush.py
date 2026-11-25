@@ -77,7 +77,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.54.9 - Click archive')
+        self.root.title('FM Rush v24.54.10 - Clean display')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -154,7 +154,6 @@ class FMApp:
         details.pack(fill='x',padx=12,pady=(5,0))
         details.columnconfigure(2,weight=1)
         self.lbl(details,var=self.ccfm,size=16,color=TEAL,bold=True).grid(row=0,column=0,sticky='w')
-        self.lbl(details,var=self.keys,size=13,color=MUTED).grid(row=1,column=0,sticky='w')
         tk.Frame(details,bg=CARD2,width=1).grid(row=0,column=1,rowspan=3,sticky='ns',padx=12)
         self.lbl(details,var=self.ign,size=12,color=YELLOW,bold=True).grid(row=0,column=2,sticky='ew')
         self.lbl(details,var=self.item,size=12,color=YELLOW,bold=True).grid(row=1,column=2,sticky='ew')
