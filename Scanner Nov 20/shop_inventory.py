@@ -2,6 +2,7 @@
 from __future__ import annotations
 from collections import OrderedDict
 import hashlib
+import base64
 import json
 import os
 from pathlib import Path
@@ -367,6 +368,7 @@ class WindowsOCR:
         self.proc=None
         self.responses=queue.Queue()
         self._process_lock=threading.Lock()
+        self._memory_png=True
     def start(self):
         with self._process_lock:self._start()
     def _start(self):
@@ -386,20 +388,26 @@ class WindowsOCR:
                     if line.strip():diagnostic=line.strip()[:160]
             responses.put({'ok':False,'error':diagnostic or 'Windows OCR worker exited'})
         threading.Thread(target=read,daemon=True).start()
-    def recognize(self,png):
+    def _exchange(self,request):
         self.start()
+        proc=self.proc
+        if proc is None or proc.poll() is not None:raise RuntimeError('Windows OCR worker exited')
+        proc.stdin.write(json.dumps(request)+'\n');proc.stdin.flush()
+        try:res=self.responses.get(timeout=8)
+        except queue.Empty:
+            self.close();raise RuntimeError('Windows OCR timed out')
+        if not res.get('ok') and proc.poll() is not None:self.close()
+        return res
+    def recognize(self,png):
+        # Keep the original file protocol as a session-local compatibility fallback.
+        if self._memory_png:
+            res=self._exchange({'png':base64.b64encode(png).decode('ascii')})
+            if res.get('ok'):return res.get('lines',[])
+            self._memory_png=False
         with tempfile.TemporaryDirectory(prefix='fm_rush_ocr_') as tmp:
             path=Path(tmp)/'inventory.png';path.write_bytes(png)
-            proc=self.proc
-            if proc is None or proc.poll() is not None:raise RuntimeError('Windows OCR worker exited')
-            proc.stdin.write(json.dumps(str(path))+'\n');proc.stdin.flush()
-            try:res=self.responses.get(timeout=8)
-            except queue.Empty:
-                self.close();raise RuntimeError('Windows OCR timed out')
-            if not res.get('ok'):
-                # A handled recognition error does not require a worker restart.
-                if proc.poll() is not None:self.close()
-                raise RuntimeError(res.get('error','Windows OCR unavailable'))
+            res=self._exchange(str(path))
+            if not res.get('ok'):raise RuntimeError(res.get('error','Windows OCR unavailable'))
             return res.get('lines',[])
     def close(self):
         with self._process_lock:
@@ -409,7 +417,8 @@ class WindowsOCR:
                 self.proc=None
 
 class ShopInventoryTracker:
-    def __init__(self):
+    def __init__(self,notify=None):
+        self._notify=notify
         self._lock=threading.Lock()
         self._key=None;self._latest=None;self._next=0;self._busy=False;self._generation=0
         self._digest=None;self._observed_at=None;self._ocr=WindowsOCR();self._closed=False
@@ -455,9 +464,19 @@ class ShopInventoryTracker:
                 self._jobs.put_nowait(self._key)
             return self._latest
     def _publish(self,key,result,digest=None):
+        changed=False
         with self._lock:
             if self._key==key:
+                old_hits=(self._latest or {}).get('hits',[])
+                new_hits=(result or {}).get('hits',[])
+                changed=old_hits!=new_hits
                 self._latest=result;self._digest=digest;self._observed_at=time.monotonic()
+        # Only wake the GUI on a changed highlight. Normal polling remains
+        # the fallback, and the GUI still verifies focus and room title.
+        notify=getattr(self,'_notify',None)
+        if changed and notify is not None:
+            try:notify()
+            except Exception:pass
     def _find_anchor(self,client):
         """Learn one anchor per client resolution; use a tiny fixed pixel gate."""
         x,y,w,h=client

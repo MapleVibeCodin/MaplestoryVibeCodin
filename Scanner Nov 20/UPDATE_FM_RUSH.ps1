@@ -11,7 +11,7 @@ $repo = 'MapleVibeCodin/MaplestoryVibeCodin'
 $files = @(
     'camera_alignment.py','fm_rush.py','shop_position.py','shop_pin.py',
     'shop_inventory.py','metascan_fast.py','shop_screenshot.py','vision_guard.py','vision_geometry.py','performance_recorder.py','SHOP_OCR.ps1',
-    'test_vision_guard.py','test_vision_geometry.py','test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py','test_inventory_hover.py','test_shop_screenshot.py','test_metascan_fast.py',
+    'test_vision_guard.py','test_vision_geometry.py','test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py','test_inventory_hover.py','test_shop_screenshot.py','test_metascan_fast.py','test_metascan_ocr_transport.py',
     'test_shop_inventory.py','test_start_position.py','test_entrance_marker.py','test_click_record.py',
     'test_fm4_calibration.py','test_fm5_calibration.py','test_fm9_calibration.py','test_fm11_calibration.py','test_fm16_calibration.py',
     'game_window.py','channel_overlay.py','deal_archive.py','deal_parser.py',
@@ -70,7 +70,36 @@ if ($InstallDir) {
 # Update the unpacked extension only when explicitly requested.
 if ($ExtensionDir) { $UpdateExtension = $true }
 if ($UpdateExtension) {
-    if (-not $ExtensionDir) { $ExtensionDir = Join-Path $dir 'browser_extension' }
+    if (-not $ExtensionDir) {
+        # Brave may be loading a different unpacked folder from the desktop copy.
+        $braveRoot = Join-Path $env:LOCALAPPDATA 'BraveSoftware\Brave-Browser\User Data'
+        $found = @(if (Test-Path -LiteralPath $braveRoot) {
+            foreach ($profile in Get-ChildItem -LiteralPath $braveRoot -Directory) {
+                foreach ($name in @('Preferences','Secure Preferences')) {
+                    $pref = Join-Path $profile.FullName $name
+                    if (-not (Test-Path -LiteralPath $pref -PathType Leaf)) { continue }
+                    try {
+                        $settings = (Get-Content -LiteralPath $pref -Raw | ConvertFrom-Json).extensions.settings
+                        foreach ($entry in $settings.PSObject.Properties) {
+                            $path = $entry.Value.path
+                            if (-not $path -or -not [IO.Path]::IsPathRooted($path)) { continue }
+                            $mf = Join-Path $path 'manifest.json'
+                            if (-not (Test-Path -LiteralPath $mf -PathType Leaf)) { continue }
+                            $meta = Get-Content -LiteralPath $mf -Raw | ConvertFrom-Json
+                            if ($meta.name -like 'FM Rush*') { (Resolve-Path -LiteralPath $path).Path }
+                        }
+                    } catch { continue }
+                }
+            }
+        })
+        $found = @($found | Sort-Object -Unique)
+        if ($found.Count -eq 1) { $ExtensionDir = $found[0] }
+        elseif ($found.Count -gt 1) {
+            Write-Host 'Multiple Brave FM Rush extension folders found:'
+            $found | ForEach-Object { Write-Host $_ }
+            throw 'Rerun with -ExtensionDir and the actual Loaded from folder in brave://extensions. No files changed.'
+        } else { $ExtensionDir = Join-Path $dir 'browser_extension' }
+    }
     $manifest = Join-Path $ExtensionDir 'manifest.json'
     if (-not (Test-Path -LiteralPath $manifest -PathType Leaf)) {
         throw 'FM Rush extension folder not found. Open brave://extensions, inspect the unpacked FM Rush extension path, then rerun with -UpdateExtension -ExtensionDir "that folder". No files changed.'
@@ -114,22 +143,6 @@ try {
     if (Test-Path -LiteralPath $python) {
         & $python -c "import pathlib,sys; [compile(p.read_bytes(),str(p),'exec') for p in pathlib.Path(sys.argv[1]).glob('*.py')]" $incoming
         if ($LASTEXITCODE -ne 0) { throw 'Python validation failed; no installed files changed.' }
-        & $python (Join-Path $incoming 'test_vision_guard.py')
-        if ($LASTEXITCODE -ne 0) { throw 'Vision safety regression failed; no installed files changed.' }
-        & $python (Join-Path $incoming 'test_vision_geometry.py')
-        if ($LASTEXITCODE -ne 0) { throw 'Geometry recognition regression failed; no installed files changed.' }
-        & $python (Join-Path $incoming 'test_performance_recorder.py')
-        if ($LASTEXITCODE -ne 0) { throw 'Performance recorder regression failed; no installed files changed.' }
-        & $python (Join-Path $incoming 'test_pointer_latency.py')
-        if ($LASTEXITCODE -ne 0) { throw 'Pointer latency regression failed; no installed files changed.' }
-        & $python (Join-Path $incoming 'test_auto_lock.py')
-        if ($LASTEXITCODE -ne 0) { throw 'Archive/auto-lock regression failed; no installed files changed.' }
-        & $python (Join-Path $incoming 'test_prior_shop_placements.py')
-        if ($LASTEXITCODE -ne 0) { throw 'Shop geometry regression failed; no installed files changed.' }
-        & $python (Join-Path $incoming 'test_inventory_hover.py')
-        if ($LASTEXITCODE -ne 0) { throw 'Shop hover regression failed; no installed files changed.' }
-        & $python (Join-Path $incoming 'test_shop_screenshot.py')
-        if ($LASTEXITCODE -ne 0) { throw 'Shop screenshot regression failed; no installed files changed.' }
         & $python -m unittest discover -s $incoming -p 'test_*.py' -v
         if ($LASTEXITCODE -ne 0) { throw 'Full staged unit regression failed; no installed files changed.' }
     } else {

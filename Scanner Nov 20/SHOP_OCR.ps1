@@ -1,4 +1,4 @@
-# Local Windows OCR helper: stdin JSON paths, stdout one JSON result per request.
+# Local Windows OCR helper: stdin JSON path or base64 PNG object; one JSON result.
 $ErrorActionPreference = 'Stop'
 [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -28,13 +28,30 @@ while ($null -ne ($inputLine = [Console]::ReadLine())) {
     $stream = $null
     $bitmap = $null
     $rawBitmap = $null
+    $writer = $null
+    $output = $null
     $stage = 'initialize'
     try {
         if (-not $engine) { throw 'Windows OCR language unavailable' }
         $stage = 'open PNG'
-        $path = ConvertFrom-Json -InputObject $inputLine
-        $file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($path)) ([Windows.Storage.StorageFile])
-        $stream = Await ($file.OpenReadAsync()) ([Windows.Storage.Streams.IRandomAccessStreamWithContentType,Windows.Storage.Streams,ContentType=WindowsRuntime])
+        $payload = ConvertFrom-Json -InputObject $inputLine
+        if ($payload -is [string]) {
+            $file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($payload)) ([Windows.Storage.StorageFile])
+            $stream = Await ($file.OpenReadAsync()) ([Windows.Storage.Streams.IRandomAccessStreamWithContentType,Windows.Storage.Streams,ContentType=WindowsRuntime])
+        } elseif ($payload.png -is [string]) {
+            $stage = 'memory PNG'
+            $data = [Convert]::FromBase64String($payload.png)
+            $stream = [Windows.Storage.Streams.InMemoryRandomAccessStream,Windows.Storage.Streams,ContentType=WindowsRuntime]::new()
+            $output = $stream.GetOutputStreamAt(0)
+            $writer = [Windows.Storage.Streams.DataWriter,Windows.Storage.Streams,ContentType=WindowsRuntime]::new($output)
+            $writer.WriteBytes($data)
+            $null = Await ($writer.StoreAsync()) ([uint32])
+            $null = Await ($writer.FlushAsync()) ([bool])
+            $null = $writer.DetachStream()
+            $writer.Dispose()
+            $writer = $null
+            $stream.Seek(0)
+        } else { throw 'Unsupported OCR request' }
         $decoder = Await ([Windows.Graphics.Imaging.BitmapDecoder]::CreateAsync($stream)) ([Windows.Graphics.Imaging.BitmapDecoder])
         $stage = 'decode PNG'
         $rawBitmap = Await ($decoder.GetSoftwareBitmapAsync()) ([Windows.Graphics.Imaging.SoftwareBitmap])
@@ -55,6 +72,8 @@ while ($null -ne ($inputLine = [Console]::ReadLine())) {
     } finally {
         if ($bitmap) { $bitmap.Dispose() }
         if ($rawBitmap) { $rawBitmap.Dispose() }
+        if ($writer) { try { $writer.Dispose() } catch {} }
+        if ($output) { try { $output.Dispose() } catch {} }
         if ($stream) { $stream.Dispose() }
     }
 }

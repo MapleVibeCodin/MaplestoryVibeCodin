@@ -1,5 +1,9 @@
 # FM Rush — persistent engineering instructions and handoff
 
+## MetaScanner branch — v24.64.0 performance preview / browser v24.57.0
+
+This branch is the new MetaScanner version; main remains the original v24.63.6 rollback baseline (45e68cef9f1eb10c950bc811fec8f193ffeb62d2). Read [MetaScanner performance evidence](research/2026-11-26-metascanner-performance.md) first, then the retained history below. The current version is MetaScanner v24.64.0 and browser v24.57.0; older version references below apply to baseline FM Rush. Continue this branch only on MetaScanner requests; use a pinned branch commit in the updater, which defaults to MetaScanner here. Run full staged unit discovery before install; live Windows/browser and full historical OCR replay remain unverified. Native glyph reader is offline shadow only. Preserve all files, original FM_Rush paths, exact unit prices, seller-free OCR, screenshots and manual-click safety. The original branch and all historical files are retained. No 2x end-to-end claim.
+
 Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.6; browser extension: v24.56.1. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
 ## Latest runtime — v24.63.6 / browser v24.56.1 exact HeneFM unit prices

@@ -121,7 +121,7 @@ class FMApp:
         self._entrance_camera = EntranceCameraTracker()
         self._entrance_preview = None
         self.item_pin = ItemInventoryPin(self.root, interval_ms=50)
-        self._inventory = ShopInventoryTracker()
+        self._inventory = ShopInventoryTracker(notify=lambda:self.events.put_nowait(('inventory_ready',)))
         self._shop_capture = ShopScreenshotRecorder(ARCHIVE_DIR.parent/'shop_screenshots')
         self.performance = PerformanceRecorder(ARCHIVE_DIR.parent/'performance', capture=capture_client,
             focused=window_has_focus, geometry=window_client_rect, point_window=window_at_point,
@@ -902,6 +902,7 @@ class FMApp:
 
     def pump(self):
         handled=self.drain_trade_events()
+        inventory_wake=False
         if self.archive.lock.acquire(blocking=False):
             try:changed=hasattr(self,'live_stamp') and self.live_stamp!=self.archive.live_state()
             finally:self.archive.lock.release()
@@ -946,6 +947,8 @@ class FMApp:
                 self.sync_archive()
                 reply.put({'ok':True})
                 self.status.set('LOCKED · UNLOCK to follow new listings' if self.archive.chase_locked else 'ARMED · waiting for next new listing')
+            elif evt[0]=='inventory_ready':
+                inventory_wake=True
             elif evt[0]=='browser_visible':
                 # Feed generation already drives sync on the next tick.
                 if self.archive.lock.acquire(blocking=False):
@@ -955,6 +958,10 @@ class FMApp:
                     self.status.set(f'LOCKED · {seller} · Shift+2 to unlock' if self.archive.chase_locked else 'ARMED · waiting for next new listing')
             elif evt[0]=='status':
                 self.status.set(evt[1])
+        if inventory_wake and self.archive.lock.acquire(blocking=False):
+            try:current=self.archive.current()
+            finally:self.archive.lock.release()
+            self.refresh_overlays(current)
         self.poll_game_chase_shortcuts(handled)
         self.schedule(10 if not self.events.empty() or not self._trade_events.empty() or self._chase_keys_down is not None else 20, self.pump)
 
