@@ -274,7 +274,7 @@ class WindowsOCR:
 class ShopInventoryTracker:
     def __init__(self):
         self._lock=threading.Lock()
-        self._key=None;self._latest=None;self._next=0;self._busy=False
+        self._key=None;self._latest=None;self._next=0;self._busy=False;self._generation=0
         self._digest=None;self._ocr=WindowsOCR();self._closed=False
         # Two native 1366x768 screenshots share the same shop anchor.
         # Still verify pixels and fall back if the window/layout differs.
@@ -297,18 +297,21 @@ class ShopInventoryTracker:
             self._ocr.close();release_capture_cache()
     def reset(self):
         with self._lock:
+            if self._key is not None:self._generation+=1
             self._key=None;self._latest=None;self._next=0;self._digest=None
     def close(self):
         self._closed=True;self.reset();self._jobs.put_nowait(None);self._ocr.close()
     def get(self,hwnd,client,deal):
-        key=(hwnd,tuple(client),deal.listing_id,deal.ign,deal.item,deal.buy_mesos)
+        identity=(hwnd,tuple(client),deal.listing_id,deal.ign,deal.item,deal.buy_mesos)
         now=time.monotonic()
         with self._lock:
-            if self._key!=key:
-                self._key=key;self._latest=None;self._digest=None;self._next=0
+            if self._key is None or self._key[:6]!=identity:
+                self._generation+=1
+                self._key=identity+(self._generation,)
+                self._latest=None;self._digest=None;self._next=0
             if not self._closed and not self._busy and now>=self._next:
                 self._busy=True;self._next=now+.05
-                self._jobs.put_nowait(key)
+                self._jobs.put_nowait(self._key)
             return self._latest
     def _publish(self,key,result,digest=None):
         with self._lock:
@@ -343,7 +346,9 @@ class ShopInventoryTracker:
 
     def _scan(self,key):
         try:
-            _,client,_,seller,item,price=key
+            with self._lock:
+                if self._key!=key:return
+            _,client,_,seller,item,price,_=key
             x,y,w,h=client
             anchor=self._find_anchor(client)
             if anchor is None:
@@ -371,7 +376,11 @@ class ShopInventoryTracker:
                     row=(box[1]-top-23)//STEP
                     if row in verified and verified[row]==prior.get(row):held.append((mode,box))
             self._publish(key,{'status':'Shop open · verifying visible rows','hits':held},None)
+            with self._lock:
+                if self._key!=key:return
             lines,unavailable,_=self._row_cache.recognize(frame,self._ocr,sections)
+            with self._lock:
+                if self._key!=key:return
             self._ocr_failures=0
             hits,status=pick_rows(lines,unavailable,seller,item,price)
             if hits and 'scroll' in normalized(item):
@@ -381,6 +390,8 @@ class ShopInventoryTracker:
                 check_key=(seller,item,price,tuple((i,v) for i,v in sections if i in selected),tuple(hits))
                 checked=self._scroll_checks.get(check_key)
                 if checked is None:
+                    with self._lock:
+                        if self._key!=key:return
                     alt,alt_sold=prepare_ocr(frame,selected,threshold_delta=15)
                     alt_hits,_=pick_rows(self._ocr.recognize(alt),alt_sold,seller,item,price)
                     checked=alt_hits==hits
