@@ -166,3 +166,6 @@ User requests same methodology for all glove stats and range. [Glove research](.
 
 ## Armor catalyst empirical assumption (user-reported)
 15% positive, 25% negative, 60% neutral, separate from scroll and weapon catalyst odds. For boots assuming every positive is +1 desired DEX, craft71k/NPC4k/fallback15k: expected incremental435.667k per DEX; ten tries80.3126% success, net364.895k; until success450.667k. Catalyst target <=19.65k under200k incremental ceiling. See [boots research](../scrolling-ev/BOOTS_RESEARCH.md). No new market quotes.
+
+## Latest weapon catalyst empirical override
+User confirms weapon is same as armor: 15% positive, 60% neutral, 25% negative. Apply as working empirical aggregate assumptions for future weapon calculations, including claw 2H catalysts; conditional magnitude distribution unknown. Scroll 75/20/5 unchanged. Earlier claw catalyst scenario results historical only; no new rerun. [Research](../scrolling-ev/CLAW_CATALYST_RESEARCH.md).
