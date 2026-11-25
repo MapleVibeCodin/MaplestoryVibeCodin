@@ -54,6 +54,7 @@ class AutoLockTests(unittest.TestCase):
         self.a.manual_selection=False
         self.visible(1,deal('A'),deal('B'),deal('C'))
         self.assertEqual(sum(s.strip().upper()=='COMMIT' for s in statements),1)
+        self.assertEqual(sum("INSERT OR REPLACE INTO settings VALUES ('focus'" in s for s in statements),1)
         statements.clear()
         self.visible(2,replace(deal('A'),raw_text='Seen 3s'),deal('B'),deal('C'))
         self.assertFalse(any(s.strip().upper().startswith('INSERT') for s in statements))

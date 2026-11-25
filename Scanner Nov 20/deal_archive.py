@@ -56,7 +56,8 @@ class DealArchive:
             self.db.execute('INSERT INTO listings(id,ign,done,data) VALUES (?,?,?,?) '
                 'ON CONFLICT(id) DO UPDATE SET ign=excluded.ign,done=excluded.done,data=excluded.data',
                 (key,record['deal']['ign'].casefold(),int(record['done']),json.dumps(record,ensure_ascii=False)))
-            self.db.execute("INSERT OR REPLACE INTO settings VALUES ('focus',?)",(json.dumps(focus),))
+            if self._batch_undo is None:
+                self.db.execute("INSERT OR REPLACE INTO settings VALUES ('focus',?)",(json.dumps(focus),))
             if last_completed is not _UNCHANGED:
                 self.db.execute("INSERT OR REPLACE INTO settings VALUES ('last_completed',?)",(json.dumps(last_completed),))
         if self._batch_undo is None:
@@ -104,6 +105,8 @@ class DealArchive:
             try:
                 with self.db:
                     keys=tuple(dict.fromkeys(self.record(deal)[0] for deal in deals))
+                    if self._batch_undo:
+                        self.db.execute("INSERT OR REPLACE INTO settings VALUES ('focus',?)",(json.dumps(self.focus),))
             except BaseException:
                 for key,previous in self._batch_undo.items():
                     if previous is _UNCHANGED:self._pending.pop(key,None)

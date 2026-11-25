@@ -80,6 +80,7 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
     respond({ok:response.ok && body.ok,
       error:body.error||(!response.ok?'HTTP '+response.status:''),
       retryable:response.status>=500,
+      archived_revision:body.archived_revision??null,
       focused_listing_id:body.focused_listing_id??null,
       chase_locked:body.chase_locked===true});
   }).catch(() => respond({ok:false,error:'FM Rush not connected. Start the FM Rush Windows app.',retryable:true}))

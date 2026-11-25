@@ -32,6 +32,7 @@
   let lastScreenshotBatchHash = '';
   const queued = [];
   const queuedIds = new Set();
+  let visiblePendingIds=null, queueEpoch=0;
   const liveSession=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
   let liveRevision=0,liveSending=false,liveHash=null,liveSentAt=-Infinity;
   const diagnostics = {lastScanAt:0, sellerLinks:0, cardsFound:0, soldCards:0, parsedCards:0, qualifyingDeals:0, sent:0, rejected:0, lastSentAt:0, lastError:'', lastRejectAt:0};
@@ -390,15 +391,30 @@
     queued.push(deal);queuedIds.add(deal.id);
     return true;
   }
+  function acknowledgeVisible(ids, pending, pendingIds, delivered) {
+    let newlyDelivered=0, changed=false, write=0;
+    for(const id of ids){
+      if(!delivered.has(id)){delivered.add(id);newlyDelivered++;changed=true;}
+      if(pendingIds.delete(id))changed=true;
+    }
+    for(const deal of pending){
+      if(ids.has(deal.id)){changed=true;continue;}
+      pending[write++]=deal;
+    }
+    pending.length=write;
+    return {newlyDelivered,changed};
+  }
   function sendNext() {
     if (sending || Date.now() < retryAfter || !isDealsPage()) return;
     const deal = queued[0];
-    if (!deal) return;
+    if (!deal || visiblePendingIds?.has(deal.id)) return;
+    const epoch=queueEpoch;
     sending = true;
     const {id, ...payload} = deal;
     try {
       chrome.runtime.sendMessage({kind: 'fm-rush-route-deal', deal: payload}, response => {
         sending = false;
+        if(epoch!==queueEpoch){scheduleScan(false);return;}
         const error = chrome.runtime.lastError?.message || response?.error;
         if (response?.ok && !chrome.runtime.lastError) {
           const index=queued.findIndex(d=>d.id===deal.id);
@@ -407,9 +423,9 @@
           // Only remember a deal AFTER FM Rush actually acknowledges it.
           // Previously a reload while the app was disconnected permanently
           // suppressed unsent deals for the rest of the tab session.
+          if(!seen.has(deal.id))diagnostics.sent++;
           seen.add(deal.id);
           remember();
-          diagnostics.sent++;
           diagnostics.lastSentAt = Date.now();
           diagnostics.lastError = '';
           retryFailures = 0;
@@ -445,11 +461,20 @@
     const hash=deals.map(d=>d.id+':'+JSON.stringify(d.shop_position)).join('|');
     if(hash===liveHash && Date.now()-liveSentAt<5000)return;
     liveSending=true;
+    const revision=++liveRevision, epoch=queueEpoch;
+    const ids=new Set(deals.map(d=>d.id));
+    visiblePendingIds=ids;
     try {
       chrome.runtime.sendMessage({kind:'fm-rush-visible-deals',snapshot:{session:liveSession,
-        revision:++liveRevision,observed_at_ms:Date.now(),deals:deals.map(({id,...deal})=>deal)}},response=>{
-        liveSending=false;
+        revision,observed_at_ms:Date.now(),deals:deals.map(({id,...deal})=>deal)}},response=>{
+        liveSending=false;visiblePendingIds=null;
         if(response?.ok && !chrome.runtime.lastError){
+          if(epoch===queueEpoch && response.archived_revision===revision){
+            const ack=acknowledgeVisible(ids,queued,queuedIds,seen);
+            if(ack.changed)remember();
+            diagnostics.sent+=ack.newlyDelivered;
+            if(ack.newlyDelivered)diagnostics.lastSentAt=Date.now();
+          }
           const wasLocked=liveLocked;
           const previousFocus=activeListingId;
           liveLocked=response.chase_locked===true;
@@ -463,9 +488,10 @@
         } else {
           diagnostics.liveError=chrome.runtime.lastError?.message || response?.error || 'Live page not connected';
         }
+        sendNext(); // fallback for old desktop, rejected snapshot or unseen historical queue
       });
     } catch(err) {
-      liveSending=false;diagnostics.liveError=String(err);
+      liveSending=false;visiblePendingIds=null;diagnostics.liveError=String(err);
     }
   }
   function scan() {
@@ -552,9 +578,8 @@
         }
         if (message?.kind==='fm-rush-resend-current') {
           // Explicit opt-in to resend the current eligible page.
-          seen.clear();
+          queueEpoch++;seen.clear();
           liveHash=null;liveSentAt=-Infinity;
-          remember();
           queued.length = 0;queuedIds.clear();
           remember();
           retryAfter = 0;

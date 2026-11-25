@@ -210,6 +210,7 @@ class BrowserBridge:
                             focused_id=current[1].listing_id if current else None
                             chase_locked=archive.chase_locked
                         self._send(200,{'ok':True,'live_listings':len(deals),
+                            'archived_revision':revision if applied else None,
                             'focused_listing_id':focused_id,'chase_locked':chase_locked});return
                     deal = parse_browser_deal(data) if self.path!='/unlock' else None
                 except (ValueError, UnicodeError, json.JSONDecodeError):

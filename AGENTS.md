@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-## MetaScanner branch — v24.64.0 performance preview / browser v24.57.0
+## MetaScanner branch — v24.65.0 fast capture / browser v24.58.0
+
+Read [v24.65.0 performance evidence](research/2026-11-26-metascanner-fast-capture.md) first. Parent corrected baseline 7a3aae1dca2fcce9f78bc8e342f447c1355ab6f7; intermediate capture commit 28805ef398b39674b70d018fc168fc0a2067f22e. Exact tooltip prefilter, same-frame paired shop gate and inventory, compact title crop, 25ms active recognition scheduling, durable visible-snapshot acknowledgement, one focus settings write per batch, immediate changed-snapshot retry. Native glyph shadow and Windows fallback retained. No full Windows or end-to-end 2x claim. All historical files and main preserved.
+
+## Previous MetaScanner branch — v24.64.0 performance preview / browser v24.57.0
 
 2026-11-26 Windows installation log for runtime 815fb2d1364b05bd2d835fe1dbcf89167d5aaf06: staged Python compilation passed; 117/118 tests passed, including five new MetaScanner tests. Legacy test_shop_inventory.test_sold_and_duplicate expected duplicate highlights contrary to current fail-closed policy. Corrected both sold and active duplicate assertions and added unique controls for seller-free and legacy seller-aware calls. No runtime recognition change, no test removal, full regression gate retained. Installer blocked before replacing local files; successful rerun not yet observed. Explicit Brave extension folder override may be needed if automatic discovery is ambiguous. No private log or local paths published.
 
