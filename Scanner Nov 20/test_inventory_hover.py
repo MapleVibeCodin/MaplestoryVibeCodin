@@ -215,4 +215,20 @@ class ArmedInventoryTests(unittest.TestCase):
         self.refresh(self.app,self.current)
         self.assertEqual(calls,[self.deal,'reset'])
         self.assertFalse(self.app.item_pin.visible)
+
+class RecordedMinimapTests(unittest.TestCase):
+    def test_four_recorded_title_masks(self):
+        # Actual thresholded ROI rows extracted from two lossless PNGs and two video frames.
+        fixtures=[{"source":"image(20261125-162743).png","client_origin":[18,42],"expected_room":True,"roi":[44,38,91,21],"rows":["0x870e0c838199c68d1b180","0x0","0x0","0x0","0x0","0x0","0x600020006000e3800000f80","0x610030006000e3800000180","0x71c078c66f3cf181831e180","0x687031236362d1824486180","0x68183131e370d58264c6f80","0x647033f1e36cd587efc6180","0x7d8030326366dd8060c6180","0x600033226366cd864c86180","0x600021c6636cc9838706180","0x0","0x0","0x0","0x0","0x0","0x0"]},{"source":"image(20261125-164333).png","client_origin":[18,42],"expected_room":False,"roi":[44,38,91,21],"rows":["0x870e0c838199c68d1b180","0x0","0x0","0x0","0x0","0x0","0x1f820006000e3800000f80","0x1830006000e3800000180","0x6c1878c66f3cf181831e180","0x4c1831236362d1824486180","0x4df83131e370d58264c6f80","0x4c1833f1e36cd587efc6180","0x4c1830326366dd8060c6180","0x4c1833226366cd864c86180","0x4df821c6636cc9838706180","0x0","0x0","0x0","0x0","0x0","0x0"]},{"source":"03-55-12.mp4 @ 2.8s","expected_room":True,"roi":[44,38,91,21],"rows":["0x820c0c838198c60d1b180","0x0","0x0","0x0","0x0","0x0","0x300000006000e3800000f80","0x4d0030006000e3800000180","0x4dc078c66f3cf381839e180","0x4c7031236362d1824486180","0x4c183131e370d58264c6f80","0x707033f1e364d587efc6180","0x418030326366dd8060c6180","0x4c0033326366cd866cc6180","0x380020c66364c9810306180","0x0","0x0","0x0","0x0","0x0","0x0"]},{"source":"03-55-12.mp4 @ 0s","expected_room":False,"roi":[44,38,91,21],"rows":["0x830e0c838198c6cd1b180","0x0","0x0","0x0","0x0","0x0","0x1f820006000e3800000f80","0x1830006000e3800000180","0x6c1878e66f3cf381c31e180","0x4c1831236362d1824486180","0x4df83131e370d58264c6f80","0x4c1833f1e36cd587efc6180","0x4c1830326366dd8060c6180","0x4c1833326366cd866cc6180","0x4df820c4636cc9810206180","0x0","0x0","0x0","0x0","0x0","0x0"]}]
+        for f in fixtures:
+            with self.subTest(source=f['source']):
+                buf,w,h,s=frame(200,120)
+                x,y,rw,rh=f['roi']
+                for dy,row in enumerate(f['rows']):
+                    bits=int(row,16)
+                    for dx in range(rw):
+                        if bits&(1<<dx):
+                            i=(y+dy)*s+(x+dx)*3;buf[i:i+3]=bytes((240,240,240))
+                self.assertEqual(room_title_present(buf,w,h,s),f['expected_room'])
+
 if __name__=='__main__':unittest.main()
