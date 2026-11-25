@@ -95,3 +95,54 @@ class ShopPreviewPin(OverlayPin):
             box = (l * w / sw, t * h / sh, r * w / sw, b * h / sh)
             canvas.create_rectangle(*box, outline='#161616', width=6)
             canvas.create_rectangle(*box, outline='#ff1744', width=3)
+
+
+# Previously measured native entrance portal coordinates. Bottom row not calibrated.
+ENTRANCE_DOORS = {
+    17:(488,248),18:(635,248),19:(802,248),20:(954,248),
+    13:(488,488),14:(635,488),15:(802,488),16:(954,488),
+    7:(306,728),8:(454,728),9:(607,728),
+    10:(810,728),11:(965,728),12:(1127,728),
+}
+ENTRANCE_ROPE_X = 712
+ENTRANCE_WARP = (1256, 728)
+
+def entrance_marker(room, translation, client, window):
+    """Visible portal outline or edge direction; no guessed lower-row doors."""
+    if not 1<=room<=20:return {}
+    left,top,w,h=client
+    ox,oy=left-window[0],top-window[1]
+    label=f'FM {room}' if room>=7 else f'FM {room} · DOWN WARP'
+    if translation is None:
+        return {label:{'box':(ox+w-245,oy+12,ox+w-12,oy+45),'mode':'LABEL'}}
+    x,y=ENTRANCE_DOORS.get(room,ENTRANCE_WARP)
+    dx,dy=translation
+    x+=dx;y+=dy
+    l,t,r,b=(x-58,y-157,x+58,y-5) if room>=7 else (x-24,y-75,x+24,y-7)
+    if 4<=l<r<=w-4 and 4<=t<b<=h-4:
+        return {label:{'box':(ox+l,oy+t,ox+r,oy+b),'mode':'PORTAL'}}
+    directions=[]
+    if l<4:directions.append('LEFT')
+    if r>w-4:directions.append('RIGHT')
+    if t<4:directions.append('UP')
+    if b>h-4:directions.append('DOWN')
+    return {label+' · '+ ' / '.join(directions):{'box':(ox+w-300,oy+12,ox+w-12,oy+45),'mode':'LABEL'}}
+
+
+class EntranceGuidePin(OverlayPin):
+    """Green click-through portal overlay, only over the focused game."""
+    def draw_markers(self,w,h,sw,sh,hits):
+        c=self.canvas;c.delete('all')
+        for name,hit in hits.items():
+            l,t,r,b=hit['box']
+            l,t,r,b=l*w/sw,t*h/sh,r*w/sw,b*h/sh
+            if hit['mode']=='PORTAL':
+                c.create_rectangle(l,t,r,b,outline='#17231b',width=7)
+                c.create_rectangle(l,t,r,b,outline='#72ff86',width=3)
+                x=(l+r)/2;y=max(14,t-15)
+                c.create_text(x+1,y+1,text=name,fill='#17231b',font=('Segoe UI',14,'bold'))
+                c.create_text(x,y,text=name,fill='#72ff86',font=('Segoe UI',14,'bold'))
+            else:
+                c.create_rectangle(l,t,r,b,fill='#15241c',outline='#72ff86',width=2)
+                c.create_text((l+r)/2,(t+b)/2,text=name,fill='#72ff86',
+                              font=('Segoe UI',10,'bold'),width=max(1,r-l-8))

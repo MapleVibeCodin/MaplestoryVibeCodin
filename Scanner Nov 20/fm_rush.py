@@ -15,7 +15,8 @@ from game_window import (
 )
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
-from shop_pin import ShopPreviewPin
+from shop_pin import ShopPreviewPin, EntranceGuidePin, entrance_marker
+from camera_alignment import EntranceCameraTracker
 from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice
 from trade_hotkeys import TradeHotkeys
 
@@ -76,7 +77,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.54.3 - FM4 calibration')
+        self.root.title('FM Rush v24.54.4 - FM entrance marker')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -105,6 +106,9 @@ class FMApp:
         self.root.protocol('WM_DELETE_WINDOW',self.close)
         self.channel_pin=ChannelPin(self.root)
         self.shop_pin = ShopPreviewPin(self.root, interval_ms=25)
+        self.entrance_pin = EntranceGuidePin(self.root, interval_ms=50)
+        self._entrance_camera = EntranceCameraTracker()
+        self._entrance_preview = None
         self._shop_preview = None
         self._portal_alignment = None
         self._channel_preview = None
@@ -368,8 +372,21 @@ class FMApp:
         window = window_rect(hwnd) if hwnd else None
         client = window_client_rect(hwnd) if window else None
 
+        supported = bool(deal and client and client[2:] in ENTRY_CLIENTS and window_has_focus(hwnd))
+        scene = self._entrance_camera.get(hwnd, client) if supported else None
+        if not supported:self._entrance_camera.reset()
+        in_entrance = bool(scene and scene[0])
+        entrance_preview = None
+        if in_entrance and deal.fm:
+            hits = entrance_marker(deal.fm, scene[1], client, window)
+            if hits:entrance_preview = (hwnd, window[2:], hits)
+        if entrance_preview != self._entrance_preview:
+            self._entrance_preview = entrance_preview
+            if entrance_preview is None:self.entrance_pin.hide()
+            else:self.entrance_pin.show_many(*entrance_preview)
+
         channel_preview = None
-        if deal and deal.cc and window:
+        if deal and deal.cc and window and not in_entrance:
             _, _, width, height = window
             box = preview_channel(deal.cc, window, client)
             mode = 'GUIDE' if box else 'PRE'
@@ -401,6 +418,8 @@ class FMApp:
             status = 'Waiting for MapleStory window'
         elif deal is None:
             status = 'Waiting for next auto-lock'
+        elif in_entrance:
+            status = f'Entrance guide · FM {deal.fm}'
         elif deal.shop_position is None:
             status = 'No map pin on this HeneFM deal'
         else:
@@ -701,6 +720,7 @@ class FMApp:
             except Exception:pass
         self.channel_pin.close()
         self.shop_pin.close()
+        self.entrance_pin.close()
         self.archive.close()
         if hasattr(self,'trade_keys'):self.trade_keys.close()
         self.root.destroy()

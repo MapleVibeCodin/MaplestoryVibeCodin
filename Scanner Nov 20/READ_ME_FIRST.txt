@@ -1,4 +1,4 @@
-FM RUSH v24.54.3 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.54.4 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -9,6 +9,12 @@ HeneFM now controls its own live updates: no soft refresh or backup reload.
 New unsold listings automatically hard-lock; Shift+2 unlocks and re-arms.
 Shift+1 manually locks; Ctrl+Alt+N skips. Previously seen listings do not
 automatically lock again in the same scanner session.
+
+FM ENTRANCE
+Green click-through outline for FM 7–20 when entrance scenery confirms position.
+For FM 1–6, shows the measured down-warp, not a guessed bottom-row door.
+When the door is off-screen, shows direction or target FM label. A small title
+crop gates full entrance matching; fixed shop marker does not wait on it.
 
 SHOP BOX
 Immediate calibrated entry coordinates, not dynamic camera tracking.
