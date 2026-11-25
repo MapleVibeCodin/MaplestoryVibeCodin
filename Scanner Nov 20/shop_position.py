@@ -61,6 +61,11 @@ def entry_shop_point(position, room, client_size, aligned_portal=None):
     portal_x, portal_y = ENTRY_PORTAL[theme]
     shop_x, shop_y = world_shop_point(position)
     screen_x, screen_y = aligned_portal or entry_portal_point(room, client_size)
+    # FM5 screenshot 162409: horizontal position correct; shop strip is
+    # 48 native client pixels below the previous fixed projection.
+    # Apply only to the measured 1366x768 default, not manual alignment.
+    if room == 5 and client_size == (1366, 768) and aligned_portal is None:
+        screen_y += 48
     return round(screen_x + shop_x - portal_x), round(screen_y + shop_y - portal_y)
 
 
