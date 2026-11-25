@@ -1,4 +1,4 @@
-FM RUSH v24.54.6 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.54.7 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -11,6 +11,8 @@ Shift+1 manually locks; Ctrl+Alt+N skips. Previously seen listings do not
 automatically lock again in the same scanner session.
 
 FM ENTRANCE
+START is on row 3 at the central rope, between FM 14 and FM 15.
+For FM 13–16 go directly left/right; for FM 17–20 climb; for FM 1–12 descend.
 Green click-through outline for FM 7–20 when entrance scenery confirms position.
 For FM 1–6, shows the measured down-warp, not a guessed bottom-row door.
 When the door is off-screen, shows direction or target FM label. A small title

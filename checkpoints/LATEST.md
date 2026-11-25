@@ -12,7 +12,7 @@ Updated 2026-11-26 (Taipei). Repository MapleVibeCodin/MaplestoryVibeCodin, main
 - Market pricing exclusively HeneFM for this research; representative valuation is mean of lowest ask, 24h sold average and recent sold-unit median; separately model lowest-price liquidation and actual fixed-price sale results. Refresh prices when asked; old input snapshots are not live quotes. Engine v1.0 unchanged; catalyst model is documented research, not integrated code.
 
 ## FM Rush — latest scanner update
-- Desktop v24.54.6, extension v24.54.2; see latest main commit and AGENTS.md. FM9 and FM5 room-specific corrections added after v24.54.4. Read [root AGENTS.md](../AGENTS.md) and [current conversation](../Scanner%20Nov%2020/transcripts/2026-11-26-live-auto-lock-chat.md). Old movement research remains separate.
+- Desktop v24.54.7, extension v24.54.2; see latest main commit and AGENTS.md. FM9 and FM5 room-specific corrections added after v24.54.4. Read [root AGENTS.md](../AGENTS.md) and [current conversation](../Scanner%20Nov%2020/transcripts/2026-11-26-live-auto-lock-chat.md). Old movement research remains separate.
 - Auto-lock new unsold listings, Shift+2 re-arms, automatic MapleStory window detection, fixed instant red shop marker, native HeneFM live feed without forced refresh, green entrance portal marker (FM7–20 measured, FM1–6 down-warp), yellow channel guide. FM4 adjusted down 142px; FM8 remains unresolved. Windows/Brave and regression tests not run.
 - Universal updater: Scanner Nov 20/UPDATE_FM_RUSH.ps1; -UpdateExtension if extension older than 24.54.2; reload extension and HeneFM once. Preserve local config and archives. Follow ten continuity checks on resume.
 

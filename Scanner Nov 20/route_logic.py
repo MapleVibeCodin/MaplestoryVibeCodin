@@ -23,17 +23,15 @@ PORTALS = {
     **{n: (232 + (n - 13) * 102, ROW_Y['ROW3'], 'ROW3') for n in range(13, 17)},
     **{n: (232 + (n - 17) * 102, ROW_Y['ROW4'], 'ROW4') for n in range(17, 21)},
 }
-# User-selected waiting position: halfway up the upper rope between rows 3 and 4.
-# Schematic coordinate only; not a measured in-game pixel coordinate.
-START_POINT = (385, (ROW_Y["ROW4"] + ROW_Y["ROW3"]) // 2)
+# User-selected waiting position: standing on the ROW3 platform at the
+# central rope between FM14 and FM15 (Nov 26 screenshot).
+# Schematic coordinates; draw_map places each platform 19px below door centers.
 ROPE_X = 385
-BOTTOM_WARP = ((705, ROW_Y['ROW2']), (705, ROW_Y['ROW1']))
 ROPE_POINTS = {
-    'ROW4': (ROPE_X, ROW_Y['ROW4']),
-    'ROW3': (ROPE_X, ROW_Y['ROW3']),
-    'ROW2': (ROPE_X, ROW_Y['ROW2']),
-    'ROW1': (ROPE_X, ROW_Y['ROW1']),
+    row: (ROPE_X, y + 19) for row, y in ROW_Y.items()
 }
+START_POINT = ROPE_POINTS['ROW3']
+BOTTOM_WARP = ((705, ROW_Y['ROW2'] + 19), (705, ROW_Y['ROW1'] + 19))
 
 @dataclass(frozen=True)
 class Plan:
@@ -88,23 +86,23 @@ def _row_route(fm: int) -> tuple[int, int, str, str, tuple[tuple[int, int], ...]
         ordinal, total = fm, 6
         direction = 'LEFT'
         rt = f'DROP to ROW 2 → RIGHT to DOWN-WARP → ROW 1 → LEFT to FM {fm} ({ordinal}/6)'
-        route = (START_POINT, ROPE_POINTS['ROW3'], ROPE_POINTS['ROW2'],
-                 BOTTOM_WARP[0], BOTTOM_WARP[1], (x, y))
+        route = (START_POINT, ROPE_POINTS['ROW2'],
+                 BOTTOM_WARP[0], BOTTOM_WARP[1], (x, y + 19), (x, y))
     elif 7 <= fm <= 12:
         ordinal, total = fm - 6, 6
         direction = side
         rt = f'DROP to ROW 2 → {side} to FM {fm} ({ordinal}/6)'
-        route = (START_POINT, ROPE_POINTS['ROW3'], ROPE_POINTS['ROW2'], (x, y))
+        route = (START_POINT, ROPE_POINTS['ROW2'], (x, y + 19), (x, y))
     elif 13 <= fm <= 16:
         ordinal, total = fm - 12, 4
         direction = side
-        rt = f'DROP to ROW 3 → {side} to FM {fm} ({ordinal}/4)'
-        route = (START_POINT, ROPE_POINTS['ROW3'], (x, y))
+        rt = f'{side} to FM {fm} ({ordinal}/4)'
+        route = (START_POINT, (x, y + 19), (x, y))
     else:
         ordinal, total = fm - 16, 4
         direction = side
         rt = f'CLIMB to ROW 4 → {side} to FM {fm} ({ordinal}/4)'
-        route = (START_POINT, ROPE_POINTS['ROW4'], (x, y))
+        route = (START_POINT, ROPE_POINTS['ROW4'], (x, y + 19), (x, y))
     return ordinal, total, direction, rt, route
 
 

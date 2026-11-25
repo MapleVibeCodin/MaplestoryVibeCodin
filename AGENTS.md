@@ -1,6 +1,6 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.54.6; browser extension: v24.54.2. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.54.7; browser extension: v24.54.2. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
 ## Clickable session continuation
 - [Start a new ChatGPT chat with the checkpoint prompt](https://chatgpt.com/?q=Resume%20FM%20Rush%20checkpoint%20from%20https%3A%2F%2Fgithub.com%2FMapleVibeCodin%2FMaplestoryVibeCodin%2Fblob%2Fmain%2FAGENTS.md.%20Inspect%20the%20latest%20source%20and%20run%20the%2010%20continuity%20checks%20before%20proceeding.). The web q parameter may prefill or submit depending on the client; verify the prompt and send if necessary.
@@ -8,6 +8,8 @@ Last updated: 2026-11-26 (Taipei). Current desktop release: v24.54.6; browser ex
 - Bookmark these links. They reference this live checkpoint, not a frozen version of its contents. On each future Save checkpoint, provide clickable resume links as well as a plain prompt fallback. Do not claim a new session has been tested unless actually verified.
 
 ## Resume now — authoritative short checkpoint (2026-11-26 Taipei)
+
+- v24.54.7: new user-confirmed waiting position from screenshot image(20261125-164333).png: standing on row 3 platform at center rope between FM14 and FM15, no longer halfway up upper rope. route_logic.py START_POINT=(385,133), same-row direct route, upper climb, lower descent, and platform-aligned waypoints. Does not change existing camera translation/portal coordinates or shop calibration. Separate movement research not modified. No Windows test.
 
 - v24.54.6: screenshot image(20261125-164209).png (1921x1034 native desktop) shows FM5 son1c red marker centered horizontally but ~48 native pixels above the clickable shop strip. Add +48 Y only to default FM5 at 1366x768; manual alignment, other resolutions and rooms unchanged. Live confirmation pending. Source screenshot not published.
 
