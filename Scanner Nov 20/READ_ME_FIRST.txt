@@ -1,4 +1,4 @@
-FM RUSH v24.55.0 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.55.1 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -56,3 +56,8 @@ yellow multiple candidates, orange unavailable. No automatic scroll, hover or bu
 Verify hidden stats manually. English Windows OCR language required; supported
 centered native shop UI is calibrated from the supplied screenshot. No runtime
 latency benchmark; scroll manually when target not visible.
+
+OCR v24.55.1: suppresses full-width divider artifacts in sold rows, requests Gray8
+from the Windows decoder, reports worker exit and retries stale frames explicitly.
+The screenshot confirmed shop detection and the sold-row pixel classification;
+Windows OCR recognition and live latency still require validation.

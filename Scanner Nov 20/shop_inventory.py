@@ -106,6 +106,9 @@ def prepare_ocr(frame):
                     i=sy*stride+x*3
                     b,g,r=buf[i:i+3]
                     if (r+g+b)//3<cutoff:line[x-40]=0
+                # Pale sold rows may include a dark horizontal divider.
+                # Remove only near-full-width rules, never ordinary glyphs.
+                if line.count(0)>=120:line[:]=b'\xff'*out_w
         scaled=b''.join(white if v else black for v in line)
         rows.extend([scaled]*SCALE)
     ww,hh=out_w*SCALE,out_h*SCALE
@@ -129,14 +132,17 @@ class WindowsOCR:
         self.responses=queue.Queue()
         self.proc=subprocess.Popen(['powershell.exe','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
             '-File',str(Path(__file__).with_name('SHOP_OCR.ps1'))],
-            stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,
+            stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
             text=True,encoding='utf-8',errors='replace',bufsize=1,
             creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         proc=self.proc;responses=self.responses
         def read():
+            diagnostic=''
             for line in proc.stdout:
                 try:responses.put(json.loads(line))
-                except ValueError:continue
+                except ValueError:
+                    if line.strip():diagnostic=line.strip()[:160]
+            responses.put({'ok':False,'error':diagnostic or 'Windows OCR worker exited'})
         threading.Thread(target=read,daemon=True).start()
     def recognize(self,bmp):
         self.start()
@@ -209,23 +215,28 @@ class ShopInventoryTracker:
             frame=capture_client((x+left,y+top,204,263),allow_crop=True)
             if not frame:return
             bmp,unavailable=prepare_ocr(frame)
-            digest=hashlib.blake2b(bmp+struct.pack('<ii',left,top),digest_size=12).digest()
+            digest=hashlib.blake2b(bmp+bytes(unavailable)+struct.pack('<ii',left,top),digest_size=12).digest()
             if digest==prev_digest:return
             self._publish(key,{'status':'Shop open · reading inventory','hits':[]})
             lines=self._ocr.recognize(bmp)
             # Discard an OCR result if the shop moved, closed, or rows changed
             # during recognition. Never point to a stale row after scrolling.
             gate_after=capture_client((x+gx,y+gy,gw,gh),allow_crop=True)
-            if not gate_after or locate_shop(*gate_after)!=anchor:return
+            if not gate_after or locate_shop(*gate_after)!=anchor:
+                self._publish(key,None);return
             frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
-            if not frame_after:return
+            if not frame_after:
+                self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             bmp_after,unavailable_after=prepare_ocr(frame_after)
-            if bmp_after!=bmp or unavailable_after!=unavailable:return
+            if bmp_after!=bmp or unavailable_after!=unavailable:
+                self._publish(key,{'status':'Shop open · rows changed, retrying','hits':[]});return
             hits,status=pick_rows(lines,unavailable,seller,item,price)
             # Coordinates relative to game client. Outline, never click.
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]
             self._publish(key,{'status':status,'hits':hits},digest)
         except (OSError,ValueError,RuntimeError,subprocess.SubprocessError) as exc:
-            self._publish(key,{'status':'Shop OCR unavailable · '+str(exc)[:60],'hits':[]})
+            self._publish(key,{'status':'Shop OCR unavailable · '+str(exc)[:100],'hits':[]})
+            with self._lock:
+                if self._key==key:self._next=time.monotonic()+1.0
         finally:
             with self._lock:self._busy=False

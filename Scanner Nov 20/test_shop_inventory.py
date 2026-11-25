@@ -1,5 +1,5 @@
 import unittest
-from shop_inventory import locate_shop, pick_rows, GREEN, ORANGE, SCALE
+from shop_inventory import locate_shop, pick_rows, GREEN, ORANGE, SCALE, prepare_ocr
 
 class InventoryTests(unittest.TestCase):
     def test_button_signature(self):
@@ -23,3 +23,17 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(pick_rows(lines,[False]*6,'Suzanoo','Bazlud',12000)[0],[(0,'AMBIGUOUS'),(5,'AMBIGUOUS')])
         self.assertEqual(pick_rows(lines,[False]*6,'Other','Bazlud',12000)[0],[])
         self.assertEqual(pick_rows(lines,[False]*6,'Suzanoo','Bazlud',13000)[0],[])
+
+    def test_sold_divider_and_status(self):
+        w,h=204,263;stride=w*3;b=bytearray(bytes((227,217,205))*w*h)
+        y=23+40
+        for yy in range(y,y+40):
+            b[yy*stride:(yy+1)*stride]=bytes((248,245,242))*w
+        b[(y+36)*stride+40*3:(y+36)*stride+198*3]=bytes((180,180,180))*158
+        bmp,sold=prepare_ocr((bytes(b),w,h,stride))
+        self.assertEqual(sold,[False,True,False,False,False,False])
+        width=162*SCALE; height=(28+6*40)*SCALE; pitch=(width*3+3)&~3
+        row=54+(height-1-(28+40+36)*SCALE)*pitch
+        self.assertEqual(bmp[row:row+width*3],b'\xff'*(width*3))
+        lines=[{'text':'Euphye','y':9*SCALE},{'text':'Frog Word Bubble Ring','y':(28+40+9)*SCALE},{'text':'1 for 175,000 mesos','y':(28+40+27)*SCALE}]
+        self.assertEqual(pick_rows(lines,sold,'Euphye','Frog Word Bubble Ring',175000)[0],[(1,'SOLD')])
