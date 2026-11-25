@@ -157,3 +157,6 @@ User requests same methodology for all glove stats and range. [Glove research](.
 
 ## Latest fixed claw Lesser rule
 70k per 100% +1 claw scroll, user confirms buyable without citizenship. New actual 5m restricted DP: Avarice29/90k E40.15689, crafted115k E39.95003, Slain33/1.4m E41.37845, Slain34/2.6m E41.6 net4.68m. Guaranteed 34 Slain+7 Lesser=41 ATT for3.09m; 33 Slain+7 Lesser=40 for1.89m. No Chaos quote. See [research](../scrolling-ev/CLAW_RESEARCH.md) and [exchange](../scrolling-ev/transcripts/2026-11-25-claw-lesser-70k.md). No fresh other quotes or engine changes.
+
+## Latest 2H claw catalyst and variant research
+[Claw catalyst research](../scrolling-ev/CLAW_CATALYST_RESEARCH.md). No verified actual odds; anecdotal negative/unchanged/positive. Craft120k (160k sensitivity), standard Adamantium70k, Lesser70k fixed. Actual joint DP under 5m: buy-only E40.3517 ATT, conservative/middle/optimistic craft allowed E40.3551/40.4943/40.9543. Middle E11.686 crafts and net4.840m; craft-only middle40.4856. At160k middle40.3630. Hypothetical odds clearly separated from data. HeneFM clean +1/+2/+3 table in research, missing variants unverified. No citizenship or live-stock guarantee.
