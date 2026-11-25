@@ -150,7 +150,7 @@ def pick_rows(lines, unavailable, seller, item, price, *, buy_step=0):
         if 0<=y<22:seller_text.append(text)
         elif 28<=y<28+ROWS*STEP:
             groups[int((y-28)//STEP)].append((y,text))
-    if normalized(' '.join(seller_text))!=normalized(seller):
+    if seller is not None and normalized(' '.join(seller_text))!=normalized(seller):
         return [], 'Shop open · seller not verified'
     active=[];sold=[];wrong_price=[];price_unknown=[];candidates=[];truncated=[]
     target=normalized(item)
@@ -339,8 +339,8 @@ class SoldRetryCache:
         if -1 not in evidence:return [],False
         selected={i for i in evidence if i>=0 and i not in prefixes and sold_row_mask(frame,i)}
         if not selected:return [],False
-        selected.add(-1)
-        key=(seller,item,price,tuple((i,evidence[i]) for i in sorted(selected)))
+        if seller is not None:selected.add(-1)
+        key=(seller,item,price,evidence[-1],tuple((i,evidence[i]) for i in sorted(selected)))
         if key in self.entries:
             self.entries.move_to_end(key)
             return list(self.entries[key]),False
@@ -535,32 +535,34 @@ class ShopInventoryTracker:
             with self._lock:
                 if self._key!=key:return
             ocr_started=time.perf_counter()
-            lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr,sections,prefixes)
+            # Seller pixels remain a cheap shop-change fingerprint only. Never OCR the name.
+            row_sections=tuple((i,fp) for i,fp in sections if i>=0)
+            lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr,row_sections,prefixes)
             with self._lock:
                 if self._key!=key:return
             self._ocr_failures=0
-            hits,status=pick_rows(lines,unavailable,seller,item,price,buy_step=buy_step)
+            hits,status=pick_rows(lines,unavailable,None,item,price,buy_step=buy_step)
             used_sold_retry=False
             if not hits and not strict:
                 # Primary OCR misses on faded text must not be the sole cached verdict.
                 # Mocked/older tracker fixtures may construct the object without __init__.
                 if not hasattr(self,'_sold_retry'):self._sold_retry=SoldRetryCache()
-                alternate,used_sold_retry=self._sold_retry.recognize(frame,self._ocr,sections,prefixes,seller,item,price)
+                alternate,used_sold_retry=self._sold_retry.recognize(frame,self._ocr,sections,prefixes,None,item,price)
                 if alternate:
                     hits=alternate
                     status='Sold candidate · alternate contrast; verify item and price'
             ocr_ms=(time.perf_counter()-ocr_started)*1000
             if hits and 'scroll' in normalized(item):
-                # Independently render the seller and candidate row(s) using
+                # Independently render only the candidate row(s) using
                 # a second contrast cutoff. Never use a prefix or fuzzy name.
-                selected={-1}|{row for row,_ in hits}
+                selected={row for row,_ in hits}
                 check_key=(seller,item,price,tuple((i,v) for i,v in sections if i in selected),tuple(hits))
                 checked=self._scroll_checks.get(check_key)
                 if checked is None:
                     with self._lock:
                         if self._key!=key:return
                     alt,alt_sold=prepare_ocr(frame,selected,threshold_delta=15)
-                    alt_hits,_=pick_rows(self._ocr.recognize(alt),alt_sold,seller,item,price)
+                    alt_hits,_=pick_rows(self._ocr.recognize(alt),alt_sold,None,item,price)
                     checked=alt_hits==hits
                     if checked:
                         self._scroll_checks[check_key]=True
@@ -597,7 +599,7 @@ class ShopInventoryTracker:
                 status='Visible text candidate · tooltip overlaps row; verify full item and price' if hits else 'Tooltip overlaps row · no verified highlight'
             if geometry:
                 hits=conservative_hits(hits,strict)
-                status=('Geometry candidate · verify seller, item and price' if hits
+                status=('Geometry candidate · verify item and price' if hits
                         else 'Shop geometry detected · '+status)
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]
             self._publish(key,{'status':status,'hits':hits,
