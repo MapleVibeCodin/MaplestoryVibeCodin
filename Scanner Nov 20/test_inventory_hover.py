@@ -441,4 +441,36 @@ class SoldContrastRetryTests(unittest.TestCase):
         self.assertEqual(cache.recognize(blank,ocr,section_fingerprints(blank),{},'seller','item',400000),([],False))
         ocr.recognize.assert_not_called()
 
+class SellerFreeMatchingTests(unittest.TestCase):
+    def test_name_and_price_without_seller(self):
+        lines=[{'y':33*SCALE,'text':'Blue Arten'},{'y':52*SCALE,'text':'1 for 400,000 mesos'}]
+        self.assertEqual(pick_rows(lines,[False]*6,None,'Blue Arten',400000)[0],[(0,'MATCH')])
+        self.assertEqual(pick_rows(lines,[False]*6,None,'Blue Arten',400001)[0],[])
+        self.assertEqual(pick_rows(lines,[False]*6,None,'Blue Anakarune',400000)[0],[])
+        dup=lines+[{'y':73*SCALE,'text':'Blue Arten'},{'y':92*SCALE,'text':'1 for 400,000 mesos'}]
+        self.assertEqual(pick_rows(dup,[False]*6,None,'Blue Arten',400000)[0],[])
+
+    def test_live_path_never_submits_seller_pixels_to_ocr(self):
+        from unittest.mock import patch
+        from types import SimpleNamespace
+        t=TrackerGeometryTests().ready(False)
+        seen=[]
+        def recognize(f,ocr,sections,prefixes):
+            seen.extend(i for i,_ in sections)
+            return [{'y':33*SCALE,'text':'item'},{'y':52*SCALE,'text':'1 for 100 mesos'}],[False]*6,True
+        t._row_cache=SimpleNamespace(recognize=recognize)
+        with patch('shop_inventory.capture_client',return_value=frame(204,263)):
+            t._scan(t._key)
+        self.assertEqual(seen,list(range(6)))
+        self.assertEqual(t._latest['hits'][0][0],'MATCH')
+
+    def test_sold_retry_without_seller(self):
+        from shop_inventory import SoldRetryCache
+        from unittest.mock import Mock
+        f=SoldContrastRetryTests().sold_frame()
+        ocr=Mock()
+        ocr.recognize.return_value=[{'y':193*SCALE,'text':'Blue Arten'},
+                                    {'y':212*SCALE,'text':'1 for 400,000 mesos'}]
+        self.assertEqual(SoldRetryCache().recognize(f,ocr,section_fingerprints(f),{},None,'Blue Arten',400000),([(4,'SOLD_CHECK')],True))
+
 if __name__=='__main__':unittest.main()
