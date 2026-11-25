@@ -12,6 +12,7 @@
   let cardDeals=new WeakMap();
   let cardCache=new WeakMap(),linkCache=new WeakMap(),dirtyCards=new WeakSet();
   let observer=null,lastFullParse=0,parseHits=0,parseMisses=0;
+  let cachedDeals=[],needsExtract=true,quietScans=0;
   let selectionSerial=0;
   let activeListingId=null, lockedListingId=null, liveLocked=false;
   const SELLER_LINKS = 'a[href*="/shops/"],a[href*="/shop/"]';
@@ -404,7 +405,7 @@
           retryAfter = Date.now() + Math.min(15000, 1200 * 2 ** Math.min(retryFailures - 1, 4));
           if (retryFailures === 1) console.info('[FM Rush] App disconnected; retrying while the deal remains visible.');
         }
-        if (queued.length) scheduleScan();
+        if (queued.length) scheduleScan(false);
       });
     } catch (_) {
       sending = false;
@@ -442,8 +443,13 @@
   }
   function scan() {
     scanTimer = null;
-    if (!isDealsPage()) return;
-    const deals = extract();
+    if (!isDealsPage()){needsExtract=true;cachedDeals=[];return;}
+    if(observer && invalidate(observer.takeRecords()))needsExtract=true;
+    if(needsExtract || Date.now()-lastFullParse>=10000){
+      cachedDeals=extract();needsExtract=false;
+    }else quietScans++;
+    diagnostics.quietScans=quietScans;
+    const deals=cachedDeals;
     syncLivePage(deals);
     // Include eligible cards on first load as well as newly appearing cards.
     let queueChanged=false;
@@ -455,7 +461,8 @@
     // Deal delivery is dispatched first; archiving follows independently.
     archiveScreenshots();
   }
-  function scheduleScan() {
+  function scheduleScan(force=true) {
+    if(force)needsExtract=true;
     if (scanTimer !== null) return;
     scanTimer = setTimeout(scan, 0);
   }
@@ -490,6 +497,7 @@
     document.addEventListener('visibilitychange', scheduleScan);
     window.addEventListener('pageshow', scheduleScan);
     window.addEventListener('popstate', scheduleScan);
+    window.addEventListener('resize', scheduleScan);
     try {
       chrome.runtime.onMessage?.addListener((message,_sender,respond) => {
         if (message?.kind==='fm-rush-locate-capture') {
@@ -499,7 +507,7 @@
           return false;
         }
         if (message?.kind==='fm-rush-health-wake') {
-          scheduleScan();
+          scheduleScan(false);
           respond({ok:true});
           return false;
         }
@@ -523,7 +531,7 @@
         return false;
       });
     } catch (_) {/* Extension lifecycle may be changing during page load. */}
-    setInterval(scheduleScan, 1200); // local DOM + bridge retry; NO network or page refresh
+    setInterval(()=>scheduleScan(false), 1200); // local DOM + bridge retry; NO network or page refresh
     scheduleScan();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});

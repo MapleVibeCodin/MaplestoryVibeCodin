@@ -77,9 +77,10 @@ fallback to previous calibrated gate. Cache and exact match retained.
 Windows OCR must still be tested on the user's machine.
 
 OPTIMIZED v24.56.0: browser semantic card cache with periodic full reconciliation,
-batched FULL-durability SQLite writes, no writes for raw age-only text changes,
+batched FULL-durability SQLite writes, no writes for recognized Seen age-only text changes,
 no redundant stationary overlay positioning or map/grid redraws, stopped hidden
 overlay timers, persistent capture workers and bounded per-worker GDI surfaces,
 entrance landmark revalidation, and exact seller/row pixel OCR caches. Install
 both desktop and extension. Existing click records and local archives are kept.
 Windows and Brave end-to-end performance must still be measured.
+Quiet browser heartbeats reuse the last parsed snapshot; a full reconciliation occurs every 10 seconds.

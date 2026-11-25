@@ -44,10 +44,7 @@ def locate_shop(buffer,w,h,stride):
     return hits[0] if len(hits)==1 else None
 
 def section_fingerprints(frame):
-    """Seller and six native row hashes; identical rows can be reused after scrolling."""
-    """Hash only native seller/name/price pixels, not icons/chat/overlay edges.
-    This inexpensive check happens before any scaling, binarization or OCR.
-    """
+    """Hash native seller and row text, not icons or overlay edges."""
     buf,w,h,stride=frame
     if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:
         raise ValueError('Invalid inventory crop')
@@ -172,8 +169,8 @@ class RowOCRCache:
     @staticmethod
     def _base(section):return 0 if section==-1 else 28+section*STEP
 
-    def recognize(self,frame,ocr):
-        sections=section_fingerprints(frame)
+    def recognize(self,frame,ocr,sections=None):
+        sections=section_fingerprints(frame) if sections is None else sections
         keys={section:(section==-1,digest) for section,digest in sections}
         results={};missing=set()
         for section,key in keys.items():
@@ -339,17 +336,19 @@ class ShopInventoryTracker:
                 self._publish(key,{'status':'Shop open · reading inventory','hits':[]});return
             frame=capture_client((x+left,y+top,204,263),allow_crop=True)
             if not frame:return
-            pixels=inventory_fingerprint(frame)
+            sections=section_fingerprints(frame)
+            pixels=hashlib.blake2b(b''.join(value for _,value in sections),digest_size=20).digest()
             digest=(pixels,left,top)
             if digest==prev_digest:return
             cached=self._cache.get(pixels)
             if cached is None:
                 self._publish(key,{'status':'Shop open · reading inventory','hits':[]})
-                lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr)
+                lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr,sections)
                 self._ocr_failures=0
                 # Cache the original recognized pixels, even if the shop
                 # subsequently changes. Reuse only when those pixels recur.
-                self._cache.put(pixels,lines,unavailable)
+                if any(0<=float(line.get('y',-100))/SCALE<22 for line in lines):
+                    self._cache.put(pixels,lines,unavailable)
                 if self._find_anchor(client)!=anchor:
                     self._publish(key,None);return
                 frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
