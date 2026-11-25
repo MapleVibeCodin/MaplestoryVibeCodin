@@ -139,4 +139,43 @@ class FastCaptureTests(unittest.TestCase):
         unrelated=lines([('Pink Sweater',45000),('Pink Sweater',45000),('Prep School Uniform Pants',40000),('Tweed Headband',45000)])
         self.assertEqual(pick_rows(unrelated,[False,False,True,False,False,False],None,'Chained Princess Coat',100000)[0],[])
 
+    def test_six_additional_shop_transcriptions(self):
+        from shop_inventory import pick_rows, SCALE
+        def lines(rows):
+            return [{'text':text,'y':(28+i*40+offset)*SCALE}
+                    for i,(name,price) in enumerate(rows)
+                    for text,offset in ((name,9),(f'1 for {price:,} mesos',27))]
+        dagger=lines([('Dagger Attack Scroll: Inter...',439999),('Leather',99),
+                     ("Pig's Head",99),('Horny Mushroom Cap',25),
+                     ('Green Mushroom Cap',20),('Stiff Feather',16)])
+        for item,price in [('Dagger Attack Scroll: Intermediate',439999),
+                           ('Dagger Attack Scroll: Intermediate',440000)]:
+            self.assertEqual(pick_rows(dagger,[False]*6,None,item,price)[0],[])
+        pan=lines([('Pet Equip Speed Scroll: L...',90000),('Pan Lid',130000),
+                   ('Pan Lid',130000),('Pan Lid',180000),('Pan Lid',90000),('Pan Lid',80000)])
+        for price,row in [(180000,3),(90000,4),(80000,5)]:
+            self.assertEqual(pick_rows(pan,[False]*6,None,'Pan Lid',price)[0],[(row,'MATCH')])
+        self.assertEqual(pick_rows(pan,[False]*6,None,'Pan Lid',130000)[0],[])
+        nx=lines([('Tania Sword',800000),('Blue Book Bag',50000),('Blue Book Bag',50000),
+                  ('White Toy Shades',50000),('Pink Layered Skirt',40000),('Pink Layered Skirt',40000)])
+        self.assertEqual(pick_rows(nx,[False]*6,None,'Tania Sword',800000)[0],[(0,'MATCH')])
+        self.assertEqual(pick_rows(nx,[False]*6,None,'Pan Lid',90000)[0],[])
+        for name,price in [('Blue Book Bag',50000),('Pink Layered Skirt',40000)]:
+            self.assertEqual(pick_rows(nx,[False]*6,None,name,price)[0],[])
+        earrings=lines([('Emerald Earrings',1899999),("Lion's Fang",433333),
+                        ('Emerald Earrings',49999),('Green Napoleon',65555),
+                        ('Rower',83333),('Gloves Crit. Rate Scroll: C...',54999)])
+        for price,row in [(1899999,0),(49999,2)]:
+            self.assertEqual(pick_rows(earrings,[False,False,False,True,False,False],None,'Emerald Earrings',price)[0],[(row,'MATCH')])
+        self.assertEqual(pick_rows(earrings,[False,False,False,True,False,False],None,'Polearm Attack Scroll: Intermediate',200000)[0],[])
+        joya=lines([('Wizard Wand',13500),('Pet Equip Jump Scroll: Int...',21000),
+                    ('Shoes Jump Scroll: Inter...',190000),("Pig's Head",100),
+                    ('Dark Distinction',5999),('Red Avenger',11999)])
+        self.assertEqual(pick_rows(joya,[True,True,False,True,False,True],None,'Dark Distinction',5999)[0],[(4,'MATCH')])
+        self.assertEqual(pick_rows(joya,[True,True,False,True,False,True],None,'Polearm Attack Scroll: Intermediate',200000)[0],[])
+        polearm=lines([('Polearm Attack Scroll: Int...',200000),('Hat Accuracy Scroll: Great...',10000),
+                       ('Overall Armor DEX Scroll: ...',10000),('Earring LUK Scroll: Inter...',120000),
+                       ('Brown Bamboo Hat',5000),('Sap of Ancient Tree',500)])
+        self.assertEqual(pick_rows(polearm,[True,False,True,False,False,False],None,'Polearm Attack Scroll: Intermediate',200000)[0],[])
+
 if __name__=='__main__':unittest.main()
