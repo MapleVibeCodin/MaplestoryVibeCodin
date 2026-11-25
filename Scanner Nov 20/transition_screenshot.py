@@ -10,7 +10,8 @@ from game_window import window_has_focus, window_client_rect
 from shop_screenshot import crop, save_png
 from performance_recorder import dark_fraction
 
-INTERVAL=.010
+IDLE_INTERVAL=.020
+ARMED_INTERVAL=.005
 PATCH=16
 POINTS=((.20,.28),(.75,.30),(.22,.70))
 SUPPORTED={(1280,720),(1366,768)}
@@ -29,7 +30,9 @@ class Blackout:
         self.dark_count=0
         self.armed=False
     def observe(self,dark):
-        if dark is None:return False
+        if dark is None:
+            if not self.armed:self.dark_count=0
+            return False
         if dark:
             if self.baseline:
                 self.dark_count+=1
@@ -76,10 +79,20 @@ class TransitionScreenshotRecorder:
         if not self._valid(request):
             state.reset();return
         _,client=request
-        samples=[dark_fraction(self.capture(p,allow_crop=True)) for p in patches(client)]
-        if not self._valid(request) or any(v is None for v in samples):
+        regions=patches(client)
+        samples=[dark_fraction(self.capture(p,allow_crop=True)) for p in regions[:2]]
+        if any(v is None for v in samples):
             state.reset();return
-        if not state.observe(classify(samples)):return
+        if all(v>=.96 for v in samples):dark=True
+        elif all(v<=.75 for v in samples):dark=False
+        else:
+            third=dark_fraction(self.capture(regions[2],allow_crop=True))
+            if third is None:
+                state.reset();return
+            dark=classify(samples+[third])
+        if not self._valid(request):
+            state.reset();return
+        if not state.observe(dark):return
         # First bright observation: capture immediately, no second bright poll.
         frame=self.capture(client)
         stamp=datetime.now()
@@ -103,7 +116,8 @@ class TransitionScreenshotRecorder:
                     try:self._step(request,state)
                     except Exception as exc:
                         state.reset();self.error=type(exc).__name__
-                self.stop.wait(max(0,INTERVAL-(time.monotonic()-now)) if request else .05)
+                interval=ARMED_INTERVAL if state.dark_count or state.armed else IDLE_INTERVAL
+                self.stop.wait(max(0,interval-(time.monotonic()-now)) if request else .05)
         finally:
             release_capture_cache();self.done.set()
 

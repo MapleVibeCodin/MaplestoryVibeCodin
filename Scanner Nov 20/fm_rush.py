@@ -85,7 +85,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('MetaScanner v24.66.1 - Transition Capture')
+        self.root.title('MetaScanner v24.66.2 - Fast Recognition')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 

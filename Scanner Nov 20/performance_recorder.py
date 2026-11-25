@@ -9,9 +9,10 @@ import statistics
 import threading
 import time
 import uuid
+from metascan_fast import count_bgr_below
 
 SCHEMA=1
-VERSION='24.66.1'
+VERSION='24.66.2'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
@@ -20,8 +21,7 @@ def dark_fraction(frame):
     if frame is None:return None
     buf,w,h,stride=frame
     if w<=0 or h<=0 or stride<w*3 or len(buf)<stride*h:return None
-    dark=sum(max(buf[i:i+3])<=16 for y in range(h)
-             for i in range(y*stride,y*stride+w*3,3))
+    dark=sum(count_bgr_below(buf[y*stride:y*stride+w*3],17) for y in range(h))
     return dark/(w*h)
 
 class Transition:

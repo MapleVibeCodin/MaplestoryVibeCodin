@@ -17,7 +17,7 @@ import unicodedata
 import zlib
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
 from vision_guard import parse_price_line, highlight_expired, revalidate_changed_hits
-from metascan_fast import row_mask, scale3, negative_retry_due, purple_run, crop_bgr
+from metascan_fast import row_mask, scale3, negative_retry_due, purple_run, crop_bgr, count_bgr_below
 from native_item_fast import native_item_candidates, ocr_name_candidates, load_atlas
 from vision_geometry import geometry_present, conservative_hits, WIDTH as GEOMETRY_WIDTH, HEIGHT as GEOMETRY_HEIGHT
 
@@ -206,14 +206,20 @@ def sold_row_mask(frame, row):
     """Require pale neutral background and faded text across the native row."""
     buf,w,h,stride=frame
     y=23+row*STEP
-    samples=[buf[yy*stride+194*3:yy*stride+194*3+3] for yy in range(y+4,y+36)]
-    pale=sum(min(v)>=230 and max(v)-min(v)<=22 for v in samples)
+    pale=misses=0
+    for yy in range(y+4,y+36):
+        j=yy*stride+194*3
+        b,g,r=buf[j:j+3]
+        if min(b,g,r)>=230 and max(b,g,r)-min(b,g,r)<=22:pale+=1
+        else:
+            misses+=1
+            if misses>8:return False
+        if pale>=24:break
     if pale<24:return False
     dark=0
     for yy in range(y+2,y+16):
-        for j in range(yy*stride+41*3,yy*stride+198*3,3):
-            dark+=max(buf[j:j+3])<110
-            if dark>=12:return False
+        dark+=count_bgr_below(buf[yy*stride+41*3:yy*stride+198*3],110)
+        if dark>=12:return False
     return True
 
 def selected_row_mask(frame, row):
@@ -641,7 +647,7 @@ class ShopInventoryTracker:
                     capture_count+=1
                     if quality!='exact' or actual!=anchor or not after_frame:
                         self._publish(key,None);return
-                    if tooltip_blocked_rows(after_frame) or section_fingerprints(after_frame)!=sections:
+                    if after_frame!=frame and (tooltip_blocked_rows(after_frame) or section_fingerprints(after_frame)!=sections):
                         self._publish(key,{'status':'Shop pixels changed · retrying','hits':[]});return
                     boxes=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in fast]
                     self._publish(key,{'status':'Instant item candidates · cyan matches price; verify manually','hits':boxes,
@@ -659,9 +665,13 @@ class ShopInventoryTracker:
             self._ocr_failures=0
             hits,status=pick_rows(lines,unavailable,None,item,price,buy_step=buy_step,
                                   show_duplicates=not geometry and not blocked)
-            if not hits and getattr(self,'_native_fast',False) and not geometry and not blocked and not strict:
-                hits=ocr_name_candidates(lines,unavailable,item,price,SCALE)
-                if hits:status='Visible item candidates · verify price manually'
+            if getattr(self,'_native_fast',False) and not geometry and not blocked and not strict:
+                names=ocr_name_candidates(lines,unavailable,item,price,SCALE)
+                if names:
+                    verified=dict(hits)
+                    hits=[(i,verified.get(i,mode)) for i,mode in names]
+                    if any(mode.startswith('FAST_') for _,mode in hits):
+                        status='Visible item candidates · verify price manually'
             used_sold_retry=False
             if not hits and not strict and not status.startswith('Multiple exact matches'):
                 # Primary OCR misses on faded text must not be the sole cached verdict.

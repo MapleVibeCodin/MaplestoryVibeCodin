@@ -44,28 +44,38 @@ def pixel_columns(frame,x,y,w=158,cutoff=120):
         else:hi|=bits<<(i-8)
     return tuple(a|(b<<8) for a,b in zip(lo.to_bytes(w,'little'),hi.to_bytes(w,'little')))
 
+# Exact native uppercase L observed in six separate labeled item names.
+# The alternative segmentation "l....." is five consecutive periods,
+# not the observed native shop ellipsis. This mapping is candidate-only.
+_NATIVE_L=(2044,1024,1024,1024,1024,1024)
+
+@lru_cache(maxsize=4096)
+def decode_run(run):
+    if run==_NATIVE_L:return 'L'
+    atlas,widths=load_atlas()
+    ways={len(run):{''}}
+    for k in range(len(run)-1,-1,-1):
+        cand=set()
+        for w in widths:
+            if k+w>len(run):break
+            for char in atlas.get(run[k:k+w],()):
+                for suffix in ways.get(k+w,()):
+                    cand.add(char+suffix)
+                    if len(cand)>1:break
+                if len(cand)>1:break
+            if len(cand)>1:break
+        ways[k]=cand
+    return next(iter(ways[0])) if len(ways[0])==1 else '?'
+
 @lru_cache(maxsize=2048)
 def decode_columns(cols):
-    atlas,widths=load_atlas()
     out=[];end=None;i=0
     while i<len(cols):
         if cols[i]==0:i+=1;continue
         j=i
         while j<len(cols) and cols[j]:j+=1
         if end is not None and i-end>=3:out.append(' ')
-        ways={j:{''}}
-        for k in range(j-1,i-1,-1):
-            cand=set()
-            for w in widths:
-                if k+w>j:break
-                for char in atlas.get(cols[k:k+w],()):
-                    for suffix in ways.get(k+w,()):
-                        cand.add(char+suffix)
-                        if len(cand)>1:break
-                    if len(cand)>1:break
-                if len(cand)>1:break
-            ways[k]=cand
-        out.append(next(iter(ways[i])) if len(ways[i])==1 else '?')
+        out.append(decode_run(cols[i:j]))
         end=j;i=j
     return ''.join(out)
 

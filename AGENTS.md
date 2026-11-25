@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-## MetaScanner branch — v24.66.1 transition capture / browser v24.58.0
+## MetaScanner branch — v24.66.2 fast recognition / browser v24.58.0
+
+Latest speed pass: per-run native glyph cache, exact uppercase L calibration, bitplane dark count, exact sold-mask early rejection, second-capture equality shortcut, all-name OCR fallback, adaptive channel screenshot sampling (20ms idle, 5ms while black) and two-patch consensus with third patch only if needed. Corrected prior real-price mask fixture from the original PNG. See research/2026-11-26-metascanner-fast-recognition.md. Full Windows suite not yet run. No historical files deleted.
+
+## Previous MetaScanner branch — v24.66.1 transition capture / browser v24.58.0
 
 User wants only one screenshot immediately after a channel-change blackout. Independent 10ms nominal visual transition sampler, two black observations followed by first bright observation, full-frame confirmation and asynchronous local PNG save under channel_screenshots. Other loading blackouts may trigger, no channel identity inferred. No added telemetry, no continuous saved images, existing shop captures unchanged. Five staged tests; live Windows timing unverified.
 

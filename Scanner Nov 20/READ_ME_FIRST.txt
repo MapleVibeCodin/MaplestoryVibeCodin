@@ -1,4 +1,5 @@
-METASCANNER v24.66.1 — TRANSITION CAPTURE
+METASCANNER v24.66.2 — FAST RECOGNITION
+Native glyph segment cache, calibrated uppercase L, exact faster sold and blackout masks, adaptive transition polling and redundant verification shortcut.
 Saves a single local PNG on the first detected bright frame after a visually observed blackout, independent of deal selection. No additional telemetry or periodic saved images. Other map-loading blackouts may also trigger. Folder: %LOCALAPPDATA%\FM_Rush\channel_screenshots. Shop screenshot recorder unchanged.
 Native item-name candidates: yellow = same name, cyan = same visible price, orange = sold. No stats reading. Full OCR fallback when native recognition is inconclusive. Scroll full-name verification unchanged.
 Yellow borders on multiple exact active non-scroll name/price rows are candidates only. Verify item stats manually. No green duplicate or strict scroll highlight.

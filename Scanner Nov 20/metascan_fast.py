@@ -43,3 +43,15 @@ def crop_bgr(frame,x,y,w,h):
     buf,fw,fh,stride=frame
     if w<=0 or h<=0 or x<0 or y<0 or x+w>fw or y+h>fh or stride<fw*3 or len(buf)!=stride*fh:return None
     return (b''.join(buf[i*stride+x*3:i*stride+(x+w)*3] for i in range(y,y+h)),w,h,w*3)
+
+@lru_cache(maxsize=16)
+def below_table(limit):
+    return bytes(int(i<limit) for i in range(256))
+
+def count_bgr_below(pixels,limit):
+    """Exact count where every BGR channel is below limit."""
+    table=below_table(limit)
+    b=int.from_bytes(pixels[0::3].translate(table),'little')
+    g=int.from_bytes(pixels[1::3].translate(table),'little')
+    r=int.from_bytes(pixels[2::3].translate(table),'little')
+    return (b&g&r).bit_count()
