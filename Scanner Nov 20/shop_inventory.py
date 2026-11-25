@@ -64,6 +64,31 @@ def tooltip_blocked_rows(frame):
                 blocked.add(row);break
     return set(range(min(blocked),max(blocked)+1)) if blocked else set()
 
+def tooltip_prefixes(frame, blocked):
+    """Conservative visible left prefix for a partially covered normal row.
+    A gap is NOT proof that hidden suffix text is absent; candidate only.
+    """
+    buf,w,h,stride=frame
+    if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:return {}
+    result={}
+    def pixel(x,y):
+        i=y*stride+x*3
+        return buf[i:i+3]
+    def purple(p):
+        b,g,r=p
+        return 40<b and r<145 and g<145 and b-r>28 and b-g>23
+    def background(p):
+        b,g,r=p
+        return abs(b-227)<=20 and abs(g-217)<=20 and abs(r-205)<=20
+    for row in blocked:
+        y0=26+row*STEP;y1=min(h,60+row*STEP)
+        edge=next((x for x in range(40,198) if sum(purple(pixel(x,y)) for y in range(y0,y1))>=3),None)
+        if edge is None or edge<100:continue
+        cut=edge-3
+        if all(sum(background(pixel(x,y)) for y in range(y0,y1))>=y1-y0-3 for x in range(cut-8,cut)):
+            result[row]=cut
+    return result
+
 def inventory_tooltip_visible(frame):
     return bool(tooltip_blocked_rows(frame))
 
@@ -208,18 +233,19 @@ def stable_sold_hits(hits, before, after):
     return [(i,'SOLD_CHECK') for i,mode in hits if mode in ('SOLD','SOLD_CHECK')
             and i in before and before[i]==after.get(i)]
 
-def prepare_ocr(frame, sections=None, *, threshold_delta=0):
+def prepare_ocr(frame, sections=None, *, threshold_delta=0, prefixes=None):
     """Create contrast-normalized 3x monochrome strip, including seller and six rows."""
     buf,w,h,stride=frame
     # Capture starts at button anchor (-140,+70). Seller is on dark blue.
+    prefixes=prefixes or {}
     out_w,out_h=162,28+ROWS*STEP
     rows=[];unavailable=[]
     selected=set(range(-1,ROWS)) if sections is None else set(sections)
     for row in range(ROWS):
         if row not in selected:
             unavailable.append(False);continue
-        unavailable.append(sold_row_mask(frame,row))
-    selected_rows={row for row in selected & set(range(ROWS)) if selected_row_mask(frame,row)}
+        unavailable.append(False if row in prefixes else sold_row_mask(frame,row))
+    selected_rows={row for row in selected & set(range(ROWS)) if row not in prefixes and selected_row_mask(frame,row)}
     # Precompute expansion for each of the only two output pixel values.
     black=b'\x00'*SCALE;white=b'\xff'*SCALE
     for oy in range(out_h):
@@ -236,7 +262,7 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0):
             sy=23+row*STEP+dy
             cutoff=sold_line_cutoff(frame,sy,threshold_delta) if unavailable[row] and 3<=dy<=36 else 145+threshold_delta
             if row in selected and 3<=dy<=36:
-                for x in range(40,198):
+                for x in range(40,prefixes.get(row,198)):
                     i=sy*stride+x*3
                     b,g,r=buf[i:i+3]
                     if row_ink(b,g,r,cutoff,row in selected_rows,threshold_delta):line[x-40]=0
@@ -266,16 +292,17 @@ class RowOCRCache:
     @staticmethod
     def _base(section):return 0 if section==-1 else 28+section*STEP
 
-    def recognize(self,frame,ocr,sections=None):
+    def recognize(self,frame,ocr,sections=None,prefixes=None):
+        prefixes=prefixes or {}
         sections=section_fingerprints(frame) if sections is None else sections
-        keys={section:(section==-1,digest) for section,digest in sections}
+        keys={section:(section==-1,digest,prefixes.get(section)) for section,digest in sections}
         results={};missing=set()
         for section,key in keys.items():
             if key in self.entries:
                 results[section]=self.entries[key];self.entries.move_to_end(key)
             else:missing.add(section)
         if missing:
-            png,sold=prepare_ocr(frame,missing)
+            png,sold=prepare_ocr(frame,missing,prefixes=prefixes)
             raw=ocr.recognize(png)
             grouped={section:[] for section in missing}
             for line in raw:
@@ -459,8 +486,9 @@ class ShopInventoryTracker:
             if not frame:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             blocked=tooltip_blocked_rows(frame)
-            sections=tuple((section,fp) for section,fp in section_fingerprints(frame) if section not in blocked)
-            digest=(left,top,sections,geometry)
+            prefixes={} if strict else tooltip_prefixes(frame,blocked)
+            sections=tuple((section,fp) for section,fp in section_fingerprints(frame) if section not in blocked or section in prefixes)
+            digest=(left,top,sections,geometry,tuple(sorted(prefixes.items())))
             if digest==prev_digest:
                 self._publish(key,existing,digest);return
             # Hide stale hits immediately unless seller and matched row pixels
@@ -468,7 +496,7 @@ class ShopInventoryTracker:
             verified=dict(sections)
             prior=dict(prev_digest[2]) if prev_digest else {}
             held=[]
-            if existing and prev_digest and prev_digest[:2]==digest[:2]:
+            if existing and prev_digest and prev_digest[:2]==digest[:2] and prev_digest[4:]==digest[4:]:
                 prior_hits=[((box[1]-top-23)//STEP,mode) for mode,box in existing['hits']]
                 for row,mode in revalidate_changed_hits(prior_hits,prior,verified,strict):
                     held.append((mode,(left+1,top+23+row*STEP,left+200,top+23+(row+1)*STEP-2)))
@@ -476,7 +504,7 @@ class ShopInventoryTracker:
             with self._lock:
                 if self._key!=key:return
             ocr_started=time.perf_counter()
-            lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr,sections)
+            lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr,sections,prefixes)
             ocr_ms=(time.perf_counter()-ocr_started)*1000
             with self._lock:
                 if self._key!=key:return
@@ -506,7 +534,10 @@ class ShopInventoryTracker:
             if not frame_after:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             after_blocked=tooltip_blocked_rows(frame_after)
-            after=tuple((section,fp) for section,fp in section_fingerprints(frame_after) if section not in after_blocked)
+            after_prefixes={} if strict else tooltip_prefixes(frame_after,after_blocked)
+            if after_prefixes!=prefixes:
+                self._publish(key,{'status':'Tooltip moved · retrying','hits':[]});return
+            after=tuple((section,fp) for section,fp in section_fingerprints(frame_after) if section not in after_blocked or section in after_prefixes)
             before_map=dict(sections);after_map=dict(after)
             # Even a newly hidden unrelated row changes the evidence set.
             # A single unchanged non-scroll candidate may survive in amber/orange;
@@ -521,6 +552,9 @@ class ShopInventoryTracker:
                 digest=None
             if blocked and not hits and status=='Target not visible · scroll manually':
                 status='Tooltip covers rows · no unverified highlight'
+            if any(row in prefixes for row,_ in hits):
+                hits=conservative_hits(hits,strict)
+                status='Visible text candidate · tooltip overlaps row; verify full item and price' if hits else 'Tooltip overlaps row · no verified highlight'
             if geometry:
                 hits=conservative_hits(hits,strict)
                 status=('Geometry candidate · verify seller, item and price' if hits
