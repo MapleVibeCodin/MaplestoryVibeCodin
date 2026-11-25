@@ -1,6 +1,6 @@
 # Visible chat excerpts — FM1 macro and scanner (2026-11-24 to 2026-11-25)
 
-Scope: manually transcribed from the user-visible current conversation context. All accessible user text turns in the unsaved segment are preserved verbatim (including typos); attachment-only turns are marked with filenames, without publishing the media. Assistant quotations below preserve visible prose and the latest scanner command, but earlier long code blocks, rich UI, and some surrounding text are omitted and explicitly marked. This is a partial transcript, not a full raw export. Earlier history is available only as a summary. The current handoff preserves the latest macro timings and next action.
+Scope: manually transcribed from the user-visible current conversation context. All accessible user text turns in the unsaved segment are preserved verbatim (including typos); attachment-only turns are marked with filenames, without publishing the media. Assistant quotations below preserve visible prose and the latest scanner command, but earlier long code blocks are preserved separately in [earlier-code-blocks](2026-11-25-earlier-code-blocks.md) (manual transcription/reconstruction from visible code) and [V5](FM01_V5-update.ps1); rich UI, collapsed commentary and some surrounding text are omitted and explicitly marked. This is a partial transcript, not a full raw export. Earlier history is available only as a summary. The current handoff preserves the latest macro timings and next action.
 
 ## User
 make me a macro that works to get immediately to fm 1
@@ -50,7 +50,7 @@ Paste this entire block into **PowerShell as Administrator**. It creates `FM 01 
 
 It asks for your Teleport key once, backs up your settings, creates the macro and restarts G HUB. Existing macros remain unchanged.
 
-[Earlier PowerShell installer code omitted.]
+[Earlier PowerShell installer code: see first configurable installer in companion code archive.]
 
 ### After running
 
@@ -77,7 +77,7 @@ Updated for your actual controls:
 
 Paste this into **PowerShell as Administrator**. No additional input required.
 
-[Earlier PowerShell installer and rich timeline omitted.]
+[Earlier PowerShell installer: see corrected WASD V1 in companion code archive; rich timeline omitted.]
 
 Stand beneath the **FM 14–15 rope**, assign `FM 01 FAST` to a button in G HUB, and test it once.
 
@@ -126,7 +126,7 @@ The previous macro stopped at the left edge of FM 7. This revision extends leftw
 
 Paste into **PowerShell as Administrator**. It updates your existing macro without creating another one.
 
-[Earlier V2 PowerShell code omitted.]
+[V2 PowerShell code: see companion code archive.]
 
 This is a corrective test version, not yet optimized for minimum travel time.
 
@@ -168,7 +168,7 @@ Paste this into **PowerShell after closing OBS**. It creates a dedicated `FM Res
 
 Your existing OBS profiles and scene collections are preserved.
 
-[OBS installer PowerShell code and citation markup omitted; no install was verified.]
+[OBS installer PowerShell code: see companion code archive; citation markup omitted; no install was verified.]
 
 ## One-time OBS setup
 
@@ -247,7 +247,7 @@ Updated with **S + Space for down-jumping**. This restores the original working 
 
 Paste into **PowerShell as Administrator**. It updates your existing macro and restarts G HUB automatically.
 
-[Earlier V3 PowerShell code and rich timeline omitted.]
+[V3 PowerShell code: see companion code archive; rich timeline omitted.]
 
 | Phase | Time |
 |---|---:|
@@ -282,7 +282,7 @@ I inspected all stages of your 6.67-second recording at 60 FPS.
 
 Paste into **PowerShell as Administrator**. This updates the existing macro, preserves its mouse assignment and backs up G HUB.
 
-[Earlier V4 PowerShell code omitted.]
+[V4 PowerShell code: see companion code archive.]
 
 ### Version history
 
