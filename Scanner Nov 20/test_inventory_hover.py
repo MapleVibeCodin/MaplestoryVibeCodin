@@ -231,4 +231,42 @@ class RecordedMinimapTests(unittest.TestCase):
                             i=(y+dy)*s+(x+dx)*3;buf[i:i+3]=bytes((240,240,240))
                 self.assertEqual(room_title_present(buf,w,h,s),f['expected_room'])
 
+class TrackerFailureTests(unittest.TestCase):
+    def tracker(self):
+        from shop_inventory import ShopInventoryTracker
+        import threading, time
+        t=ShopInventoryTracker.__new__(ShopInventoryTracker)
+        t._lock=threading.Lock();t._key=(1,(0,0,1366,768),'listing','seller','item',100,0,1)
+        t._latest={'status':'Exact name + price','hits':[('MATCH',(1,2,3,4))]}
+        t._digest=('previous',);t._observed_at=time.monotonic()
+        t._busy=True;t._closed=False;t._next=0;t._generation=1;t._ocr_failures=0
+        t._find_anchor=lambda client:(568,214)
+        return t
+    def test_initial_capture_failure_clears_hit(self):
+        from unittest.mock import patch
+        t=self.tracker()
+        with patch('shop_inventory.capture_client',return_value=None):
+            t._scan(t._key)
+        self.assertEqual(t._latest['hits'],[])
+        self.assertIsNone(t._digest)
+        self.assertFalse(t._busy)
+    def test_expiry_while_worker_busy(self):
+        from types import SimpleNamespace
+        t=self.tracker();t._observed_at=0
+        d=SimpleNamespace(listing_id='listing',ign='seller',item='item',buy_mesos=100,raw_text='')
+        self.assertEqual(t.get(1,(0,0,1366,768),d)['hits'],[])
+        self.assertIsNone(t._digest)
+    def test_generation_guard_rejects_old_publish(self):
+        t=self.tracker();old=t._key;t.reset()
+        t._publish(old,{'hits':[('MATCH',(1,2,3,4))]})
+        self.assertIsNone(t._latest)
+    def test_malformed_worker_capture_clears_and_recovers(self):
+        from unittest.mock import patch
+        t=self.tracker()
+        with patch('shop_inventory.capture_client',side_effect=TypeError('bad frame')):
+            t._scan(t._key)
+        self.assertEqual(t._latest['hits'],[])
+        self.assertIn('TypeError',t._latest['status'])
+        self.assertFalse(t._busy)
+
 if __name__=='__main__':unittest.main()

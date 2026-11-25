@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.0; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.1; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## 2026-11-26 — v24.63.1 recognition safeguards
+
+RuneScape color-vision reliability audit: color overlap and drift, glyph collisions, occlusion, stale frame and capture failures. New original pure vision_guard.py rejects malformed price grouping and look-alike digits, expires positive highlights after 350 ms without fresh validation, and permits only one unchanged non-scroll candidate (amber/orange) when row evidence changes. Initial capture failure clears hits and digest; exact unchanged frames renew evidence; old generation cannot publish; unexpected worker exceptions clear hits and back off. Existing exact shop/room gates and strict scroll policy remain; experimental tolerant gate, physical price-width verification, native glyph engine and capture replacement are NOT deployed. Updater stages the new guard and tests, fails closed when local Python is unavailable. Five pure guard tests executed locally; four tracker integration tests added but Windows staged suite and live latency still unverified. 350 ms is an initial conservative bound, not a measured Windows result. No raw archives or old files removed, browser unchanged. See Scanner Nov 20/transcripts/2026-11-26-color-vision-failsafes.md.
 
 ## Final continuation checkpoint — v24.63.0
 

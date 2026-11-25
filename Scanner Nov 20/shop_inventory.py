@@ -15,6 +15,7 @@ import time
 import unicodedata
 import zlib
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
+from vision_guard import parse_price_line, highlight_expired, revalidate_changed_hits
 
 # Native shop UI: stable colored button borders, not seller or item pixels.
 GREEN = bytes((67,223,208))*24
@@ -135,8 +136,7 @@ def pick_rows(lines, unavailable, seller, item, price, *, buy_step=0):
         is_truncated=(name.endswith(('...','…')) and len(prefix)>=12 and target.startswith(prefix) and name!=target)
         if name!=target and not is_truncated:continue
         price_text=' '.join(t for y,t in group if y-base>=19)
-        m=re.fullmatch(r'(?:[\d,]+\s+)?for\s+([\d,]+)\s*mesos',price_text.strip(),re.I)
-        found=int(m.group(1).replace(',','')) if m else None
+        found=parse_price_line(price_text)
         compatible=found is not None and price is not None and (found==price or price_in_display_bucket(found,price,buy_step))
         if is_truncated:
             if compatible:truncated.append(i)
@@ -348,7 +348,7 @@ class ShopInventoryTracker:
     def __init__(self):
         self._lock=threading.Lock()
         self._key=None;self._latest=None;self._next=0;self._busy=False;self._generation=0
-        self._digest=None;self._ocr=WindowsOCR();self._closed=False
+        self._digest=None;self._observed_at=None;self._ocr=WindowsOCR();self._closed=False
         # Two native 1366x768 screenshots share the same shop anchor.
         # Still verify pixels and fall back if the window/layout differs.
         self._anchors={(1366,768):(568,214)};self._gate_next={};self._cache=InventoryCache()
@@ -371,7 +371,7 @@ class ShopInventoryTracker:
     def reset(self):
         with self._lock:
             if self._key is not None:self._generation+=1
-            self._key=None;self._latest=None;self._next=0;self._digest=None
+            self._key=None;self._latest=None;self._next=0;self._digest=None;self._observed_at=None
     def close(self):
         self._closed=True;self.reset();self._jobs.put_nowait(None);self._ocr.close()
     def get(self,hwnd,client,deal):
@@ -381,7 +381,10 @@ class ShopInventoryTracker:
             if self._key is None or self._key[:7]!=identity:
                 self._generation+=1
                 self._key=identity+(self._generation,)
-                self._latest=None;self._digest=None;self._next=0
+                self._latest=None;self._digest=None;self._next=0;self._observed_at=None
+            if highlight_expired(self._latest,self._observed_at,now):
+                self._latest={'status':'Shop open · waiting for fresh verification','hits':[]}
+                self._digest=None;self._observed_at=None
             if not self._closed and not self._busy and now>=self._next:
                 self._busy=True;self._next=now+.05
                 self._jobs.put_nowait(self._key)
@@ -389,7 +392,7 @@ class ShopInventoryTracker:
     def _publish(self,key,result,digest=None):
         with self._lock:
             if self._key==key:
-                self._latest=result;self._digest=digest
+                self._latest=result;self._digest=digest;self._observed_at=time.monotonic()
     def _find_anchor(self,client):
         """Learn one anchor per client resolution; use a tiny fixed pixel gate."""
         x,y,w,h=client
@@ -436,11 +439,13 @@ class ShopInventoryTracker:
                 prev_digest=self._digest if self._key==key else None
             if existing is None:self._publish(key,{'status':'Shop open · verifying visible rows','hits':[]})
             frame=capture_client((x+left,y+top,204,263),allow_crop=True)
-            if not frame:return
+            if not frame:
+                self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             blocked=tooltip_blocked_rows(frame)
             sections=tuple((section,fp) for section,fp in section_fingerprints(frame) if section not in blocked)
             digest=(left,top,sections)
-            if digest==prev_digest:return
+            if digest==prev_digest:
+                self._publish(key,existing,digest);return
             # Hide stale hits immediately unless seller and matched row pixels
             # are identical and the match is still unobstructed.
             verified=dict(sections)
@@ -490,26 +495,17 @@ class ShopInventoryTracker:
             after_blocked=tooltip_blocked_rows(frame_after)
             after=tuple((section,fp) for section,fp in section_fingerprints(frame_after) if section not in after_blocked)
             before_map=dict(sections);after_map=dict(after)
-            # A tooltip appearing over unrelated rows must not cancel a
-            # verified candidate. Newly exposed/changed rows still require OCR.
+            # Even a newly hidden unrelated row changes the evidence set.
+            # A single unchanged non-scroll candidate may survive in amber/orange;
+            # never carry a green match or a strict scroll across changed evidence.
             if after!=sections:
-                stable=all(before_map.get(i)==v for i,v in after)
-                if not stable or -1 not in after_map or any(i not in after_map for i,_ in hits):
-                    # A cursor or tooltip over another item must not erase a
-                    # stable sold target. Never do this for scrolls or green
-                    # purchasable matches; those keep full strict validation.
-                    preserved=stable_sold_hits(hits,before_map,after_map) if 'scroll' not in normalized(item) else []
-                    if not preserved and 'scroll' not in normalized(item):
-                        preserved=stable_item_hits(hits,before_map,after_map)
-                    if len(preserved)!=1:
-                        self._publish(key,{'status':'Shop open · visible rows changed, retrying','hits':[]});return
-                    hits=preserved
-                    status=('Sold candidate · other rows changed' if hits[0][1]=='SOLD_CHECK'
-                            else 'Row verified · other rows changing; check price/stats')
-                    # Do not cache the newly unverified rows as a complete result.
-                    digest=(left,top,tuple((i,v) for i,v in after if before_map.get(i)==v))
-                else:
-                    digest=(left,top,after)
+                hits=revalidate_changed_hits(hits,before_map,after_map,'scroll' in normalized(item))
+                if not hits:
+                    self._publish(key,{'status':'Shop open · visible rows changed, retrying','hits':[]});return
+                status=('Sold candidate · other rows changed' if hits[0][1]=='SOLD_CHECK'
+                        else 'Row verified · other rows changing; check price/stats')
+                # Force a new recognition; do not cache partial evidence as complete.
+                digest=None
             if blocked and not hits and status=='Target not visible · scroll manually':
                 status='Tooltip covers rows · no unverified highlight'
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]
@@ -517,8 +513,10 @@ class ShopInventoryTracker:
                               'timing':{'scan_id':started,'total_ms':round((time.perf_counter()-started)*1000,2),
                                         'row_recognition_ms':round(ocr_ms,2),'used_ocr':bool(used_ocr),
                                         'visible_rows':sum(i>=0 for i,_ in sections)}},digest)
-        except (OSError,ValueError,RuntimeError,subprocess.SubprocessError) as exc:
-            self._publish(key,{'status':'Shop OCR unavailable · '+str(exc)[:100],'hits':[]})
+        except Exception as exc:
+            # A malformed capture/worker response must not kill the capture thread.
+            # Report the error class without copying raw OCR or private text.
+            self._publish(key,{'status':'Shop OCR unavailable · '+type(exc).__name__,'hits':[]})
             self._ocr_failures+=1
             with self._lock:
                 if self._key==key:self._next=time.monotonic()+min(15.0,2.0**min(4,self._ocr_failures-1))
