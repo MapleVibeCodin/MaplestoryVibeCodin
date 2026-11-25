@@ -395,4 +395,50 @@ class PartialTooltipTests(unittest.TestCase):
                     self.assertTrue(t._latest['hits'],t._latest)
                     self.assertEqual(t._latest['hits'][0][0],'ROW_CHECK')
 
+class SoldContrastRetryTests(unittest.TestCase):
+    def sold_frame(self):
+        buf,w,h,s=frame(204,263)
+        for row in (1,4):
+            for y in range(23+row*40,23+(row+1)*40):
+                for x in range(40,198):
+                    i=y*s+x*3;buf[i:i+3]=bytes((248,243,242))
+        return buf,w,h,s
+
+    def test_alternate_sold_candidate_and_cache(self):
+        from shop_inventory import SoldRetryCache
+        from unittest.mock import Mock
+        f=self.sold_frame();sections=section_fingerprints(f)
+        ocr=Mock()
+        ocr.recognize.return_value=[{'y':5*SCALE,'text':'seller'},{'y':193*SCALE,'text':'Blue Arten'},
+                                    {'y':212*SCALE,'text':'1 for 400,000 mesos'}]
+        cache=SoldRetryCache()
+        self.assertEqual(cache.recognize(f,ocr,sections,{},'seller','Blue Arten',400000),([(4,'SOLD_CHECK')],True))
+        self.assertEqual(cache.recognize(f,ocr,sections,{},'seller','Blue Arten',400000),([(4,'SOLD_CHECK')],False))
+        self.assertEqual(ocr.recognize.call_count,1)
+        self.assertEqual(cache.recognize(f,ocr,sections,{},'seller','Blue Arten',400001),([],True))
+
+    def test_ambiguity_wrong_seller_and_price(self):
+        from shop_inventory import SoldRetryCache
+        from unittest.mock import Mock
+        f=self.sold_frame();sections=section_fingerprints(f)
+        base=[{'y':5*SCALE,'text':'seller'},{'y':193*SCALE,'text':'item'},
+              {'y':212*SCALE,'text':'1 for 400,000 mesos'}]
+        for lines in ([{'y':5*SCALE,'text':'other'}]+base[1:],
+                      base[:2]+[{'y':212*SCALE,'text':'1 for 40,000 mesos'}],
+                      base+[{'y':73*SCALE,'text':'item'},{'y':92*SCALE,'text':'1 for 400,000 mesos'}]):
+            with self.subTest(lines=lines):
+                ocr=Mock();ocr.recognize.return_value=lines
+                self.assertEqual(SoldRetryCache().recognize(f,ocr,sections,{},'seller','item',400000),([],True))
+
+    def test_no_alternate_for_scroll_covered_or_active(self):
+        from shop_inventory import SoldRetryCache
+        from unittest.mock import Mock
+        f=self.sold_frame();sections=section_fingerprints(f);ocr=Mock()
+        cache=SoldRetryCache()
+        self.assertEqual(cache.recognize(f,ocr,sections,{},'seller','Scroll for Gloves',400000),([],False))
+        self.assertEqual(cache.recognize(f,ocr,sections,{1:120,4:120},'seller','item',400000),([],False))
+        blank=frame(204,263)
+        self.assertEqual(cache.recognize(blank,ocr,section_fingerprints(blank),{},'seller','item',400000),([],False))
+        ocr.recognize.assert_not_called()
+
 if __name__=='__main__':unittest.main()
