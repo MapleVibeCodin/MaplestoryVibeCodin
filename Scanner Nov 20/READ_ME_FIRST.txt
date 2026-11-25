@@ -1,4 +1,4 @@
-FM RUSH v24.63.2 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.63.3 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -34,6 +34,8 @@ Exact shop gate stays the fast path. Fixed-anchor geometry fallback requires
 multiple visible row backgrounds and expected button strips. Fallback is amber
 or sold-candidate only, never a green match or strict scroll match. No changes
 to browser extension, hotkeys, click behavior, or local settings.
+When a tooltip overlaps only the right side, safely separated visible normal-row
+text can yield an amber candidate; strict scrolls still require unobstructed text.
 
 UPDATE
 $u = Join-Path $env:TEMP 'UPDATE_FM_RUSH.ps1'
