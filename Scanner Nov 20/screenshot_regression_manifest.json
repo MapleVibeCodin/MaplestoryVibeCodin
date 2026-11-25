@@ -1220,5 +1220,163 @@
     "Other unnamed transcript screenshot attachments not counted; original pixels not present in current repository or active runtime.",
     "Legacy nameplate recognition was removed from current fixed-coordinate workflow; those fixtures cannot establish current shop projection without HeneFM map pin and camera metadata.",
     "No images restored to main. Historical download is opt-in and separate."
-  ]
+  ],
+  "shop_placement_cases": [
+    {
+      "room": 1,
+      "sellers": [
+        "MingNaiZhi"
+      ],
+      "margin": 11,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 2,
+      "sellers": [
+        "Jinmi"
+      ],
+      "margin": 44,
+      "old_delta_y": 148,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 3,
+      "sellers": [
+        "Nikon6"
+      ],
+      "margin": 48,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 4,
+      "sellers": [
+        "MiracleChen"
+      ],
+      "margin": 50,
+      "fine": 45,
+      "old_delta_y": 142,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 5,
+      "sellers": [
+        "TheKlaw",
+        "son1c"
+      ],
+      "margin": 45,
+      "fine": 48,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 6,
+      "sellers": [
+        "Whitejoker"
+      ],
+      "margin": 8,
+      "old_delta_y": 184,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 8,
+      "sellers": [
+        "Fuad7"
+      ],
+      "cave": 108,
+      "status": "UNRESOLVED_ABOVE_VIEW",
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 9,
+      "sellers": [
+        "ScubaDiver"
+      ],
+      "cave": 149,
+      "native_anchor": [
+        633,
+        488
+      ],
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 11,
+      "sellers": [
+        "MissAnarchy",
+        "Bazlud"
+      ],
+      "cave": 97,
+      "fine": 66,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 13,
+      "sellers": [
+        "QueenOfWands"
+      ],
+      "margin": 47,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 14,
+      "sellers": [
+        "ChanAD"
+      ],
+      "margin": 48,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 15,
+      "sellers": [
+        "Baconns.Shop"
+      ],
+      "margin": 40,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 16,
+      "sellers": [
+        "Tafira"
+      ],
+      "margin": 0,
+      "old_delta_y": 192,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 17,
+      "sellers": [
+        "Refael100"
+      ],
+      "cave": 97,
+      "status": "EXPECTED_ABOVE_VIEW_WHEN_PROJECTED_OUTSIDE",
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    },
+    {
+      "room": 18,
+      "sellers": [
+        "GoreMagala"
+      ],
+      "cave": 108,
+      "fine": 48,
+      "verification": "calibration source checked; original target pin and screenshot replay not available unless separately annotated"
+    }
+  ],
+  "shop_placement_unmapped": [
+    {
+      "sellers": [
+        "Gandalfi",
+        "Ror0Tomasi"
+      ],
+      "reason": "transcript lacks room and exact map pin"
+    },
+    {
+      "sellers": [
+        "Euphye"
+      ],
+      "room": 19,
+      "reason": "opened inventory screenshot only; no original placement pin"
+    }
+  ],
+  "shop_placement_gate": {
+    "required": "Known original target pin and client bounds, actual clickable sign rectangle, or explicit offscreen expectation. Calibration preservation is not pixel replay.",
+    "status": "INCOMPLETE"
+  }
 }

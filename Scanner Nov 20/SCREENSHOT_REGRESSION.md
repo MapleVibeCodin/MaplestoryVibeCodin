@@ -7,3 +7,7 @@ Three unique current-chat images (four attachments including duplicate) were tes
 Historical image references have been indexed, not replayed. Existing legacy expected target coordinates are recorded for nine regression samples plus Mora badge. Unlabeled screenshots need expected target, room/channel and map pin/crop metadata. Thirteen named later chat screenshots and additional unnamed attachment references lack original pixels in the active environment. FM8 remains unresolved.
 
 Run the separate offline suite with Pillow and the original image directory. On Windows it also invokes the same WinRT OCR worker. Optional history retrieval downloads unique blobs into a local test cache, outside the normal update. The suite exits nonzero for any failed or incomplete case; it never counts image integrity or a legacy expectation as current behavior passing. Do not claim all screenshots passed until each relevant image has a current expectation and a recorded successful replay.
+
+## Earlier shop-placement cases
+
+The manifest now records the previously reported shop targets and their room-specific calibration expectations, and a separate unit test guards all 20 rooms at both supported resolutions. Source anchors were checked against the historical corrections. These tests are synthetic geometry, not original screenshot replay. FM8 remains unresolved. The full historical pass requires original screenshot coordinates and the HeneFM pin for each target; missing labels are not passes.
