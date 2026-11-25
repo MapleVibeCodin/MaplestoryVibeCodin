@@ -7,46 +7,46 @@ Recorded 2026-11-25. Linked handoff: [November newly released ETC/USE flips stat
 ## Exact accessible user messages (chronological)
 
 ### User 1
-\`\`\`text
+```text
 find me all of the new event items in maplestory classic. im flipping turkey eggs (buying 500 each, selling 1k each) and making a killing.
-\`\`\`
+```
 
 ### User 2
-\`\`\`text
+```text
 deep dive into all prices of all new things
-\`\`\`
+```
 
 ### User 3 — scope correction
-\`\`\`text
+```text
 not just event. everything that came out after nov 1st
-\`\`\`
+```
 
 ### User 4 — narrow to useful market categories
-\`\`\`text
+```text
 find me an etc or use or something that is easily flipped or arbritaged
-\`\`\`
+```
 
 ### User 5 — rejects preexisting Fragment of Magic
-\`\`\`text
+```text
 that's shit. only the new items
-\`\`\`
+```
 
 ### User 6 — insists on actual utility
-\`\`\`text
+```text
 other things like turkey eggs that actually have use
-\`\`\`
+```
 
 ### User 7 — requires actual deal-feed inspection
-\`\`\`text
+```text
 no do deep search. use the henefm flips as reference
-\`\`\`
+```
 
 ### User 8 — this archive request
-\`\`\`text
-\`\`\`
+````text
+```
 Checkpoint this chat to GitHub, including all accessible unsaved messages verbatim and the latest project state. Verify the files before I switch.
-\`\`\`
-\`\`\`
+```
+````
 
 ## Assistant responses — chronological content summaries, explicitly NOT verbatim
 
@@ -64,7 +64,7 @@ Checkpoint this chat to GitHub, including all accessible unsaved messages verbat
 
 **Response to User 7 — actual HeneFM flips reference.** Assistant described inspecting https://henefm.com/flips/deals and https://henefm.com/flips/craft, reported 63 detected opportunities / 44 sold in a snapshot; none of the visible deal rows involved Turkey Eggs, Pumpkin Pieces, Pie Flour or Turkey Legs. Found contradictory client-side account-shared flags for some Thanksgiving rewards versus event notes, so recommended avoiding their unverified trades. Rejected Elixir as pre-Nov-1, and noted Sylka's Brew had only ~2 observations, Hollow Extract no sales, Wild Glowshrooms only ~10/day. Final shortlist: Mano and Stumpy Black Sacks and Forgotten Hollow Return Scroll, but conceded none matched confirmed cheap and liquid Turkey Egg trade. Hypothetical thresholds: Mano <=100K, sell 130K; Stumpy <=95K, sell 120K; Return Scroll <=600, sell 999. Filters suggested minimum 100 sales/day, 20% net margin, max price 150K, 3% tax, whitelist Turkey Egg/Mano/Stumpy/Forgotten Hollow Scroll. **These were not actually installed or applied in HeneFM.**
 
-**Response to User 8 — checkpoint.** Root GitHub repository was confirmed live and public; existing \`AGENTS.md\` identified as FM Rush engineering handoff; market research state was stored separately under \`checkpoints/\`. This archive and linked state file are the output of the present request. No app code or research data scraping was performed during checkpoint.
+**Response to User 8 — checkpoint.** Root GitHub repository was confirmed live and public; existing `AGENTS.md` identified as FM Rush engineering handoff; market research state was stored separately under `checkpoints/`. This archive and linked state file are the output of the present request. No app code or research data scraping was performed during checkpoint.
 
 ## Key source entry points
 
