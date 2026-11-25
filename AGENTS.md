@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.1; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.2; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## Latest runtime release — v24.63.2 fixed geometry safeguards
+
+Runtime 2052a411723aaed9c5a4a14ad67fe0811ea52c23, browser 24.56.0 unchanged. Read [release evidence](Scanner%20Nov%2020/transcripts/2026-11-26-fixed-geometry-release.md). Fixed-anchor geometry fallback is now integrated in the desktop scanner, not the old research prototype. Exact gate first, fallback cannot learn or shift anchor; non-scroll candidates amber/orange only, no strict scroll match, revalidate gate and current pixels, separate cache quality and telemetry. Four standalone tests executed with verified matching blob hashes; ten videos decoded, 47 sampled detections at prior open frame indices, 10/10 known exact PNG anchors; no independent held-out labels, full OCR or Windows integration tests run. Five tracker checks staged and updater runs all staged tests before replacement. No extension update needed. Native glyph/price width and 116-image full historical replay outstanding. Preserve all history, local settings and archives.
 
 ## 2026-11-26 — fresh geometry shadow replay (research only)
 
