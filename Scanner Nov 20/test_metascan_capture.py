@@ -60,4 +60,38 @@ class FastCaptureTests(unittest.TestCase):
         self.assertTrue(room_title_present(*full))
         self.assertEqual(room_title_present(*crop_bgr(full,0,0,135,59)),room_title_present(*full))
 
+    def production_tracker(self,item='item'):
+        # Exercise the paired production branch, not the compatibility fixture path.
+        import test_inventory_hover
+        t=test_inventory_hover.TrackerGeometryTests().ready(False,item)
+        t._paired_capture=True
+        t._anchors={(1366,768):(568,214)}
+        return t
+
+    def test_paired_production_scan_two_captures(self):
+        t=self.production_tracker()
+        f=self.combined()
+        with patch('shop_inventory.capture_client',return_value=f) as capture:
+            t._scan(t._key)
+        self.assertEqual(capture.call_count,2)
+        self.assertEqual(t._latest['hits'][0][0],'MATCH')
+        self.assertEqual(t._latest['timing']['paired_roi_captures'],2)
+
+    def test_paired_production_scan_rejects_closed_shop(self):
+        t=self.production_tracker()
+        with patch('shop_inventory.capture_client',side_effect=[self.combined(),None]) as capture:
+            t._scan(t._key)
+        self.assertEqual(capture.call_count,2)
+        self.assertIsNone(t._latest)
+        self.assertIsNone(t._digest)
+
+    def test_paired_geometry_never_confirms_scroll(self):
+        t=self.production_tracker('Scroll for Gloves for ATT 60%')
+        f=crop_bgr(self.combined(),0,71,204,263)
+        with patch.object(t,'_capture_pair',return_value=('geometry',f)) as capture:
+            t._scan(t._key)
+        self.assertEqual(capture.call_count,1)
+        self.assertEqual(t._latest['hits'],[])
+        self.assertIn('waiting for exact scroll gate',t._latest['status'])
+
 if __name__=='__main__':unittest.main()

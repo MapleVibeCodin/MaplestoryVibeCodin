@@ -148,6 +148,21 @@ try {
     } else {
         throw 'Local Python environment unavailable; no installed files changed. Run the existing START_FM_RUSH.ps1 -SetupOnly then retry.'
     }
+    foreach ($scriptName in @('SHOP_OCR.ps1','START_FM_RUSH.ps1')) {
+        $tokens = $null
+        $parseErrors = $null
+        $null = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $incoming $scriptName), [ref]$tokens, [ref]$parseErrors)
+        if ($parseErrors.Count -gt 0) { throw "PowerShell parse failed for $scriptName; no installed files changed." }
+    }
+    if ($UpdateExtension) {
+        $node = Get-Command node.exe -ErrorAction SilentlyContinue
+        if ($node) {
+            $testPath = Join-Path $incoming 'test_browser_ack.js'
+            Invoke-WebRequest -UseBasicParsing -Uri "$base/test_browser_ack.js" -OutFile $testPath
+            & $node.Source $testPath
+            if ($LASTEXITCODE -ne 0) { throw 'Browser regression failed; no installed files changed.' }
+        } else { Write-Host 'Node.js unavailable: browser regression skipped; Python and PowerShell gates passed.' -ForegroundColor Yellow }
+    }
     foreach ($file in $files) {
         $dest = Get-UpdateDestination $file
         if (Test-Path -LiteralPath $dest) {
