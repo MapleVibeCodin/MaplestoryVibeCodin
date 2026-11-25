@@ -336,4 +336,63 @@ class TrackerGeometryTests(TrackerFailureTests):
         self.assertEqual(t._latest['hits'][0][0],'ROW_CHECK')
         self.assertTrue(t._digest[3])
 
+class PartialTooltipTests(unittest.TestCase):
+    @staticmethod
+    def partial_frame(edge=155, ink_end=139):
+        buf,w,h,s=frame(204,263)
+        for y in range(66,100):
+            for x in range(40,198):
+                color=(124,74,68) if x>=edge else (227,217,205)
+                i=y*s+x*3;buf[i:i+3]=bytes(color)
+        for y in range(70,79):
+            for x in range(42,min(ink_end+1,edge)):
+                i=y*s+x*3;buf[i:i+3]=bytes((20,20,20))
+        return buf,w,h,s
+
+    def test_visible_prefix_and_touching_text(self):
+        from shop_inventory import tooltip_prefixes
+        f=self.partial_frame()
+        self.assertEqual(tooltip_blocked_rows(f),{1})
+        self.assertEqual(tooltip_prefixes(f,{1}),{1:152})
+        self.assertEqual(tooltip_prefixes(self.partial_frame(155,149),{1}),{})
+        self.assertEqual(tooltip_prefixes(self.partial_frame(85,70),{1}),{})
+        self.assertEqual(tooltip_prefixes(frame(204,263),{1}),{})
+
+    def test_prefix_masks_tooltip_not_text(self):
+        import struct,zlib
+        from shop_inventory import prepare_ocr
+        png,_=prepare_ocr(self.partial_frame(),{1},prefixes={1:152})
+        n=8;data=[]
+        while n<len(png):
+            count=struct.unpack('>I',png[n:n+4])[0]
+            if png[n+4:n+8]==b'IDAT':data.append(png[n+8:n+8+count])
+            n+=count+12
+        raw=zlib.decompress(b''.join(data))
+        width=162*SCALE
+        y=(28+40+8)*SCALE
+        line=raw[y*(width+1)+1:(y+1)*(width+1)]
+        self.assertEqual(line[(100-40)*SCALE],0)
+        self.assertTrue(all(v==255 for v in line[(152-40)*SCALE:]))
+
+    def test_partial_match_never_green_and_scroll_excluded(self):
+        from unittest.mock import patch
+        from types import SimpleNamespace
+        helper=TrackerGeometryTests()
+        for item in ('item','Scroll for Gloves for ATT 60%'):
+            with self.subTest(item=item):
+                t=helper.ready(False,item)
+                def recognize(f,ocr,sections,prefixes):
+                    included={i for i,_ in sections}
+                    lines=[{'y':5*SCALE,'text':'seller'}]
+                    if 1 in included:
+                        lines += [{'y':73*SCALE,'text':item},{'y':92*SCALE,'text':'1 for 100 mesos'}]
+                    return lines,[False]*6,True
+                t._row_cache=SimpleNamespace(recognize=recognize)
+                with patch('shop_inventory.capture_client',return_value=self.partial_frame()):
+                    t._scan(t._key)
+                if 'Scroll' in item:self.assertEqual(t._latest['hits'],[])
+                else:
+                    self.assertTrue(t._latest['hits'],t._latest)
+                    self.assertEqual(t._latest['hits'][0][0],'ROW_CHECK')
+
 if __name__=='__main__':unittest.main()
