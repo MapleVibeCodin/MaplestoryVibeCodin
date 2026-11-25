@@ -23,6 +23,7 @@ from shop_pin import ItemInventoryPin
 from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice, channel_entry_portal
 from trade_hotkeys import TradeHotkeys
 from performance_recorder import PerformanceRecorder
+from transition_screenshot import TransitionScreenshotRecorder
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
 from game_window import window_at_point, cursor_screen_position
 
@@ -84,7 +85,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('MetaScanner v24.66.0 - Instant Items')
+        self.root.title('MetaScanner v24.66.1 - Transition Capture')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -123,6 +124,7 @@ class FMApp:
         self.item_pin = ItemInventoryPin(self.root, interval_ms=25)
         self._inventory = ShopInventoryTracker(notify=lambda:self.events.put_nowait(('inventory_ready',)))
         self._shop_capture = ShopScreenshotRecorder(ARCHIVE_DIR.parent/'shop_screenshots',notify=lambda:self.events.put_nowait(('inventory_ready',)))
+        self._transition_capture = TransitionScreenshotRecorder(ARCHIVE_DIR.parent/'channel_screenshots')
         self.performance = PerformanceRecorder(ARCHIVE_DIR.parent/'performance', capture=capture_client,
             focused=window_has_focus, geometry=window_client_rect, point_window=window_at_point,
             init_capture=enable_capture_cache, release_capture=release_capture_cache)
@@ -470,6 +472,8 @@ class FMApp:
         focused=bool(valid_size and hwnd and window_has_focus(hwnd))
         screenshots=getattr(self,'_shop_capture',None)
         if screenshots is not None:screenshots.observe(hwnd if focused else None,client if focused else None)
+        transitions=getattr(self,'_transition_capture',None)
+        if transitions is not None:transitions.observe(hwnd if focused else None,client if focused else None)
         supported=bool(deal and focused)
         inventory_supported=bool(inventory_deal and focused)
         # Only a positive minimap room-title signature permits inventory OCR.
@@ -1072,6 +1076,7 @@ class FMApp:
         self.performance.close()
         self._inventory.close()
         if hasattr(self,'_shop_capture'):self._shop_capture.close()
+        if hasattr(self,'_transition_capture'):self._transition_capture.close()
         self._entrance_camera.close()
         self.archive.close()
         if hasattr(self,'trade_keys'):self.trade_keys.close()

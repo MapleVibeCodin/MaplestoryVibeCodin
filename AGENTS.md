@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-## MetaScanner branch — v24.66.0 instant items / browser v24.58.0
+## MetaScanner branch — v24.66.1 transition capture / browser v24.58.0
+
+User wants only one screenshot immediately after a channel-change blackout. Independent 10ms nominal visual transition sampler, two black observations followed by first bright observation, full-frame confirmation and asynchronous local PNG save under channel_screenshots. Other loading blackouts may trigger, no channel identity inferred. No added telemetry, no continuous saved images, existing shop captures unchanged. Five staged tests; live Windows timing unverified.
+
+## Previous MetaScanner branch — v24.66.0 instant items / browser v24.58.0
 
 User explicitly prioritizes instant item recognition, no stats. Native 14-pixel glyph candidate path now runs before WinRT for exact shop gate, clear inventory, non-scroll target. Exact visible names highlight all found rows (yellow; cyan if visible numeric price equals target; orange sold). Fresh paired capture and full visible fingerprint must agree. OCR fallback if no native match; name-only OCR candidate if prior exact-price matcher finds no hits. Scroll full-name/contrast rules unchanged; icon alone cannot resolve variants. No automatic input, stats reading, or claimed unique verified price from native candidates. Atlas from pinned MIT Classic Tool source, license included. Actual latest screenshot all six names decoded, three target rows identified; median 0.677 ms isolated uncached native pass, 500 runs, p95 0.959 ms, excludes GDI/UI. Windows full suite and live timing not yet verified. See research/2026-11-26-metascanner-instant-items.md.
 
