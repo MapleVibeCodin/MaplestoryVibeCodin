@@ -9,6 +9,13 @@ Last updated: 2026-11-26 (Taipei). Current desktop release: v24.56.0; browser ex
 
 ## Resume now — authoritative short checkpoint (2026-11-26 Taipei)
 
+### Permanent retention policy (user confirmed)
+
+- GitHub is the durable project archive. Do not delete tracked files, screenshots, fixtures, transcripts, research, old versions, or backup branches for cleanup; do not rewrite history or force-push. Preserve superseded work in version history and clearly named archive branches or folders. Keep `pre-optimized` intact. Historic screenshot collection is directly accessible at `archive/historical-screenshots` (commit abac54c3d3a20f25c4b0bb416b81d983a67ddae5).
+- Cleanup applies only to the local Windows scanner installation/download folders. Verify an archived copy before removing redundant local files; protect unarchived data, local configuration, database and click archives. Do not mirror deletions to GitHub. Keep routine updater downloads small by selecting only runtime files, not by deleting archive contents from GitHub.
+- Continue archiving accessible project artifacts and regression evidence; never claim inaccessible or unverified material is archived. Keep credentials and private unrelated data out of public GitHub; do not automatically publish private local files.
+
+
 - Local executed check using a manually copied, logic-equivalent shop_position.py: 40 room/resolution anchors, 160 default-vs-aligned projection comparisons, eight historical platform corrections, four partial-sign clipping cases, four offscreen-direction cases, and two wrong-theme cases passed. This is not a direct execution of the full repository suite or historical image replay.
 
 - Prior shop placements are now separately enumerated in screenshot_regression_manifest.json. Source checks confirmed all documented room-specific anchors and native corrections, including older FM1/2/3/6/13/14/15/17 cases. Added test_prior_shop_placements.py for all 20 rooms at both resolutions, fixed and manual offsets, edge clipping and offscreen rejection. These are synthetic geometry guards, not full screenshot passes. FM8 remains unresolved, Gandalfi/Ror0Tomasi lack exact room/pin metadata, and original historical shop sign bounds are missing. Latest three accessible raw screenshots were actually rerun offline with copied gate and PNG routines; both opened-shop frames passed gate, sold flags and PNG decoding, closed shop correctly rejected. WinRT OCR and complete historical shop placements remain unverified. No calibration changes without original evidence.
