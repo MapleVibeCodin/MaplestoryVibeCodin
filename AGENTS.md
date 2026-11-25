@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.3; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.4; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## Latest runtime — v24.63.4 sold-row contrast retry
+
+Published runtime 9b35a301a66d54fe591053a86fe9774037122143, browser v24.56.0. Read [geometry, tooltip and sold-row continuation](Scanner%20Nov%2020/transcripts/2026-11-26-geometry-tooltip-sold-continuation.md). Latest observed local version v24.63.2; installation of 24.63.3/4 not verified. Video 04-39-52 shows faded sold Blue Arten at 400000 and missed highlight; earlier analysis reported sold preprocessing passed, but exact live cause unproven. New SoldRetryCache makes one alternate contrast pass for visible sold rows after a primary miss, keyed to exact seller/row pixels and target; only exact seller/item/price unique non-scroll sold result yields SOLD_CHECK, never green. Bounded cache and telemetry; three tests staged, Windows full suite not executed. Prior tooltip-safe change included. Verify Windows installer and fresh performance report before further edits. Native glyph engine, physical price-width verification and full historical end-to-end replay remain outstanding. Preserve all history; raw private media not publicly committed.
 
 ## Latest runtime — v24.63.3 tooltip-safe recognition
 
