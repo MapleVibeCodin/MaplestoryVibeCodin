@@ -54,7 +54,7 @@ def historical_case(case,cache,fetch):
         except Exception as exc:return {'case':case['paths'][0],'result':'FETCH_FAILED','error':str(exc)}
     if not p.exists():return {'case':case['paths'][0],'result':'NOT_DOWNLOADED'}
     data=p.read_bytes()
-    digest=hashlib.sha1(('blob '+str(len(data))+'\\0').encode()+data).hexdigest()
+    digest=hashlib.sha1(('blob '+str(len(data))).encode()+bytes([0])+data).hexdigest()
     if digest!=case['git_blob']:return {'case':case['paths'][0],'result':'FAIL_BLOB_HASH'}
     try:
         with Image.open(io.BytesIO(data)) as im:im.load();size=im.size
