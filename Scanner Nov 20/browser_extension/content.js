@@ -1,4 +1,4 @@
-/* FM Rush v24.59.0 — passive live HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.56.0 — passive live HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Adds Chase/Skip controls and selection feedback only; no automatic game inputs.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -13,11 +13,6 @@
   let cardCache=new WeakMap(),linkCache=new WeakMap(),dirtyCards=new WeakSet();
   let observer=null,lastFullParse=0,parseHits=0,parseMisses=0;
   let cachedDeals=[],needsExtract=true,quietScans=0;
-  const proView=globalThis.FMRushPro?.create();
-  let latestCardRows=[];
-  const scanCosts={on:[],off:[]};
-  function noteScan(start,mode){const list=scanCosts[mode];list.push(performance.now()-start);if(list.length>300)list.shift();}
-  function scanTiming(){const dist=list=>{const v=list.slice().sort((a,b)=>a-b);const p=q=>v.length?+v[Math.min(v.length-1,Math.ceil(v.length*q)-1)].toFixed(3):null;return {n:v.length,p50_ms:p(.5),p95_ms:p(.95)};};return {on:dist(scanCosts.on),off:dist(scanCosts.off)};}
   let selectionSerial=0;
   let activeListingId=null, lockedListingId=null, liveLocked=false;
   const SELLER_LINKS = 'a[href*="/shops/"],a[href*="/shop/"]';
@@ -265,7 +260,6 @@
     Object.assign(diagnostics, counts, {lastScanAt:Date.now(),parseHits,parseMisses});
     // Explicit click/capture extraction also refreshes the quiet heartbeat snapshot.
     cachedDeals=results;
-    latestCardRows=cardRows;
     return results;
   }
   function choiceError(card,message){
@@ -452,10 +446,8 @@
   function scan() {
     scanTimer = null;
     if (!isDealsPage()){needsExtract=true;cachedDeals=[];return;}
-    const started=performance.now(), mode=document.documentElement.getAttribute('data-fm-pro')==='on'?'on':'off';
     if(observer && invalidate(observer.takeRecords()))needsExtract=true;
-    const extracting=needsExtract || Date.now()-lastFullParse>=10000;
-    if(extracting){
+    if(needsExtract || Date.now()-lastFullParse>=10000){
       cachedDeals=extract();needsExtract=false;
     }else quietScans++;
     diagnostics.quietScans=quietScans;
@@ -470,9 +462,6 @@
     sendNext();
     // Deal delivery is dispatched first; archiving follows independently.
     archiveScreenshots();
-    if(extracting)noteScan(started,mode);
-    // Styling is deferred until AFTER bridge dispatch and never awaited.
-    proView?.update(latestCardRows);
   }
   function scheduleScan(force=true) {
     if(force)needsExtract=true;
@@ -500,13 +489,6 @@
       `;
       (document.head||document.documentElement).appendChild(style);
     }
-    try {
-      const applyPro=cfg=>{proView?.configure(cfg.fmRushProEnabled===true,cfg.fmRushProProfile);};
-      chrome.storage.local.get({fmRushProEnabled:true,fmRushProProfile:'normal'},applyPro);
-      chrome.storage.onChanged.addListener((changes,area)=>{
-        if(area==='local'&&(changes.fmRushProEnabled||changes.fmRushProProfile))chrome.storage.local.get({fmRushProEnabled:true,fmRushProProfile:'normal'},applyPro);
-      });
-    }catch(_){}
     console.info('[FM Rush] Click a listing or CHASE to select one seller; SKIP never records a purchase.');
     // Listing controls are excluded from parser text; normal site data stays intact.
     observer = new MutationObserver(mutations => {
@@ -545,7 +527,7 @@
           return false;
         }
         if (message?.kind==='fm-rush-get-status') {
-          respond({running:isDealsPage(),tabVisible:document.visibilityState==='visible',scanner:{...diagnostics,queued:queued.length,pending:sending,deliveredRemembered:seen.size,pro:proView?.status(),scanTiming:scanTiming()}});
+          respond({running:isDealsPage(),tabVisible:document.visibilityState==='visible',scanner:{...diagnostics,queued:queued.length,pending:sending,deliveredRemembered:seen.size}});
           return false;
         }
         return false;
