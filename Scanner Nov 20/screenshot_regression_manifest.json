@@ -1,0 +1,1224 @@
+{
+  "historical_ref": "abac54c3d3a20f25c4b0bb416b81d983a67ddae5",
+  "runtime_ref": "6eb81879516eb991ac5d0625f0f04170de1191d6",
+  "historical_paths": 127,
+  "historical_unique": 116,
+  "historical": [
+    {
+      "git_blob": "9d4ee361b8af6bf517611a5fb8597dc073e58b8d",
+      "size": 19649,
+      "paths": [
+        "DeathVeil.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "f7a325ac79fb53e65589cccdf40c2049d7fdf776",
+      "size": 71922,
+      "paths": [
+        "FM_Rush_v24_7/assets/deals_only_preview.png",
+        "assets/deals_only_preview.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "c867d79e950f60242ff610a0cc155825b1691420",
+      "size": 6691,
+      "paths": [
+        "FM_Rush_v24_7/assets/mora_badge_test.png",
+        "assets/mora_badge_test.png"
+      ],
+      "legacy_expectation": {
+        "target": "Mora",
+        "expect": "legacy padded badge fixture"
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "98dbd98e03d0ef1c0df2554e6055899d7bd7e106",
+      "size": 1501369,
+      "paths": [
+        "FM_Rush_v24_7/regression_samples/cernia.png",
+        "regression_samples/cernia.png"
+      ],
+      "legacy_expectation": {
+        "target": "Cernia",
+        "bounds": [
+          1248,
+          572,
+          1300,
+          599
+        ]
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "1a6c92b3c7ded05d7401655a2822e8f146fed234",
+      "size": 1189404,
+      "paths": [
+        "FM_Rush_v24_7/regression_samples/foxgod_060516.png",
+        "regression_samples/foxgod_060516.png"
+      ],
+      "legacy_expectation": {
+        "target": "FoxGod",
+        "point": [
+          1152,
+          179
+        ]
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "3123270f01861389e4df126cdd7a8d04aec14cc0",
+      "size": 1590494,
+      "paths": [
+        "FM_Rush_v24_7/regression_samples/isadlyfe_143200.png",
+        "regression_samples/isadlyfe_143200.png"
+      ],
+      "legacy_expectation": {
+        "target": "iSadlyfe",
+        "point": [
+          623,
+          289
+        ]
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "8a0c9a25ae58fd7749043bb1c810f28487b353bf",
+      "size": 1063970,
+      "paths": [
+        "FM_Rush_v24_7/regression_samples/jtedoigte_141333.png",
+        "regression_samples/jtedoigte_141333.png"
+      ],
+      "legacy_expectation": {
+        "target": "jtedoigte",
+        "point": [
+          704,
+          87
+        ]
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "40256217bfcc5b8e86be736e1dd7c1317f0467a1",
+      "size": 1357455,
+      "paths": [
+        "FM_Rush_v24_7/regression_samples/kilerious_085956.png",
+        "regression_samples/kilerious_085956.png"
+      ],
+      "legacy_expectation": {
+        "target": "Kilerious",
+        "point": [
+          621,
+          296
+        ],
+        "mode": "CONFUSABLE"
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "f86baf28ef2689008e3f0443e9a2855f258db88b",
+      "size": 1083466,
+      "paths": [
+        "FM_Rush_v24_7/regression_samples/kilerious_090017.png",
+        "regression_samples/kilerious_090017.png"
+      ],
+      "legacy_expectation": {
+        "target": "Kilerious",
+        "expect": "no_match"
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "4d78b0a9c0df87a6a93e9a698e5fe4ed9108f023",
+      "size": 1159710,
+      "paths": [
+        "FM_Rush_v24_7/regression_samples/oral_222618.png",
+        "regression_samples/oral_222618.png"
+      ],
+      "legacy_expectation": {
+        "target": "Oral",
+        "point": [
+          241,
+          617
+        ]
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "d1a8901c25e444e43b3098f1a5786fc8ad71f054",
+      "size": 748292,
+      "paths": [
+        "FM_Rush_v24_7/regression_samples/rollermo.png",
+        "regression_samples/rollermo.png"
+      ],
+      "legacy_expectation": {
+        "target": "Rollermo",
+        "bounds": [
+          505,
+          342,
+          548,
+          363
+        ]
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "652c485821f85a307674a5d4146442c76179bba7",
+      "size": 1190395,
+      "paths": [
+        "FM_Rush_v24_7/regression_samples/snapkin_072432.png",
+        "regression_samples/snapkin_072432.png"
+      ],
+      "legacy_expectation": {
+        "target": "Snapkin",
+        "expect": "no_match"
+      },
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "a163a57307443ce51f6cb96d0375b72d4566e3c4",
+      "size": 123565,
+      "paths": [
+        "HENEFM SCANS.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "823e86fb5359d3138001be0734863e5347975d80",
+      "size": 23315,
+      "paths": [
+        "HiJeezLouise.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "8c632f670034775097eee732362967ff47e17236",
+      "size": 20718,
+      "paths": [
+        "HisCapybara.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "d398a46c87421687af7c52f9d218e06ff18a40be",
+      "size": 21329,
+      "paths": [
+        "JwenZzzzz.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "9d5da4e64af401be7cce51f2b2ca3e23d9955e43",
+      "size": 14763,
+      "paths": [
+        "Kethan.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "10e50ccb0ef7ba7156e5f86c3065a7800e7cbe89",
+      "size": 12132,
+      "paths": [
+        "Mechanicus.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "15f1dd7419b203976c5c9713a060e046d1e0f714",
+      "size": 35198,
+      "paths": [
+        "MrKimchi (second).png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "63ebdfba220d886c5cd009b428227d8d10ec9d77",
+      "size": 38788,
+      "paths": [
+        "MrKimchi.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "88c51a9dd68b861af372202d8b9c801a0bc0f8ba",
+      "size": 24758,
+      "paths": [
+        "MrSogiamo.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "a6b33f56fddc571278377713ec6ebdf2917db81d",
+      "size": 27056,
+      "paths": [
+        "NightxMare.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "cd083e4cfa1239627fa22cbefa5fb7b4e4e717c1",
+      "size": 1108207,
+      "paths": [
+        "Screenshot 2026-11-14 235135.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "7a2d2b574544dede3fbe34081e8521384dd0806b",
+      "size": 1009604,
+      "paths": [
+        "Screenshot 2026-11-14 235313.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "8af117b026197b5711a722decb70d2f14c32b884",
+      "size": 1471592,
+      "paths": [
+        "Screenshot 2026-11-14 235719.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "fb67b9429aa64cb22ec9cbeba2c76eb2275f97aa",
+      "size": 172690,
+      "paths": [
+        "Screenshot 2026-11-15 001203.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "adc7bfd31f337c71ea0e96aa89cd7d303592a8a7",
+      "size": 18531,
+      "paths": [
+        "Screenshot 2026-11-15 001724.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "df473e7703a4dda2fec6fc62ea0a7e512da439b7",
+      "size": 22434,
+      "paths": [
+        "Screenshot 2026-11-15 002314.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "dbe394ad6f367397ada80736d7aee21ea3d90e8b",
+      "size": 22247,
+      "paths": [
+        "Screenshot 2026-11-15 002515.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "2565ff8fb10c2372003268851c1bae624fae3989",
+      "size": 19716,
+      "paths": [
+        "Screenshot 2026-11-15 002606.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "d0f6593bef96e9a0846f6549e30d5b5ce552c485",
+      "size": 16844,
+      "paths": [
+        "Screenshot 2026-11-15 112201.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "3ad41401a10289beae7306f72f9178773a2f05da",
+      "size": 19768,
+      "paths": [
+        "Screenshot 2026-11-15 112305.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "79e08008bd61812fc5d4065570f33c69b6ed6833",
+      "size": 19421,
+      "paths": [
+        "Screenshot 2026-11-15 115546.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "97314b98a7295b0dfea5853160c0e7a87b901a4a",
+      "size": 19902,
+      "paths": [
+        "Screenshot 2026-11-15 115715.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "f282c141d578f6b8dabf0c9d8011ea92a5b15d98",
+      "size": 16577,
+      "paths": [
+        "Screenshot 2026-11-15 115721.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "cba06d8418d69c200649d4b1aab3c163ea97b858",
+      "size": 19580,
+      "paths": [
+        "Screenshot 2026-11-15 115845.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "8ece7fd9a5c551ebfc56dcab4f155f7af3df097b",
+      "size": 18247,
+      "paths": [
+        "Screenshot 2026-11-15 120025.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "8132e6fb2300d84c5c81cc6819af5bbd143e3bce",
+      "size": 17901,
+      "paths": [
+        "Screenshot 2026-11-15 120338.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "5ac084c399e2536b6b1d0691694c377548ae0d4b",
+      "size": 17233,
+      "paths": [
+        "Screenshot 2026-11-15 120517.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "f8764ac83b29f1631d00d25d52be6253411fee99",
+      "size": 1310330,
+      "paths": [
+        "Screenshot 2026-11-15 120632.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "55aa6dfbe87cca61502cc809024722eac524729f",
+      "size": 18387,
+      "paths": [
+        "Screenshot 2026-11-15 120720.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "f448e5f1e131349a24b1725a2b4a374d7499404b",
+      "size": 42270,
+      "paths": [
+        "Screenshot 2026-11-15 120909.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "d0d52ad916c5c7c43f147858663782785a2e9958",
+      "size": 131660,
+      "paths": [
+        "Screenshot 2026-11-15 121239.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "5f74a68689d3092ebe575dd551f345bcd401fe27",
+      "size": 157836,
+      "paths": [
+        "Screenshot 2026-11-15 121426.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "8a022677d34dbdbcf4befeaccb879e3588d790d0",
+      "size": 37262,
+      "paths": [
+        "Screenshot 2026-11-15 194526.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "b81b8068b87f520901e7e59ecc0fc00c1ef75e00",
+      "size": 27746,
+      "paths": [
+        "Screenshot 2026-11-15 194609.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "a07041ab785f4deab2141893200e8664a938e3f2",
+      "size": 35354,
+      "paths": [
+        "Screenshot 2026-11-15 194853.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "73d5147234f69635b60ef58106a008f2c8a7a7a7",
+      "size": 1581907,
+      "paths": [
+        "Screenshot 2026-11-15 195253.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "0be764e3c444e5f031c4d87c1fb3b46ab4499298",
+      "size": 14723,
+      "paths": [
+        "Screenshot 2026-11-15 195310.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "a620ba9fd1ee130231221813e8fdf985119fd25c",
+      "size": 1257421,
+      "paths": [
+        "Screenshot 2026-11-15 195331.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "546d1650d96d3e50572eeda2cb8e09f38e8731f2",
+      "size": 887254,
+      "paths": [
+        "Screenshot 2026-11-15 195401.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "afedd2e48e447148227850698822039b9e7ccc5f",
+      "size": 154752,
+      "paths": [
+        "Screenshot 2026-11-15 195455.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "ddb6e3a996eaab7c027563e361a8a7f2177c3d8d",
+      "size": 27008,
+      "paths": [
+        "Screenshot 2026-11-15 195624.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "c7133f4785da810ac5db78af8bc2b3bd3903200b",
+      "size": 26837,
+      "paths": [
+        "Screenshot 2026-11-15 223247.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "19c10ae34acad2d8b7f4aeb6e8196e44dec4e086",
+      "size": 1211,
+      "paths": [
+        "Screenshot 2026-11-16 004024.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "4f0423956c56f8a5598f13fa8622f36017583f70",
+      "size": 179,
+      "paths": [
+        "Screenshot 2026-11-16 005108.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "1bdd8ebcc09325f3132cdeab932f19c677b784e5",
+      "size": 87697,
+      "paths": [
+        "Screenshot 2026-11-16 063033.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "438f54a225cd546cc8417d975a53cc4bb207850c",
+      "size": 88315,
+      "paths": [
+        "Screenshot 2026-11-16 064337.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "2e1081f4b595c3b5ab1d8279b1bee7372fc4a003",
+      "size": 37658,
+      "paths": [
+        "Screenshot 2026-11-16 064827.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "53fb7c97461a6788a610b60bf6edb54e3dd1a60e",
+      "size": 25664,
+      "paths": [
+        "Screenshot 2026-11-16 065240.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "519adb4cd453326678402b4eb71c44bc382ea54e",
+      "size": 29738,
+      "paths": [
+        "Screenshot 2026-11-16 065543.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "ba59ca49b9e613fccb4264833ee7e4a87fa62cc9",
+      "size": 1367598,
+      "paths": [
+        "Screenshot 2026-11-16 141643.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "d93714cb98f13c7b6066ba0942595c04ed0ab97a",
+      "size": 1234761,
+      "paths": [
+        "Screenshot 2026-11-16 141816.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "c17313a3754c0650dbf0fc033cd7272fa0c5408d",
+      "size": 1073200,
+      "paths": [
+        "Screenshot 2026-11-16 150317.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "e760d4e5229c973b61a13947530c0f1970eb1e4e",
+      "size": 88987,
+      "paths": [
+        "Screenshot 2026-11-16 150550.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "c59e46818610cd21384fc186c2836c69bd7a2dc6",
+      "size": 56473,
+      "paths": [
+        "Screenshot 2026-11-16 150649.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "181074932a6eb6709abd2d3c08e39744a6fc8385",
+      "size": 80127,
+      "paths": [
+        "Screenshot 2026-11-16 152138.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "253cd0838c3eb685047c3f70e879120573f7bd04",
+      "size": 102715,
+      "paths": [
+        "Screenshot 2026-11-16 152213.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "2005672db29c25235872c5c151da7c20aad6c147",
+      "size": 97546,
+      "paths": [
+        "Screenshot 2026-11-16 152234.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "717a91b5468759513f530eebe431103a1f366bed",
+      "size": 1197158,
+      "paths": [
+        "Screenshot 2026-11-16 152324.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "a2e7c6634dfb0d66e3745c5517f14d8ad4aeb23a",
+      "size": 26681,
+      "paths": [
+        "Screenshot 2026-11-16 152359.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "2975ca86a8df63ee762fbab8b9fb32533de8c7b1",
+      "size": 102474,
+      "paths": [
+        "Screenshot 2026-11-16 152446.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "feed7f7c9649c3cf0700a5a79a7c397c7c9597e1",
+      "size": 51651,
+      "paths": [
+        "Screenshot 2026-11-16 152528.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "5156d7b08da174049f1d99e130f871ed0710d72c",
+      "size": 1143306,
+      "paths": [
+        "Screenshot 2026-11-16 152648.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "0ff2473544e2ac2859abc7188cb8d3a28efe7768",
+      "size": 1167690,
+      "paths": [
+        "Screenshot 2026-11-16 153119.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "89dc84024f076b4ce37f12f325a6ee7325757467",
+      "size": 56232,
+      "paths": [
+        "Screenshot 2026-11-16 153308.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "c7fc4f77cbcf86b0febcdc3b72e78990c65cf613",
+      "size": 1209690,
+      "paths": [
+        "Screenshot 2026-11-16 153630.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "410ae346da83acd1b575fa1bee585177a60a5717",
+      "size": 186835,
+      "paths": [
+        "Screenshot 2026-11-16 153758.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "892acb3304224faf46f782bfb31bbf783dadf52a",
+      "size": 19551,
+      "paths": [
+        "Screenshot 2026-11-16 153814.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "17acd4f08ffe2835cbaf2a4fbd119f3aa38c4489",
+      "size": 1237748,
+      "paths": [
+        "Screenshot 2026-11-16 153839.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "bc8b0c9d1d40e0c89e1759edf2c1922560eb829f",
+      "size": 1257999,
+      "paths": [
+        "Screenshot 2026-11-16 153900.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "4389e96ba7e489c5d745e9bab9d3919a20049cd5",
+      "size": 1196940,
+      "paths": [
+        "Screenshot 2026-11-16 154229.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "8af650dc4c1add6d708e3f1d2b690a8e0ab5e2ea",
+      "size": 1219249,
+      "paths": [
+        "Screenshot 2026-11-16 154334.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "5d95f6bd48ef6b7d579b48d18f9a379a255c4277",
+      "size": 1157354,
+      "paths": [
+        "Screenshot 2026-11-16 154503.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "94f7b585d38f5ab1a13503ebe3e0ca1f7cad6e11",
+      "size": 1265397,
+      "paths": [
+        "Screenshot 2026-11-16 154547.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "fe595bb846a78ed8f01e5bfeee70f032daef597c",
+      "size": 1206105,
+      "paths": [
+        "Screenshot 2026-11-16 154918.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "1c9bac4a8651de823aece2be6d41c52921e10a4e",
+      "size": 25108,
+      "paths": [
+        "Screenshot 2026-11-16 154929.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "65661f3dae43263bc2e662fd274027f575534cbf",
+      "size": 125815,
+      "paths": [
+        "Screenshot 2026-11-16 160738.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "dcc6f62ba8239953609c94cb5506259310280303",
+      "size": 42320,
+      "paths": [
+        "Screenshot 2026-11-16 161258.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "3d750415a54b48bac038b197480244c7b90da623",
+      "size": 1077223,
+      "paths": [
+        "Screenshot 2026-11-16 162021.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "90444c72f18c8616085ac7daea03574b9e59cc27",
+      "size": 1201327,
+      "paths": [
+        "Screenshot 2026-11-16 162202.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "a8f46c222b962f2f6a8989d0b2dfee6fb7d55c95",
+      "size": 1169697,
+      "paths": [
+        "Screenshot 2026-11-16 162229.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "67ef4caffc217bcaf9e2680b0ad10af669429257",
+      "size": 1091357,
+      "paths": [
+        "Screenshot 2026-11-16 162357.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "92cadf3d34a6832f96d0b0436d8eba68f9a13238",
+      "size": 989438,
+      "paths": [
+        "Screenshot 2026-11-16 162456.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "2bd0a1c7e40ddbb0195e73614f939357e4be9e15",
+      "size": 1288410,
+      "paths": [
+        "Screenshot 2026-11-16 174245.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "809f41034784f3e3a7885c8f11a3fc26c1d0a9d9",
+      "size": 1374282,
+      "paths": [
+        "Screenshot 2026-11-16 174330.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "52163ac06e2831c1de0f8bbdcfb7795a383d78b8",
+      "size": 1440575,
+      "paths": [
+        "Screenshot 2026-11-16 175543.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "1480e20e721b61965e7cee794d180499dad050ba",
+      "size": 1473245,
+      "paths": [
+        "Screenshot 2026-11-16 185546.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "ed2410371988d8631c0dc4e17813ea06d00e29bc",
+      "size": 1299419,
+      "paths": [
+        "Screenshot 2026-11-16 185751.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "b8d432761063dab167730bc048be30fd11fe310b",
+      "size": 1315603,
+      "paths": [
+        "Screenshot 2026-11-16 190224.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "60d5e1b124c9bd5b4b1d9e1095694862e61ae473",
+      "size": 1279462,
+      "paths": [
+        "Screenshot 2026-11-16 191120.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "a22acb649328b72fb3b15a1ab13b49b73ac5ef3b",
+      "size": 1168921,
+      "paths": [
+        "Screenshot 2026-11-16 191702.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "b3656823a62b8246e1762d354998b87fb83f7595",
+      "size": 1296939,
+      "paths": [
+        "Screenshot 2026-11-16 195150.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "4950539dda2f9bd0c9fe0d9afedee3c63cab40fe",
+      "size": 1420299,
+      "paths": [
+        "Screenshot 2026-11-16 204232.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "73bce7e8fbcb7c374795263fe6a29b13487db246",
+      "size": 870317,
+      "paths": [
+        "Screenshot 2026-11-16 205756.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "9fbed531d0cd47dc37d9fa51f6ce4e403cb76c53",
+      "size": 1182099,
+      "paths": [
+        "Screenshot 2026-11-16 212444.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "f7afea552230dd22325ac1c968458dd58df91922",
+      "size": 1184360,
+      "paths": [
+        "Screenshot 2026-11-16 212549.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "6e16f71daa17a4b0189be56f3b30a85e5a804fb2",
+      "size": 1094768,
+      "paths": [
+        "Screenshot 2026-11-16 212708.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "35edf8a9fe93c250bb95dd3dfd4762f570caeb54",
+      "size": 442559,
+      "paths": [
+        "Screenshot 2026-11-16 213139.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "345d369f0b1aa0c17390289d925e9bafdc08e32c",
+      "size": 40269,
+      "paths": [
+        "Screenshot 2026-11-17 070705.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "5576939c99c560f360188d50fabecb40ffe5d065",
+      "size": 34113,
+      "paths": [
+        "Screenshot 2026-11-17 072936.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "c49feaed7de7b7bef1ccf7c001603f35534d3306",
+      "size": 36225,
+      "paths": [
+        "Screenshot 2026-11-17 075904.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "f45a6e97dd27610524d5af8ad7a4f8fe2c64e5df",
+      "size": 29461,
+      "paths": [
+        "Screenshot 2026-11-17 082311.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "ab5386fabddc4218d06aa6d58856ecac9a52f1d5",
+      "size": 872862,
+      "paths": [
+        "Screenshot 2026-11-17 152902.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "428f8a015845bcff992c6862b6c6e967d2d0d3cd",
+      "size": 32117,
+      "paths": [
+        "SillySpend.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    },
+    {
+      "git_blob": "62adc5bb8e3eec7825edda87fd0d4c3fb70fa32f",
+      "size": 13173,
+      "paths": [
+        "sykes.png"
+      ],
+      "legacy_expectation": null,
+      "status": "NOT_REPLAYED_CURRENT"
+    }
+  ],
+  "chat_cases": [
+    {
+      "names": [
+        "Screenshot 2026-11-26 012007.png",
+        "image(20261125-172014).png"
+      ],
+      "sha256_prefix": "e5e4f47552e6e188",
+      "anchor": [
+        585,
+        256
+      ],
+      "client": [
+        17,
+        42,
+        1366,
+        768
+      ],
+      "seller": "Euphye",
+      "item": "Frog Word Bubble Ring",
+      "price": 175000,
+      "expected_hits": [
+        [
+          1,
+          "SOLD"
+        ]
+      ],
+      "sold": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "offline": "pixel gate, sold flags and PNG verified using copied current routines; WinRT not run"
+    },
+    {
+      "names": [
+        "Screenshot 2026-11-26 012419.png"
+      ],
+      "sha256_prefix": "03fbb2a0438e0d86",
+      "anchor": [
+        585,
+        256
+      ],
+      "client": [
+        17,
+        42,
+        1366,
+        768
+      ],
+      "seller": "GoreMagala",
+      "item": "Cat's Eye",
+      "price": 90000,
+      "expected_hits": [
+        [
+          4,
+          "MATCH"
+        ]
+      ],
+      "sold": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "offline": "pixel gate, sold flags and PNG verified using copied current routines; WinRT not run"
+    },
+    {
+      "names": [
+        "Screenshot 2026-11-26 012414.png"
+      ],
+      "sha256_prefix": "98097fb1705d6c06",
+      "anchor": null,
+      "client": [
+        17,
+        42,
+        1366,
+        768
+      ],
+      "offline": "closed shop correctly rejected; exact HeneFM map pin unavailable for geometry replay"
+    }
+  ],
+  "missing_chat_originals": [
+    "image(20261125-162743).png",
+    "image(20261125-162845).png",
+    "image(20261125-163726).png",
+    "image(20261125-164209).png",
+    "image(20261125-164333).png",
+    "image(20261125-164734).png",
+    "image(20261125-165848).png",
+    "image(20261125-170332).png",
+    "image(20261125-171034).png",
+    "Screenshot 2026-11-26 011052.png",
+    "Screenshot 2026-11-26 011030.png",
+    "Screenshot 2026-11-26 011102.png",
+    "Screenshot 2026-11-26 011422.png"
+  ],
+  "notes": [
+    "Other unnamed transcript screenshot attachments not counted; original pixels not present in current repository or active runtime.",
+    "Legacy nameplate recognition was removed from current fixed-coordinate workflow; those fixtures cannot establish current shop projection without HeneFM map pin and camera metadata.",
+    "No images restored to main. Historical download is opt-in and separate."
+  ]
+}
