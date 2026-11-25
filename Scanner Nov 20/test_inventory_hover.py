@@ -279,6 +279,11 @@ class TrackerGeometryTests(TrackerFailureTests):
         t._find_geometry_anchor=lambda client:(568,214)
         lines=[{'y':5*SCALE,'text':'seller'},{'y':33*SCALE,'text':item},
                {'y':52*SCALE,'text':'1 for 100 mesos'}]
+        # _scan passes the OCR worker to the row cache even when recognition is mocked.
+        # Provide the dependency explicitly; unexpected direct OCR must still fail.
+        def unexpected_ocr(*args, **kwargs):
+            raise AssertionError('Unexpected direct OCR in mocked tracker')
+        t._ocr=SimpleNamespace(recognize=unexpected_ocr)
         t._row_cache=SimpleNamespace(recognize=lambda *args:(lines,[False]*6,True))
         t._scroll_checks={}
         return t
@@ -288,6 +293,7 @@ class TrackerGeometryTests(TrackerFailureTests):
         t=self.ready(True)
         with patch('shop_inventory.capture_client',return_value=frame(204,263)):
             t._scan(t._key)
+        self.assertTrue(t._latest and t._latest['hits'], t._latest)
         self.assertEqual(t._latest['hits'][0][0],'ROW_CHECK')
         self.assertTrue(t._latest['timing']['geometry_fallback'])
         self.assertTrue(t._digest[3])
@@ -297,6 +303,7 @@ class TrackerGeometryTests(TrackerFailureTests):
         t=self.ready(False)
         with patch('shop_inventory.capture_client',return_value=frame(204,263)):
             t._scan(t._key)
+        self.assertTrue(t._latest and t._latest['hits'], t._latest)
         self.assertEqual(t._latest['hits'][0][0],'MATCH')
         self.assertFalse(t._latest['timing']['geometry_fallback'])
 
@@ -321,9 +328,11 @@ class TrackerGeometryTests(TrackerFailureTests):
         t=self.ready(False)
         with patch('shop_inventory.capture_client',return_value=frame(204,263)):
             t._scan(t._key)
+            self.assertTrue(t._latest and t._latest['hits'], t._latest)
             self.assertEqual(t._latest['hits'][0][0],'MATCH')
             t._find_anchor=lambda client:None
             t._scan(t._key)
+        self.assertTrue(t._latest and t._latest['hits'], t._latest)
         self.assertEqual(t._latest['hits'][0][0],'ROW_CHECK')
         self.assertTrue(t._digest[3])
 
