@@ -178,4 +178,40 @@ class FastCaptureTests(unittest.TestCase):
                        ('Brown Bamboo Hat',5000),('Sap of Ancient Tree',500)])
         self.assertEqual(pick_rows(polearm,[True,False,True,False,False,False],None,'Polearm Attack Scroll: Intermediate',200000)[0],[])
 
+    def duplicate_lines(self,name='Dark Avenger',price=75000):
+        from shop_inventory import SCALE
+        return [{'text':text,'y':(28+i*40+offset)*SCALE}
+                for i in (0,1) for text,offset in ((name,9),(f'1 for {price:,} mesos',27))]
+
+    def test_duplicate_candidates_only_when_explicitly_enabled(self):
+        from shop_inventory import pick_rows
+        lines=self.duplicate_lines()
+        self.assertEqual(pick_rows(lines,[False]*6,None,'Dark Avenger',75000)[0],[])
+        self.assertEqual(pick_rows(lines,[False]*6,None,'Dark Avenger',75000,show_duplicates=True)[0],
+                         [(0,'AMBIGUOUS'),(1,'AMBIGUOUS')])
+        self.assertEqual(pick_rows(lines,[False]*6,None,'Dark Avenger',75001,show_duplicates=True)[0],[])
+        self.assertEqual(pick_rows(lines,[True]*6,None,'Dark Avenger',75000,show_duplicates=True)[0],[])
+        self.assertEqual(pick_rows(lines[:2],[False]*6,None,'Dark Avenger',75000,show_duplicates=True)[0],[(0,'MATCH')])
+        scroll='Dagger Attack Scroll: Intermediate'
+        self.assertEqual(pick_rows(self.duplicate_lines(scroll),[False]*6,None,scroll,75000,show_duplicates=True)[0],[])
+
+    def test_production_duplicate_candidates_exact_gate(self):
+        t=self.production_tracker('Dark Avenger')
+        t._key=(1,(0,0,1366,768),'listing','seller','Dark Avenger',75000,0,1)
+        t._row_cache.recognize=lambda *a:(self.duplicate_lines(),[False]*6,True)
+        with patch('shop_inventory.capture_client',return_value=self.combined()) as capture:
+            t._scan(t._key)
+        self.assertEqual(capture.call_count,2)
+        self.assertEqual([mode for mode,box in t._latest['hits']],['AMBIGUOUS','AMBIGUOUS'])
+        self.assertIn('verify stats',t._latest['status'])
+
+    def test_geometry_duplicates_stay_unhighlighted(self):
+        t=self.production_tracker('Dark Avenger')
+        t._key=(1,(0,0,1366,768),'listing','seller','Dark Avenger',75000,0,1)
+        t._row_cache.recognize=lambda *a:(self.duplicate_lines(),[False]*6,True)
+        frame=crop_bgr(self.combined(),2,73,204,263)
+        with patch.object(t,'_capture_pair',return_value=('geometry',frame,(568,214))):
+            t._scan(t._key)
+        self.assertEqual(t._latest['hits'],[])
+
 if __name__=='__main__':unittest.main()

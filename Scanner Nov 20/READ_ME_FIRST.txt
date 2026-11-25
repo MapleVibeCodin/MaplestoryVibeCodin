@@ -1,4 +1,5 @@
-METASCANNER v24.65.1 — SHOP FOCUS
+METASCANNER v24.65.2 — DUPLICATE CANDIDATES
+Yellow borders on multiple exact active non-scroll name/price rows are candidates only. Verify item stats manually. No green duplicate or strict scroll highlight.
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.

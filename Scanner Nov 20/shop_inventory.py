@@ -148,7 +148,7 @@ def price_in_display_bucket(actual, expected, step):
     return (step>1 and actual is not None and expected is not None
             and -step<=2*(actual-expected)<step)
 
-def pick_rows(lines, unavailable, seller, item, price, *, buy_step=0):
+def pick_rows(lines, unavailable, seller, item, price, *, buy_step=0, show_duplicates=False):
     """Exact normalized names and numeric displayed prices; no fuzzy guesses."""
     groups=[[] for _ in range(ROWS)]
     seller_text=[]
@@ -184,7 +184,10 @@ def pick_rows(lines, unavailable, seller, item, price, *, buy_step=0):
             if not strict and compatible:candidates.append((i,'SOLD_CHECK' if unavailable[i] else 'PRICE_CHECK'))
             continue
         (sold if unavailable[i] else active).append(i)
-    if len(active)>1:return [], 'Multiple exact matches · no highlight'
+    if len(active)>1:
+        if show_duplicates and not strict:
+            return [(i,'AMBIGUOUS') for i in active], 'Multiple exact matches · yellow candidates; verify stats'
+        return [], 'Multiple exact matches · no highlight'
     if active:return [(active[0],'MATCH')], 'Exact name + price · verify stats'
     if len(sold)>1:return [], 'Multiple sold matches · no highlight'
     if sold:return [(sold[0],'SOLD')], 'Target sold / unavailable'
@@ -629,9 +632,10 @@ class ShopInventoryTracker:
             with self._lock:
                 if self._key!=key:return
             self._ocr_failures=0
-            hits,status=pick_rows(lines,unavailable,None,item,price,buy_step=buy_step)
+            hits,status=pick_rows(lines,unavailable,None,item,price,buy_step=buy_step,
+                                  show_duplicates=not geometry and not blocked)
             used_sold_retry=False
-            if not hits and not strict:
+            if not hits and not strict and not status.startswith('Multiple exact matches'):
                 # Primary OCR misses on faded text must not be the sole cached verdict.
                 # Mocked/older tracker fixtures may construct the object without __init__.
                 if not hasattr(self,'_sold_retry'):self._sold_retry=SoldRetryCache()

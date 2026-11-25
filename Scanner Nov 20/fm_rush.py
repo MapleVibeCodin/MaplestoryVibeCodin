@@ -84,7 +84,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('MetaScanner v24.65.1 - Shop Focus')
+        self.root.title('MetaScanner v24.65.2 - Duplicate Candidates')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 

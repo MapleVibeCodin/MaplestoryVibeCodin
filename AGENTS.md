@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-## MetaScanner branch — v24.65.1 shop focus / browser v24.58.0
+## MetaScanner branch — v24.65.2 duplicate candidates / browser v24.58.0
+
+User reported no in-store highlight; uploaded native desktop screenshot shows old v24.65.0, two active Dark Avenger rows each 75,000 and a target with specific stats. v24.65.2 allows yellow AMBIGUOUS borders for multiple exact active non-scroll name/price matches only on exact unobstructed shop evidence. No extra OCR or green duplicate, sold/scroll/geometry/occlusion policy remains conservative. Prior pure pick_rows default remains fail-closed; live path opts in under those conditions. No automatic purchase or stat verification. See research/2026-11-26-metascanner-duplicate-candidates.md. Windows staged tests not yet rerun.
+
+## Previous MetaScanner branch — v24.65.1 shop focus / browser v24.58.0
 
 Nine new user PNGs confirmed automatic saving; last image shows v24.65.0. All nine exact button signatures were actually at (567,214), not assumed (568,214); all nine room-title tests pass. v24.65.1 detects an exact signature within ±2 pixels, aligns row crops to measured anchor, rejects movement during OCR, shares fresh screenshot presence and suppresses navigation before requesting OCR. Recorder polls 25ms. See research/2026-11-26-metascanner-shop-focus.md. No live OCR claim. Original source and screenshots remain preserved.
 
