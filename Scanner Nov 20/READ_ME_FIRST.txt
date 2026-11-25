@@ -1,8 +1,8 @@
-FM RUSH v24.63.4 — PASSIVE LIVE AUTO-LOCK
+METASCANNER v24.64.0 — PERFORMANCE PREVIEW
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
-Keep browser_extension v24.56.0 loaded in Brave. Open brave://extensions,
+Keep browser_extension v24.57.0 loaded in Brave. Open brave://extensions,
 enable Developer mode and Load unpacked if needed. Reload the extension
 and reload the HeneFM Deals tab once after upgrading to remove old scripts.
 HeneFM now controls its own live updates: no soft refresh or backup reload.

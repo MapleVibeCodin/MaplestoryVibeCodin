@@ -1,7 +1,7 @@
 # Download a consistent desktop release from GitHub and restart FM Rush.
 # Run from any directory; never overwrite local config or archive. Extension update is opt-in.
 param(
-    [string]$Ref = 'main',
+    [string]$Ref = 'MetaScanner',
     [string]$InstallDir,
     [switch]$UpdateExtension,
     [string]$ExtensionDir
@@ -10,8 +10,10 @@ $ErrorActionPreference = 'Stop'
 $repo = 'MapleVibeCodin/MaplestoryVibeCodin'
 $files = @(
     'camera_alignment.py','fm_rush.py','shop_position.py','shop_pin.py',
-    'shop_inventory.py','shop_screenshot.py','vision_guard.py','vision_geometry.py','performance_recorder.py','SHOP_OCR.ps1',
-    'test_vision_guard.py','test_vision_geometry.py','test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py','test_inventory_hover.py','test_shop_screenshot.py',
+    'shop_inventory.py','metascan_fast.py','shop_screenshot.py','vision_guard.py','vision_geometry.py','performance_recorder.py','SHOP_OCR.ps1',
+    'test_vision_guard.py','test_vision_geometry.py','test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py','test_inventory_hover.py','test_shop_screenshot.py','test_metascan_fast.py',
+    'test_shop_inventory.py','test_start_position.py','test_entrance_marker.py','test_click_record.py',
+    'test_fm4_calibration.py','test_fm5_calibration.py','test_fm9_calibration.py','test_fm11_calibration.py','test_fm16_calibration.py',
     'game_window.py','channel_overlay.py','deal_archive.py','deal_parser.py',
     'henefm_bridge.py','profit_filter.py','route_logic.py','trade_hotkeys.py',
     'START_FM_RUSH.bat','START_FM_RUSH.ps1','READ_ME_FIRST.txt'
@@ -78,7 +80,7 @@ if ($UpdateExtension) {
     $ExtensionDir = (Resolve-Path -LiteralPath $ExtensionDir).Path
     $files += @('browser_extension/manifest.json','browser_extension/background.js',
         'browser_extension/content.js','browser_extension/refresh_2s.js',
-        'browser_extension/screenshot_worker.js','browser_extension/popup.html','browser_extension/popup.js')
+        'browser_extension/screenshot_worker.js','browser_extension/popup.html','browser_extension/popup.js','browser_extension/pro_view.js')
 }
 function Get-UpdateDestination([string]$File) {
     if ($File.StartsWith('browser_extension/')) {
@@ -87,8 +89,8 @@ function Get-UpdateDestination([string]$File) {
     return (Join-Path $dir $File)
 }
 # Resolve main once so a concurrent commit cannot mix versions across files.
-if ($Ref -eq 'main') {
-    $Ref = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/commits/main" -UserAgent 'FM-Rush-Updater').sha
+if ($Ref -in @('main','MetaScanner')) {
+    $Ref = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/commits/$Ref" -UserAgent 'FM-Rush-Updater').sha
 }
 if ($Ref -notmatch '^[a-fA-F0-9]{40}$') { throw 'Use main or a full GitHub commit SHA.' }
 $base = "https://raw.githubusercontent.com/$repo/$Ref/Scanner%20Nov%2020"
@@ -128,6 +130,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Shop hover regression failed; no installed files changed.' }
         & $python (Join-Path $incoming 'test_shop_screenshot.py')
         if ($LASTEXITCODE -ne 0) { throw 'Shop screenshot regression failed; no installed files changed.' }
+        & $python -m unittest discover -s $incoming -p 'test_*.py' -v
+        if ($LASTEXITCODE -ne 0) { throw 'Full staged unit regression failed; no installed files changed.' }
     } else {
         throw 'Local Python environment unavailable; no installed files changed. Run the existing START_FM_RUSH.ps1 -SetupOnly then retry.'
     }

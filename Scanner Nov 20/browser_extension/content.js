@@ -1,4 +1,4 @@
-/* FM Rush v24.56.1 — passive live HeneFM deal bridge and separate listing screenshot archive.
+/* MetaScanner v24.57.0 — passive live HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Adds Chase/Skip controls and selection feedback only; no automatic game inputs.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -26,9 +26,12 @@
   let retryAfter = 0;
   let retryFailures = 0;
   let screenshotCandidates = [];
+  // Conservative until storage answers; click captures remain independent.
+  let bulkCaptureEnabled = true;
   let lastScreenshotBatchAt = 0;
   let lastScreenshotBatchHash = '';
   const queued = [];
+  const queuedIds = new Set();
   const liveSession=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
   let liveRevision=0,liveSending=false,liveHash=null,liveSentAt=-Infinity;
   const diagnostics = {lastScanAt:0, sellerLinks:0, cardsFound:0, soldCards:0, parsedCards:0, qualifyingDeals:0, sent:0, rejected:0, lastSentAt:0, lastError:'', lastRejectAt:0};
@@ -41,6 +44,7 @@
     const pending=JSON.parse(sessionStorage.getItem(QUEUE_KEY)||'[]');
     if(Array.isArray(pending))queued.push(...pending);
   } catch (_) { /* Fallback to tab-local state. */ }
+  for (const deal of queued) queuedIds.add(deal.id);
 
   function remember() {
     try {
@@ -194,7 +198,7 @@
         item,stats,buy??''].join('|').toLowerCase();
       return {sold,cc,fm,profit,buy,ign,item,stats,unusuallyCheap,baseKey,shop_position:readShopPosition(card),raw_text:((buyInfo.exact ? `Buy exact: ${buy} mesos each\n` : '')+lines.join('\n')).slice(0,6000)};
   }
-  function extract() {
+  function extract(forceCapture=false) {
     if(observer)invalidate(observer.takeRecords());
     if(Date.now()-lastFullParse>=10000){
       cardCache=new WeakMap();linkCache=new WeakMap();
@@ -232,11 +236,11 @@
       if(!parsed.value)continue;
       const {sold,cc,fm,profit,buy,ign,item,stats,unusuallyCheap,baseKey,shop_position,raw_text}=parsed.value;
       if(sold)counts.soldCards++;
-      const r=card.getBoundingClientRect();
+      const r=(bulkCaptureEnabled || forceCapture) ? card.getBoundingClientRect() : null;
       const occurrence=occurrences.get(baseKey)||0;occurrences.set(baseKey,occurrence+1);
       const captureKey=baseKey+'|'+occurrence;
       const captureId = fingerprint(captureKey) + fingerprint([...captureKey].reverse().join(''));
-      if (!uniqueCaptured.has(captureId) && r.width >= 12 && r.height >= 24) {
+      if (r && !uniqueCaptured.has(captureId) && r.width >= 12 && r.height >= 24) {
         uniqueCaptured.add(captureId);
         captureResults.push({id:captureId,item:item.slice(0,150),ign,cc,fm,
           buy_mesos:buy,sold,rect:{
@@ -351,7 +355,12 @@
     if(event.target?.closest?.('[data-fm-rush-controls]'))return;
     // Resolve against the current DOM, including a just-arrived live card.
     const chain=event.composedPath();
-    extract();
+    if(observer && invalidate(observer.takeRecords()))needsExtract=true;
+    // Clean known cards already have exact parsed identity. New/dirty cards
+    // and periodic reconciliation still use the original full extraction.
+    if(needsExtract || Date.now()-lastFullParse>=10000 || !chain.some(node=>cardDeals.has(node))){
+      extract();needsExtract=false;
+    }
     const card=chain.find(node=>cardDeals.has(node));
     if(!card)return;
     if(event.button!==0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey){
@@ -364,7 +373,7 @@
   document.addEventListener('click',captureListingClick,true);
   document.addEventListener('auxclick',captureListingClick,true);
   function archiveScreenshots() {
-    if (!isDealsPage() || !screenshotCandidates.length) return;
+    if (!bulkCaptureEnabled || !isDealsPage() || !screenshotCandidates.length) return;
     const now=Date.now();
     const digest=fingerprint(screenshotCandidates.map(c=>c.id).sort().join(','));
     if (digest===lastScreenshotBatchHash && now-lastScreenshotBatchAt<5000) return;
@@ -379,8 +388,8 @@
     } catch (_) { /* Extension may be reloading. */ }
   }
   function enqueue(deal) {
-    if (queued.some(d => d.id === deal.id)) return false;
-    queued.push(deal);
+    if (queuedIds.has(deal.id)) return false;
+    queued.push(deal);queuedIds.add(deal.id);
     return true;
   }
   function sendNext() {
@@ -396,6 +405,7 @@
         if (response?.ok && !chrome.runtime.lastError) {
           const index=queued.findIndex(d=>d.id===deal.id);
           if(index>=0)queued.splice(index,1);
+          queuedIds.delete(deal.id);
           // Only remember a deal AFTER FM Rush actually acknowledges it.
           // Previously a reload while the app was disconnected permanently
           // suppressed unsent deals for the rest of the tab session.
@@ -410,6 +420,7 @@
         } else if (response?.retryable === false) {
           const index=queued.findIndex(d=>d.id===deal.id);
           if(index>=0)queued.splice(index,1);
+          queuedIds.delete(deal.id);
           remember(); // Invalid data is reported instead of retrying forever.
           diagnostics.rejected++;
           diagnostics.lastRejectAt = Date.now();
@@ -432,8 +443,9 @@
     }
   }
   function syncLivePage(deals) {
+    if(liveSending)return;
     const hash=deals.map(d=>d.id+':'+JSON.stringify(d.shop_position)).join('|');
-    if(liveSending || (hash===liveHash && Date.now()-liveSentAt<5000))return;
+    if(hash===liveHash && Date.now()-liveSentAt<5000)return;
     liveSending=true;
     try {
       chrome.runtime.sendMessage({kind:'fm-rush-visible-deals',snapshot:{session:liveSession,
@@ -508,6 +520,18 @@
     observer = new MutationObserver(mutations => {
       if(invalidate(mutations))scheduleScan();
     });
+    const setBulkCapture = enabled => {
+      if(bulkCaptureEnabled===enabled)return;
+      bulkCaptureEnabled=enabled;scheduleScan();
+    };
+    try {
+      chrome.storage.local.get({fmRushScreenshotEnabled:false}, value=>{
+        if(!chrome.runtime.lastError)setBulkCapture(value.fmRushScreenshotEnabled===true);
+      });
+      chrome.storage.onChanged.addListener((changes,area)=>{
+        if(area==='local' && changes.fmRushScreenshotEnabled)setBulkCapture(changes.fmRushScreenshotEnabled.newValue===true);
+      });
+    } catch (_) { /* Preserve screenshot capture on storage failure. */ }
     observer.observe(document.documentElement, {subtree: true, childList: true,
       characterData: true, attributes: true, attributeFilter: ['data-sold', 'data-status', 'data-listing-id', 'href', 'src', 'hidden', 'aria-hidden', 'style']});
     document.addEventListener('visibilitychange', scheduleScan);
@@ -517,7 +541,7 @@
     try {
       chrome.runtime.onMessage?.addListener((message,_sender,respond) => {
         if (message?.kind==='fm-rush-locate-capture') {
-          extract();
+          extract(true);
           const card=screenshotCandidates.find(card=>card.id===message.id);
           respond(card?{ok:true,card}:{ok:false,error:'Listing no longer rendered'});
           return false;
@@ -532,7 +556,7 @@
           seen.clear();
           liveHash=null;liveSentAt=-Infinity;
           remember();
-          queued.length = 0;
+          queued.length = 0;queuedIds.clear();
           remember();
           retryAfter = 0;
           retryFailures = 0;

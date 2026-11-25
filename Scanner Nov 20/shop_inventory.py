@@ -16,6 +16,7 @@ import unicodedata
 import zlib
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
 from vision_guard import parse_price_line, highlight_expired, revalidate_changed_hits
+from metascan_fast import row_mask, scale3, negative_retry_due
 from vision_geometry import geometry_present, conservative_hits, WIDTH as GEOMETRY_WIDTH, HEIGHT as GEOMETRY_HEIGHT
 
 # Native shop UI: stable colored button borders, not seller or item pixels.
@@ -248,7 +249,7 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0, prefixes=None):
         unavailable.append(False if row in prefixes else sold_row_mask(frame,row))
     selected_rows={row for row in selected & set(range(ROWS)) if row not in prefixes and selected_row_mask(frame,row)}
     # Precompute expansion for each of the only two output pixel values.
-    black=b'\x00'*SCALE;white=b'\xff'*SCALE
+    # Native byte slices and lookup tables preserve the original thresholds.
     for oy in range(out_h):
         line=bytearray([255])*out_w
         if -1 in selected and 3<=oy<16:
@@ -263,14 +264,13 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0, prefixes=None):
             sy=23+row*STEP+dy
             cutoff=sold_line_cutoff(frame,sy,threshold_delta) if unavailable[row] and 3<=dy<=36 else 145+threshold_delta
             if row in selected and 3<=dy<=36:
-                for x in range(40,prefixes.get(row,198)):
-                    i=sy*stride+x*3
-                    b,g,r=buf[i:i+3]
-                    if row_ink(b,g,r,cutoff,row in selected_rows,threshold_delta):line[x-40]=0
+                right=prefixes.get(row,198)
+                pixels=buf[sy*stride+40*3:sy*stride+right*3]
+                line[:right-40]=row_mask(pixels,cutoff,row in selected_rows,threshold_delta)
                 # Pale sold rows may include a dark horizontal divider.
                 # Remove only near-full-width rules, never ordinary glyphs.
                 if line.count(0)>=120:line[:]=b'\xff'*out_w
-        scaled=b''.join(white if v else black for v in line)
+        scaled=scale3(line)
         rows.extend([scaled]*SCALE)
     ww,hh=out_w*SCALE,out_h*SCALE
     # Standard top-down 8-bit grayscale PNG, no BMP decoder conversion.
@@ -289,6 +289,10 @@ class RowOCRCache:
     """Cache OCR by exact native seller or row pixels, independent of row index."""
     def __init__(self,limit=512):
         self.limit=limit;self.entries=OrderedDict()
+
+    def invalidate(self,sections,prefixes):
+        for section,digest in sections:
+            self.entries.pop((section==-1,digest,prefixes.get(section)),None)
 
     @staticmethod
     def _base(section):return 0 if section==-1 else 28+section*STEP
@@ -413,6 +417,7 @@ class ShopInventoryTracker:
         # Still verify pixels and fall back if the window/layout differs.
         self._anchors={(1366,768):(568,214)};self._gate_next={};self._cache=InventoryCache()
         self._row_cache=RowOCRCache();self._sold_retry=SoldRetryCache();self._scroll_checks=OrderedDict();self._ocr_failures=0
+        self._last_ocr_at=0.0
         self._jobs=queue.Queue()
         self._worker=threading.Thread(target=self._work,daemon=True,name='FM inventory capture')
         self._worker.start()
@@ -522,7 +527,16 @@ class ShopInventoryTracker:
             sections=tuple((section,fp) for section,fp in section_fingerprints(frame) if section not in blocked or section in prefixes)
             digest=(left,top,sections,geometry,tuple(sorted(prefixes.items())))
             if digest==prev_digest:
-                self._publish(key,existing,digest);return
+                if not negative_retry_due(existing,getattr(self,'_last_ocr_at',0),time.monotonic()):
+                    self._publish(key,existing,digest);return
+                # Retry unchanged negative evidence at a bounded rate; never reuse a
+                # failed verdict indefinitely or evict unrelated successful rows.
+                if isinstance(self._row_cache,RowOCRCache):
+                    self._row_cache.invalidate(tuple((i,fp) for i,fp in sections if i>=0),prefixes)
+                if isinstance(getattr(self,'_sold_retry',None),SoldRetryCache):
+                    for cache_key in tuple(self._sold_retry.entries):
+                        if cache_key[:3]==(None,item,price) and not self._sold_retry.entries[cache_key]:
+                            self._sold_retry.entries.pop(cache_key,None)
             # Hide stale hits immediately unless seller and matched row pixels
             # are identical and the match is still unobstructed.
             verified=dict(sections)
@@ -536,6 +550,7 @@ class ShopInventoryTracker:
             with self._lock:
                 if self._key!=key:return
             ocr_started=time.perf_counter()
+            self._last_ocr_at=time.monotonic()
             # Seller pixels remain a cheap shop-change fingerprint only. Never OCR the name.
             row_sections=tuple((i,fp) for i,fp in sections if i>=0)
             lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr,row_sections,prefixes)
