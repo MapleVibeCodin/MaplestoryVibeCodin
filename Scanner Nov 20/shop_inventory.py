@@ -16,6 +16,7 @@ import unicodedata
 import zlib
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
 from vision_guard import parse_price_line, highlight_expired, revalidate_changed_hits
+from vision_geometry import geometry_present, conservative_hits, WIDTH as GEOMETRY_WIDTH, HEIGHT as GEOMETRY_HEIGHT
 
 # Native shop UI: stable colored button borders, not seller or item pixels.
 GREEN = bytes((67,223,208))*24
@@ -420,6 +421,17 @@ class ShopInventoryTracker:
         self._anchors[size]=result
         return result
 
+    def _find_geometry_anchor(self,client):
+        """Use only an existing calibrated anchor; never learn from tolerance."""
+        x,y,w,h=client
+        anchor=getattr(self,'_anchors',{}).get((w,h))
+        if anchor is None:return None
+        ax,ay=anchor
+        left,top=ax-140,ay-1
+        if left<0 or top<0 or left+GEOMETRY_WIDTH>w or top+GEOMETRY_HEIGHT>h:return None
+        frame=capture_client((x+left,y+top,GEOMETRY_WIDTH,GEOMETRY_HEIGHT),allow_crop=True)
+        return anchor if geometry_present(frame) else None
+
     def _scan(self,key):
         started=time.perf_counter()
         try:
@@ -428,8 +440,13 @@ class ShopInventoryTracker:
             _,client,_,seller,item,price,buy_step,_=key
             x,y,w,h=client
             anchor=self._find_anchor(client)
+            geometry=anchor is None
+            if geometry:anchor=self._find_geometry_anchor(client)
             if anchor is None:
                 self._publish(key,None);return
+            strict='scroll' in normalized(item)
+            if geometry and strict:
+                self._publish(key,{'status':'Shop geometry detected · waiting for exact scroll gate','hits':[]});return
             ax,ay=anchor
             left,top=ax-140,ay+70
             if left<0 or top<0 or left+204>w or top+263>h:
@@ -443,7 +460,7 @@ class ShopInventoryTracker:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             blocked=tooltip_blocked_rows(frame)
             sections=tuple((section,fp) for section,fp in section_fingerprints(frame) if section not in blocked)
-            digest=(left,top,sections)
+            digest=(left,top,sections,geometry)
             if digest==prev_digest:
                 self._publish(key,existing,digest);return
             # Hide stale hits immediately unless seller and matched row pixels
@@ -451,16 +468,10 @@ class ShopInventoryTracker:
             verified=dict(sections)
             prior=dict(prev_digest[2]) if prev_digest else {}
             held=[]
-            if existing and prev_digest and prev_digest[:2]==digest[:2] and verified.get(-1)==prior.get(-1):
-                for mode,box in existing['hits']:
-                    row=(box[1]-top-23)//STEP
-                    if row in verified and verified[row]==prior.get(row):held.append((mode,box))
-            # Pending recognition must not imply the whole new frame is verified.
-            # A held active candidate is amber until duplicate checking finishes.
-            if 'scroll' not in normalized(item):
-                held=[('ROW_CHECK' if mode=='MATCH' else mode,box) for mode,box in held]
-            else:
-                held=[]  # strict scrolls require the complete current check
+            if existing and prev_digest and prev_digest[:2]==digest[:2]:
+                prior_hits=[((box[1]-top-23)//STEP,mode) for mode,box in existing['hits']]
+                for row,mode in revalidate_changed_hits(prior_hits,prior,verified,strict):
+                    held.append((mode,(left+1,top+23+row*STEP,left+200,top+23+(row+1)*STEP-2)))
             self._publish(key,{'status':'Shop open · verifying visible rows','hits':held},None)
             with self._lock:
                 if self._key!=key:return
@@ -487,8 +498,10 @@ class ShopInventoryTracker:
                         self._scroll_checks[check_key]=True
                         while len(self._scroll_checks)>512:self._scroll_checks.popitem(last=False)
                 if not checked:hits=[];status='Scroll text not independently confirmed'
-            if self._find_anchor(client)!=anchor:
-                self._publish(key,None);return
+            confirmed=self._find_anchor(client)
+            if confirmed!=anchor:
+                if not geometry or confirmed is not None or self._find_geometry_anchor(client)!=anchor:
+                    self._publish(key,None);return
             frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
             if not frame_after:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
@@ -508,11 +521,15 @@ class ShopInventoryTracker:
                 digest=None
             if blocked and not hits and status=='Target not visible · scroll manually':
                 status='Tooltip covers rows · no unverified highlight'
+            if geometry:
+                hits=conservative_hits(hits,strict)
+                status=('Geometry candidate · verify seller, item and price' if hits
+                        else 'Shop geometry detected · '+status)
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]
             self._publish(key,{'status':status,'hits':hits,
                               'timing':{'scan_id':started,'total_ms':round((time.perf_counter()-started)*1000,2),
                                         'row_recognition_ms':round(ocr_ms,2),'used_ocr':bool(used_ocr),
-                                        'visible_rows':sum(i>=0 for i,_ in sections)}},digest)
+                                        'visible_rows':sum(i>=0 for i,_ in sections),'geometry_fallback':geometry}},digest)
         except Exception as exc:
             # A malformed capture/worker response must not kill the capture thread.
             # Report the error class without copying raw OCR or private text.
