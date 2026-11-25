@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.2; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.3; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## Latest runtime — v24.63.3 tooltip-safe recognition
+
+User screenshot shows v24.63.2 installed, Aqua Brace second row, visible 8,888 mesos vs rounded 8.9K, seller matches, but no highlight. On original 1921x1082 image, copied exact shop detector found desktop (574,305); room title shape error 12 prefix/0 bracket at (57,135), passes thresholds. Tooltip begins at crop x155, price ink ends x139, clean gap. Old tooltip rule blocks rows 2–4 including unobstructed text. Actual focus, live OCR/price step and runtime gate timing not proven by image alone. New tooltip_prefixes recognizes normal row background blank gap of eight columns with 3-pixel safety margin before purple tooltip edge; only for non-scroll. Crop OCR before tooltip, preserve original raw fingerprints and prefix in cache keys/digest, revalidate same prefix and raw pixels before publishing. Partial row cannot yield green; strict scroll stays excluded. Original screenshot offline prefix check returns zero-based rows {1:152,2:152}; row 3 rejected. Synthetic prefix tests run for gap, touching and left occlusion; staged PNG mask and mocked tracker tests added, full Windows suite not yet executed. Runtime commit 72d2ce0a70ec9b993988bed5af4bfa40b24e8707; browser unchanged. No private screenshot published, no historical files removed. Pinned updater stages tests before installation. No full OCR accuracy claim.
 
 ## 2026-11-26 — v24.63.2 installer regression fixture correction
 
