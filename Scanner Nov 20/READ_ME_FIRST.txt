@@ -1,8 +1,8 @@
-FM RUSH v24.54.8 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.54.9 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
-Keep browser_extension v24.54.2 loaded in Brave. Open brave://extensions,
+Keep browser_extension v24.54.9 loaded in Brave. Open brave://extensions,
 enable Developer mode and Load unpacked if needed. Reload the extension
 and reload the HeneFM Deals tab once after upgrading to remove old scripts.
 HeneFM now controls its own live updates: no soft refresh or backup reload.
@@ -36,6 +36,9 @@ Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/Maple
 If Brave uses a different unpacked folder, add -ExtensionDir with its actual path.
 Reload FM Rush in brave://extensions and refresh HeneFM once after updating.
 Updater preserves config.json and archives in LOCALAPPDATA/FM_Rush/archives.
-Explicit listing clicks still save PNGs to Desktop\Shit to sell; automatic
-locks do not save screenshots. Optional bulk archive remains unchanged.
+Every explicit HeneFM Deals listing click or CHASE saves click-time JSON to
+Desktop\Shit to sell\Click records and attempts a cropped PNG in Desktop\Shit to sell.
+If the local bridge is unavailable, JSON falls back to Downloads/FM_Rush_Clicked_Listings.
+A moved/disappeared card may prevent a PNG; the click record is still retained when writable.
+Auto-lock, SKIP, UNLOCK and passive scans never trigger clicked capture. Bulk archive unchanged.
 Project history: ../AGENTS.md

@@ -98,6 +98,28 @@ async function fmCaptureEnqueue(cards, sender) {
   if(!fmCaptureRunning) void fmCaptureDrain();
   return {ok:true,...fmCaptureStatus()};
 }
+async function fmCaptureRecordClicked(card,deal) {
+  // Store the exact click-time metadata before looking up a mutable live card.
+  try {
+    const response=await fetch('http://127.0.0.1:18773/listing-click',{
+      method:'POST',headers:{'Content-Type':'application/json','X-FM-Rush-Bridge':'v17-browser-view'},
+      body:JSON.stringify({deal}),signal:AbortSignal.timeout(3000)
+    });
+    const result=await response.json();
+    if(response.ok && result.ok)return {ok:true,file:result.file};
+  } catch (_) {}
+  // If the desktop bridge is unavailable, retain the record in Downloads.
+  const filename='FM_Rush_Clicked_Listings/'+fmCaptureTimestamp(new Date())+'_'+
+    fmCaptureSanitize(card.item)+'_'+fmCaptureSanitize(card.ign,24)+'_'+crypto.randomUUID()+'.json';
+  try {
+    const id=await chrome.downloads.download({
+      url:'data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify({
+        clicked_at:new Date().toISOString(),deal
+      },null,2)),filename,conflictAction:'uniquify',saveAs:false
+    });
+    return {ok:Number.isInteger(id),fallback:true};
+  }catch(err){return {ok:false,error:String(err)};}
+}
 async function fmCaptureClicked(card, deal, sender) {
   const tabId=sender?.tab?.id;
   if (!Number.isInteger(tabId) || sender.frameId !== 0 ||
@@ -105,9 +127,14 @@ async function fmCaptureClicked(card, deal, sender) {
       !fmCaptureValidCard(card) || deal?.listing_id!==card.id) {
     return {ok:false,error:'Invalid clicked listing'};
   }
-  if(fmClickedQueue.length>=24)return {ok:false,error:'Screenshot queue busy'};
+  // Begin recording independently of the screenshot queue and bulk toggle.
+  const record=fmCaptureRecordClicked(card,deal);
+  if(fmClickedQueue.length>=128){
+    const saved=await record;
+    return {ok:false,recordSaved:saved.ok,recordFallback:saved.fallback,error:'Screenshot queue busy'};
+  }
   return new Promise(resolve=>{
-    fmClickedQueue.push({tabId,card,deal,resolve,clicked:true});
+    fmClickedQueue.push({tabId,card,deal,record,resolve,clicked:true});
     if(!fmCaptureRunning)void fmCaptureDrain();
   });
 }
@@ -156,7 +183,11 @@ async function fmCaptureDrain() {
               after.card.id!==card.id || ['x','y','width','height'].some(k=>Math.abs(after.card.rect[k]-card.rect[k])>2))
             throw Error('Listing moved during capture; click again');
           const saved=await fmCaptureSaveClicked(card,task.deal,result.data);
-          task.resolve(saved);
+          const record=await task.record;
+          fmCaptureSavedInSession++;
+          fmCaptureLastSavedAt=Date.now();
+          fmCaptureLastError='';
+          task.resolve({...saved,recordSaved:record.ok,recordFallback:record.fallback});
           continue;
         }
         const downloadId=await chrome.downloads.download({
@@ -172,7 +203,10 @@ async function fmCaptureDrain() {
         // Persist once per file so a reload will not duplicate saved screenshots.
         await fmCapturePersist();
       } catch (err) {
-        if(task.clicked)task.resolve({ok:false,error:String(err?.message||err)});
+        if(task.clicked){
+          const record=await task.record;
+          task.resolve({ok:false,recordSaved:record.ok,recordFallback:record.fallback,error:String(err?.message||err)});
+        }
         fmCaptureFailedInSession++;
         fmCaptureLastError=String(err?.message||err);
         fmCaptureFailures.set(card.id,Date.now());

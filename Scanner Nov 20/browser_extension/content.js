@@ -1,4 +1,4 @@
-/* FM Rush v24.54.2 — passive live HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.54.9 — passive live HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Adds Chase/Skip controls and selection feedback only; no automatic game inputs.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -9,7 +9,7 @@
   window.__fmRushPassiveBridgeInstalled = true;
 
   const isDealsPage = () => /^\/flips\/deals\/?$/.test(location.pathname);
-  const cardDeals=new WeakMap();
+  let cardDeals=new WeakMap();
   let selectionSerial=0;
   let activeListingId=null, lockedListingId=null, liveLocked=false;
   const SELLER_LINKS = 'a[href*="/shops/"],a[href*="/shop/"]';
@@ -137,6 +137,7 @@
       ? {theme, left, top} : null;
   }
   function extract() {
+    cardDeals=new WeakMap();
     const results = [];
     const captureResults = [];
     const unique = new Set();
@@ -257,24 +258,27 @@
         console.warn('[FM Rush] Choice not delivered:',response?.error||chrome.runtime.lastError?.message);
       }
     }); }catch(error){choiceError(card,'NOT SENT · reload HeneFM');}
-    // A user click saves this listing, independently of chase acceptance.
-    // Do not capture auto-previewed cards, skip, unlock or background scans.
-    if(action==='select'){
-      const r=card.getBoundingClientRect();
-      const clicked={id:payload.listing_id,item:payload.item,ign:payload.ign,cc:payload.cc,fm:payload.fm,
-        buy_mesos:payload.buy_mesos,sold:payload.sold,rect:{
-          x:Math.max(0,Math.floor(r.left+window.scrollX-2)),
-          y:Math.max(0,Math.floor(r.top+window.scrollY-2)),
-          width:Math.ceil(r.width+4),height:Math.ceil(r.height+4)
-        }};
-      try {chrome.runtime.sendMessage({kind:'fm-rush-capture-clicked',card:clicked,deal:payload},response=>{
-        const error=chrome.runtime.lastError?.message||response?.error;
-        if(!response?.ok){
-          choiceError(card,'Screenshot not saved · '+(error||'start FM Rush'));
-          console.warn('[FM Rush] Click screenshot:',error);
-        }
-      });} catch(error){choiceError(card,'Screenshot not saved · reload HeneFM');}
-    }
+    if(action==='select')saveClicked(card, payload);
+  }
+  function saveClicked(card, payload) {
+    // Snapshot the listing at click time, separately from selection acceptance.
+    const r=card.getBoundingClientRect();
+    const clicked={id:payload.listing_id,item:payload.item,ign:payload.ign,cc:payload.cc,fm:payload.fm,
+      buy_mesos:payload.buy_mesos,sold:payload.sold,rect:{
+        x:Math.max(0,Math.floor(r.left+window.scrollX-2)),
+        y:Math.max(0,Math.floor(r.top+window.scrollY-2)),
+        width:Math.ceil(r.width+4),height:Math.ceil(r.height+4)
+      }};
+    const status=card.querySelector?.('[data-fm-rush-save-status]');
+    const note=text=>{if(status)status.textContent=text;};
+    note('Saving click…');
+    try {chrome.runtime.sendMessage({kind:'fm-rush-capture-clicked',card:clicked,deal:payload},response=>{
+      const error=chrome.runtime.lastError?.message||response?.error;
+      if(response?.ok)note('PNG saved');
+      else if(response?.recordSaved)note('Listing saved · PNG unavailable');
+      else note('Not saved · '+(error||'start FM Rush'));
+      if(!response?.ok)console.warn('[FM Rush] Click screenshot:',error);
+    });}catch(error){note('Not saved · reload HeneFM');}
   }
   function addChoiceControls(card){
     if(!card.querySelector || card.querySelector('[data-fm-rush-controls]') || !document.createElement)return;
@@ -288,15 +292,28 @@
     }
     const status=document.createElement('span');status.dataset.fmRushStatus='true';
     status.setAttribute('role','status');status.style.cssText='color:#b71c1c;font-size:11px;align-self:center;';
-    controls.appendChild(status);card.appendChild(controls);
+    controls.appendChild(status);
+    const saved=document.createElement('span');saved.dataset.fmRushSaveStatus='true';
+    saved.setAttribute('role','status');saved.style.cssText='font-size:11px;color:#087962;align-self:center;';
+    controls.appendChild(saved);card.appendChild(controls);
   }
-  document.addEventListener('click',event=>{
-    if(event.button!==0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)return;
+  function captureListingClick(event){
+    if(!isDealsPage() || !event.isTrusted || (event.button!==0 && event.button!==1))return;
     if(event.target?.closest?.('[data-fm-rush-controls]'))return;
-    for(let card=event.target;card && card!==document;card=card.parentElement){
-      if(cardDeals.has(card)){event.preventDefault();chooseDeal(card,'select');return;}
+    // Resolve against the current DOM, including a just-arrived live card.
+    const chain=event.composedPath();
+    extract();
+    const card=chain.find(node=>cardDeals.has(node));
+    if(!card)return;
+    if(event.button!==0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey){
+      const {id,...payload}=cardDeals.get(card);
+      saveClicked(card,payload); // preserve native modified-click navigation
+      return;
     }
-  },true);
+    event.preventDefault();chooseDeal(card,'select');
+  }
+  document.addEventListener('click',captureListingClick,true);
+  document.addEventListener('auxclick',captureListingClick,true);
   function archiveScreenshots() {
     if (!isDealsPage() || !screenshotCandidates.length) return;
     const now=Date.now();

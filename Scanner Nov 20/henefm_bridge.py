@@ -30,6 +30,25 @@ MAX_SCREENSHOT_BYTES=12*1024*1024
 CLICK_SCREENSHOT_DIR=Path.home() / 'Desktop' / 'Shit to sell'
 
 
+def save_clicked_record(data, folder=None):
+    """Preserve click-time listing details even if the live card disappears."""
+    if not isinstance(data,dict):raise ValueError('invalid click record')
+    raw=data.get('deal')
+    deal=parse_browser_deal(raw)
+    if deal is None or not re.fullmatch(r'[a-f0-9]{8,24}',deal.listing_id):
+        raise ValueError('invalid clicked listing')
+    directory=(Path(folder) if folder is not None else CLICK_SCREENSHOT_DIR) / 'Click records'
+    directory.mkdir(parents=True,exist_ok=True)
+    stamp=datetime.now().strftime('%Y-%m-%d_%H-%M-%S_%f')
+    def safe(value,limit):
+        return re.sub(r'[^\w .+-]','_',str(value))[:limit].strip(' .') or 'unknown'
+    name=f'{stamp}_CH{deal.cc or 0}-FM{deal.fm or 0}_{safe(deal.item,65)}_{safe(deal.ign,24)}_{uuid.uuid4().hex[:8]}.json'
+    path=directory / name
+    with path.open('x',encoding='utf-8') as output:
+        json.dump({'clicked_at':datetime.now().isoformat(),'deal':raw},output,ensure_ascii=False,indent=2)
+    return path
+
+
 def save_clicked_listing(data, folder=None):
     """Write a bounded PNG from the local extension; never accept a client path."""
     if not isinstance(data,dict):raise ValueError('invalid screenshot')
@@ -133,7 +152,7 @@ class BrowserBridge:
                     self._send(404, {'ok': False})
 
             def do_POST(self):
-                if self.path not in ('/deal','/visible','/select','/skip','/unlock','/listing-screenshot'):
+                if self.path not in ('/deal','/visible','/select','/skip','/unlock','/listing-screenshot','/listing-click'):
                     self._send(404, {'ok': False})
                     return
                 # This is a local UI bridge, not a remote data service. Require
@@ -155,6 +174,11 @@ class BrowserBridge:
                         raise ValueError('invalid request size')
                     data = json.loads(self.rfile.read(size).decode('utf-8'))
                     if not isinstance(data,dict):raise ValueError('request')
+                    if self.path=='/listing-click':
+                        try:path=save_clicked_record(data)
+                        except OSError:
+                            self._send(503,{'ok':False,'error':'Could not write click record'});return
+                        self._send(200,{'ok':True,'file':path.name});return
                     if self.path=='/listing-screenshot':
                         try:path=save_clicked_listing(data)
                         except OSError:

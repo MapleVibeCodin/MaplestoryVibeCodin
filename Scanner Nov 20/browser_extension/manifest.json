@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FM Rush — HeneFM Deal Scanner",
-  "version": "24.54.2",
+  "version": "24.54.9",
   "description": "Passively watches live HeneFM listings and sends them to FM Rush. No automatic HeneFM refresh.",
   "permissions": [
     "storage",
