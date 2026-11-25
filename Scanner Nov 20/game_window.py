@@ -121,6 +121,14 @@ def chase_shortcut_state() -> tuple[bool, tuple[bool, bool]]:
     return shift_only, (held(ord('1')), held(ord('2')))
 
 
+def cursor_screen_position() -> tuple[int, int] | None:
+    """Read desktop cursor position without changing focus or sending input."""
+    if sys.platform != 'win32':return None
+    point=wintypes.POINT()
+    if not u32.GetCursorPos(ctypes.byref(point)):return None
+    return point.x,point.y
+
+
 def cursor_on_client(hwnd: int, client: tuple[int, int, int, int]) -> tuple[int, int] | None:
     """Get the pointer's client position when it is over this game window."""
     if sys.platform != 'win32':

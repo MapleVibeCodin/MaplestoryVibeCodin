@@ -11,7 +11,7 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.58.0'
+VERSION='24.60.0'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
@@ -225,6 +225,7 @@ def summarize(rows):
     attempts=collections.defaultdict(list)
     for row in rows:attempts[row['attempt']].append(row)
     metrics=collections.defaultdict(list);result=[]
+    pointer_counts=collections.Counter()
     for aid,events in attempts.items():
         events.sort(key=lambda e:e['t'])
         start=next((e['t'] for e in events if e['event']=='lock_observed'),None)
@@ -233,6 +234,14 @@ def summarize(rows):
             event=e['event'];elapsed=None if start is None else round((e['t']-start)*1000,1)
             data={k:v for k,v in e.items() if k not in ('t','attempt','session','schema','version')}
             data['elapsed_ms']=elapsed;timeline.append(data)
+            if event in ('pointer_requested','pointer_duplicate','pointer_expired','pointer_failure','pointer_result','pointer_game_focus','pointer_displaced','pointer_watch_complete'):
+                pointer_counts[event]+=1
+            if event=='pointer_game_focus':
+                metrics['pointer_to_game_focus_ms:'+e['kind']].append(e['elapsed_ms'])
+            elif event=='pointer_displaced':
+                metrics['pointer_to_displacement_ms:'+e['kind']].append(e['elapsed_ms'])
+            elif event=='pointer_watch_complete':
+                metrics['pointer_max_outside_px:'+e['kind']].append(e['max_outside_px'])
             if event=='black_end':
                 metrics['black_ms:'+e.get('association','unclassified')].append(e['duration_ms'])
             elif event=='pointer_result' and e.get('ok'):
@@ -253,4 +262,4 @@ def summarize(rows):
         v=sorted(values);idx=lambda p:v[min(len(v)-1,max(0,int((len(v)-1)*p+.5)))]
         return {'n':len(v),'min':v[0],'median':statistics.median(v),'p90':idx(.9),'max':v[-1]}
     return {'attempt_count':len(result),'metrics':{k:distribution(v) for k,v in metrics.items()},
-            'attempts':result}
+            'pointer_event_counts':dict(pointer_counts),'attempts':result}

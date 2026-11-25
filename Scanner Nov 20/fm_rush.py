@@ -23,7 +23,7 @@ from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_off
 from trade_hotkeys import TradeHotkeys
 from performance_recorder import PerformanceRecorder
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
-from game_window import window_at_point
+from game_window import window_at_point, cursor_screen_position
 
 from deal_parser import parse_deal
 from henefm_bridge import BrowserBridge
@@ -82,7 +82,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.58.0 - Performance recorder')
+        self.root.title('FM Rush v24.60.0 - Pointer reliability')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -102,6 +102,7 @@ class FMApp:
         self.events=queue.Queue()
         self._trade_events=queue.Queue()
         self._pointer_serial=0
+        self._pointer_pending=None
         self.root.bind('<<FMRushTradeWake>>', self.drain_trade_events, add='+')
         self.browser_bridge=None
         self.grid=None
@@ -518,7 +519,8 @@ class FMApp:
             if action in ('trade_move_pointer','trade_move_channel'):
                 # Never move a cursor long after its physical shortcut.
                 if time.perf_counter()-received>.150:
-                    self._pointer_serial+=1
+                    recorder=getattr(self,'performance',None)
+                    if recorder is not None:recorder.marker('pointer_expired')
                     self.status.set('Pointer shortcut expired · try again')
                     continue
                 self.move_pointer_to_target('shop' if action=='trade_move_pointer' else 'channel',
@@ -550,12 +552,9 @@ class FMApp:
                 hwnd, window_rect(hwnd), window_client_rect(hwnd), self._portal_alignment)
 
     def move_pointer_to_target(self, kind, *, received=None):
-        self._pointer_serial+=1
-        serial=self._pointer_serial
         received=time.perf_counter() if received is None else received
         started=time.perf_counter()
         recorder=getattr(self,'performance',None)
-        if recorder is not None:recorder.marker('pointer_requested',at=received,kind=kind)
         if not self.archive.lock.acquire(blocking=False):
             self.status.set('Pointer target updating · try again')
             return
@@ -564,8 +563,22 @@ class FMApp:
             locked=self.archive.chase_locked
         finally:self.archive.lock.release()
         if not current or not locked:
+            self._pointer_serial+=1
+            self._pointer_pending=None
             self.status.set('Lock a listing before moving the pointer')
             return
+        pending=getattr(self,'_pointer_pending',None)
+        if pending is not None:
+            old_serial,old_kind,old_snapshot,deadline=pending
+            if (old_serial==self._pointer_serial and kind==old_kind and started<deadline
+                    and self._pointer_context(current,old_snapshot[5])==old_snapshot
+                    and self.shop.selected_hwnd()==old_snapshot[5]):
+                if recorder is not None:recorder.marker('pointer_duplicate',at=received,kind=kind)
+                return
+        self._pointer_serial+=1
+        serial=self._pointer_serial
+        self._pointer_pending=None
+        if recorder is not None:recorder.marker('pointer_requested',at=received,kind=kind)
         # Refresh the scene gate once, while game focus is still intact.
         # Do not recompute/reset entrance or inventory state after focus loss.
         self.refresh_overlays(current)
@@ -590,32 +603,44 @@ class FMApp:
         # Capture a single validated box and recheck lock, listing, alignment,
         # and exact window/client geometry immediately before cursor movement.
         focus_started=None
+        self._pointer_pending=(serial,kind,snapshot,min(received+.150,started+.085))
+        def clear_pending():
+            pending=getattr(self,'_pointer_pending',None)
+            if pending is not None and pending[0]==serial:self._pointer_pending=None
+        def fail(message,reason):
+            clear_pending()
+            if recorder is not None:
+                recorder.marker('pointer_failure',kind=kind,reason=reason)
+            self.status.set(message)
         def finish():
-            if self._closing or serial!=self._pointer_serial:return
+            if self._closing or serial!=self._pointer_serial:
+                clear_pending()
+                return
             now=time.perf_counter()
             if now-received>.150:
-                self.status.set('Pointer shortcut expired · try again')
+                fail('Pointer shortcut expired · try again','expired')
                 return
             if window_has_focus(hwnd):
                 if focus_started is not None and now-focus_started<.075:
                     self.schedule(5,finish)
-                else:self.status.set('MapleStory kept focus. Switch to FM Rush and try again.')
+                else:fail('MapleStory kept focus. Switch to FM Rush and try again.','focus_not_released')
                 return
             if not self.archive.lock.acquire(blocking=False):
-                self.status.set('Pointer target updating · try again')
+                fail('Pointer target updating · try again','archive_busy')
                 return
             try:
                 if self._pointer_context(self.archive.current(),hwnd)!=snapshot or self.shop.selected_hwnd()!=hwnd:
-                    self.status.set('Pointer target changed · try again')
+                    fail('Pointer target changed · try again','target_changed')
                     return
                 # Do not move if focus has returned while checking the target.
                 if window_has_focus(hwnd):
-                    self.status.set('Game focus changed · try again')
+                    fail('Game focus changed · try again','focus_changed')
                     return
                 left,top,right,bottom=box
                 window=snapshot[6]
                 problem=move_cursor_on_screen(hwnd,window[0]+(left+right)//2,window[1]+(top+bottom)//2)
             finally:self.archive.lock.release()
+            clear_pending()
             finished=time.perf_counter()
             dispatch_ms=(started-received)*1000
             total_ms=(finished-received)*1000
@@ -623,7 +648,10 @@ class FMApp:
             if recorder is not None:
                 recorder.marker('pointer_result',at=finished,kind=kind,ok=not bool(problem),
                     total_ms=round(total_ms,1),queue_ms=round(dispatch_ms,1),focus_ms=round(focus_ms,1))
-            self.status.set(problem or f'Pointer moved · {total_ms:.1f} ms (queue {dispatch_ms:.1f}, focus {focus_ms:.1f})')
+            message=problem or f'Pointer moved · {total_ms:.1f} ms (queue {dispatch_ms:.1f}, focus {focus_ms:.1f})'
+            self.status.set(message)
+            if not problem:
+                self._watch_pointer(serial,kind,snapshot,box,finished,message)
         if window_has_focus(hwnd):
             if self.root.state() in ('iconic','withdrawn'):self.root.deiconify()
             focus_started=time.perf_counter()
@@ -632,6 +660,57 @@ class FMApp:
             # deferred check gives the game a chance to process focus loss.
             self.schedule(5,finish)
         else:finish()
+
+    def _watch_pointer(self, serial, kind, snapshot, box, moved_at, message):
+        """Read-only, bounded post-move observation; never reposition or click."""
+        hwnd=snapshot[5]
+        origin=snapshot[6]
+        left,top,right,bottom=box
+        bounds=(origin[0]+left,origin[1]+top,origin[0]+right,origin[1]+bottom)
+        state={'focused':False,'drift':False,'samples':0,'max_drift':0.0}
+        recorder=getattr(self,'performance',None)
+        attempt=getattr(recorder,'active',None)
+        def emit(event,**fields):
+            if recorder is not None and getattr(recorder,'active',None)==attempt:
+                recorder.marker(event,kind=kind,**fields)
+        def status(text):
+            # Never overwrite a newer scanner message.
+            if self.status.get()==message:self.status.set(text)
+        def sample():
+            if self._closing or serial!=self._pointer_serial:return
+            now=time.perf_counter()
+            elapsed=round((now-moved_at)*1000,1)
+            if not self.archive.lock.acquire(blocking=False):return
+            try:
+                valid=(self.archive.chase_locked and self.archive.focus==snapshot[0])
+            finally:self.archive.lock.release()
+            if not valid or window_client_rect(hwnd)!=snapshot[7]:return
+            # Shop confirmation is observed by existing inventory telemetry.
+            # Once a new shop is visible, subsequent motion is not target drift.
+            if getattr(self,'_item_preview',None) is not None:return
+            pos=cursor_screen_position()
+            focused=window_has_focus(hwnd)
+            if pos is not None:
+                state['samples']+=1
+                x,y=pos;l,t,r,b=bounds
+                dx=max(l-x,0,x-(r-1));dy=max(t-y,0,y-(b-1))
+                drift=(dx*dx+dy*dy)**.5
+                state['max_drift']=max(state['max_drift'],drift)
+                if drift>0 and not state['drift']:
+                    state['drift']=True
+                    emit('pointer_displaced',elapsed_ms=elapsed,outside_px=round(drift,1),game_focused=focused)
+                    status('Cursor left target · verify before retrying')
+                if focused and not state['focused']:
+                    state['focused']=True
+                    emit('pointer_game_focus',elapsed_ms=elapsed,on_target=drift==0)
+                    if drift==0:status('Game focused · pointer on target')
+            if now-moved_at<.180:
+                self.schedule(10,sample)
+            else:
+                emit('pointer_watch_complete',elapsed_ms=elapsed,focus_observed=state['focused'],
+                     displaced=state['drift'],max_outside_px=round(state['max_drift'],1),samples=state['samples'])
+                if not state['focused']:status('Pointer positioned · game focus not observed')
+        self.schedule(10,sample)
 
     def align_shop_preview(self):
         current = self.archive.current()

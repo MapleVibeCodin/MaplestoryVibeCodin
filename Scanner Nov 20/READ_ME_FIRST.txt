@@ -104,3 +104,12 @@ Tools > Export performance report exports all local session logs and timing summ
 Tools > Pause/resume performance recording controls collection for this session.
 Logs: %LOCALAPPDATA%/FM_Rush/performance (separate from listing archive).
 No extension update required. Windows sampling and overhead unverified.
+
+POINTER RELIABILITY v24.60.0 (desktop only): same-kind pending pointer requests
+coalesce only for the identical validated listing/window; a different request
+still supersedes. After successful placement, read-only checks every 10ms for
+up to 180ms observe game focus and cursor drift outside the target box. Stops
+on superseding request, unlock, geometry change or visible item marker. Reports
+focus/distance in performance export. No cursor confinement, extra moves, clicks,
+keypress injection or forced game focus. Existing G HUB macros unchanged.
+Timing defaults need live validation; the watcher cannot guarantee a click lands.
