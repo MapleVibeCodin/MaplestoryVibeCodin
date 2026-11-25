@@ -74,6 +74,53 @@
         "README.md"
       ],
       "note": "Technical documentation retrieved; individual recognition files not located."
+    },
+    {
+      "repo": "ambroiseRabier/Pixel-OCR",
+      "ref": "237e55490e8b574af1c4e33d2827729569da642e",
+      "license": "unverified",
+      "files": 0,
+      "reference": [
+        "WakfuDataScrapper/Src/Services/PixelsFinder.service.cs",
+        "WakfuDataScrapper/Src/Services/FontConverter.cs",
+        "WakfuDataScrapper/Src/Services/FontVisualizer.cs"
+      ]
+    },
+    {
+      "repo": "RatScanner/RatScanner",
+      "ref": "cfc243ee2adb070b6db3ac27c7a48aea3cca5b7a",
+      "license": "modified Elastic License 2.0 (restricted; reference only)",
+      "files": 0,
+      "reference": [
+        "LICENSE",
+        "RatScanner/Scan/ItemIconScan.cs",
+        "RatScanner/Scan/ItemNameScan.cs"
+      ]
+    },
+    {
+      "repo": "Lost-Ark-Market-Online/LostArk-Market-Watcher",
+      "ref": "97cad65d2020bd2029ddcf147864be06be0aa1b8",
+      "license": "unverified",
+      "files": 0,
+      "reference": [
+        "modules/scan.py",
+        "index.py",
+        "test_scan.py"
+      ]
+    },
+    {
+      "repo": "BraedenKilburn/abi-market-data",
+      "ref": "692f3a0e16780fe0685a5816020d5f65ed5206a4",
+      "license": "MIT",
+      "bundle": "cross-game-source.json",
+      "files": 4
+    },
+    {
+      "repo": "WFCD/WFInfo",
+      "ref": "161f371422fde5aa68ed02f6d827ec6dabda9cc0",
+      "license": "Apache-2.0",
+      "bundle": "cross-game-source.json",
+      "files": 4
     }
   ]
 }
