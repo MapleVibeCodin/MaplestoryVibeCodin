@@ -1,4 +1,4 @@
-FM RUSH v24.54.10 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.54.11 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -44,3 +44,5 @@ Auto-lock, SKIP, UNLOCK and passive scans never trigger clicked capture. Bulk ar
 Project history: ../AGENTS.md
 
 UI: channel navigation arrow text removed from bottom strip; channel and FM overlays unchanged.
+
+FM16: restored room-specific zero bottom margin, moving the default shop projection down 192 client pixels. Manual doorway alignment is unchanged.
