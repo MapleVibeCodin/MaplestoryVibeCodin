@@ -258,6 +258,8 @@
     screenshotCandidates = captureResults;
     counts.qualifyingDeals = results.length;
     Object.assign(diagnostics, counts, {lastScanAt:Date.now(),parseHits,parseMisses});
+    // Explicit click/capture extraction also refreshes the quiet heartbeat snapshot.
+    cachedDeals=results;
     return results;
   }
   function choiceError(card,message){
