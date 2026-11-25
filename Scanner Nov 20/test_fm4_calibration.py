@@ -12,4 +12,4 @@ class FM4CalibrationTests(unittest.TestCase):
         for size in ((1280,720),(1366,768)):
             new=entry_shop_point(pin,4,size)
             old=entry_shop_point(pin,4,size,(size[0]-225,size[1]-192))
-            self.assertEqual(new,(old[0],old[1]+142))
+            self.assertEqual(new,(old[0],old[1]+142+(45 if size==(1366,768) else 0)))

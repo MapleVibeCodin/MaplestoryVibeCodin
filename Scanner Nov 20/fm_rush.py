@@ -77,7 +77,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.54.7 - New start position')
+        self.root.title('FM Rush v24.54.8 - FM4 fine alignment')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
