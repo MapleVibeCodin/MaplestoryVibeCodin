@@ -1,5 +1,6 @@
 """Read-only shop inventory OCR. No input injection, network, or game memory access."""
 from __future__ import annotations
+from collections import OrderedDict
 import hashlib
 import json
 import os
@@ -20,6 +21,8 @@ ORANGE = bytes((92,159,255))*24
 ROWS = 6
 STEP = 40
 SCALE = 3
+CACHE_LIMIT = 64
+GATE_INTERVAL = .75
 
 def locate_shop(buffer,w,h,stride):
     """Return SELLER INFO button left highlight anchor, or None."""
@@ -38,6 +41,35 @@ def locate_shop(buffer,w,h,stride):
                     hits.append((x,y))
             at=line.find(GREEN,at+3)
     return hits[0] if len(hits)==1 else None
+
+def inventory_fingerprint(frame):
+    """Hash only native seller/name/price pixels, not icons/chat/overlay edges.
+    This inexpensive check happens before any scaling, binarization or OCR.
+    """
+    buf,w,h,stride=frame
+    if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:
+        raise ValueError('Invalid inventory crop')
+    digest=hashlib.blake2b(digest_size=20)
+    for y in range(3,16):
+        digest.update(buf[y*stride+9*3:y*stride+89*3])
+    for row in range(ROWS):
+        for y in range(25+row*STEP,60+row*STEP):
+            digest.update(buf[y*stride+40*3:y*stride+198*3])
+    return digest.digest()
+
+class InventoryCache:
+    """Bounded session-local cache of OCR results by exact visible text pixels."""
+    def __init__(self,limit=CACHE_LIMIT):
+        self.limit=limit
+        self.entries=OrderedDict()
+    def get(self,digest):
+        result=self.entries.get(digest)
+        if result is not None:self.entries.move_to_end(digest)
+        return result
+    def put(self,digest,lines,unavailable):
+        self.entries[digest]=(lines,unavailable)
+        self.entries.move_to_end(digest)
+        while len(self.entries)>self.limit:self.entries.popitem(last=False)
 
 def normalized(s):
     return ' '.join(unicodedata.normalize('NFKC',str(s)).casefold().split())
@@ -167,6 +199,7 @@ class ShopInventoryTracker:
         self._lock=threading.Lock()
         self._key=None;self._latest=None;self._next=0;self._busy=False
         self._digest=None;self._ocr=WindowsOCR();self._closed=False
+        self._anchors={};self._gate_next={};self._cache=InventoryCache()
         if os.name=='nt':
             threading.Thread(target=self._warm,daemon=True).start()
     def _warm(self):
@@ -191,18 +224,40 @@ class ShopInventoryTracker:
         with self._lock:
             if self._key==key:
                 self._latest=result;self._digest=digest
+    def _find_anchor(self,client):
+        """Learn one anchor per client resolution; use a tiny fixed pixel gate."""
+        x,y,w,h=client
+        size=(w,h)
+        cached=self._anchors.get(size)
+        if cached is not None:
+            ax,ay=cached
+            gx,gy=ax-5,ay
+            if gx>=0 and gy>=0 and gx+85<=w and gy+53<=h:
+                gate=capture_client((x+gx,y+gy,85,53),allow_crop=True)
+                if gate and locate_shop(*gate)==(5,0):
+                    return cached
+        # Only search the larger centered area for initial calibration or
+        # a moved shop; rate-limit when the shop is closed.
+        now=time.monotonic()
+        if now<self._gate_next.get(size,0):return None
+        self._gate_next[size]=now+GATE_INTERVAL
+        gx=max(0,w//2-260);gy=max(0,h//2-280)
+        gw=min(w-gx,520);gh=min(h-gy,360)
+        gate=capture_client((x+gx,y+gy,gw,gh),allow_crop=True)
+        anchor=locate_shop(*gate) if gate else None
+        if anchor is None:return None
+        result=(gx+anchor[0],gy+anchor[1])
+        self._anchors[size]=result
+        return result
+
     def _scan(self,key):
         try:
             _,client,_,seller,item,price=key
             x,y,w,h=client
-            # Cheap centered shop-button search, not full-screen OCR.
-            gx=max(0,w//2-260);gy=max(0,h//2-280)
-            gw=min(w-gx,520);gh=min(h-gy,360)
-            gate=capture_client((x+gx,y+gy,gw,gh),allow_crop=True)
-            anchor=locate_shop(*gate) if gate else None
+            anchor=self._find_anchor(client)
             if anchor is None:
                 self._publish(key,None);return
-            ax,ay=gx+anchor[0],gy+anchor[1]
+            ax,ay=anchor
             left,top=ax-140,ay+70
             if left<0 or top<0 or left+204>w or top+263>h:
                 self._publish(key,{'status':'Shop open · inventory clipped','hits':[]});return
@@ -214,22 +269,26 @@ class ShopInventoryTracker:
                 self._publish(key,{'status':'Shop open · reading inventory','hits':[]});return
             frame=capture_client((x+left,y+top,204,263),allow_crop=True)
             if not frame:return
-            bmp,unavailable=prepare_ocr(frame)
-            digest=hashlib.blake2b(bmp+bytes(unavailable)+struct.pack('<ii',left,top),digest_size=12).digest()
+            pixels=inventory_fingerprint(frame)
+            digest=(pixels,left,top)
             if digest==prev_digest:return
-            self._publish(key,{'status':'Shop open · reading inventory','hits':[]})
-            lines=self._ocr.recognize(bmp)
-            # Discard an OCR result if the shop moved, closed, or rows changed
-            # during recognition. Never point to a stale row after scrolling.
-            gate_after=capture_client((x+gx,y+gy,gw,gh),allow_crop=True)
-            if not gate_after or locate_shop(*gate_after)!=anchor:
-                self._publish(key,None);return
-            frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
-            if not frame_after:
-                self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
-            bmp_after,unavailable_after=prepare_ocr(frame_after)
-            if bmp_after!=bmp or unavailable_after!=unavailable:
-                self._publish(key,{'status':'Shop open · rows changed, retrying','hits':[]});return
+            cached=self._cache.get(pixels)
+            if cached is None:
+                self._publish(key,{'status':'Shop open · reading inventory','hits':[]})
+                bmp,unavailable=prepare_ocr(frame)
+                lines=self._ocr.recognize(bmp)
+                # Cache the original recognized pixels, even if the shop
+                # subsequently changes. Reuse only when those pixels recur.
+                self._cache.put(pixels,lines,unavailable)
+                if self._find_anchor(client)!=anchor:
+                    self._publish(key,None);return
+                frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
+                if not frame_after:
+                    self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
+                if inventory_fingerprint(frame_after)!=pixels:
+                    self._publish(key,{'status':'Shop open · rows changed, retrying','hits':[]});return
+            else:
+                lines,unavailable=cached
             hits,status=pick_rows(lines,unavailable,seller,item,price)
             # Coordinates relative to game client. Outline, never click.
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]

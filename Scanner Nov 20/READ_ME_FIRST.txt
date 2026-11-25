@@ -1,4 +1,4 @@
-FM RUSH v24.55.1 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.55.2 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -61,3 +61,11 @@ OCR v24.55.1: suppresses full-width divider artifacts in sold rows, requests Gra
 from the Windows decoder, reports worker exit and retries stale frames explicitly.
 The screenshot confirmed shop detection and the sold-row pixel classification;
 Windows OCR recognition and live latency still require validation.
+
+CACHED SHOP FINDER v24.55.2: learns the shop UI anchor once per resolution,
+checks a fixed 85x53 pixel gate, fingerprints only native seller/name/price
+pixels before preprocessing, and caches 64 recognized inventories per session.
+Unchanged inventory and exact cached revisits do not invoke OCR. New visible
+text/price/sold pixels or scrolling require recognition. Target changes can
+reuse cached text, but still require exact seller/name/price matching. No
+live Windows timing measured. FM coordinate projections unchanged.
