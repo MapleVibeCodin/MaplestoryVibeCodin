@@ -98,3 +98,9 @@ Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/Maple
 
 ## 2026-11-24 — display and movement research checkpoint
 - Read [viewport and input observations](research/2026-11-24-viewport-and-input-observations.md) before repeating display experiments. User-tested 1720×900, 1920×1080, 1024×768 and 1720×1200 did not reveal upper FM shop signs from a fixed standing position; fixed vertical coverage is an inference, not verified engine internals. External mouse mappings are separate from scanner code. Movement estimates are provisional pending original-video verification. No runtime edits; preserve passive/manual-click design and keep private media outside public GitHub.
+
+
+## 2026-11-25 — launch command checkpoint
+- Current main desktop source verified: `Scanner Nov 20/fm_rush.py` declares v24.53.1 (blob `3003be0a814acb8a647a2a02da3fce230b015869`). `UPDATE_FM_RUSH.ps1` and `START_FM_RUSH.bat` also retrieved and verified present. No runtime source changes or Windows/in-game testing this session; prior unresolved alignment and screenshot checks remain open.
+- Latest launch-only command (no reinstall/update; searches Desktop and Downloads for newest launcher by modification time, not version): see [verbatim launch exchange](Scanner%20Nov%2020/transcripts/2026-11-25-launch-checkpoint.md), archived at commit `0f5c3a269023cd5c0f23e22868eba47403abbe3e`, read back exactly. Prefer the documented updater for installing latest published files. Do not claim local version or launch success without evidence.
+- On explicit checkpoint requests, archive available user-visible project messages verbatim in dated transcript files and update this handoff; state missing text, attachments, UI metadata and any verification limitations. Never publish unrelated private information or claim complete prior-chat access. Scrolling-EV remains a separate project in `scrolling-ev/`; its existing research checkpoint was read and left unchanged.
