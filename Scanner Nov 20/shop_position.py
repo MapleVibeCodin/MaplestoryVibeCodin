@@ -68,7 +68,9 @@ def entry_shop_point(position, room, client_size, aligned_portal=None):
     # Apply only to the measured 1366x768 default, not manual alignment.
     if client_size == (1366, 768) and aligned_portal is None:
         # FM4 screenshot 164734: same seller X, sign strip 45px lower.
-        screen_y += {4: 45, 5: 48}.get(room, 0)
+        # FM11 screenshot 171034: the box is on the roof, approximately
+        # 66 native pixels above the lower clickable strip.
+        screen_y += {4: 45, 5: 48, 11: 66}.get(room, 0)
     return round(screen_x + shop_x - portal_x), round(screen_y + shop_y - portal_y)
 
 

@@ -1,4 +1,4 @@
-FM RUSH v24.54.11 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.54.12 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -46,3 +46,5 @@ Project history: ../AGENTS.md
 UI: channel navigation arrow text removed from bottom strip; channel and FM overlays unchanged.
 
 FM16: restored room-specific zero bottom margin, moving the default shop projection down 192 client pixels. Manual doorway alignment is unchanged.
+
+FM11: default 1366x768 shop projection moved down 66px based on screenshot 171034; manual alignment and other rooms unchanged.
