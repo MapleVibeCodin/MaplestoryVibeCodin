@@ -154,3 +154,6 @@ User requests same methodology for all glove stats and range. [Glove research](.
 
 ## Latest claw optimization (5m dedicated)
 [Claw research](../scrolling-ev/CLAW_RESEARCH.md). Actual 5k-grid finite-state DP, L65k +1, I600k +2, G65k +4, Chaos+5 unpriced excluded. No citizenship. Avarice29/90k E final40.1676, net4.838m; crafted115k E39.96438. Steel Slain34/2.6m E41.6 net4.66m, 33/1.4m E41.37845 net4.629m, 36/4.65m E41 net4.975m. Recommend 34 Slain seven Lesser guarantees41 at3.055m; 3 Intermediate +4 Lesser mean41.6 at4.66m, but extra cost exceeds marginal200k equivalent tolerance. 33 Slain seven Lesser guarantees40 for1.855m. Avarice craft9 accessible if trained, Slain craft10 unavailable. Target probabilities and Chaos price sensitivity in research. HeneFM indexed, not live authenticated. No purchase/engine edit. Structured checkpoint only.
+
+## Latest fixed claw Lesser rule
+70k per 100% +1 claw scroll, user confirms buyable without citizenship. New actual 5m restricted DP: Avarice29/90k E40.15689, crafted115k E39.95003, Slain33/1.4m E41.37845, Slain34/2.6m E41.6 net4.68m. Guaranteed 34 Slain+7 Lesser=41 ATT for3.09m; 33 Slain+7 Lesser=40 for1.89m. No Chaos quote. See [research](../scrolling-ev/CLAW_RESEARCH.md) and [exchange](../scrolling-ev/transcripts/2026-11-25-claw-lesser-70k.md). No fresh other quotes or engine changes.
