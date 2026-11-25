@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.60.0; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.61.0; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## 2026-11-26 — v24.61.0 first-frame channel-change profiles
+
+User clarified each room group has the same camera movement on channel change and immediate manual clicking is the priority. Reviewed four 1920x1080 60fps recordings with a native 1366x768 game client at top-left: 03-14-15 FM17 (first fully bright frame 256), 03-14-30 FM13 (279), 03-14-46 FM8 (256), 03-15-01 FM2 (251). First fully visible doorway threshold estimates in client pixels: FM1–6 (1127,766), FM7–12 (735,542), FM13–16 (1127,766), FM17–20 (735,540). This is one sample per group, visually estimated, not independent HeneFM pin-to-sign validation. Camera continues to move after fade-in (grass roughly 40–46 px from first returning terrain to end of clip; cave also shifts vertically); initial profile is optimized for immediate use, not a settled view. No new screenshots, OCR, delay or input automation. Default CC entry mode on; Tools checkbox turns it off for normal portal entry, manual alignment overrides, 1280x720 keeps original calibration with explicit unmeasured-profile status. Do not add room-specific legacy fine offsets on top of CC anchors. The ordinary overlay refresh already projects a locked listing before channel change; no extra capture or wait added. New group/manual/fallback tests staged by updater; Windows/live accuracy not yet verified. Historical files and branches untouched; no raw video published.
 
 ## Clickable session continuation
 - [Start a new ChatGPT chat with the checkpoint prompt](https://chatgpt.com/?q=Resume%20FM%20Rush%20checkpoint%20from%20https%3A%2F%2Fgithub.com%2FMapleVibeCodin%2FMaplestoryVibeCodin%2Fblob%2Fmain%2FAGENTS.md.%20Inspect%20the%20latest%20source%20and%20run%20the%2010%20continuity%20checks%20before%20proceeding.). The web q parameter may prefill or submit depending on the client; verify the prompt and send if necessary.

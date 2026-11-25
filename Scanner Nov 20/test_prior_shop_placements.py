@@ -2,7 +2,7 @@
 import unittest
 from shop_position import (
     room_theme, entry_portal_point, entry_shop_point, shop_marker,
-    shop_offscreen_notice, read_shop_position,
+    shop_offscreen_notice, read_shop_position, channel_entry_portal,
 )
 
 GRASS={1:11,2:44,3:48,4:50,5:45,6:8,13:47,14:48,15:40,16:0}
@@ -54,3 +54,28 @@ class PriorShopPlacementTests(unittest.TestCase):
             self.assertIn(word,shop_offscreen_notice(point,size))
         self.assertIsNone(read_shop_position({'theme':'cave','left':50,'top':50},4))
         self.assertIsNone(entry_shop_point({'theme':'grass','left':50,'top':50},18,size))
+
+
+class ChannelEntryTests(unittest.TestCase):
+    def test_all_rooms_use_four_calibrated_groups(self):
+        for lo,hi,anchor in ((1,6,(1127,766)),(7,12,(735,542)),(13,16,(1127,766)),(17,20,(735,540))):
+            for room in range(lo,hi+1):
+                with self.subTest(room=room):
+                    self.assertEqual(channel_entry_portal(room,(1366,768)),anchor)
+                    pin={'theme':room_theme(room),'left':50,'top':50}
+                    self.assertEqual(entry_shop_point(pin,room,(1366,768),channel_entry=True),entry_shop_point(pin,room,(1366,768),anchor))
+
+    def test_manual_alignment_overrides_cc(self):
+        for room in range(1,21):
+            pin={'theme':room_theme(room),'left':50,'top':50}
+            self.assertEqual(entry_shop_point(pin,room,(1366,768),(400,500),channel_entry=True),entry_shop_point(pin,room,(1366,768),(400,500)))
+
+    def test_unmeasured_resolution_keeps_portal(self):
+        for room in range(1,21):
+            pin={'theme':room_theme(room),'left':50,'top':50}
+            self.assertIsNone(channel_entry_portal(room,(1280,720)))
+            self.assertEqual(entry_shop_point(pin,room,(1280,720),channel_entry=True),entry_shop_point(pin,room,(1280,720)))
+        self.assertIsNone(channel_entry_portal(0,(1366,768)))
+        self.assertIsNone(channel_entry_portal(21,(1366,768)))
+
+if __name__=='__main__':unittest.main()

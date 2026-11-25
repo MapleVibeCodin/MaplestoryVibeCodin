@@ -12,6 +12,19 @@ PLOTS = {'grass': (548, 564, 695), 'cave': (758, -792, 720)}
 ENTRY_PORTAL = {'grass': (793, 33), 'cave': (50, 1421)}
 ENTRY_CLIENTS = {(1280, 720), (1366, 768)}
 
+# First fully visible post-channel-change frame, 1366x768 native client.
+# Four Nov 26 recordings show FM2, FM8, FM13 and FM17 respectively.
+# Anchors are estimated doorway threshold centers; not settled-view anchors.
+# One sample per group. Do not scale these to unmeasured resolutions.
+CC_ENTRY_PROFILES = ((1, 6, (1127, 766)), (7, 12, (735, 542)),
+                     (13, 16, (1127, 766)), (17, 20, (735, 540)))
+
+
+def channel_entry_portal(room, client_size):
+    if client_size != (1366, 768) or room_theme(room) is None:
+        return None
+    return next(anchor for first, last, anchor in CC_ENTRY_PROFILES if first <= room <= last)
+
 
 def room_theme(room):
     if room is None or not 1 <= room <= 20:
@@ -55,18 +68,19 @@ def entry_portal_point(room, client_size):
     return width // 2 + 58, height // 2 + {7: 121, 9: 149, 11: 97, 17: 97}.get(room, 108)
 
 
-def entry_shop_point(position, room, client_size, aligned_portal=None):
+def entry_shop_point(position, room, client_size, aligned_portal=None, *, channel_entry=False):
     """Return the seller's feet relative to the room portal on screen."""
     theme = room_theme(room)
     if client_size not in ENTRY_CLIENTS or theme != position['theme']:
         return None
     portal_x, portal_y = ENTRY_PORTAL[theme]
     shop_x, shop_y = world_shop_point(position)
-    screen_x, screen_y = aligned_portal or entry_portal_point(room, client_size)
+    cc_portal = channel_entry_portal(room, client_size) if channel_entry and aligned_portal is None else None
+    screen_x, screen_y = aligned_portal or cc_portal or entry_portal_point(room, client_size)
     # FM5 screenshot 162409: horizontal position correct; shop strip is
     # 48 native client pixels below the previous fixed projection.
     # Apply only to the measured 1366x768 default, not manual alignment.
-    if client_size == (1366, 768) and aligned_portal is None:
+    if client_size == (1366, 768) and aligned_portal is None and cc_portal is None:
         # FM4 screenshot 164734: same seller X, sign strip 45px lower.
         # FM11 screenshot 171034: the box is on the roof, approximately
         # 66 native pixels above the lower clickable strip.

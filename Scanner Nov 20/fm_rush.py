@@ -19,7 +19,7 @@ from shop_pin import ShopPreviewPin, EntranceGuidePin, entrance_marker
 from camera_alignment import EntranceCameraTracker
 from shop_inventory import ShopInventoryTracker
 from shop_pin import ItemInventoryPin
-from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice
+from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice, channel_entry_portal
 from trade_hotkeys import TradeHotkeys
 from performance_recorder import PerformanceRecorder
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
@@ -49,6 +49,7 @@ def settings():
         'grid_geom':data.get('grid_geom',''),
         'map_geom':data.get('map_geom',''),
         'topmost':bool(data.get('topmost',True)),
+        'channel_entry':bool(data.get('channel_entry',True)),
     }
 
 
@@ -82,7 +83,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.60.0 - Pointer reliability')
+        self.root.title('FM Rush v24.61.0 - Instant CC entry')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -126,6 +127,7 @@ class FMApp:
         self._item_preview = None
         self._shop_preview = None
         self._portal_alignment = None
+        self._cc_entry_mode = bool(self.conf['channel_entry'])
         self._channel_preview = None
         self._chase_keys_down = None
         self.shop=GameWindow(self)
@@ -192,6 +194,10 @@ class FMApp:
                              ('Pause/resume performance recording',self.toggle_performance),
                              ('Reopen last skipped deal',self.undo_deal)]:
             menu.add_command(label=title,command=action)
+        menu.add_separator()
+        self._cc_entry_var=tk.BooleanVar(value=self._cc_entry_mode)
+        menu.add_checkbutton(label='Channel-change entry profile (1366x768)', variable=self._cc_entry_var,
+                             command=self.change_entry_profile)
         tools.pack(side='right')
 
         footer=tk.Frame(self.root,bg=BG)
@@ -204,6 +210,14 @@ class FMApp:
         preview_status=self.lbl(footer,var=self.shop.notice,size=9,color=MUTED)
         preview_status.configure(width=1,anchor='e')
         preview_status.grid(row=0,column=1,sticky='ew')
+
+    def change_entry_profile(self):
+        self._cc_entry_mode=bool(self._cc_entry_var.get())
+        self.conf['channel_entry']=self._cc_entry_mode
+        self._pointer_serial+=1
+        self._pointer_pending=None
+        self._portal_alignment=None
+        self.refresh_overlays(self.archive.current())
 
     def enter_route(self):
         value=simpledialog.askstring('Enter route','Enter a channel and room, such as CH 22 FM 13.',
@@ -475,7 +489,8 @@ class FMApp:
         elif deal.shop_position is None:
             status = 'No map pin on this HeneFM deal'
         else:
-            point = entry_shop_point(deal.shop_position, deal.fm, client[2:], aligned_portal)
+            cc_profile = self._cc_entry_mode and channel_entry_portal(deal.fm, client[2:]) is not None
+            point = entry_shop_point(deal.shop_position, deal.fm, client[2:], aligned_portal, channel_entry=cc_profile)
             if point is None:
                 status = 'Shop preview requires 1280 × 720 or 1366 × 768'
             else:
@@ -484,7 +499,9 @@ class FMApp:
                     status = offscreen_notice = shop_offscreen_notice(point, client[2:])
                 else:
                     preview = (hwnd, window[2:], box)
-                    status = 'Shop aligned to entry portal' if aligned_portal else 'Shop preview ready'
+                    status = ('Shop aligned to entry portal' if aligned_portal else
+                              'CC entry · first-frame preview' if cc_profile else
+                              'Portal entry · CC profile unmeasured' if self._cc_entry_mode else 'Shop preview ready')
 
         if self.shop.notice.get() != status:
             self.shop.notice.set(status)
@@ -549,7 +566,8 @@ class FMApp:
         if not current or not self.archive.chase_locked or not hwnd:return None
         deal=current[1]
         return (current[0], deal.cc, deal.fm, repr(deal.shop_position), deal.sold,
-                hwnd, window_rect(hwnd), window_client_rect(hwnd), self._portal_alignment)
+                hwnd, window_rect(hwnd), window_client_rect(hwnd), self._portal_alignment,
+                getattr(self,'_cc_entry_mode',False))
 
     def move_pointer_to_target(self, kind, *, received=None):
         received=time.perf_counter() if received is None else received
