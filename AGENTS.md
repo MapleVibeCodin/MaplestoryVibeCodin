@@ -1,6 +1,6 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.55.2; browser extension: v24.54.9. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.55.3; browser extension: v24.54.9. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
 ## Clickable session continuation
 - [Start a new ChatGPT chat with the checkpoint prompt](https://chatgpt.com/?q=Resume%20FM%20Rush%20checkpoint%20from%20https%3A%2F%2Fgithub.com%2FMapleVibeCodin%2FMaplestoryVibeCodin%2Fblob%2Fmain%2FAGENTS.md.%20Inspect%20the%20latest%20source%20and%20run%20the%2010%20continuity%20checks%20before%20proceeding.). The web q parameter may prefill or submit depending on the client; verify the prompt and send if necessary.
@@ -8,6 +8,8 @@ Last updated: 2026-11-26 (Taipei). Current desktop release: v24.55.2; browser ex
 - Bookmark these links. They reference this live checkpoint, not a frozen version of its contents. On each future Save checkpoint, provide clickable resume links as well as a plain prompt fallback. Do not claim a new session has been tested unless actually verified.
 
 ## Resume now — authoritative short checkpoint (2026-11-26 Taipei)
+
+- **v24.55.3**: screenshots 012414 and 012419 show FM18 GoreMagala target Cat's Eye 90,000, marker on roof and local v24.55.1 WinRT `GetSoftwareBitmapAsync` error; target is fifth visible row, active. 012007 shows older v24.55.0 sold Frog Word Bubble Ring. Native screenshot crops show FM18 +48px downward correction; both opened-shop screenshots independently contain unique absolute button anchor (585,256). Seed estimated client-relative (568,214) at 1366x768 with strict pixel verification/fallback, preserve cache. Replace 24-bit BMP and direct Gray8 decoding with standard 8-bit grayscale PNG, default decode then BGRA8 conversion; stage-specific error and concise map notice. Exact seller/name/price checks preserved. Regression tests added; Windows OCR and latency remain unverified. No raw screenshots published. Extension unchanged v24.54.9. Earlier version references below superseded.
 
 - **v24.55.2 cached shop finder**: user confirms FM positions and shop UI are fixed, requests no repeated OCR. Retain fixed FM projections and existing entrance detection, learn shop anchor once per client resolution, use 85×53 fixed pixel gate, rate-limit large fallback search, fingerprint native seller/name/price pixels before BMP preprocessing, cache up to 64 OCR results per session (including exact revisits and target switches). OCR only for uncached changed visible inventory; stale capture rejection and exact seller/name/price matching retained. Cache is local and in-memory, not permanent. New synthetic tests added; Windows runtime and latency unverified. Extension remains v24.54.9. See latest runtime commit in main history; earlier release references below are historical.
 

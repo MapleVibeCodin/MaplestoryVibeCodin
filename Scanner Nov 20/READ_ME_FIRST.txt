@@ -1,4 +1,4 @@
-FM RUSH v24.55.2 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.55.3 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -69,3 +69,9 @@ Unchanged inventory and exact cached revisits do not invoke OCR. New visible
 text/price/sold pixels or scrolling require recognition. Target changes can
 reuse cached text, but still require exact seller/name/price matching. No
 live Windows timing measured. FM coordinate projections unchanged.
+
+v24.55.3: FM18 default native 1366x768 shop box lowered 48px. Shop OCR now
+uses a grayscale PNG, default WinRT decode followed by BGRA8 conversion, and
+stage-specific errors. Seeded 1366x768 shop anchor is pixel-verified, with
+fallback to previous calibrated gate. Cache and exact match retained.
+Windows OCR must still be tested on the user's machine.

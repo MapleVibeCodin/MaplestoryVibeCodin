@@ -27,13 +27,20 @@ if (-not $engine) { $engine = [Windows.Media.Ocr.OcrEngine]::TryCreateFromUserPr
 while ($null -ne ($inputLine = [Console]::ReadLine())) {
     $stream = $null
     $bitmap = $null
+    $rawBitmap = $null
+    $stage = 'initialize'
     try {
         if (-not $engine) { throw 'Windows OCR language unavailable' }
+        $stage = 'open PNG'
         $path = ConvertFrom-Json -InputObject $inputLine
         $file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($path)) ([Windows.Storage.StorageFile])
         $stream = Await ($file.OpenReadAsync()) ([Windows.Storage.Streams.IRandomAccessStreamWithContentType,Windows.Storage.Streams,ContentType=WindowsRuntime])
         $decoder = Await ([Windows.Graphics.Imaging.BitmapDecoder]::CreateAsync($stream)) ([Windows.Graphics.Imaging.BitmapDecoder])
-        $bitmap = Await ($decoder.GetSoftwareBitmapAsync([Windows.Graphics.Imaging.BitmapPixelFormat]::Gray8,[Windows.Graphics.Imaging.BitmapAlphaMode]::Ignore)) ([Windows.Graphics.Imaging.SoftwareBitmap])
+        $stage = 'decode PNG'
+        $rawBitmap = Await ($decoder.GetSoftwareBitmapAsync()) ([Windows.Graphics.Imaging.SoftwareBitmap])
+        $stage = 'convert BGRA8'
+        $bitmap = [Windows.Graphics.Imaging.SoftwareBitmap]::Convert($rawBitmap,[Windows.Graphics.Imaging.BitmapPixelFormat]::Bgra8,[Windows.Graphics.Imaging.BitmapAlphaMode]::Ignore)
+        $stage = 'recognize'
         $result = Await ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult,Windows.Foundation,ContentType=WindowsRuntime])
         $lines = @($result.Lines | ForEach-Object {
             $words = @($_.Words)
@@ -44,9 +51,10 @@ while ($null -ne ($inputLine = [Console]::ReadLine())) {
         })
         [Console]::WriteLine((@{ok=$true;lines=$lines} | ConvertTo-Json -Compress -Depth 5))
     } catch {
-        [Console]::WriteLine((@{ok=$false;error=$_.Exception.Message} | ConvertTo-Json -Compress))
+        [Console]::WriteLine((@{ok=$false;error=($stage + ': ' + $_.Exception.GetBaseException().Message)} | ConvertTo-Json -Compress))
     } finally {
         if ($bitmap) { $bitmap.Dispose() }
+        if ($rawBitmap) { $rawBitmap.Dispose() }
         if ($stream) { $stream.Dispose() }
     }
 }

@@ -30,11 +30,18 @@ class InventoryTests(unittest.TestCase):
         for yy in range(y,y+40):
             b[yy*stride:(yy+1)*stride]=bytes((248,245,242))*w
         b[(y+36)*stride+40*3:(y+36)*stride+198*3]=bytes((180,180,180))*158
-        bmp,sold=prepare_ocr((bytes(b),w,h,stride))
+        png,sold=prepare_ocr((bytes(b),w,h,stride))
         self.assertEqual(sold,[False,True,False,False,False,False])
-        width=162*SCALE; height=(28+6*40)*SCALE; pitch=(width*3+3)&~3
-        row=54+(height-1-(28+40+36)*SCALE)*pitch
-        self.assertEqual(bmp[row:row+width*3],b'\xff'*(width*3))
+        import struct,zlib
+        self.assertEqual(png[:8],b'\x89PNG\r\n\x1a\n')
+        width=162*SCALE; height=(28+6*40)*SCALE
+        self.assertEqual(struct.unpack('>IIBBBBB',png[16:29]),(width,height,8,0,0,0,0))
+        length=struct.unpack('>I',png[33:37])[0]
+        self.assertEqual(png[37:41],b'IDAT')
+        raw=zlib.decompress(png[41:41+length])
+        self.assertEqual(len(raw),height*(width+1))
+        row=(28+40+36)*SCALE*(width+1)
+        self.assertEqual(raw[row:row+width+1],b'\x00'+b'\xff'*width)
         lines=[{'text':'Euphye','y':9*SCALE},{'text':'Frog Word Bubble Ring','y':(28+40+9)*SCALE},{'text':'1 for 175,000 mesos','y':(28+40+27)*SCALE}]
         self.assertEqual(pick_rows(lines,sold,'Euphye','Frog Word Bubble Ring',175000)[0],[(1,'SOLD')])
 
@@ -73,3 +80,14 @@ class InventoryTests(unittest.TestCase):
             self.assertEqual(tracker._find_anchor((10,20,1366,768)),(568,214))
             capture.assert_called_once_with((573,234,85,53),allow_crop=True)
         tracker.close()
+
+    def test_fm18_default_only(self):
+        from shop_position import entry_shop_point,entry_portal_point
+        position={'theme':'cave','left':50,'top':50}
+        size=(1366,768)
+        manual=entry_shop_point(position,18,size,entry_portal_point(18,size))
+        default=entry_shop_point(position,18,size)
+        self.assertEqual(default,(manual[0],manual[1]+48))
+        size=(1280,720)
+        self.assertEqual(entry_shop_point(position,18,size),
+                         entry_shop_point(position,18,size,entry_portal_point(18,size)))

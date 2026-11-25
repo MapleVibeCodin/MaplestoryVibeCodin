@@ -70,7 +70,8 @@ def entry_shop_point(position, room, client_size, aligned_portal=None):
         # FM4 screenshot 164734: same seller X, sign strip 45px lower.
         # FM11 screenshot 171034: the box is on the roof, approximately
         # 66 native pixels above the lower clickable strip.
-        screen_y += {4: 45, 5: 48, 11: 66}.get(room, 0)
+        # FM18 screenshot 012414: roof marker is 48px above clickable strip.
+        screen_y += {4: 45, 5: 48, 11: 66, 18: 48}.get(room, 0)
     return round(screen_x + shop_x - portal_x), round(screen_y + shop_y - portal_y)
 
 

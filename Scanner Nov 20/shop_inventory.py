@@ -13,6 +13,7 @@ import tempfile
 import threading
 import time
 import unicodedata
+import zlib
 from camera_alignment import capture_client
 
 # Native shop UI: stable colored button borders, not seller or item pixels.
@@ -119,7 +120,7 @@ def prepare_ocr(frame):
                  for j in range(yy*stride+41*3,yy*stride+198*3,3))
         unavailable.append(bool(len(sample)==3 and min(sample)>=230 and dark<12))
     # Precompute expansion for each of the only two output pixel values.
-    black=b'\x00'*(3*SCALE);white=b'\xff'*(3*SCALE)
+    black=b'\x00'*SCALE;white=b'\xff'*SCALE
     for oy in range(out_h):
         line=bytearray([255])*out_w
         if 3<=oy<16:
@@ -144,12 +145,17 @@ def prepare_ocr(frame):
         scaled=b''.join(white if v else black for v in line)
         rows.extend([scaled]*SCALE)
     ww,hh=out_w*SCALE,out_h*SCALE
-    # A standard 24-bit BMP, bottom-up, supported by Windows BitmapDecoder.
-    pad=b'\x00'*((-ww*3)%4)
-    data=b''.join(line+pad for line in reversed(rows))
-    header=struct.pack('<2sIHHI',b'BM',54+len(data),0,0,54)
-    header+=struct.pack('<IiiHHIIiiII',40,ww,hh,1,24,0,len(data),0,0,0,0)
-    return header+data,unavailable
+    # Standard top-down 8-bit grayscale PNG, no BMP decoder conversion.
+    return encode_gray_png(ww,hh,rows),unavailable
+
+def encode_gray_png(width,height,rows):
+    if len(rows)!=height or any(len(row)!=width for row in rows):
+        raise ValueError('Invalid PNG row dimensions')
+    def chunk(kind,data):
+        return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
+    header=struct.pack('>IIBBBBB',width,height,8,0,0,0,0)
+    data=zlib.compress(b''.join(b'\x00'+row for row in rows),1)
+    return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',header)+chunk(b'IDAT',data)+chunk(b'IEND',b'')
 
 class WindowsOCR:
     """Persistent Windows PowerShell / WinRT OCR worker, warmed once."""
@@ -176,10 +182,10 @@ class WindowsOCR:
                     if line.strip():diagnostic=line.strip()[:160]
             responses.put({'ok':False,'error':diagnostic or 'Windows OCR worker exited'})
         threading.Thread(target=read,daemon=True).start()
-    def recognize(self,bmp):
+    def recognize(self,png):
         self.start()
         with tempfile.TemporaryDirectory(prefix='fm_rush_ocr_') as tmp:
-            path=Path(tmp)/'inventory.bmp';path.write_bytes(bmp)
+            path=Path(tmp)/'inventory.png';path.write_bytes(png)
             self.proc.stdin.write(json.dumps(str(path))+'\n');self.proc.stdin.flush()
             try:res=self.responses.get(timeout=8)
             except queue.Empty:
@@ -199,7 +205,9 @@ class ShopInventoryTracker:
         self._lock=threading.Lock()
         self._key=None;self._latest=None;self._next=0;self._busy=False
         self._digest=None;self._ocr=WindowsOCR();self._closed=False
-        self._anchors={};self._gate_next={};self._cache=InventoryCache()
+        # Two native 1366x768 screenshots share the same shop anchor.
+        # Still verify pixels and fall back if the window/layout differs.
+        self._anchors={(1366,768):(568,214)};self._gate_next={};self._cache=InventoryCache()
         if os.name=='nt':
             threading.Thread(target=self._warm,daemon=True).start()
     def _warm(self):
@@ -275,8 +283,8 @@ class ShopInventoryTracker:
             cached=self._cache.get(pixels)
             if cached is None:
                 self._publish(key,{'status':'Shop open · reading inventory','hits':[]})
-                bmp,unavailable=prepare_ocr(frame)
-                lines=self._ocr.recognize(bmp)
+                png,unavailable=prepare_ocr(frame)
+                lines=self._ocr.recognize(png)
                 # Cache the original recognized pixels, even if the shop
                 # subsequently changes. Reuse only when those pixels recur.
                 self._cache.put(pixels,lines,unavailable)

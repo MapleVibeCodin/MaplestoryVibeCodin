@@ -79,7 +79,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.55.2 - Cached shop finder')
+        self.root.title('FM Rush v24.55.3 - Cached shop finder')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -436,7 +436,8 @@ class FMApp:
         elif deal is None:
             status = 'Waiting for next auto-lock'
         elif in_shop:
-            status = offscreen_notice = inventory['status']
+            status = inventory['status']
+            offscreen_notice = 'Shop OCR error' if status.startswith('Shop OCR unavailable') else status
         elif in_entrance:
             status = f'Entrance guide · FM {deal.fm}'
         elif deal.shop_position is None:
