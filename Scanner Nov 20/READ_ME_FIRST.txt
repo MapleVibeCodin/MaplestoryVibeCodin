@@ -1,4 +1,4 @@
-FM RUSH v24.57.0 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.58.0 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -92,3 +92,15 @@ revalidation of locked listing, game window/client and alignment before cursor m
 Status reports total, queue and focus timing on successful pointer movement.
 No click or game key injection; G HUB remains separate. Windows/Tk focus behavior
 and end-to-end latency require live validation. Extension remains v24.56.0.
+
+PERFORMANCE RECORDER v24.58.0 (desktop only)
+Automatically records locked listing attempts locally, existing scene and inventory
+observations and pointer shortcut/arrival timing. A separate bounded worker samples
+three 16x16 game-client patches at up to 20 Hz while the selected game is focused;
+slow capture backs off. No raw pixels, text, seller names, keyboard hooks, uploads,
+or automated input. A black interval is a visual estimate; nearby channel shortcut
+is only an association. Focus loss interrupts measurement; purchase success unknown.
+Tools > Export performance report exports all local session logs and timing summaries.
+Tools > Pause/resume performance recording controls collection for this session.
+Logs: %LOCALAPPDATA%/FM_Rush/performance (separate from listing archive).
+No extension update required. Windows sampling and overhead unverified.

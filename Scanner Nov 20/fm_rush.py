@@ -21,6 +21,9 @@ from shop_inventory import ShopInventoryTracker
 from shop_pin import ItemInventoryPin
 from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice
 from trade_hotkeys import TradeHotkeys
+from performance_recorder import PerformanceRecorder
+from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
+from game_window import window_at_point
 
 from deal_parser import parse_deal
 from henefm_bridge import BrowserBridge
@@ -79,7 +82,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.57.0 - Pointer latency')
+        self.root.title('FM Rush v24.58.0 - Performance recorder')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -116,6 +119,9 @@ class FMApp:
         self._entrance_preview = None
         self.item_pin = ItemInventoryPin(self.root, interval_ms=50)
         self._inventory = ShopInventoryTracker()
+        self.performance = PerformanceRecorder(ARCHIVE_DIR.parent/'performance', capture=capture_client,
+            focused=window_has_focus, geometry=window_client_rect, point_window=window_at_point,
+            init_capture=enable_capture_cache, release_capture=release_capture_cache)
         self._item_preview = None
         self._shop_preview = None
         self._portal_alignment = None
@@ -181,6 +187,8 @@ class FMApp:
                              ('Place under game',self.snap),('Enter route',self.enter_route),
                              ('Channel grid',self.open_grid),('FM map',self.open_map),
                              ('Export deal archive',self.export_archive),
+                             ('Export performance report',self.export_performance),
+                             ('Pause/resume performance recording',self.toggle_performance),
                              ('Reopen last skipped deal',self.undo_deal)]:
             menu.add_command(label=title,command=action)
         tools.pack(side='right')
@@ -374,6 +382,17 @@ class FMApp:
             try:self.archive.export_json(path);self.status.set('Archive saved: '+path)
             except OSError as exc:messagebox.showerror('Archive export',str(exc))
 
+    def export_performance(self):
+        path=filedialog.asksaveasfilename(title='Export FM Rush performance report',
+            defaultextension='.json',initialfile='FM_Rush_Performance.json',filetypes=[('JSON report','*.json')])
+        if path:
+            try:self.performance.export(path);self.status.set('Performance report saved: '+path)
+            except (OSError,ValueError) as exc:messagebox.showerror('Performance export',str(exc))
+
+    def toggle_performance(self):
+        self.performance.set_enabled(not self.performance.enabled)
+        self.status.set('Performance recorder '+('active' if self.performance.enabled else 'paused'))
+
     def next_live_deal(self):
         # Skip current target; auto-lock remains armed for a new listing.
         self.complete_deal()
@@ -402,6 +421,9 @@ class FMApp:
         scene = self._entrance_camera.get(hwnd, client) if supported and not in_shop else None
         if not supported or in_shop:self._entrance_camera.reset()
         in_entrance = bool(scene and scene[0])
+        recorder=getattr(self,'performance',None)
+        if recorder is not None:
+            recorder.observe(current[0] if deal else None,deal,hwnd,client,supported,in_entrance,inventory)
         entrance_preview = None
         if in_entrance and deal.fm:
             hits = entrance_marker(deal.fm, scene[1], client, window)
@@ -532,6 +554,8 @@ class FMApp:
         serial=self._pointer_serial
         received=time.perf_counter() if received is None else received
         started=time.perf_counter()
+        recorder=getattr(self,'performance',None)
+        if recorder is not None:recorder.marker('pointer_requested',at=received,kind=kind)
         if not self.archive.lock.acquire(blocking=False):
             self.status.set('Pointer target updating · try again')
             return
@@ -596,6 +620,9 @@ class FMApp:
             dispatch_ms=(started-received)*1000
             total_ms=(finished-received)*1000
             focus_ms=0 if focus_started is None else (now-focus_started)*1000
+            if recorder is not None:
+                recorder.marker('pointer_result',at=finished,kind=kind,ok=not bool(problem),
+                    total_ms=round(total_ms,1),queue_ms=round(dispatch_ms,1),focus_ms=round(focus_ms,1))
             self.status.set(problem or f'Pointer moved · {total_ms:.1f} ms (queue {dispatch_ms:.1f}, focus {focus_ms:.1f})')
         if window_has_focus(hwnd):
             if self.root.state() in ('iconic','withdrawn'):self.root.deiconify()
@@ -659,6 +686,7 @@ class FMApp:
         self.archive.undo_complete();self.sync_archive()
 
     def complete_deal(self):
+        self.performance.marker('skip_requested')
         current=self.archive.current()
         if current:self.archive.skip(current[0])
         self.sync_archive()
@@ -841,6 +869,7 @@ class FMApp:
         self.shop_pin.close()
         self.entrance_pin.close()
         self.item_pin.close()
+        self.performance.close()
         self._inventory.close()
         self._entrance_camera.close()
         self.archive.close()
