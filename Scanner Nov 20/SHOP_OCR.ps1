@@ -1,7 +1,7 @@
 # Local Windows OCR helper: stdin JSON paths, stdout one JSON result per request.
 $ErrorActionPreference = 'Stop'
-[Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false)
-[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+[Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 Add-Type -AssemblyName System.Runtime.WindowsRuntime
 $null = [Windows.Storage.StorageFile,Windows.Storage,ContentType=WindowsRuntime]
 $null = [Windows.Storage.Streams.IRandomAccessStream,Windows.Storage.Streams,ContentType=WindowsRuntime]
@@ -12,7 +12,8 @@ $null = [Windows.Globalization.Language,Windows.Globalization,ContentType=Window
 $asTask = [System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
     $_.Name -eq 'AsTask' -and $_.IsGenericMethodDefinition -and
     $_.GetGenericArguments().Count -eq 1 -and $_.GetParameters().Count -eq 1 -and
-    $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation' + [char]96 + '1'
+    $_.GetParameters()[0].ParameterType.IsGenericType -and
+    $_.GetParameters()[0].ParameterType.GetGenericTypeDefinition().FullName -eq 'Windows.Foundation.IAsyncOperation`1'
 } | Select-Object -First 1
 function Await($operation, [type]$type) {
     $task = $asTask.MakeGenericMethod($type).Invoke($null, @($operation))

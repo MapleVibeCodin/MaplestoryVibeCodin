@@ -30,9 +30,10 @@ def locate_shop(buffer,w,h,stride):
         at=line.find(GREEN)
         while at>=0:
             # Require the beginning of a long green strip plus both orange buttons.
-            if at%3==0 and (at<3 or line[at-3:at]!=GREEN[:3]):
+            if at%3==0 and at>=3 and line[at-3:at]==bytes((17,179,151)):
                 x=at//3
-                if x+72<w and all(buffer[(y+dy)*stride+at:(y+dy)*stride+at+len(ORANGE)]==ORANGE
+                if x+72<w and all(buffer[(y+dy)*stride+at-3:(y+dy)*stride+at]==bytes((28,117,216)) and
+                                  buffer[(y+dy)*stride+at:(y+dy)*stride+at+len(ORANGE)]==ORANGE
                                   for dy in (31,51)):
                     hits.append((x,y))
             at=line.find(GREEN,at+3)
@@ -85,11 +86,13 @@ def prepare_ocr(frame):
         dark=sum(max(buf[j:j+3])<110 for yy in range(y+2,y+16)
                  for j in range(yy*stride+41*3,yy*stride+198*3,3))
         unavailable.append(bool(len(sample)==3 and min(sample)>=230 and dark<12))
+    # Precompute expansion for each of the only two output pixel values.
+    black=b'\x00'*(3*SCALE);white=b'\xff'*(3*SCALE)
     for oy in range(out_h):
         line=bytearray([255])*out_w
-        if oy<18:
+        if 3<=oy<16:
             sy=oy
-            for x in range(8,91):
+            for x in range(9,89):
                 i=sy*stride+x*3
                 b,g,r=buf[i:i+3]
                 if min(b,g,r)>175:line[x-8]=0
@@ -98,16 +101,17 @@ def prepare_ocr(frame):
             # Original list row starts 23 pixels below capture origin.
             sy=23+row*STEP+dy
             cutoff=225 if unavailable[row] else 145
-            for x in range(40,200):
-                i=sy*stride+x*3
-                b,g,r=buf[i:i+3]
-                if (r+g+b)//3<cutoff:line[x-40]=0
-        scaled=bytes(v for v in line for _ in range(SCALE))
+            if 3<=dy<=36:
+                for x in range(40,198):
+                    i=sy*stride+x*3
+                    b,g,r=buf[i:i+3]
+                    if (r+g+b)//3<cutoff:line[x-40]=0
+        scaled=b''.join(white if v else black for v in line)
         rows.extend([scaled]*SCALE)
     ww,hh=out_w*SCALE,out_h*SCALE
     # A standard 24-bit BMP, bottom-up, supported by Windows BitmapDecoder.
     pad=b'\x00'*((-ww*3)%4)
-    data=b''.join(b''.join(bytes((v,v,v)) for v in line)+pad for line in reversed(rows))
+    data=b''.join(line+pad for line in reversed(rows))
     header=struct.pack('<2sIHHI',b'BM',54+len(data),0,0,54)
     header+=struct.pack('<IiiHHIIiiII',40,ww,hh,1,24,0,len(data),0,0,0,0)
     return header+data,unavailable
@@ -117,7 +121,10 @@ class WindowsOCR:
     def __init__(self):
         self.proc=None
         self.responses=queue.Queue()
+        self._process_lock=threading.Lock()
     def start(self):
+        with self._process_lock:self._start()
+    def _start(self):
         if self.proc and self.proc.poll() is None:return
         self.responses=queue.Queue()
         self.proc=subprocess.Popen(['powershell.exe','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
@@ -143,10 +150,11 @@ class WindowsOCR:
                 self.close();raise RuntimeError(res.get('error','Windows OCR unavailable'))
             return res.get('lines',[])
     def close(self):
-        if self.proc:
-            try:self.proc.terminate()
-            except OSError:pass
-            self.proc=None
+        with self._process_lock:
+            if self.proc:
+                try:self.proc.terminate()
+                except OSError:pass
+                self.proc=None
 
 class ShopInventoryTracker:
     def __init__(self):
@@ -201,10 +209,18 @@ class ShopInventoryTracker:
             frame=capture_client((x+left,y+top,204,263),allow_crop=True)
             if not frame:return
             bmp,unavailable=prepare_ocr(frame)
-            digest=hashlib.blake2b(bmp,digest_size=12).digest()
+            digest=hashlib.blake2b(bmp+struct.pack('<ii',left,top),digest_size=12).digest()
             if digest==prev_digest:return
             self._publish(key,{'status':'Shop open · reading inventory','hits':[]})
             lines=self._ocr.recognize(bmp)
+            # Discard an OCR result if the shop moved, closed, or rows changed
+            # during recognition. Never point to a stale row after scrolling.
+            gate_after=capture_client((x+gx,y+gy,gw,gh),allow_crop=True)
+            if not gate_after or locate_shop(*gate_after)!=anchor:return
+            frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
+            if not frame_after:return
+            bmp_after,unavailable_after=prepare_ocr(frame_after)
+            if bmp_after!=bmp or unavailable_after!=unavailable:return
             hits,status=pick_rows(lines,unavailable,seller,item,price)
             # Coordinates relative to game client. Outline, never click.
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]

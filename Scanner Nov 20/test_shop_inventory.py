@@ -6,7 +6,13 @@ class InventoryTests(unittest.TestCase):
         w,h=140,100;stride=w*3;b=bytearray(stride*h)
         x,y=20,10
         for dy,pattern in ((0,GREEN),(31,ORANGE),(51,ORANGE)):
-            at=(y+dy)*stride+x*3;b[at:at+len(pattern)]=pattern
+            at=(y+dy)*stride+x*3
+            b[at-3:at]=bytes((17,179,151)) if dy==0 else bytes((28,117,216))
+            b[at:at+len(pattern)]=pattern
+        # A second set of lower highlights without the leading colored edge
+        # must not make the detector ambiguous.
+        for dy,pattern in ((13,GREEN),(44,ORANGE),(64,ORANGE)):
+            at=(y+dy)*stride+(x-1)*3;b[at:at+len(pattern)]=pattern
         self.assertEqual(locate_shop(bytes(b),w,h,stride),(x,y))
     def test_sold_and_duplicate(self):
         lines=[{'text':'Suzanoo','y':9*SCALE}]
