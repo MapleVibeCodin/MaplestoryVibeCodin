@@ -43,6 +43,23 @@ def locate_shop(buffer,w,h,stride):
             at=line.find(GREEN,at+3)
     return hits[0] if len(hits)==1 else None
 
+def inventory_tooltip_visible(frame):
+    """Detect a broad purple tooltip covering the inventory text, not item icons."""
+    buf,w,h,stride=frame
+    if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:return False
+    consecutive=0
+    for y in range(23,263):
+        run=0
+        for x in range(40,198):
+            i=y*stride+x*3
+            b,g,r=buf[i:i+3]
+            run=run+1 if 40<b and r<145 and g<145 and b-r>28 and b-g>23 else 0
+            if run>=24:break
+        consecutive=consecutive+1 if run>=24 else 0
+        if consecutive>=6:return True
+    return False
+
+
 def section_fingerprints(frame):
     """Hash native seller and row text, not icons or overlay edges."""
     buf,w,h,stride=frame
@@ -298,11 +315,14 @@ class ShopInventoryTracker:
         cached=self._anchors.get(size)
         if cached is not None:
             ax,ay=cached
-            gx,gy=ax-5,ay
-            if gx>=0 and gy>=0 and gx+85<=w and gy+53<=h:
-                gate=capture_client((x+gx,y+gy,85,53),allow_crop=True)
-                if gate and locate_shop(*gate)==(5,0):
-                    return cached
+            gx,gy=ax-9,ay-4
+            if gx>=0 and gy>=0 and gx+93<=w and gy+61<=h:
+                gate=capture_client((x+gx,y+gy,93,61),allow_crop=True)
+                found=locate_shop(*gate) if gate else None
+                if found is not None and abs(found[0]-9)<=4 and abs(found[1]-4)<=4:
+                    actual=(gx+found[0],gy+found[1])
+                    self._anchors[size]=actual
+                    return actual
         # Only search the larger centered area for initial calibration or
         # a moved shop; rate-limit when the shop is closed.
         now=time.monotonic()
@@ -338,8 +358,22 @@ class ShopInventoryTracker:
             if not frame:return
             sections=section_fingerprints(frame)
             pixels=hashlib.blake2b(b''.join(value for _,value in sections),digest_size=20).digest()
-            digest=(pixels,left,top)
-            if digest==prev_digest:return
+            digest=(pixels,left,top,sections[0][1])
+            if digest==prev_digest:
+                # Restore normal status when the identical clean frame returns.
+                if existing and existing.get('hover_original') is not None:
+                    self._publish(key,existing['hover_original'],digest)
+                return
+            if inventory_tooltip_visible(frame):
+                # Hover text is not new item data. Keep only a previously
+                # verified same-seller/same-position result, visibly stale.
+                original=existing.get('hover_original',existing) if existing else None
+                if prev_digest and prev_digest[1:]==digest[1:] and original:
+                    self._publish(key,{'status':'Hover tooltip · last verified, not refreshed',
+                                      'hits':original['hits'],'hover_original':original},prev_digest)
+                else:
+                    self._publish(key,{'status':'Shop open · tooltip covers text','hits':[]})
+                return
             cached=self._cache.get(pixels)
             if cached is None:
                 self._publish(key,{'status':'Shop open · reading inventory','hits':[]})

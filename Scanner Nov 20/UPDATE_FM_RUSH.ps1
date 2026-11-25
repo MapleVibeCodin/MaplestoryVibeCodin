@@ -11,7 +11,7 @@ $repo = 'MapleVibeCodin/MaplestoryVibeCodin'
 $files = @(
     'camera_alignment.py','fm_rush.py','shop_position.py','shop_pin.py',
     'shop_inventory.py','performance_recorder.py','SHOP_OCR.ps1',
-    'test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py',
+    'test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py','test_inventory_hover.py',
     'game_window.py','channel_overlay.py','deal_archive.py','deal_parser.py',
     'henefm_bridge.py','profit_filter.py','route_logic.py','trade_hotkeys.py',
     'START_FM_RUSH.bat','START_FM_RUSH.ps1','READ_ME_FIRST.txt'
@@ -120,6 +120,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Archive/auto-lock regression failed; no installed files changed.' }
         & $python (Join-Path $incoming 'test_prior_shop_placements.py')
         if ($LASTEXITCODE -ne 0) { throw 'Shop geometry regression failed; no installed files changed.' }
+        & $python (Join-Path $incoming 'test_inventory_hover.py')
+        if ($LASTEXITCODE -ne 0) { throw 'Shop hover regression failed; no installed files changed.' }
     } else {
         Write-Warning 'Local Python environment unavailable; launcher will check it.'
     }

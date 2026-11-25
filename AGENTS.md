@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.61.0; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.61.1; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## 2026-11-26 — v24.61.1 hover-safe inventory
+
+User screenshot image(20261125-192255).png shows a hovered, unavailable White Rabbit's Foot in cappin's open shop, while old room/channel overlays are visible. Actual native full-screen image 1921x1082 contains the valid shop button anchor (573,305). Tooltip covers inventory text, not the shop buttons. Exact cause of live gate loss is not proven. Widen cached gate by four native pixels in both axes while requiring the same three exact button signatures; learn actual anchor. Recognize broad purple tooltip across inventory text, skip OCR and retain previous result only when same seller pixels, crop location and listing key are unchanged. Explicitly label held result last verified/not refreshed; no new recognition or purchase claim while covered. Clear held results if seller/crop changes, and restore normal status when clean identical pixels return. New offline synthetic regression test included in updater. No camera profile or browser change; no raw screenshot published. Windows/live verification pending.
 
 ## 2026-11-26 — v24.61.0 first-frame channel-change profiles
 
