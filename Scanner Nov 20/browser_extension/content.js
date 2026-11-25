@@ -1,4 +1,4 @@
-/* FM Rush v24.56.0 — passive live HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.56.1 — passive live HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Adds Chase/Skip controls and selection feedback only; no automatic game inputs.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -102,9 +102,22 @@
     return { gain: (gain[1]==='-'?-1:1)*money(gain[2]), pct: Number(percentages.at(-1)[1].replace(/,/g, '')) };
   }
   function readBuy(lines) {
-    const all = lines.join(' ');
-    const m = all.match(new RegExp('\\bBuy\\s*:?\\s*' + AMOUNT, 'i'));
-    return m ? money(m[1]) : null;
+    const all=lines.join(' ');
+    const m=all.match(new RegExp('\\bBuy\\s*:?\\s*'+AMOUNT,'i'));
+    if(!m)return {price:null,exact:false};
+    const displayed=money(m[1]);
+    // Only the tooltip immediately after the Buy amount is a unit buy price.
+    // Never search the entire card: resale, total spend and profit also have tooltips.
+    const tail=all.slice(m.index+m[0].length);
+    const exact=tail.match(/^\s+((?:[0-9]{1,3}(?:,[0-9]{3})+|[0-9]+))\s+mesos\s+each\b/i);
+    if(exact){
+      const value=Number(exact[1].replace(/,/g,''));
+      const compact=m[1].replace(/,/g,'').match(/^([0-9]+(?:\.[0-9]+)?)\s*([KMB])$/i);
+      const step=compact?({'K':1000,'M':1e6,'B':1e9}[compact[2].toUpperCase()]/10**(compact[1].split('.')[1]?.length||0)):1;
+      if(Number.isSafeInteger(value)&&value>=0&&value<=1e12&&displayed!==null&&Math.abs(value-displayed)<=step/2)
+        return {price:value,exact:true};
+    }
+    return {price:displayed,exact:false};
   }
   function itemName(card, sellerLink, lines) {
     const anchor = [...card.querySelectorAll('a[href]')]
@@ -162,7 +175,8 @@
       const cc=position?Number(position[1]):null, fm=position?Number(position[2]):null;
       if (position && (cc<1 || cc>40 || fm<1 || fm>20)) return null;
       const profit = readProfit(lines);
-      const buy = readBuy(lines);
+      const buyInfo = readBuy(lines);
+      const buy = buyInfo.price;
       const label = (link.textContent || '').trim().replace(/\s+/g, ' ');
       let slug = '';
       try {slug = decodeURIComponent(new URL(link.href).pathname.split('/').filter(Boolean).pop());} catch (_) {}
@@ -178,7 +192,7 @@
         .find(a => a !== link && /\/items?\//i.test(a.getAttribute('href')||''));
       const baseKey=[card.getAttribute?.('data-listing-id')||'',link.href,itemAnchor?.href||'',cc,fm,
         item,stats,buy??''].join('|').toLowerCase();
-      return {sold,cc,fm,profit,buy,ign,item,stats,unusuallyCheap,baseKey,shop_position:readShopPosition(card),raw_text:lines.join('\n').slice(0,6000)};
+      return {sold,cc,fm,profit,buy,ign,item,stats,unusuallyCheap,baseKey,shop_position:readShopPosition(card),raw_text:((buyInfo.exact ? `Buy exact: ${buy} mesos each\n` : '')+lines.join('\n')).slice(0,6000)};
   }
   function extract() {
     if(observer)invalidate(observer.takeRecords());
