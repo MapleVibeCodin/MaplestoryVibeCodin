@@ -450,3 +450,379 @@ explorer.exe "$folder\Presets"
 Write-Host 'FM Research profile created.' -ForegroundColor Green
 }
 ```
+
+## V2 update
+```powershell
+& {
+$ErrorActionPreference = 'Stop'
+$db = "$env:LOCALAPPDATA\LGHUB\settings.db"
+$py = "$env:TEMP\FM01_Update.py"
+
+@'
+import sqlite3, json, sys, datetime
+from pathlib import Path
+
+db = Path(sys.argv[1])
+
+def k(hid, name, down=False):
+    d = {"displayName": name, "hidUsage": str(hid)}
+    if down:
+        d["isDown"] = True
+    return {"keyboard": d}
+
+def w(ms):
+    return {"delay": {"durationMs": ms}}
+
+events = [
+    k(4,"A",True),
+    w(10),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(620),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(770),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(320),
+    k(4,"A"),
+    w(500),
+    k(7,"D",True),
+    w(10),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(200),
+    k(7,"D"),
+    w(100),
+    k(26,"W",True),
+    w(300),
+    k(26,"W")
+]
+
+with sqlite3.connect(str(db), timeout=15) as con:
+    rowid, blob = con.execute(
+        "SELECT rowid,file FROM data LIMIT 1"
+    ).fetchone()
+    doc = json.loads(blob)
+
+    card = next((c for c in doc["cards"]["cards"]
+        if c.get("name") == "FM 01 FAST"), None)
+
+    if not card:
+        raise RuntimeError("FM 01 FAST not found")
+
+    backup = db.with_name(
+        "settings.db.FM01_V2_" +
+        datetime.datetime.now().strftime("%Y%m%d_%H%M%S") +
+        ".bak"
+    )
+    with sqlite3.connect(str(backup)) as b:
+        con.backup(b)
+
+    seq = card["macro"]["sequence"]
+    seq["simpleSequence"] = {"components": events}
+    seq["useDefaultDelay"] = False
+    seq["showUpDown"] = True
+
+    con.execute("UPDATE data SET file=? WHERE rowid=?",
+        (json.dumps(doc,separators=(",",":")),rowid))
+
+    if con.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+        raise RuntimeError("Integrity check failed")
+
+    con.commit()
+    print("FM 01 FAST V2 INSTALLED")
+    print("Duration:",sum(e["delay"]["durationMs"]
+        for e in events if "delay" in e),"ms")
+'@ | Set-Content $py -Encoding UTF8
+
+$services = @(Get-Service | Where-Object {
+    $_.Name -match 'LGHUB' -and $_.Status -eq 'Running'
+})
+
+try {
+    $services | Stop-Service -Force -ErrorAction SilentlyContinue
+
+    1..5 | ForEach-Object {
+        Get-Process lghub,lghub_agent,lghub_updater,lghub_system_tray `
+        -ErrorAction SilentlyContinue |
+        Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 400
+    }
+
+    if (Get-Process lghub,lghub_agent,lghub_updater,lghub_system_tray `
+        -ErrorAction SilentlyContinue) {
+        throw 'G HUB still running. Database not modified.'
+    }
+
+    & py.exe -3 $py $db
+    if ($LASTEXITCODE -ne 0) { throw 'Update failed' }
+}
+finally {
+    $services | Start-Service -ErrorAction SilentlyContinue
+    Remove-Item $py -ErrorAction SilentlyContinue
+    Start-Process "$env:ProgramFiles\LGHUB\lghub.exe"
+}
+}
+```
+
+## V3 update
+```powershell
+& {
+$ErrorActionPreference = 'Stop'
+$db = "$env:LOCALAPPDATA\LGHUB\settings.db"
+$py = "$env:TEMP\FM01_V3.py"
+
+if (!(Test-Path $db)) { throw 'G HUB database not found.' }
+
+@'
+import sqlite3, json, sys, datetime
+from pathlib import Path
+
+db = Path(sys.argv[1])
+
+def k(hid, name, down=False):
+    d = {"displayName": name, "hidUsage": str(hid)}
+    if down:
+        d["isDown"] = True
+    return {"keyboard": d}
+
+def w(ms):
+    return {"delay": {"durationMs": ms}}
+
+events = [
+    k(4,"A",True),
+    w(10),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(620),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(770),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(20),
+    k(4,"A"),
+    w(640),
+    k(22,"S",True),
+    w(10),
+    k(44,"Space",True),
+    w(50),
+    k(44,"Space"),
+    k(22,"S"),
+    w(600),
+    k(26,"W",True),
+    w(300),
+    k(26,"W")
+]
+
+with sqlite3.connect(str(db), timeout=15) as con:
+    rowid, blob = con.execute(
+        "SELECT rowid,file FROM data LIMIT 1"
+    ).fetchone()
+
+    doc = json.loads(blob)
+
+    matches = [c for c in doc["cards"]["cards"]
+               if c.get("name") == "FM 01 FAST"]
+
+    if len(matches) != 1:
+        raise RuntimeError("Expected exactly one FM 01 FAST macro")
+
+    card = matches[0]
+    backup = db.with_name(
+        "settings.db.FM01_V3_" +
+        datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f") +
+        ".bak"
+    )
+
+    with sqlite3.connect(str(backup)) as b:
+        con.backup(b)
+
+    seq = card["macro"]["sequence"]
+    seq["simpleSequence"] = {"components": events}
+    seq["useDefaultDelay"] = False
+    seq["showUpDown"] = True
+
+    con.execute("UPDATE data SET file=? WHERE rowid=?",
+        (json.dumps(doc,separators=(",",":")),rowid))
+
+    if con.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+        raise RuntimeError("Integrity check failed")
+
+    con.commit()
+    print("FM 01 FAST V3 INSTALLED")
+    print("Duration:",sum(e["delay"]["durationMs"]
+        for e in events if "delay" in e),"ms")
+    print("Backup:",backup)
+'@ | Set-Content $py -Encoding UTF8
+
+$services = @(Get-Service | Where-Object {
+    $_.Name -match 'LGHUB' -and $_.Status -eq 'Running'
+})
+
+try {
+    $services | Stop-Service -Force -ErrorAction SilentlyContinue
+
+    1..5 | ForEach-Object {
+        Get-Process lghub,lghub_agent,lghub_updater,lghub_system_tray `
+        -ErrorAction SilentlyContinue |
+        Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 400
+    }
+
+    if (Get-Process lghub,lghub_agent,lghub_updater,lghub_system_tray `
+        -ErrorAction SilentlyContinue) {
+        throw 'G HUB still running. Database not modified.'
+    }
+
+    if (Get-Command py.exe -ErrorAction SilentlyContinue) {
+        & py.exe -3 $py $db
+    } else {
+        & python.exe $py $db
+    }
+
+    if ($LASTEXITCODE -ne 0) { throw 'Update failed' }
+}
+finally {
+    $services | Start-Service -ErrorAction SilentlyContinue
+    Remove-Item $py -ErrorAction SilentlyContinue
+    Start-Process "$env:ProgramFiles\LGHUB\lghub.exe"
+}
+}
+```
+
+## V4 update
+```powershell
+& {
+$ErrorActionPreference = 'Stop'
+$db = "$env:LOCALAPPDATA\LGHUB\settings.db"
+$py = "$env:TEMP\FM01_V4.py"
+
+@'
+import sqlite3, json, sys, datetime
+from pathlib import Path
+
+db = Path(sys.argv[1])
+
+def k(hid, name, down=False):
+    d = {"displayName": name, "hidUsage": str(hid)}
+    if down:
+        d["isDown"] = True
+    return {"keyboard": d}
+
+def w(ms):
+    return {"delay": {"durationMs": ms}}
+
+events = [
+    k(4,"A",True),
+    w(10),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(620),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(770),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(20),
+    k(4,"A"),
+    w(640),
+    k(22,"S",True),
+    w(10),
+    k(44,"Space",True),
+    w(50),
+    k(44,"Space"),
+    k(22,"S"),
+    w(1300),
+    k(7,"D",True),
+    w(10),
+    k(225,"Shift",True),
+    w(30),
+    k(225,"Shift"),
+    w(20),
+    k(7,"D"),
+    w(150),
+    k(26,"W",True),
+    w(350),
+    k(26,"W")
+]
+
+with sqlite3.connect(str(db), timeout=15) as con:
+    rowid, blob = con.execute(
+        "SELECT rowid,file FROM data LIMIT 1"
+    ).fetchone()
+    doc = json.loads(blob)
+
+    matches = [c for c in doc["cards"]["cards"]
+               if c.get("name") == "FM 01 FAST"]
+
+    if len(matches) != 1:
+        raise RuntimeError("Expected exactly one FM 01 FAST macro")
+
+    backup = db.with_name(
+        "settings.db.FM01_V4_" +
+        datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f") +
+        ".bak"
+    )
+
+    with sqlite3.connect(str(backup)) as b:
+        con.backup(b)
+
+    seq = matches[0]["macro"]["sequence"]
+    seq["simpleSequence"] = {"components": events}
+    seq["useDefaultDelay"] = False
+    seq["showUpDown"] = True
+
+    con.execute("UPDATE data SET file=? WHERE rowid=?",
+        (json.dumps(doc,separators=(",",":")),rowid))
+
+    if con.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+        raise RuntimeError("Integrity check failed")
+
+    con.commit()
+    print("FM 01 FAST V4 INSTALLED")
+    print("Duration:",sum(e["delay"]["durationMs"]
+        for e in events if "delay" in e),"ms")
+    print("Backup:",backup)
+'@ | Set-Content $py -Encoding UTF8
+
+$services = @(Get-Service | Where-Object {
+    $_.Name -match 'LGHUB' -and $_.Status -eq 'Running'
+})
+
+try {
+    $services | Stop-Service -Force -ErrorAction SilentlyContinue
+
+    1..5 | ForEach-Object {
+        Get-Process lghub,lghub_agent,lghub_updater,lghub_system_tray `
+        -ErrorAction SilentlyContinue |
+        Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 400
+    }
+
+    if (Get-Process lghub,lghub_agent,lghub_updater,lghub_system_tray `
+        -ErrorAction SilentlyContinue) {
+        throw 'G HUB still running. Database not modified.'
+    }
+
+    & py.exe -3 $py $db
+    if ($LASTEXITCODE -ne 0) { throw 'Update failed' }
+}
+finally {
+    $services | Start-Service -ErrorAction SilentlyContinue
+    Remove-Item $py -ErrorAction SilentlyContinue
+    Start-Process "$env:ProgramFiles\LGHUB\lghub.exe"
+}
+}
+```
