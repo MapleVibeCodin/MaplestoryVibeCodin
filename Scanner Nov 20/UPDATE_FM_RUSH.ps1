@@ -10,8 +10,8 @@ $ErrorActionPreference = 'Stop'
 $repo = 'MapleVibeCodin/MaplestoryVibeCodin'
 $files = @(
     'camera_alignment.py','fm_rush.py','shop_position.py','shop_pin.py',
-    'shop_inventory.py','metascan_fast.py','shop_screenshot.py','vision_guard.py','vision_geometry.py','performance_recorder.py','SHOP_OCR.ps1',
-    'test_vision_guard.py','test_vision_geometry.py','test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py','test_inventory_hover.py','test_shop_screenshot.py','test_metascan_fast.py','test_metascan_ocr_transport.py','test_metascan_capture.py',
+    'shop_inventory.py','metascan_fast.py','native_item_fast.py','native_item_glyphs.json','native_item_glyphs_LICENSE.txt','shop_screenshot.py','vision_guard.py','vision_geometry.py','performance_recorder.py','SHOP_OCR.ps1',
+    'test_vision_guard.py','test_vision_geometry.py','test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py','test_inventory_hover.py','test_shop_screenshot.py','test_metascan_fast.py','test_metascan_ocr_transport.py','test_metascan_capture.py','test_native_item_fast.py',
     'test_shop_inventory.py','test_start_position.py','test_entrance_marker.py','test_click_record.py',
     'test_fm4_calibration.py','test_fm5_calibration.py','test_fm9_calibration.py','test_fm11_calibration.py','test_fm16_calibration.py',
     'game_window.py','channel_overlay.py','deal_archive.py','deal_parser.py',

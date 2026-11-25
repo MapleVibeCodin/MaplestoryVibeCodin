@@ -84,7 +84,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('MetaScanner v24.65.2 - Duplicate Candidates')
+        self.root.title('MetaScanner v24.66.0 - Instant Items')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -120,7 +120,7 @@ class FMApp:
         self.entrance_pin = EntranceGuidePin(self.root, interval_ms=50)
         self._entrance_camera = EntranceCameraTracker()
         self._entrance_preview = None
-        self.item_pin = ItemInventoryPin(self.root, interval_ms=50)
+        self.item_pin = ItemInventoryPin(self.root, interval_ms=25)
         self._inventory = ShopInventoryTracker(notify=lambda:self.events.put_nowait(('inventory_ready',)))
         self._shop_capture = ShopScreenshotRecorder(ARCHIVE_DIR.parent/'shop_screenshots',notify=lambda:self.events.put_nowait(('inventory_ready',)))
         self.performance = PerformanceRecorder(ARCHIVE_DIR.parent/'performance', capture=capture_client,

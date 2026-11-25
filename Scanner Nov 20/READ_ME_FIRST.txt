@@ -1,4 +1,5 @@
-METASCANNER v24.65.2 — DUPLICATE CANDIDATES
+METASCANNER v24.66.0 — INSTANT ITEMS
+Native item-name candidates: yellow = same name, cyan = same visible price, orange = sold. No stats reading. Full OCR fallback when native recognition is inconclusive. Scroll full-name verification unchanged.
 Yellow borders on multiple exact active non-scroll name/price rows are candidates only. Verify item stats manually. No green duplicate or strict scroll highlight.
 
 START

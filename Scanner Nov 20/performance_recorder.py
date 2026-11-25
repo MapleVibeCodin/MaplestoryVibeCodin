@@ -11,7 +11,7 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.65.2'
+VERSION='24.66.0'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
@@ -110,7 +110,7 @@ class PerformanceRecorder:
             if 'MATCH' in modes or 'name + price match' in low:state='unique_match'
             elif 'AMBIGUOUS' in modes or 'multiple exact matches' in low or 'multiple name/price matches' in low:state='multiple_matches'
             elif modes & {'SOLD','SOLD_CHECK'} or 'sold / unavailable' in low:state='target_unavailable'
-            elif modes & {'PRICE_CHECK','ROW_CHECK'}:state='candidate'
+            elif modes & {'FAST_NAME','FAST_PRICE','FAST_SOLD','PRICE_CHECK','ROW_CHECK'}:state='candidate'
             elif 'seller not verified' in low:state='seller_unverified'
             elif 'price differs' in low or 'price not verified' in low:state='price_differs'
             elif 'not visible' in low:state='not_visible'
@@ -127,7 +127,7 @@ class PerformanceRecorder:
                            used_ocr=timing['used_ocr'],visible_rows=timing['visible_rows'],
                            geometry_fallback=bool(timing.get('geometry_fallback',False)),
                            sold_retry=bool(timing.get('sold_retry',False)),
-                           paired_roi_captures=timing.get('paired_roi_captures'))
+                           paired_roi_captures=timing.get('paired_roi_captures'),native_fast=bool(timing.get('native_fast',False)))
             if state!=self.inventory:
                 self.inventory=state
                 self._emit('inventory_observed',state=state,confidence='detector')
@@ -260,7 +260,7 @@ def summarize(rows):
             if event=='inventory_timing':
                 metrics['inventory_scan_ms'].append(e['total_ms'])
                 metrics['inventory_scan_ms:'+('geometry' if e.get('geometry_fallback') else 'exact')].append(e['total_ms'])
-                metrics['inventory_row_recognition_ms:'+('ocr' if e.get('used_ocr') else 'cache')].append(e['row_recognition_ms'])
+                metrics['inventory_row_recognition_ms:'+('native' if e.get('native_fast') else 'ocr' if e.get('used_ocr') else 'cache')].append(e['row_recognition_ms'])
             if event=='black_end':
                 metrics['black_ms:'+e.get('association','unclassified')].append(e['duration_ms'])
             elif event=='pointer_result' and e.get('ok'):

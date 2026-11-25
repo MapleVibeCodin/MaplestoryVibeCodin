@@ -169,6 +169,6 @@ class ItemInventoryPin(OverlayPin):
         for hit in hits.values():
             l,t,r,b=hit['box']
             box=(l*w/sw,t*h/sh,r*w/sw,b*h/sh)
-            color={'MATCH':'#72ff86','AMBIGUOUS':'#ffdb3d','SOLD':'#ff9960','PRICE_CHECK':'#ffdb3d','SOLD_CHECK':'#ff9960','ROW_CHECK':'#ffdb3d'}.get(hit['mode'],'#ffdb3d')
+            color={'MATCH':'#72ff86','AMBIGUOUS':'#ffdb3d','SOLD':'#ff9960','PRICE_CHECK':'#ffdb3d','SOLD_CHECK':'#ff9960','ROW_CHECK':'#ffdb3d','FAST_NAME':'#ffdb3d','FAST_PRICE':'#36e6ff','FAST_SOLD':'#ff9960'}.get(hit['mode'],'#ffdb3d')
             c.create_rectangle(*box,outline='#161616',width=4)
             c.create_rectangle(*box,outline=color,width=2)

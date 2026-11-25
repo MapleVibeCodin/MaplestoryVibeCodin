@@ -18,6 +18,7 @@ import zlib
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
 from vision_guard import parse_price_line, highlight_expired, revalidate_changed_hits
 from metascan_fast import row_mask, scale3, negative_retry_due, purple_run, crop_bgr
+from native_item_fast import native_item_candidates, ocr_name_candidates, load_atlas
 from vision_geometry import geometry_present, conservative_hits, WIDTH as GEOMETRY_WIDTH, HEIGHT as GEOMETRY_HEIGHT
 
 # Native shop UI: stable colored button borders, not seller or item pixels.
@@ -440,12 +441,16 @@ class ShopInventoryTracker:
         self._row_cache=RowOCRCache();self._sold_retry=SoldRetryCache();self._scroll_checks=OrderedDict();self._ocr_failures=0
         self._last_ocr_at=0.0
         self._paired_capture=True
+        self._native_fast=True
         self._jobs=queue.Queue()
         self._worker=threading.Thread(target=self._work,daemon=True,name='FM inventory capture')
         self._worker.start()
     def _work(self):
         enable_capture_cache()
         try:
+            if getattr(self,'_native_fast',False):
+                try:load_atlas()
+                except (OSError,ValueError,KeyError):self._native_fast=False
             if os.name=='nt' and not self._closed:
                 try:self._ocr.start()
                 except OSError:pass
@@ -625,6 +630,26 @@ class ShopInventoryTracker:
             with self._lock:
                 if self._key!=key:return
             ocr_started=time.perf_counter()
+            # Native first: no stats/seller OCR. Exact candidate names only.
+            # Confirm same anchor, fresh unobstructed pixels and generation
+            # before publishing; no native candidate becomes a verified MATCH.
+            if paired and getattr(self,'_native_fast',False) and not geometry and not blocked and not strict:
+                try:fast=native_item_candidates(frame,item,price,sold_row_mask)
+                except (OSError,ValueError,KeyError):fast=[]
+                if fast:
+                    quality,after_frame,actual=self._capture_pair(client,anchor)
+                    capture_count+=1
+                    if quality!='exact' or actual!=anchor or not after_frame:
+                        self._publish(key,None);return
+                    if tooltip_blocked_rows(after_frame) or section_fingerprints(after_frame)!=sections:
+                        self._publish(key,{'status':'Shop pixels changed · retrying','hits':[]});return
+                    boxes=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in fast]
+                    self._publish(key,{'status':'Instant item candidates · cyan matches price; verify manually','hits':boxes,
+                        'timing':{'scan_id':started,'total_ms':round((time.perf_counter()-started)*1000,2),
+                                  'row_recognition_ms':round((time.perf_counter()-ocr_started)*1000,2),
+                                  'used_ocr':False,'sold_retry':False,'visible_rows':6,
+                                  'geometry_fallback':False,'paired_roi_captures':capture_count,'native_fast':True}},digest)
+                    return
             self._last_ocr_at=time.monotonic()
             # Seller pixels remain a cheap shop-change fingerprint only. Never OCR the name.
             row_sections=tuple((i,fp) for i,fp in sections if i>=0)
@@ -634,6 +659,9 @@ class ShopInventoryTracker:
             self._ocr_failures=0
             hits,status=pick_rows(lines,unavailable,None,item,price,buy_step=buy_step,
                                   show_duplicates=not geometry and not blocked)
+            if not hits and getattr(self,'_native_fast',False) and not geometry and not blocked and not strict:
+                hits=ocr_name_candidates(lines,unavailable,item,price,SCALE)
+                if hits:status='Visible item candidates · verify price manually'
             used_sold_retry=False
             if not hits and not strict and not status.startswith('Multiple exact matches'):
                 # Primary OCR misses on faded text must not be the sole cached verdict.
