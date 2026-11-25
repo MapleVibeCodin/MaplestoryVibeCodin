@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.3; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.4; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## 2026-11-26 — v24.62.4 selected-row recognition
+
+User approved update after 03-46-13 clip (Brown Dress Shoes, Desires, CH1 FM8, 49999 actual vs 50000 display; manually bought). Reopened original 15.5s frame: orange selected row 5, tooltip over row 6, native crop origin (428,284), measured median BGR normal (227,216,204), orange (40,152,230), tooltip (124,75,70). Orange selection background is below old mean cutoff; recognize orange margin and use red-channel dark glyph threshold for selected rows. Never erase cursor pixels from identity, never use fuzzy masks. When unrelated rows change during recognition, exact same seller and candidate-row raw pixels can preserve a single non-scroll active candidate in amber (ROW_CHECK), not a green match; changed/missing target and seller reject; strict scrolls require full current verification. Rounded 50K stays amber if explicit price precision available. New synthetic video-derived tests in staged test_inventory_hover.py. No Windows OCR/latency guarantee, no camera/macro/extension changes, preserve all history.
 
 ## 2026-11-26 — v24.62.3 stable sold-row recognition
 

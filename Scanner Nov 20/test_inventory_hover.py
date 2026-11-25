@@ -2,7 +2,7 @@
 import unittest
 from shop_inventory import inventory_tooltip_visible,tooltip_blocked_rows,locate_shop,GREEN,ORANGE,pick_rows,RowOCRCache,section_fingerprints,SCALE
 from camera_alignment import room_title_present,_ROOM_TITLE
-from shop_inventory import displayed_buy_step,price_in_display_bucket,sold_row_mask,sold_line_cutoff,stable_sold_hits
+from shop_inventory import displayed_buy_step,price_in_display_bucket,sold_row_mask,sold_line_cutoff,stable_sold_hits,selected_row_mask,row_ink,stable_item_hits
 
 def frame(w,h):
     stride=(w*3+3)&~3
@@ -109,6 +109,37 @@ class VideoSoldRowTests(unittest.TestCase):
         self.assertEqual(stable_sold_hits([(0,'MATCH')],before,after),[])
         self.assertEqual(stable_sold_hits([(0,'SOLD')],before,{-1:b'seller',0:b'changed'}),[])
         self.assertEqual(stable_sold_hits([(0,'SOLD')],before,{-1:b'other',0:b'pilfer'}),[])
+
+class VideoSelectedRowTests(unittest.TestCase):
+    def test_brown_dress_shoes_orange_selection(self):
+        buf,w,h,s=frame(204,263)
+        # Measured median BGR from the 03-46-13 clip, at 15.5s.
+        for row,bg in ((0,(227,216,204)),(4,(40,152,230)),(5,(124,75,70))):
+            for y in range(23+row*40,23+(row+1)*40):
+                for x in range(40,198):
+                    i=y*s+x*3;buf[i:i+3]=bytes(bg)
+        f=(buf,w,h,s)
+        self.assertTrue(selected_row_mask(f,4))
+        self.assertFalse(selected_row_mask(f,0))
+        self.assertFalse(selected_row_mask(f,5))
+        self.assertFalse(sold_row_mask(f,4))
+        self.assertFalse(row_ink(40,152,230,145,True))
+        self.assertTrue(row_ink(15,20,30,145,True))
+        self.assertFalse(row_ink(255,255,255,145,True))
+    def test_49999_rounded_50k(self):
+        lines=[{'y':5*SCALE,'text':'Desires'},{'y':(33+4*40)*SCALE,'text':'Brown Dress Shoes'},
+               {'y':(52+4*40)*SCALE,'text':'1 for 49,999 mesos'}]
+        step=displayed_buy_step('Buy 50K',50000)
+        self.assertEqual(pick_rows(lines,[False]*6,'Desires','Brown Dress Shoes',50000,buy_step=step)[0],[(4,'PRICE_CHECK')])
+        self.assertEqual(pick_rows(lines,[False]*6,'Desires','Brown Dress Shoes',50000)[0],[])
+    def test_active_row_independent_revalidation(self):
+        before={-1:b'seller',0:b'other',4:b'shoes',5:b'other2'}
+        after={-1:b'seller',0:b'changed',4:b'shoes'}
+        self.assertEqual(stable_item_hits([(4,'MATCH')],before,after),[(4,'ROW_CHECK')])
+        self.assertEqual(stable_item_hits([(4,'PRICE_CHECK')],before,after),[(4,'PRICE_CHECK')])
+        self.assertEqual(stable_item_hits([(4,'MATCH')],before,{-1:b'seller',4:b'sold'}),[])
+        self.assertEqual(stable_item_hits([(4,'MATCH')],before,{-1:b'wrong',4:b'shoes'}),[])
+        self.assertEqual(stable_item_hits([(4,'MATCH')],before,{-1:b'seller'}),[])
 
 class ArmedInventoryTests(unittest.TestCase):
     def setUp(self):

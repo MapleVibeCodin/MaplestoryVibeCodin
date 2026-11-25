@@ -174,6 +174,25 @@ def sold_row_mask(frame, row):
              for j in range(yy*stride+41*3,yy*stride+198*3,3))
     return pale>=24 and dark<12
 
+def selected_row_mask(frame, row):
+    """Recognize the native orange selection background at the row's right edge."""
+    buf,w,h,stride=frame
+    y=23+row*STEP
+    samples=[buf[yy*stride+194*3:yy*stride+194*3+3] for yy in range(y+4,y+36)]
+    return sum(20<=b<=100 and 100<=g<=205 and r>=195 and r-g>=45 and g-b>=45
+               for b,g,r in samples)>=24
+
+def row_ink(b,g,r,cutoff,selected=False,delta=0):
+    # Selected background is orange, with red ~230; its average can be <145.
+    # Dark glyphs have low red. Never mistake the orange fill for glyphs.
+    return r<145+delta if selected else (r+g+b)//3<cutoff
+
+def stable_item_hits(hits,before,after):
+    """Read-only, amber candidates when other rows are no longer verified."""
+    if -1 not in before or before[-1]!=after.get(-1):return []
+    return [(i,'ROW_CHECK' if mode=='MATCH' else mode) for i,mode in hits
+            if mode in ('MATCH','PRICE_CHECK','ROW_CHECK') and i in before and before[i]==after.get(i)]
+
 def sold_line_cutoff(frame, y, delta=0):
     """Normalize pale glyphs to black against the local light row background."""
     buf,w,h,stride=frame
@@ -199,6 +218,7 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0):
         if row not in selected:
             unavailable.append(False);continue
         unavailable.append(sold_row_mask(frame,row))
+    selected_rows={row for row in selected & set(range(ROWS)) if selected_row_mask(frame,row)}
     # Precompute expansion for each of the only two output pixel values.
     black=b'\x00'*SCALE;white=b'\xff'*SCALE
     for oy in range(out_h):
@@ -218,7 +238,7 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0):
                 for x in range(40,198):
                     i=sy*stride+x*3
                     b,g,r=buf[i:i+3]
-                    if (r+g+b)//3<cutoff:line[x-40]=0
+                    if row_ink(b,g,r,cutoff,row in selected_rows,threshold_delta):line[x-40]=0
                 # Pale sold rows may include a dark horizontal divider.
                 # Remove only near-full-width rules, never ordinary glyphs.
                 if line.count(0)>=120:line[:]=b'\xff'*out_w
@@ -429,6 +449,12 @@ class ShopInventoryTracker:
                 for mode,box in existing['hits']:
                     row=(box[1]-top-23)//STEP
                     if row in verified and verified[row]==prior.get(row):held.append((mode,box))
+            # Pending recognition must not imply the whole new frame is verified.
+            # A held active candidate is amber until duplicate checking finishes.
+            if 'scroll' not in normalized(item):
+                held=[('ROW_CHECK' if mode=='MATCH' else mode,box) for mode,box in held]
+            else:
+                held=[]  # strict scrolls require the complete current check
             self._publish(key,{'status':'Shop open · verifying visible rows','hits':held},None)
             with self._lock:
                 if self._key!=key:return
@@ -470,9 +496,14 @@ class ShopInventoryTracker:
                     # stable sold target. Never do this for scrolls or green
                     # purchasable matches; those keep full strict validation.
                     preserved=stable_sold_hits(hits,before_map,after_map) if 'scroll' not in normalized(item) else []
+                    if not preserved and 'scroll' not in normalized(item):
+                        preserved=stable_item_hits(hits,before_map,after_map)
                     if len(preserved)!=1:
                         self._publish(key,{'status':'Shop open · visible rows changed, retrying','hits':[]});return
-                    hits=preserved;status='Sold candidate · other rows changed'
+                    hits=preserved
+                    status=('Sold candidate · other rows changed' if hits[0][1]=='SOLD_CHECK'
+                            else 'Row verified · other rows changing; check price/stats')
+                    # Do not cache the newly unverified rows as a complete result.
                     digest=(left,top,tuple((i,v) for i,v in after if before_map.get(i)==v))
                 else:
                     digest=(left,top,after)
