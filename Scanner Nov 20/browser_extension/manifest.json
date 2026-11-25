@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "FM Rush — HeneFM Deal Scanner",
-  "version": "24.39.1",
-  "description": "Choose a HeneFM deal, save clicked listing screenshots, and preview its shop and channel in FM Rush.",
+  "version": "24.54.2",
+  "description": "Passively watches live HeneFM listings and sends them to FM Rush. No automatic HeneFM refresh.",
   "permissions": [
     "storage",
     "alarms",
@@ -25,24 +25,13 @@
         "https://www.henefm.com/flips*"
       ],
       "js": [
-        "refresh_2s.js"
-      ],
-      "run_at": "document_idle",
-      "world": "MAIN"
-    },
-    {
-      "matches": [
-        "https://henefm.com/flips*",
-        "https://www.henefm.com/flips*"
-      ],
-      "js": [
         "content.js"
       ],
       "run_at": "document_idle"
     }
   ],
   "action": {
-    "default_title": "FM Rush — refresh status",
+    "default_title": "FM Rush — live scanner",
     "default_popup": "popup.html"
   }
 }

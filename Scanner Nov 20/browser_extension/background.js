@@ -10,7 +10,6 @@ async function ensureHealthAlarm() {
   } catch (err) { console.warn('[FM Rush] Could not schedule health check',err); }
 }
 chrome.runtime.onInstalled.addListener(async () => {
-  await chrome.storage.local.set({fmRushIntervalMs:1200,fmRushBackupReload:false});
   // Trading records replace screenshot spam. Reset once on this workflow upgrade;
   // a later explicit opt-in is preserved across subsequent extension reloads.
   const saved=await chrome.storage.local.get('fmRushTextWorkflowV2417');

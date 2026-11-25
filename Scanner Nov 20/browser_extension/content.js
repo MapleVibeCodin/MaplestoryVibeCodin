@@ -1,4 +1,4 @@
-/* FM Rush v24.39 — click-to-chase HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.54.2 — passive live HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Adds Chase/Skip controls and selection feedback only; no automatic game inputs.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -402,14 +402,6 @@
     if(queueChanged)remember();
     // Keep unsent listings even after they leave the page; the archive must
     // not lose a seller while the local app is disconnected.
-    // A compact fingerprint, not seller names, is passed to the refresh telemetry.
-    // A changed fingerprint shows rendered deal data changed, not necessarily
-    // that the server itself just generated a new list.
-    try {
-      const fingerprintKey = deals.map(d => d.id).sort().join(',');
-      window.postMessage({kind:'FM_RUSH_REFRESH_V243',type:'deal-snapshot',
-        count:deals.length,fingerprint:fingerprint(fingerprintKey)},location.origin);
-    } catch (_) {}
     sendNext();
     // Deal delivery is dispatched first; archiving follows independently.
     archiveScreenshots();
@@ -453,25 +445,7 @@
     document.addEventListener('visibilitychange', scheduleScan);
     window.addEventListener('pageshow', scheduleScan);
     window.addEventListener('popstate', scheduleScan);
-    // MAIN-world refresh script cannot read extension storage directly.
-    // Transfer only the local interval setting; never touch HeneFM controls.
-    const REFRESH_KIND = 'FM_RUSH_REFRESH_V243';
-    const signalRefresh = (type, extra={}) => {
-      window.postMessage({kind:REFRESH_KIND, type, ...extra},location.origin);
-    };
     try {
-      chrome.storage?.local?.get({fmRushIntervalMs:1200,fmRushBackupReload:false}, result => {
-        signalRefresh('set-settings',{intervalMs:result?.fmRushIntervalMs ?? 1200,
-          fallbackEnabled:result?.fmRushBackupReload === true});
-      });
-      chrome.storage?.onChanged?.addListener((changes,area) => {
-        if (area==='local' && (changes.fmRushIntervalMs || changes.fmRushBackupReload)) {
-          chrome.storage.local.get({fmRushIntervalMs:1200,fmRushBackupReload:false},result=> {
-            signalRefresh('set-settings',{intervalMs:result.fmRushIntervalMs,
-              fallbackEnabled:result.fmRushBackupReload === true});
-          });
-        }
-      });
       chrome.runtime.onMessage?.addListener((message,_sender,respond) => {
         if (message?.kind==='fm-rush-locate-capture') {
           extract();
@@ -481,7 +455,6 @@
         }
         if (message?.kind==='fm-rush-health-wake') {
           scheduleScan();
-          signalRefresh('wake');
           respond({ok:true});
           return false;
         }
@@ -499,23 +472,8 @@
           return false;
         }
         if (message?.kind==='fm-rush-get-status') {
-          const requestId='status-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-          let done=false;
-          const complete=value => {
-            if (done) return;
-            done=true;
-            window.removeEventListener('message',reply);
-            respond({...value, scanner:{...diagnostics,queued:queued.length,pending:sending, deliveredRemembered:seen.size}});
-          };
-          const reply=event => {
-            if (event.source===window && event.origin===location.origin &&
-                event.data?.kind===REFRESH_KIND && event.data?.type==='status-reply' &&
-                event.data.requestId===requestId) complete(event.data.value);
-          };
-          window.addEventListener('message',reply);
-          signalRefresh('status',{requestId});
-          setTimeout(()=>complete({running:false}),750);
-          return true;
+          respond({running:isDealsPage(),tabVisible:document.visibilityState==='visible',scanner:{...diagnostics,queued:queued.length,pending:sending,deliveredRemembered:seen.size}});
+          return false;
         }
         return false;
       });
