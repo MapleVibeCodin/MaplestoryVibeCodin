@@ -269,4 +269,62 @@ class TrackerFailureTests(unittest.TestCase):
         self.assertIn('TypeError',t._latest['status'])
         self.assertFalse(t._busy)
 
+class TrackerGeometryTests(TrackerFailureTests):
+    def ready(self, geometry, item='item'):
+        from types import SimpleNamespace
+        t=self.tracker()
+        t._key=(1,(0,0,1366,768),'listing','seller',item,100,0,1)
+        t._latest=None;t._digest=None
+        t._find_anchor=lambda client:None if geometry else (568,214)
+        t._find_geometry_anchor=lambda client:(568,214)
+        lines=[{'y':5*SCALE,'text':'seller'},{'y':33*SCALE,'text':item},
+               {'y':52*SCALE,'text':'1 for 100 mesos'}]
+        t._row_cache=SimpleNamespace(recognize=lambda *args:(lines,[False]*6,True))
+        t._scroll_checks={}
+        return t
+
+    def test_geometry_only_cannot_publish_green(self):
+        from unittest.mock import patch
+        t=self.ready(True)
+        with patch('shop_inventory.capture_client',return_value=frame(204,263)):
+            t._scan(t._key)
+        self.assertEqual(t._latest['hits'][0][0],'ROW_CHECK')
+        self.assertTrue(t._latest['timing']['geometry_fallback'])
+        self.assertTrue(t._digest[3])
+
+    def test_exact_path_remains_green(self):
+        from unittest.mock import patch
+        t=self.ready(False)
+        with patch('shop_inventory.capture_client',return_value=frame(204,263)):
+            t._scan(t._key)
+        self.assertEqual(t._latest['hits'][0][0],'MATCH')
+        self.assertFalse(t._latest['timing']['geometry_fallback'])
+
+    def test_geometry_cannot_accept_scroll(self):
+        from unittest.mock import patch
+        t=self.ready(True,'Scroll for Gloves for ATT 60%')
+        with patch('shop_inventory.capture_client') as capture:
+            t._scan(t._key)
+        capture.assert_not_called()
+        self.assertEqual(t._latest['hits'],[])
+
+    def test_lost_geometry_invalidates_candidate(self):
+        from unittest.mock import patch
+        t=self.ready(True)
+        with patch.object(t,'_find_geometry_anchor',side_effect=[(568,214),None]), patch('shop_inventory.capture_client',return_value=frame(204,263)):
+            t._scan(t._key)
+        self.assertIsNone(t._latest)
+        self.assertIsNone(t._digest)
+
+    def test_switch_to_geometry_invalidates_exact_cache(self):
+        from unittest.mock import patch
+        t=self.ready(False)
+        with patch('shop_inventory.capture_client',return_value=frame(204,263)):
+            t._scan(t._key)
+            self.assertEqual(t._latest['hits'][0][0],'MATCH')
+            t._find_anchor=lambda client:None
+            t._scan(t._key)
+        self.assertEqual(t._latest['hits'][0][0],'ROW_CHECK')
+        self.assertTrue(t._digest[3])
+
 if __name__=='__main__':unittest.main()
