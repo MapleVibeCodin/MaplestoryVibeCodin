@@ -4,7 +4,10 @@ Signatures are tiny BGR pixel strips sampled from stationary map terrain.
 They contain no chat, character names, or full screenshot. An estimate is
 accepted only when at least two independent landmarks agree exactly.
 """
-from collections import Counter
+from collections import Counter, OrderedDict
+from functools import lru_cache
+from ctypes import wintypes as W
+import queue
 import ctypes
 import sys
 import threading
@@ -52,21 +55,14 @@ def locate_grass_portal(buffer, width, height, stride, landmarks=LANDMARKS):
     return ranked[0][0]
 
 
-def capture_client(client, *, allow_crop=False):
-    """Capture visible desktop pixels for this client only, using Windows GDI."""
-    if sys.platform != 'win32':
-        return None
-    from ctypes import wintypes as W
-    left, top, width, height = client
-    if not allow_crop and (width, height) not in {(1280,720),(1366,768)}:
-        return None
+class Header(ctypes.Structure):
+    _fields_ = [('size', W.DWORD), ('width', W.LONG), ('height', W.LONG),
+                ('planes', W.WORD), ('bits', W.WORD), ('compression', W.DWORD),
+                ('image_size', W.DWORD), ('xppm', W.LONG), ('yppm', W.LONG),
+                ('used', W.DWORD), ('important', W.DWORD)]
 
-    class Header(ctypes.Structure):
-        _fields_ = [('size', W.DWORD), ('width', W.LONG), ('height', W.LONG),
-                    ('planes', W.WORD), ('bits', W.WORD), ('compression', W.DWORD),
-                    ('image_size', W.DWORD), ('xppm', W.LONG), ('yppm', W.LONG),
-                    ('used', W.DWORD), ('important', W.DWORD)]
-
+@lru_cache(maxsize=1)
+def _capture_api():
     u, g = ctypes.windll.user32, ctypes.windll.gdi32
     u.GetDC.argtypes = [W.HWND]; u.GetDC.restype = W.HDC
     u.ReleaseDC.argtypes = [W.HWND, W.HDC]; u.ReleaseDC.restype = ctypes.c_int
@@ -81,34 +77,67 @@ def capture_client(client, *, allow_crop=False):
     g.DeleteObject.argtypes = [W.HANDLE]; g.DeleteObject.restype = W.BOOL
     g.DeleteDC.argtypes = [W.HDC]; g.DeleteDC.restype = W.BOOL
 
-    screen = u.GetDC(None)
-    if not screen:
-        return None
-    mem = bitmap = old = None
+    return u,g
+
+_capture_local=threading.local()
+
+def enable_capture_cache():
+    """Opt in on a persistent capture worker; handles never cross threads."""
+    if not hasattr(_capture_local,'pool'):_capture_local.pool=OrderedDict()
+
+def _free_surface(g, surface):
+    mem,bitmap,old,pixels=surface
+    if old:g.SelectObject(mem,old)
+    if bitmap:g.DeleteObject(bitmap)
+    if mem:g.DeleteDC(mem)
+
+def release_capture_cache():
+    pool=getattr(_capture_local,'pool',None)
+    if pool is not None:
+        if sys.platform=='win32':
+            _,g=_capture_api()
+            for surface in pool.values():_free_surface(g,surface)
+        del _capture_local.pool
+
+def capture_client(client, *, allow_crop=False):
+    """Capture visible desktop pixels; reuse a bounded DIB/DC pool per worker."""
+    if sys.platform!='win32':return None
+    left,top,width,height=client
+    if width<=0 or height<=0:return None
+    if not allow_crop and (width,height) not in {(1280,720),(1366,768)}:return None
+    u,g=_capture_api()
+    screen=u.GetDC(None)
+    if not screen:return None
+    pool=getattr(_capture_local,'pool',None)
+    key=(width,height)
+    stride=(width*3+3)&~3
+    surface=pool.pop(key,None) if pool is not None else None
+    mem=bitmap=old=None
+    pixels=ctypes.c_void_p()
+    keep=False
     try:
-        mem = g.CreateCompatibleDC(screen)
-        if not mem:
-            return None
-        stride = (width * 3 + 3) & ~3
-        header = Header(ctypes.sizeof(Header), width, -height, 1, 24, 0,
-                        stride*height, 0,0,0,0)
-        pixels = ctypes.c_void_p()
-        bitmap = g.CreateDIBSection(screen, ctypes.byref(header), 0,
-                                    ctypes.byref(pixels), None, 0)
-        if not bitmap or not pixels.value:
-            return None
-        old = g.SelectObject(mem, bitmap)
-        if not old or old == ctypes.c_void_p(-1).value:
-            old = None
-            return None
-        if not g.BitBlt(mem,0,0,width,height,screen,left,top,0x00CC0020):
-            return None
+        if surface is not None:
+            mem,bitmap,old,pixels=surface
+        else:
+            mem=g.CreateCompatibleDC(screen)
+            if not mem:return None
+            header=Header(ctypes.sizeof(Header),width,-height,1,24,0,stride*height,0,0,0,0)
+            bitmap=g.CreateDIBSection(screen,ctypes.byref(header),0,ctypes.byref(pixels),None,0)
+            if not bitmap or not pixels.value:return None
+            old=g.SelectObject(mem,bitmap)
+            if not old or old==ctypes.c_void_p(-1).value:
+                old=None
+                return None
+        if not g.BitBlt(mem,0,0,width,height,screen,left,top,0x00CC0020):return None
         g.GdiFlush()
-        return ctypes.string_at(pixels, stride*height), width, height, stride
+        data=ctypes.string_at(pixels,stride*height)
+        if pool is not None:
+            pool[key]=(mem,bitmap,old,pixels)
+            keep=True
+            while len(pool)>8:_free_surface(g,pool.popitem(last=False)[1])
+        return data,width,height,stride
     finally:
-        if old: g.SelectObject(mem, old)
-        if bitmap: g.DeleteObject(bitmap)
-        if mem: g.DeleteDC(mem)
+        if not keep:_free_surface(g,(mem,bitmap,old,pixels))
         u.ReleaseDC(None,screen)
 
 
@@ -123,6 +152,22 @@ class GrassCameraTracker:
         self._next = 0.0
         self._latest = None
         self._requested = None
+        self._closed=False
+        self._jobs=queue.Queue()
+        self._worker=threading.Thread(target=self._work,daemon=True,name='FM entrance capture')
+        self._worker.start()
+
+    def _work(self):
+        enable_capture_cache()
+        try:
+            while True:
+                key=self._jobs.get()
+                if key is None or self._closed:return
+                self._scan(key)
+        finally:release_capture_cache()
+
+    def close(self):
+        self._closed=True;self.reset();self._jobs.put_nowait(None)
 
     def get(self, hwnd, client):
         key = (hwnd, tuple(client))
@@ -132,10 +177,10 @@ class GrassCameraTracker:
                 self._requested = key
                 self._latest = None
                 self._next = 0.0
-            if not self._busy and now >= self._next:
+            if not self._closed and not self._busy and now >= self._next:
                 self._busy = True
                 self._next = now + self.interval
-                threading.Thread(target=self._scan, args=(key,), daemon=True).start()
+                self._jobs.put_nowait(key)
             if self._latest is not None:
                 saved, at, point = self._latest
                 if saved == key and now - at <= self.max_age:
@@ -204,10 +249,29 @@ def entrance_title_present(buffer, width, height, stride):
                    for y in range(min(height,120))) for strip in _ENTRANCE_TITLE)
 
 
+def verify_translation(client,translation,landmarks=ENTRANCE_LANDMARKS):
+    """Revalidate two independent stationary strips at the last unique offset."""
+    x,y,w,h=client;dx,dy=translation
+    matches=attempts=0
+    for lx,ly,rows in landmarks:
+        sx,sy=lx+dx,ly+dy;sw=len(rows[0])//3
+        if sx<0 or sy<0 or sx+sw>w or sy+15>h:continue
+        frame=capture_client((x+sx,y+sy,sw,15),allow_crop=True)
+        attempts+=1
+        if frame:
+            buf,_,_,stride=frame
+            if all(buf[i*stride:i*stride+len(row)]==row for i,row in zip((0,7,14),rows)):
+                matches+=1
+                if matches>=2:return True
+        if attempts>=4:break
+    return False
+
+
 class EntranceCameraTracker(GrassCameraTracker):
     """Cheap title crop outside entrance; full matching only in confirmed entrance."""
     def __init__(self):
         super().__init__(interval=0.20,max_age=0.60,matcher=locate_entrance)
+        self._verified_key=None;self._translation=None;self._full_at=0.0
 
     def _scan(self, key):
         scene=None
@@ -217,10 +281,19 @@ class EntranceCameraTracker(GrassCameraTracker):
             crop=capture_client((x,y,min(w,200),min(h,120)),allow_crop=True)
             if crop is not None:
                 if entrance_title_present(*crop):
-                    frame=capture_client(key[1])
-                    scene=locate_entrance(*frame) if frame is not None else (True,None)
+                    # Periodically repeat unique full matching; never keep an
+                    # offset when its stationary signatures no longer agree.
+                    if (self._verified_key==key and self._translation is not None
+                            and at-self._full_at<2.0
+                            and verify_translation(key[1],self._translation)):
+                        scene=(True,self._translation)
+                    else:
+                        frame=capture_client(key[1])
+                        scene=locate_entrance(*frame) if frame is not None else (True,None)
+                        self._verified_key=key;self._full_at=at
+                        self._translation=scene[1] if scene and scene[0] else None
                 else:
-                    scene=(False,None)
+                    scene=(False,None);self._translation=None;self._verified_key=None
         except (OSError,ValueError,ctypes.ArgumentError):
             pass
         finally:

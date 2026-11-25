@@ -14,7 +14,7 @@ import threading
 import time
 import unicodedata
 import zlib
-from camera_alignment import capture_client
+from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
 
 # Native shop UI: stable colored button borders, not seller or item pixels.
 GREEN = bytes((67,223,208))*24
@@ -43,20 +43,24 @@ def locate_shop(buffer,w,h,stride):
             at=line.find(GREEN,at+3)
     return hits[0] if len(hits)==1 else None
 
-def inventory_fingerprint(frame):
+def section_fingerprints(frame):
+    """Seller and six native row hashes; identical rows can be reused after scrolling."""
     """Hash only native seller/name/price pixels, not icons/chat/overlay edges.
     This inexpensive check happens before any scaling, binarization or OCR.
     """
     buf,w,h,stride=frame
     if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:
         raise ValueError('Invalid inventory crop')
-    digest=hashlib.blake2b(digest_size=20)
-    for y in range(3,16):
-        digest.update(buf[y*stride+9*3:y*stride+89*3])
-    for row in range(ROWS):
-        for y in range(25+row*STEP,60+row*STEP):
-            digest.update(buf[y*stride+40*3:y*stride+198*3])
-    return digest.digest()
+    def region(start,end,left,right):
+        digest=hashlib.blake2b(digest_size=20)
+        for y in range(start,end):
+            digest.update(buf[y*stride+left*3:y*stride+right*3])
+        return digest.digest()
+    return ((-1,region(3,16,9,89)),)+tuple(
+        (row,region(25+row*STEP,60+row*STEP,40,198)) for row in range(ROWS))
+
+def inventory_fingerprint(frame):
+    return hashlib.blake2b(b''.join(digest for _,digest in section_fingerprints(frame)),digest_size=20).digest()
 
 class InventoryCache:
     """Bounded session-local cache of OCR results by exact visible text pixels."""
@@ -106,13 +110,16 @@ def pick_rows(lines, unavailable, seller, item, price):
     if price_unknown:return [],'Item found · price not verified'
     return [],'Target not visible · scroll manually'
 
-def prepare_ocr(frame):
+def prepare_ocr(frame, sections=None):
     """Create contrast-normalized 3x monochrome strip, including seller and six rows."""
     buf,w,h,stride=frame
     # Capture starts at button anchor (-140,+70). Seller is on dark blue.
     out_w,out_h=162,28+ROWS*STEP
     rows=[];unavailable=[]
+    selected=set(range(-1,ROWS)) if sections is None else set(sections)
     for row in range(ROWS):
+        if row not in selected:
+            unavailable.append(False);continue
         y=23+row*STEP
         # Gray sold rows have pale background and no dark text. Require both.
         sample=buf[(y+2)*stride+194*3:(y+2)*stride+194*3+3]
@@ -123,7 +130,7 @@ def prepare_ocr(frame):
     black=b'\x00'*SCALE;white=b'\xff'*SCALE
     for oy in range(out_h):
         line=bytearray([255])*out_w
-        if 3<=oy<16:
+        if -1 in selected and 3<=oy<16:
             sy=oy
             for x in range(9,89):
                 i=sy*stride+x*3
@@ -134,7 +141,7 @@ def prepare_ocr(frame):
             # Original list row starts 23 pixels below capture origin.
             sy=23+row*STEP+dy
             cutoff=225 if unavailable[row] else 145
-            if 3<=dy<=36:
+            if row in selected and 3<=dy<=36:
                 for x in range(40,198):
                     i=sy*stride+x*3
                     b,g,r=buf[i:i+3]
@@ -156,6 +163,46 @@ def encode_gray_png(width,height,rows):
     header=struct.pack('>IIBBBBB',width,height,8,0,0,0,0)
     data=zlib.compress(b''.join(b'\x00'+row for row in rows),1)
     return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',header)+chunk(b'IDAT',data)+chunk(b'IEND',b'')
+
+class RowOCRCache:
+    """Cache OCR by exact native seller or row pixels, independent of row index."""
+    def __init__(self,limit=512):
+        self.limit=limit;self.entries=OrderedDict()
+
+    @staticmethod
+    def _base(section):return 0 if section==-1 else 28+section*STEP
+
+    def recognize(self,frame,ocr):
+        sections=section_fingerprints(frame)
+        keys={section:(section==-1,digest) for section,digest in sections}
+        results={};missing=set()
+        for section,key in keys.items():
+            if key in self.entries:
+                results[section]=self.entries[key];self.entries.move_to_end(key)
+            else:missing.add(section)
+        if missing:
+            png,sold=prepare_ocr(frame,missing)
+            raw=ocr.recognize(png)
+            grouped={section:[] for section in missing}
+            for line in raw:
+                y=float(line.get('y',-100))/SCALE
+                section=-1 if 0<=y<22 else int((y-28)//STEP) if 28<=y<28+ROWS*STEP else None
+                if section in grouped:
+                    grouped[section].append({'text':line.get('text',''),'y':float(line['y'])-self._base(section)*SCALE})
+            for section in missing:
+                value=(grouped[section],False if section==-1 else sold[section])
+                results[section]=value
+                # Do not permanently cache failed/empty text recognition.
+                if value[0]:
+                    self.entries[keys[section]]=value;self.entries.move_to_end(keys[section])
+            while len(self.entries)>self.limit:self.entries.popitem(last=False)
+        lines=[];unavailable=[]
+        for section in range(-1,ROWS):
+            relative,sold=results[section]
+            lines.extend({'text':line['text'],'y':line['y']+self._base(section)*SCALE} for line in relative)
+            if section>=0:unavailable.append(sold)
+        return lines,unavailable,bool(missing)
+
 
 class WindowsOCR:
     """Persistent Windows PowerShell / WinRT OCR worker, warmed once."""
@@ -186,12 +233,16 @@ class WindowsOCR:
         self.start()
         with tempfile.TemporaryDirectory(prefix='fm_rush_ocr_') as tmp:
             path=Path(tmp)/'inventory.png';path.write_bytes(png)
-            self.proc.stdin.write(json.dumps(str(path))+'\n');self.proc.stdin.flush()
+            proc=self.proc
+            if proc is None or proc.poll() is not None:raise RuntimeError('Windows OCR worker exited')
+            proc.stdin.write(json.dumps(str(path))+'\n');proc.stdin.flush()
             try:res=self.responses.get(timeout=8)
             except queue.Empty:
                 self.close();raise RuntimeError('Windows OCR timed out')
             if not res.get('ok'):
-                self.close();raise RuntimeError(res.get('error','Windows OCR unavailable'))
+                # A handled recognition error does not require a worker restart.
+                if proc.poll() is not None:self.close()
+                raise RuntimeError(res.get('error','Windows OCR unavailable'))
             return res.get('lines',[])
     def close(self):
         with self._process_lock:
@@ -208,16 +259,27 @@ class ShopInventoryTracker:
         # Two native 1366x768 screenshots share the same shop anchor.
         # Still verify pixels and fall back if the window/layout differs.
         self._anchors={(1366,768):(568,214)};self._gate_next={};self._cache=InventoryCache()
-        if os.name=='nt':
-            threading.Thread(target=self._warm,daemon=True).start()
-    def _warm(self):
-        try:self._ocr.start()
-        except OSError:pass
+        self._row_cache=RowOCRCache();self._ocr_failures=0
+        self._jobs=queue.Queue()
+        self._worker=threading.Thread(target=self._work,daemon=True,name='FM inventory capture')
+        self._worker.start()
+    def _work(self):
+        enable_capture_cache()
+        try:
+            if os.name=='nt' and not self._closed:
+                try:self._ocr.start()
+                except OSError:pass
+            while True:
+                key=self._jobs.get()
+                if key is None or self._closed:return
+                self._scan(key)
+        finally:
+            self._ocr.close();release_capture_cache()
     def reset(self):
         with self._lock:
             self._key=None;self._latest=None;self._next=0;self._digest=None
     def close(self):
-        self._closed=True;self.reset();self._ocr.close()
+        self._closed=True;self.reset();self._jobs.put_nowait(None);self._ocr.close()
     def get(self,hwnd,client,deal):
         key=(hwnd,tuple(client),deal.listing_id,deal.ign,deal.item,deal.buy_mesos)
         now=time.monotonic()
@@ -226,7 +288,7 @@ class ShopInventoryTracker:
                 self._key=key;self._latest=None;self._digest=None;self._next=0
             if not self._closed and not self._busy and now>=self._next:
                 self._busy=True;self._next=now+.10
-                threading.Thread(target=self._scan,args=(key,),daemon=True).start()
+                self._jobs.put_nowait(key)
             return self._latest
     def _publish(self,key,result,digest=None):
         with self._lock:
@@ -283,8 +345,8 @@ class ShopInventoryTracker:
             cached=self._cache.get(pixels)
             if cached is None:
                 self._publish(key,{'status':'Shop open · reading inventory','hits':[]})
-                png,unavailable=prepare_ocr(frame)
-                lines=self._ocr.recognize(png)
+                lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr)
+                self._ocr_failures=0
                 # Cache the original recognized pixels, even if the shop
                 # subsequently changes. Reuse only when those pixels recur.
                 self._cache.put(pixels,lines,unavailable)
@@ -303,7 +365,8 @@ class ShopInventoryTracker:
             self._publish(key,{'status':status,'hits':hits},digest)
         except (OSError,ValueError,RuntimeError,subprocess.SubprocessError) as exc:
             self._publish(key,{'status':'Shop OCR unavailable · '+str(exc)[:100],'hits':[]})
+            self._ocr_failures+=1
             with self._lock:
-                if self._key==key:self._next=time.monotonic()+1.0
+                if self._key==key:self._next=time.monotonic()+min(15.0,2.0**min(4,self._ocr_failures-1))
         finally:
             with self._lock:self._busy=False

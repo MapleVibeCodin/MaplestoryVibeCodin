@@ -757,6 +757,7 @@ class FMApp:
         self.entrance_pin.close()
         self.item_pin.close()
         self._inventory.close()
+        self._entrance_camera.close()
         self.archive.close()
         if hasattr(self,'trade_keys'):self.trade_keys.close()
         self.root.destroy()

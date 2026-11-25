@@ -1,8 +1,8 @@
-FM RUSH v24.55.3 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.56.0 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
-Keep browser_extension v24.54.9 loaded in Brave. Open brave://extensions,
+Keep browser_extension v24.56.0 loaded in Brave. Open brave://extensions,
 enable Developer mode and Load unpacked if needed. Reload the extension
 and reload the HeneFM Deals tab once after upgrading to remove old scripts.
 HeneFM now controls its own live updates: no soft refresh or backup reload.
@@ -75,3 +75,11 @@ uses a grayscale PNG, default WinRT decode followed by BGRA8 conversion, and
 stage-specific errors. Seeded 1366x768 shop anchor is pixel-verified, with
 fallback to previous calibrated gate. Cache and exact match retained.
 Windows OCR must still be tested on the user's machine.
+
+OPTIMIZED v24.56.0: browser semantic card cache with periodic full reconciliation,
+batched FULL-durability SQLite writes, no writes for raw age-only text changes,
+no redundant stationary overlay positioning or map/grid redraws, stopped hidden
+overlay timers, persistent capture workers and bounded per-worker GDI surfaces,
+entrance landmark revalidation, and exact seller/row pixel OCR caches. Install
+both desktop and extension. Existing click records and local archives are kept.
+Windows and Brave end-to-end performance must still be measured.

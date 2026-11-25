@@ -45,3 +45,27 @@ class AutoLockTests(unittest.TestCase):
         self.assertFalse(self.a.chase_locked)
         self.visible(4,deal('B'))
         self.target('B')
+
+    def test_batched_durable_writes_and_age_only_noop(self):
+        from dataclasses import replace
+        statements=[]
+        self.a.db.set_trace_callback(statements.append)
+        self.a.auto_lock=False
+        self.a.manual_selection=False
+        self.visible(1,deal('A'),deal('B'),deal('C'))
+        self.assertEqual(sum(s.strip().upper()=='COMMIT' for s in statements),1)
+        statements.clear()
+        self.visible(2,replace(deal('A'),raw_text='Seen 3s'),deal('B'),deal('C'))
+        self.assertFalse(any(s.strip().upper().startswith('INSERT') for s in statements))
+
+    def test_batch_rolls_back_memory_on_failure(self):
+        from unittest.mock import patch
+        original=self.a.record
+        def record(d):
+            if d.ign=='B':raise ValueError('simulated failure')
+            return original(d)
+        with patch.object(self.a,'record',side_effect=record):
+            with self.assertRaises(ValueError):self.visible(1,deal('A'),deal('B'))
+        self.assertEqual(self.a.records,{})
+        self.assertEqual(self.a.pending(),[])
+        self.assertIsNone(self.a.current())

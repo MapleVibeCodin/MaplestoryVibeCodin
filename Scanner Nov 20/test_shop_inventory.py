@@ -1,5 +1,5 @@
 import unittest
-from shop_inventory import locate_shop, pick_rows, GREEN, ORANGE, SCALE, prepare_ocr, inventory_fingerprint, InventoryCache, ShopInventoryTracker
+from shop_inventory import locate_shop, pick_rows, GREEN, ORANGE, SCALE, prepare_ocr, inventory_fingerprint, InventoryCache, ShopInventoryTracker, RowOCRCache, section_fingerprints
 
 class InventoryTests(unittest.TestCase):
     def test_button_signature(self):
@@ -91,3 +91,27 @@ class InventoryTests(unittest.TestCase):
         size=(1280,720)
         self.assertEqual(entry_shop_point(position,18,size),
                          entry_shop_point(position,18,size,entry_portal_point(18,size)))
+
+    def test_row_cache_reuses_unchanged_sections(self):
+        w,h=204,263;stride=w*3
+        buf=bytearray(bytes((227,217,205))*w*h)
+        for i in range(6):buf[(30+i*40)*stride+80*3]=i
+        frame=lambda:(bytes(buf),w,h,stride)
+        class FakeOCR:
+            def __init__(self):self.calls=0
+            def recognize(self,png):
+                self.calls+=1
+                if self.calls==1:
+                    return [{'text':'Seller','y':9*SCALE}]+[
+                        {'text':f'Item{i}','y':(28+i*40+9)*SCALE} for i in range(6)]
+                return [{'text':'New item','y':(28+2*40+9)*SCALE}]
+        ocr=FakeOCR();cache=RowOCRCache()
+        first=cache.recognize(frame(),ocr)
+        self.assertEqual(len(first[0]),7)
+        self.assertFalse(cache.recognize(frame(),ocr)[2])
+        self.assertEqual(ocr.calls,1)
+        buf[(30+2*40)*stride+80*3]=99
+        second=cache.recognize(frame(),ocr)
+        self.assertEqual(ocr.calls,2)
+        self.assertEqual([x['text'] for x in second[0]],
+                         ['Seller','Item0','Item1','New item','Item3','Item4','Item5'])
