@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-26",
+  "scope": "Research-only. Selected exact licensed files archived; full pinned upstream checkout available separately. Unknown redistribution rights: links only.",
+  "sources": [
+    {
+      "repo": "oleg1994/maplestory-classic-tool",
+      "ref": "af19503df37516de0bf1bf4f53542432e908f041",
+      "license": "MIT",
+      "bundle": "classic-tool-source.json",
+      "files": 12
+    },
+    {
+      "repo": "itechify/minerva",
+      "ref": "5d90302b44715cb303b0a2b601c5bab4cb0fb4e4",
+      "license": "MIT",
+      "bundle": "rust-recognition-source.json",
+      "files": 5
+    },
+    {
+      "repo": "Shonitbar/mpl-ocr",
+      "ref": "954487e3f2bbae7e9591e03f29f7408f7faa1391",
+      "license": "MIT",
+      "bundle": "rust-recognition-source.json",
+      "files": 6
+    },
+    {
+      "repo": "mirotol/MapleScanner",
+      "ref": "e640bb752837eb6cdbd78fda5e6474fc78612051",
+      "license": "GPL-3.0-or-later",
+      "bundle": "gpl-market-scanners-source.json",
+      "files": 6
+    },
+    {
+      "repo": "jayee88/mfm-tracker",
+      "ref": "dcacddef43325240e369ba55350d55d4aef4823e",
+      "license": "GPL-3.0",
+      "bundle": "gpl-market-scanners-source.json",
+      "files": 2,
+      "note": "README and license only; full checkout needed for recognition source."
+    },
+    {
+      "repo": "maplefm/maplefm.github.io",
+      "ref": "d5617f43216eacf2d536fdb09c9560357653235d",
+      "license": "unverified",
+      "files": 0,
+      "reference": [
+        "download/source/fmparse.py",
+        "download/source/watcher.py",
+        "download/source/glyphs.py",
+        "download/source/tipexact.py",
+        "download/source/ocrlib.py",
+        "download/FMWatcher.zip"
+      ],
+      "note": "Published ZIP contains source and data; no redistribution license verified."
+    },
+    {
+      "repo": "Ithamar14/maple-price-checker",
+      "ref": "17d4099911ccddd19fbc752082a655852e7bdbe0",
+      "license": "unverified",
+      "files": 0,
+      "reference": [
+        "price_checker.py",
+        "README.md"
+      ],
+      "note": "Passive recognition and separate gameplay automation. Do not execute."
+    },
+    {
+      "repo": "zhuffman68/lupin",
+      "ref": "46efd23eca203544e4e5c5ac0e005a472598f398",
+      "license": "unverified",
+      "files": 0,
+      "reference": [
+        "docs/TECHNICAL.md",
+        "README.md"
+      ],
+      "note": "Technical documentation retrieved; individual recognition files not located."
+    }
+  ]
+}
