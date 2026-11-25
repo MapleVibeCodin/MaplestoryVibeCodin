@@ -51,7 +51,7 @@ The last assistant concluded there was **no verified second newly-released, low-
 - This request is *research only*. Do not change scanner code, browser extension, auto-pull settings, FM Rush installation scripts, or the universal scrolling optimizer.
 - The existing root `AGENTS.md` is specifically the FM Rush engineering handoff, and remains authoritative for FM Rush. Do not overwrite it with a market-research transcript.
 - Universal scrolling EV optimizer exists under `scrolling-ev/` in this repo (separate project; not modified here).
-- The prior assistant offered `MapleStory_Classic_New_Items_Nov_2026_Price_Audit.xlsx` in the chat and said 191 items. **Workbook bytes are not archived here and its exact file path/accessibility has not been independently verified in this checkpoint.** Don't claim it is part of this commit.
+- The prior assistant offered `MapleStory_Classic_New_Items_Nov_2026_Price_Audit.xlsx` in the chat and said 191 items. **Workbook bytes are not archived in GitHub.** A container check in this checkpoint verified that `/mnt/data/MapleStory_Classic_New_Items_Nov_2026_Price_Audit.xlsx` exists (25,107 bytes; SHA-256 `ef8dbd81df4333b40320fa72fcda0ff41b7b9f86055d74edd46e87d96530d60b`). The file is available as a current-chat sandbox artifact, but **not** as a GitHub asset; do not claim it is part of this commit.
 - All market figures are **past assistant observations**, not live rechecks performed during this GitHub checkpoint.
 - This handoff is not a ChatGPT transcript. The separate transcript file in `checkpoints/transcripts/` records accessible conversation utterances and its coverage limits.
 
