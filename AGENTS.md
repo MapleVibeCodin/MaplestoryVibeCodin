@@ -2,6 +2,10 @@
 
 Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.0; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
+## Final continuation checkpoint — v24.63.0
+
+Read `Scanner Nov 20/transcripts/2026-11-26-final-continuation.md` first. Five newly accessible logs contain 2,914 events across 37 attempts; older recorder tags cannot validate current runtime. Pointer medians ~11 ms, focus ~63 ms, channel-associated black interval ~1.53 s. Latest two videos and three screenshots recovered (two duplicates); expanded local archive 57 unique originals including five logs, not pushed as raw media to public repo. Keep strict verification and whole-pipeline regression; no more item-specific guesses. New chat must verify latest main, staged tests, and fresh post-v24.63.0 report. No Work or Codex suggestions. All history intact.
+
 ## Latest audit checkpoint — v24.63.0
 
 Read `Scanner Nov 20/transcripts/2026-11-26-inventory-pipeline-audit.md` before further changes. The 03-55-12 video proves the locked inventory pipeline was stopped by the room-title gate, not slow OCR. Real-mask regression fixtures in test_inventory_hover.py complement the batch replay; the room/nonroom labels are heuristic and not independent ground truth. Do not claim end-to-end Windows tests or all archive images pass without executing them. Raw 49-file ZIP was packaged in chat only, not pushed to GitHub; three final inline screenshots were inaccessible to file tools. Preserve all repository history. User specifically requests no Work or Codex suggestions.
