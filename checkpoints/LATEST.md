@@ -94,3 +94,6 @@ Fixed 30k Pansy, 1m hard cap, NPC13.5k conditional, fixed 75/20/5 catalyst produ
 
 ## Mandatory failed-opener disposal rule — 2026-11-25
 User: "no need to explore the npc vs resell. always NPC 4 slot failed scroll earrings." Always immediately NPC a Pansy with four unused slots and zero added stats after its first scroll fails; do not continue scrolling that item or list it in FM. This is a hard constraint, superseding earlier adaptive policies that sometimes retained failed openers and all FM resale scenarios for those bases. Fixed clean Pansy30k, assumed NPC payout13.5k, latest recorded Greater18,888, failed opener net35,388. Future optimization must enforce mandatory disposal, not optional salvage, and recompute probabilities under the constrained policy. Other prior constraints unchanged. No new market quote or rerun in this turn.
+
+## 100-base triple Greater simulation
+100 fresh Pansy openers, NPC failures, two further Greater on every survivor: seed20261125, 92 NPC, 6 +3, 2 +6, 0 +9 (two slots left). 116 scrolls, net3,949,008. Expected net4,051,560, chance >=1 +9 9.52%, >=1 +6 85.31%. Explicit experiment above 1m, standing budget unchanged. [Research](../scrolling-ev/RESEARCH_HANDOFF.md) commit e31b9eafce037e2300c05fc32a96dc10050d3547; [dialogue](../scrolling-ev/transcripts/2026-11-25-triple-greater-100.md).
