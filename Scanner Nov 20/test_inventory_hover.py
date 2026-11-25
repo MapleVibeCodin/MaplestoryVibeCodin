@@ -216,6 +216,28 @@ class ArmedInventoryTests(unittest.TestCase):
         self.assertEqual(calls,[self.deal,'reset'])
         self.assertFalse(self.app.item_pin.visible)
 
+    def test_shop_presence_hides_navigation_before_ocr(self):
+        # Reuse the fixture setup, including AST-extracted production refresh.
+        self.test_room_only_armed_overlay_without_navigation()
+        ns=self.refresh.__globals__
+        ns['room_title_present']=lambda *args:True
+        self.archive.chase_locked=True
+        self.app._shop_capture=type('Recorder',(),{'observe':lambda *a:None,'recent_presence':lambda *a:True})()
+        for name in ('channel','shop','entrance'):
+            setattr(self.app,'_'+name+'_preview',('previous',))
+            getattr(self.app,name+'_pin').visible=True
+        def no_ocr_yet(*args):
+            self.assertFalse(self.app.channel_pin.visible)
+            self.assertFalse(self.app.shop_pin.visible)
+            self.assertFalse(self.app.entrance_pin.visible)
+            return None
+        self.app._inventory.get=no_ocr_yet
+        self.refresh(self.app,self.current)
+        self.assertFalse(self.app.channel_pin.visible)
+        self.assertFalse(self.app.shop_pin.visible)
+        self.assertFalse(self.app.entrance_pin.visible)
+        self.assertIn('Shop open',self.app.shop.notice.get())
+
 class RecordedMinimapTests(unittest.TestCase):
     def test_four_recorded_title_masks(self):
         # Actual thresholded ROI rows extracted from two lossless PNGs and two video frames.

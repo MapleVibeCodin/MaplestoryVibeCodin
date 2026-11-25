@@ -84,7 +84,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('MetaScanner v24.65.0 - Fast Capture')
+        self.root.title('MetaScanner v24.65.1 - Shop Focus')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -122,7 +122,7 @@ class FMApp:
         self._entrance_preview = None
         self.item_pin = ItemInventoryPin(self.root, interval_ms=50)
         self._inventory = ShopInventoryTracker(notify=lambda:self.events.put_nowait(('inventory_ready',)))
-        self._shop_capture = ShopScreenshotRecorder(ARCHIVE_DIR.parent/'shop_screenshots')
+        self._shop_capture = ShopScreenshotRecorder(ARCHIVE_DIR.parent/'shop_screenshots',notify=lambda:self.events.put_nowait(('inventory_ready',)))
         self.performance = PerformanceRecorder(ARCHIVE_DIR.parent/'performance', capture=capture_client,
             focused=window_has_focus, geometry=window_client_rect, point_window=window_at_point,
             init_capture=enable_capture_cache, release_capture=release_capture_cache)
@@ -484,11 +484,27 @@ class FMApp:
             else:
                 room_confirmed=room_title_present(*title)
                 if room_confirmed:gate_state='room_confirmed'
+        observed_shop=False
+        if focused:
+            presence=screenshots.recent_presence(hwnd,client) if screenshots is not None else None
+            observed_shop=presence is True
+            # If a shop might have just opened while a navigation marker is
+            # visible, verify the tiny gate now rather than waiting for OCR.
+            probe=getattr(self._inventory,'navigation_probe',None)
+            if not observed_shop and deal and probe is not None and (presence is None or self._channel_preview is not None or self._shop_preview is not None or self._entrance_preview is not None):
+                observed_shop=probe(client)
+            if observed_shop:
+                # Remove navigation pixels before requesting inventory OCR.
+                for name in ('channel','shop','entrance'):
+                    attr='_'+name+'_preview'
+                    if getattr(self,attr,None) is not None:
+                        getattr(self,name+'_pin').hide()
+                        setattr(self,attr,None)
         inventory = self._inventory.get(hwnd,client,inventory_deal) if room_confirmed else None
         if not room_confirmed:self._inventory.reset()
-        in_shop = inventory is not None
+        in_shop = inventory is not None or observed_shop
         item_preview = None
-        if in_shop and inventory['hits']:
+        if inventory is not None and inventory['hits']:
             dx,dy=client[0]-window[0],client[1]-window[1]
             hits={str(i):{'mode':mode,'box':(l+dx,t+dy,r+dx,b+dy)}
                   for i,(mode,(l,t,r,b)) in enumerate(inventory['hits'])}
@@ -497,8 +513,8 @@ class FMApp:
             self._item_preview=item_preview
             if item_preview is None:self.item_pin.hide()
             else:self.item_pin.show_many(*item_preview)
-        scene = self._entrance_camera.get(hwnd, client) if supported and not room_confirmed else None
-        if not supported or room_confirmed:self._entrance_camera.reset()
+        scene = self._entrance_camera.get(hwnd, client) if supported and not room_confirmed and not in_shop else None
+        if not supported or room_confirmed or in_shop:self._entrance_camera.reset()
         in_entrance = bool(scene and scene[0])
         recorder=getattr(self,'performance',None)
         if recorder is not None:
@@ -548,7 +564,7 @@ class FMApp:
         elif client is None:
             status = 'Waiting for MapleStory window'
         elif in_shop:
-            status = inventory['status']
+            status = inventory['status'] if inventory is not None else 'Shop open · waiting for verified inventory'
             offscreen_notice = 'Shop OCR error' if status.startswith('Shop OCR unavailable') else status
         elif in_entrance:
             status = f'Entrance guide · FM {deal.fm}'

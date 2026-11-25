@@ -47,6 +47,16 @@ def locate_shop(buffer,w,h,stride):
             at=line.find(GREEN,at+3)
     return hits[0] if len(hits)==1 else None
 
+def nearby_exact_gate(frame):
+    """Exact three-strip signature within two pixels of a calibrated anchor.
+    Frame is the 89x57 ROI starting at anchor (-7,-2). No color tolerance.
+    """
+    if frame is None:return None
+    found=locate_shop(*frame)
+    if found is None:return None
+    x,y=found
+    return (x-7,y-2) if abs(x-7)<=2 and abs(y-2)<=2 else None
+
 def tooltip_blocked_rows(frame):
     """Identify inventory rows with broad tooltip pixels; bridge internal icon gaps."""
     buf,w,h,stride=frame
@@ -515,21 +525,30 @@ class ShopInventoryTracker:
         frame=capture_client((x+left,y+top,GEOMETRY_WIDTH,GEOMETRY_HEIGHT),allow_crop=True)
         return anchor if geometry_present(frame) else None
 
+    def navigation_probe(self,client):
+        """Tiny exact gate for overlay suppression, never item identity."""
+        x,y,w,h=client
+        anchor=self._anchors.get((w,h))
+        if anchor is None:return False
+        ax,ay=anchor
+        return nearby_exact_gate(capture_client((x+ax-7,y+ay-2,89,57),allow_crop=True)) is not None
+
     def _capture_pair(self,client,anchor):
-        """One fresh ROI contains both gate types and all inventory pixels."""
+        """Single fresh ROI; align inventory to the observed exact anchor."""
         x,y,w,h=client
         ax,ay=anchor
-        left,top=ax-140,ay-1
-        if left<0 or top<0 or left+220>w or top+334>h:return None,None
-        combined=capture_client((x+left,y+top,220,334),allow_crop=True)
-        tiny=crop_bgr(combined,135,1,85,53)
-        if tiny is None:return None,None
-        if locate_shop(*tiny)==(5,0):
+        left,top=ax-142,ay-3
+        if left<0 or top<0 or left+224>w or top+338>h:return None,None,None
+        combined=capture_client((x+left,y+top,224,338),allow_crop=True)
+        offset=nearby_exact_gate(crop_bgr(combined,135,1,89,57))
+        if offset is not None:
+            dx,dy=offset
             quality='exact'
-        elif geometry_present(crop_bgr(combined,0,0,GEOMETRY_WIDTH,GEOMETRY_HEIGHT)):
-            quality='geometry'
-        else:return None,None
-        return quality,crop_bgr(combined,0,71,204,263)
+        elif geometry_present(crop_bgr(combined,2,2,GEOMETRY_WIDTH,GEOMETRY_HEIGHT)):
+            dx=dy=0;quality='geometry'
+        else:return None,None,None
+        actual=(ax+dx,ay+dy)
+        return quality,crop_bgr(combined,2+dx,73+dy,204,263),actual
 
     def _scan(self,key):
         started=time.perf_counter()
@@ -547,10 +566,12 @@ class ShopInventoryTracker:
                     anchor=self._find_anchor(client)
                 if anchor is None:
                     self._publish(key,None);return
-                quality,frame=self._capture_pair(client,anchor)
+                quality,frame,actual=self._capture_pair(client,anchor)
                 capture_count+=1
                 if quality is None or frame is None:
                     self._publish(key,None);return
+                anchor=actual
+                if quality=='exact':self._anchors[(w,h)]=anchor
                 geometry=quality=='geometry'
             else:
                 # Compatibility path for older callers and isolated fixtures.
@@ -636,9 +657,9 @@ class ShopInventoryTracker:
                         while len(self._scroll_checks)>512:self._scroll_checks.popitem(last=False)
                 if not checked:hits=[];status='Scroll text not independently confirmed'
             if paired:
-                quality,frame_after=self._capture_pair(client,anchor)
+                quality,frame_after,actual=self._capture_pair(client,anchor)
                 capture_count+=1
-                if quality is None or (not geometry and quality!='exact'):
+                if quality is None or actual!=anchor or (not geometry and quality!='exact'):
                     self._publish(key,None);return
             else:
                 confirmed=self._find_anchor(client)

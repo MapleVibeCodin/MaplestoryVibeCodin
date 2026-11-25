@@ -12,7 +12,7 @@ import zlib
 
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
 from game_window import window_has_focus, window_client_rect
-from shop_inventory import locate_shop
+from shop_inventory import locate_shop, nearby_exact_gate
 from vision_geometry import geometry_present, WIDTH as GW, HEIGHT as GH
 
 
@@ -29,8 +29,8 @@ def crop(frame, x, y, w, h):
 
 def gate_quality(frame, anchor):
     ax, ay = anchor
-    tiny = crop(frame, ax-5, ay, 85, 53)
-    if tiny and locate_shop(*tiny) == (5, 0):
+    tiny = crop(frame, ax-7, ay-2, 89, 57)
+    if nearby_exact_gate(tiny) is not None:
         return 'exact'
     geom = crop(frame, ax-140, ay-1, GW, GH)
     return 'geometry' if geom and geometry_present(geom) else None
@@ -97,13 +97,15 @@ def save_png(folder, frame, stamp, quality):
 class ShopScreenshotRecorder:
     """Small gate polls; one full native client capture per observed opening."""
     def __init__(self, folder, *, capture=capture_client, focused=window_has_focus,
-                 geometry=window_client_rect):
+                 geometry=window_client_rect, notify=None):
         self.folder = Path(folder)
         self.capture, self.focused, self.geometry = capture, focused, geometry
         self.enabled = True
         self.saved = 0
         self.error = None
         self._request = None
+        self._presence = None
+        self._notify=notify
         self._lock = threading.Lock()
         self._stop = threading.Event()
         self._capture_done = threading.Event()
@@ -118,11 +120,32 @@ class ShopScreenshotRecorder:
 
     def observe(self, hwnd, client):
         with self._lock:
-            self._request = (hwnd, tuple(client)) if hwnd and client else None
+            request=(hwnd,tuple(client)) if hwnd and client else None
+            if request!=self._request:self._presence=None
+            self._request=request
+
+    def recent_presence(self,hwnd,client):
+        """Fresh observation only, keyed by exact window and client geometry."""
+        with self._lock:
+            entry=self._presence
+            if entry is None or entry[0]!=(hwnd,tuple(client)) or time.monotonic()-entry[1]>.10:return None
+            return entry[2]
+
+    def _publish_presence(self,request,present):
+        notify=False
+        with self._lock:
+            if self._request!=request or not self.enabled:return
+            old=self._presence
+            self._presence=(request,time.monotonic(),present)
+            notify=old is None or old[2]!=present
+        if notify and self._notify is not None:
+            try:self._notify()
+            except Exception:pass
 
     def set_enabled(self, enabled):
         with self._lock:
             self.enabled = bool(enabled)
+            if not self.enabled:self._presence=None
 
     def _valid(self, hwnd, client):
         with self._lock:
@@ -135,10 +158,13 @@ class ShopScreenshotRecorder:
         anchor = self._anchors.get(size)
         if anchor is not None:
             ax,ay = anchor
-            tiny = self.capture((x+ax-5,y+ay,85,53),allow_crop=True)
+            tiny = self.capture((x+ax-7,y+ay-2,89,57),allow_crop=True)
             if tiny is None:
                 return None, None, None
-            if locate_shop(*tiny) == (5,0):
+            offset=nearby_exact_gate(tiny)
+            if offset is not None:
+                anchor=(ax+offset[0],ay+offset[1])
+                self._anchors[size]=anchor
                 return anchor, 'exact', True
             if ax >= 140 and ay >= 1 and ax-140+GW <= w and ay-1+GH <= h:
                 geom = self.capture((x+ax-140,y+ay-1,GW,GH),allow_crop=True)
@@ -165,7 +191,7 @@ class ShopScreenshotRecorder:
     def _work(self):
         enable_capture_cache()
         try:
-            while not self._stop.wait(.05):
+            while not self._stop.wait(.025):
                 with self._lock:
                     request = self._request if self.enabled else None
                 if not request:
@@ -180,8 +206,9 @@ class ShopScreenshotRecorder:
                     if len(self._states)>16:
                         self._states.pop(next(iter(self._states)))
                     anchor,quality,present = self._gate(client)
-                    if not self._valid(hwnd,client) or not state.observe(present):
-                        continue
+                    if not self._valid(hwnd,client):continue
+                    self._publish_presence((hwnd,client),present)
+                    if not state.observe(present):continue
                     if self._pending.full():
                         self.error = 'Screenshot queue full; retrying'
                         continue

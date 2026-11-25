@@ -1,4 +1,4 @@
-METASCANNER v24.65.0 — FAST CAPTURE
+METASCANNER v24.65.1 — SHOP FOCUS
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.

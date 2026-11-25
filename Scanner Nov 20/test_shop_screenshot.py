@@ -80,6 +80,7 @@ class ScreenshotTests(unittest.TestCase):
             buf[at-3:at]=lead
             buf[at:at+len(strip)]=strip
         self.assertEqual(gate_quality((bytes(buf),w,h,stride),(ax,ay)),'exact')
+        self.assertEqual(gate_quality((bytes(buf),w,h,stride),(ax+1,ay)),'exact')
         self.assertIsNone(gate_quality((bytes(stride*h),w,h,stride),(ax,ay)))
 
 

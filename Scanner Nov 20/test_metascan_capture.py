@@ -2,7 +2,7 @@ import random
 import unittest
 from unittest.mock import patch
 from metascan_fast import purple_run, crop_bgr
-from shop_inventory import ShopInventoryTracker, GREEN, ORANGE, tooltip_blocked_rows, sold_row_mask
+from shop_inventory import ShopInventoryTracker, GREEN, ORANGE, tooltip_blocked_rows, sold_row_mask, nearby_exact_gate
 from camera_alignment import room_title_present, _ROOM_PREFIX_BITS, _ROOM_BRACKET_BITS
 
 class FastCaptureTests(unittest.TestCase):
@@ -28,11 +28,12 @@ class FastCaptureTests(unittest.TestCase):
         data=bytes(range(24))
         self.assertEqual(crop_bgr((data,3,2,12),1,0,2,2),(data[3:9]+data[15:21],2,2,6))
         self.assertIsNone(crop_bgr((data,3,2,12),2,0,2,2))
-    def combined(self):
-        w,h,s=220,334,660
+    def combined(self,dx=0,dy=0):
+        w,h,s=224,338,672
         b=bytearray(bytes((227,217,205))*w*h)
+        shift_y=dy
         for dy,pattern in ((0,GREEN),(31,ORANGE),(51,ORANGE)):
-            at=(1+dy)*s+140*3
+            at=(3+shift_y+dy)*s+(142+dx)*3
             b[at-3:at]=bytes((17,179,151)) if dy==0 else bytes((28,117,216))
             b[at:at+len(pattern)]=pattern
         return bytes(b),w,h,s
@@ -40,15 +41,16 @@ class FastCaptureTests(unittest.TestCase):
         t=ShopInventoryTracker.__new__(ShopInventoryTracker)
         f=self.combined()
         with patch('shop_inventory.capture_client',return_value=f) as capture:
-            quality,rows=t._capture_pair((10,20,1366,768),(568,214))
+            quality,rows,actual=t._capture_pair((10,20,1366,768),(568,214))
         self.assertEqual(quality,'exact')
-        self.assertEqual(rows,crop_bgr(f,0,71,204,263))
-        capture.assert_called_once_with((438,233,220,334),allow_crop=True)
+        self.assertEqual(actual,(568,214))
+        self.assertEqual(rows,crop_bgr(f,2,73,204,263))
+        capture.assert_called_once_with((436,231,224,338),allow_crop=True)
     def test_pair_rejects_missing_gate_and_failed_capture(self):
         t=ShopInventoryTracker.__new__(ShopInventoryTracker)
-        for bad in (None,(bytes(220*334*3),220,334,660)):
+        for bad in (None,(bytes(224*338*3),224,338,672)):
             with patch('shop_inventory.capture_client',return_value=bad):
-                self.assertEqual(t._capture_pair((0,0,1366,768),(568,214)),(None,None))
+                self.assertEqual(t._capture_pair((0,0,1366,768),(568,214)),(None,None,None))
     def test_room_crop_preserves_full_search_bounds(self):
         w,h=200,120
         b=bytearray(w*h*3)
@@ -87,11 +89,29 @@ class FastCaptureTests(unittest.TestCase):
 
     def test_paired_geometry_never_confirms_scroll(self):
         t=self.production_tracker('Scroll for Gloves for ATT 60%')
-        f=crop_bgr(self.combined(),0,71,204,263)
-        with patch.object(t,'_capture_pair',return_value=('geometry',f)) as capture:
+        f=crop_bgr(self.combined(),2,73,204,263)
+        with patch.object(t,'_capture_pair',return_value=('geometry',f,(568,214))) as capture:
             t._scan(t._key)
         self.assertEqual(capture.call_count,1)
         self.assertEqual(t._latest['hits'],[])
         self.assertIn('waiting for exact scroll gate',t._latest['status'])
+
+    def test_all_shifted_exact_anchors(self):
+        t=ShopInventoryTracker.__new__(ShopInventoryTracker)
+        for dx in range(-2,3):
+            for dy in range(-2,3):
+                f=self.combined(dx,dy)
+                with patch('shop_inventory.capture_client',return_value=f) as capture:
+                    quality,rows,actual=t._capture_pair((0,0,1366,768),(568,214))
+                self.assertEqual(quality,'exact')
+                self.assertEqual(actual,(568+dx,214+dy))
+                self.assertEqual(rows,crop_bgr(f,2+dx,73+dy,204,263))
+                self.assertEqual(capture.call_count,1)
+
+    def test_shift_after_ocr_rejects_old_position(self):
+        t=self.production_tracker()
+        with patch('shop_inventory.capture_client',side_effect=[self.combined(),self.combined(-1)]):
+            t._scan(t._key)
+        self.assertIsNone(t._latest)
 
 if __name__=='__main__':unittest.main()

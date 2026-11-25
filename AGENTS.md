@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-## MetaScanner branch — v24.65.0 fast capture / browser v24.58.0
+## MetaScanner branch — v24.65.1 shop focus / browser v24.58.0
+
+Nine new user PNGs confirmed automatic saving; last image shows v24.65.0. All nine exact button signatures were actually at (567,214), not assumed (568,214); all nine room-title tests pass. v24.65.1 detects an exact signature within ±2 pixels, aligns row crops to measured anchor, rejects movement during OCR, shares fresh screenshot presence and suppresses navigation before requesting OCR. Recorder polls 25ms. See research/2026-11-26-metascanner-shop-focus.md. No live OCR claim. Original source and screenshots remain preserved.
+
+## Previous MetaScanner branch — v24.65.0 fast capture / browser v24.58.0
 
 Read [v24.65.0 performance evidence](research/2026-11-26-metascanner-fast-capture.md) first. Parent corrected baseline 7a3aae1dca2fcce9f78bc8e342f447c1355ab6f7; intermediate capture commit 28805ef398b39674b70d018fc168fc0a2067f22e. Exact tooltip prefilter, same-frame paired shop gate and inventory, compact title crop, 25ms active recognition scheduling, durable visible-snapshot acknowledgement, one focus settings write per batch, immediate changed-snapshot retry. Native glyph shadow and Windows fallback retained. No full Windows or end-to-end 2x claim. All historical files and main preserved.
 
