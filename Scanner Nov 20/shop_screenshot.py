@@ -192,8 +192,8 @@ class ShopScreenshotRecorder:
                     quality = gate_quality(frame,anchor)
                     if not quality:
                         continue
-                    self._pending.put_nowait((frame,datetime.now(),quality,state))
                     state.mark_saved()
+                    self._pending.put_nowait((frame,datetime.now(),quality))
                 except Exception as exc:
                     self.error = type(exc).__name__
         finally:
@@ -203,7 +203,7 @@ class ShopScreenshotRecorder:
     def _write(self):
         while not self._capture_done.is_set() or not self._pending.empty():
             try:
-                frame,stamp,quality,state = self._pending.get(timeout=.1)
+                frame,stamp,quality = self._pending.get(timeout=.1)
             except queue.Empty:
                 continue
             try:
@@ -212,8 +212,7 @@ class ShopScreenshotRecorder:
                 self.error = None
             except Exception as exc:
                 self.error = type(exc).__name__
-                # A later poll can retry if the same shop is still visible.
-                state.saved = False
+                # Do not clear a newer shop session from the writer thread.
             finally:
                 self._pending.task_done()
 
