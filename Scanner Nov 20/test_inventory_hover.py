@@ -2,7 +2,7 @@
 import unittest
 from shop_inventory import inventory_tooltip_visible,tooltip_blocked_rows,locate_shop,GREEN,ORANGE,pick_rows,RowOCRCache,section_fingerprints,SCALE
 from camera_alignment import room_title_present,_ROOM_TITLE
-from shop_inventory import displayed_buy_step,price_in_display_bucket
+from shop_inventory import displayed_buy_step,price_in_display_bucket,sold_row_mask,sold_line_cutoff,stable_sold_hits
 
 def frame(w,h):
     stride=(w*3+3)&~3
@@ -80,6 +80,36 @@ class HoverTests(unittest.TestCase):
         lines=[{'y':5*SCALE,'text':'Nanamico'},{'y':33*SCALE,'text':'Blood Avarice'}]
         self.assertEqual(pick_rows(lines,[True]*6,'Nanamico','Blood Avarice',100000)[0],[(0,'SOLD_CHECK')])
         self.assertEqual(pick_rows(lines,[False]*6,'Nanamico','Blood Avarice',100000)[0],[])
+class VideoSoldRowTests(unittest.TestCase):
+    def test_brown_pilfer_faded_row(self):
+        buf,w,h,s=frame(204,263)
+        # Native crop measurements from 03-42-22 recording: pale row
+        # median BGR (248,243,242); adjacent active row (227,216,204).
+        for row,bg in ((0,(248,243,242)),(1,(227,216,204)),(2,(248,243,242))):
+            for y in range(23+row*40,23+(row+1)*40):
+                for x in range(40,198):
+                    i=y*s+x*3;buf[i:i+3]=bytes(bg)
+            for y in range(28+row*40,34+row*40):
+                for x in range(55,80):
+                    i=y*s+x*3;buf[i:i+3]=bytes((215,215,215) if row!=1 else (40,40,40))
+        f=(buf,w,h,s)
+        self.assertTrue(sold_row_mask(f,0))
+        self.assertFalse(sold_row_mask(f,1))
+        self.assertTrue(sold_row_mask(f,2))
+        self.assertGreater(sold_line_cutoff(f,30),215)
+        self.assertLess(sold_line_cutoff(f,30),244)
+    def test_brown_pilfer_sold_candidate_with_unreadable_price(self):
+        lines=[{'y':5*SCALE,'text':'AznFireghost'},{'y':33*SCALE,'text':'Brown Pilfer'},
+               {'y':73*SCALE,'text':"Arwen's Glass Shoe"},{'y':92*SCALE,'text':'1 for 70,000 mesos'}]
+        self.assertEqual(pick_rows(lines,[True,False,True,False,False,False],'AznFireghost','Brown Pilfer',70000)[0],[(0,'SOLD_CHECK')])
+    def test_other_row_hover_does_not_discard_sold_target(self):
+        before={-1:b'seller',0:b'pilfer',1:b'shoe',2:b'scroll'}
+        after={-1:b'seller',0:b'pilfer',1:b'hover'}
+        self.assertEqual(stable_sold_hits([(0,'SOLD')],before,after),[(0,'SOLD_CHECK')])
+        self.assertEqual(stable_sold_hits([(0,'MATCH')],before,after),[])
+        self.assertEqual(stable_sold_hits([(0,'SOLD')],before,{-1:b'seller',0:b'changed'}),[])
+        self.assertEqual(stable_sold_hits([(0,'SOLD')],before,{-1:b'other',0:b'pilfer'}),[])
+
 class ArmedInventoryTests(unittest.TestCase):
     def setUp(self):
         import ast

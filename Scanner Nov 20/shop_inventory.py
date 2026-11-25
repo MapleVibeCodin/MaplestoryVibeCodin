@@ -164,6 +164,30 @@ def pick_rows(lines, unavailable, seller, item, price, *, buy_step=0):
     return [],'Target not visible · scroll manually'
 
 
+def sold_row_mask(frame, row):
+    """Require pale neutral background and faded text across the native row."""
+    buf,w,h,stride=frame
+    y=23+row*STEP
+    samples=[buf[yy*stride+194*3:yy*stride+194*3+3] for yy in range(y+4,y+36)]
+    pale=sum(min(v)>=230 and max(v)-min(v)<=22 for v in samples)
+    dark=sum(max(buf[j:j+3])<110 for yy in range(y+2,y+16)
+             for j in range(yy*stride+41*3,yy*stride+198*3,3))
+    return pale>=24 and dark<12
+
+def sold_line_cutoff(frame, y, delta=0):
+    """Normalize pale glyphs to black against the local light row background."""
+    buf,w,h,stride=frame
+    values=sorted(sum(buf[y*stride+x*3:y*stride+x*3+3])//3 for x in range(40,198))
+    # Upper quartile is background even when most of the line contains glyphs.
+    background=values[(len(values)*3)//4]
+    return max(0,min(250,background-max(5,12-delta//3)))
+
+def stable_sold_hits(hits, before, after):
+    """Orange-only fallback when unrelated rows change during OCR."""
+    if -1 not in before or before[-1]!=after.get(-1):return []
+    return [(i,'SOLD_CHECK') for i,mode in hits if mode in ('SOLD','SOLD_CHECK')
+            and i in before and before[i]==after.get(i)]
+
 def prepare_ocr(frame, sections=None, *, threshold_delta=0):
     """Create contrast-normalized 3x monochrome strip, including seller and six rows."""
     buf,w,h,stride=frame
@@ -174,20 +198,9 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0):
     for row in range(ROWS):
         if row not in selected:
             unavailable.append(False);continue
-        y=23+row*STEP
-        # Gray sold rows have pale background and no dark text. Require both.
-        sample=buf[(y+2)*stride+194*3:(y+2)*stride+194*3+3]
-        dark=sum(max(buf[j:j+3])<110 for yy in range(y+2,y+16)
-                 for j in range(yy*stride+41*3,yy*stride+198*3,3))
-        unavailable.append(bool(len(sample)==3 and min(sample)>=230 and dark<12))
+        unavailable.append(sold_row_mask(frame,row))
     # Precompute expansion for each of the only two output pixel values.
     black=b'\x00'*SCALE;white=b'\xff'*SCALE
-    sold_cutoffs={}
-    for row in selected & set(range(ROWS)):
-        if unavailable[row]:
-            base=23+row*STEP
-            samples=sorted(sum(buf[y*stride+194*3:y*stride+194*3+3])//3 for y in range(base+4,base+36))
-            sold_cutoffs[row]=min(245,max(225,samples[len(samples)//2]-7))
     for oy in range(out_h):
         line=bytearray([255])*out_w
         if -1 in selected and 3<=oy<16:
@@ -200,7 +213,7 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0):
             row=(oy-28)//STEP;dy=(oy-28)%STEP
             # Original list row starts 23 pixels below capture origin.
             sy=23+row*STEP+dy
-            cutoff=min(250,sold_cutoffs.get(row,225)+threshold_delta) if unavailable[row] else 145+threshold_delta
+            cutoff=sold_line_cutoff(frame,sy,threshold_delta) if unavailable[row] and 3<=dy<=36 else 145+threshold_delta
             if row in selected and 3<=dy<=36:
                 for x in range(40,198):
                     i=sy*stride+x*3
@@ -453,8 +466,16 @@ class ShopInventoryTracker:
             if after!=sections:
                 stable=all(before_map.get(i)==v for i,v in after)
                 if not stable or -1 not in after_map or any(i not in after_map for i,_ in hits):
-                    self._publish(key,{'status':'Shop open · visible rows changed, retrying','hits':[]});return
-                digest=(left,top,after)
+                    # A cursor or tooltip over another item must not erase a
+                    # stable sold target. Never do this for scrolls or green
+                    # purchasable matches; those keep full strict validation.
+                    preserved=stable_sold_hits(hits,before_map,after_map) if 'scroll' not in normalized(item) else []
+                    if len(preserved)!=1:
+                        self._publish(key,{'status':'Shop open · visible rows changed, retrying','hits':[]});return
+                    hits=preserved;status='Sold candidate · other rows changed'
+                    digest=(left,top,tuple((i,v) for i,v in after if before_map.get(i)==v))
+                else:
+                    digest=(left,top,after)
             if blocked and not hits and status=='Target not visible · scroll manually':
                 status='Tooltip covers rows · no unverified highlight'
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]

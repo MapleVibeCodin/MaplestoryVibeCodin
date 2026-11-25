@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.2; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.3; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## 2026-11-26 — v24.62.3 stable sold-row recognition
+
+User explicitly requested update based on 03-42-22 video, despite intentionally recording with local v24.61.0. Reopened actual 1920x1080, 60 fps, 522-frame recording. At ~6.95–7.85 s AznFireghost CH39 FM18 Brown Pilfer row 1 sold for 70000; cursor/tooltip over Arwen's Glass Shoe row 2, additional faded scroll row 3. Native crop at (428,284), measured median pale BGR (248,243,242) and active (227,216,204). Sold mask uses majority pale neutral right margin plus no dark glyphs; sold OCR uses per-line upper-quartile background cutoff. If unrelated rows change during OCR, preserve only a single exact-name non-scroll sold candidate as orange when seller and target-row pixels remain identical; changed/covered target, changed seller, green match or scroll cannot use fallback. Existing exact scroll checks, room-only gate, ARMED recognition and camera profiles unchanged. Added three synthetic regressions derived from clip; video compression not native screenshot and Windows OCR not executed. No raw video published or historical files removed.
 
 ## 2026-11-26 — v24.62.2 armed inventory recognition
 
