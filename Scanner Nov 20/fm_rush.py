@@ -95,7 +95,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.53.1 - Camera alignment')
+        self.root.title('FM Rush v24.54.0 - Auto-lock')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -109,15 +109,15 @@ class FMApp:
         self.ign=tk.StringVar(value='IGN: —')
         self.profit=tk.StringVar(value='PROFIT: —')
         self.buy=tk.StringVar(value='BUY AT: —')
-        self.status=tk.StringVar(value='LIVE · first visible HeneFM listing')
-        self.chase_label=tk.StringVar(value='LIVE · LOCK (Shift+1)')
+        self.status=tk.StringVar(value='ARMED · waiting for a HeneFM listing')
+        self.chase_label=tk.StringVar(value='ARMED · auto-lock next')
         self.manual=tk.StringVar(value='CC 22 FM 13')
         self.events=queue.Queue()
         self.browser_bridge=None
         self.grid=None
         self.map=None
         self.displayed_listing=None
-        self.archive=DealArchive(ARCHIVE_DIR/'deal_archive.sqlite3',manual_selection=True)
+        self.archive=DealArchive(ARCHIVE_DIR/'deal_archive.sqlite3',manual_selection=True,auto_lock=True)
         self.manual_override_at=None
         self._pending_after=set()
         self._closing=False
@@ -141,7 +141,7 @@ class FMApp:
         try:
             self.browser_bridge=BrowserBridge(self.events,self.archive)
             self.browser_bridge.start()
-            self.status.set('LIVE · following the newest HeneFM listing')
+            self.status.set('ARMED · auto-lock next new listing')
         except OSError as exc:
             self.status.set('HeneFM bridge not available: '+str(exc)[:100])
         self.trade_keys=TradeHotkeys(self.events.put_nowait);self.trade_keys.start()
@@ -349,8 +349,9 @@ class FMApp:
                 self.archive.preview_latest()
             current = self.archive.current()
             self.live_stamp = self.archive.live_state()
+        if self.archive.chase_locked:self.restore_chase_route()
         self.refresh_overlays(current)
-        self.chase_label.set('LOCKED · UNLOCK (Shift+2)' if self.archive.chase_locked else 'LIVE · LOCK (Shift+1)')
+        self.chase_label.set('LOCKED · UNLOCK (Shift+2)' if self.archive.chase_locked else 'ARMED · auto-lock next')
         key,deal=current if current else (None,None)
         if key!=self.displayed_listing:
             self.displayed_listing=key
@@ -379,7 +380,7 @@ class FMApp:
             except OSError as exc:messagebox.showerror('Archive export',str(exc))
 
     def next_live_deal(self):
-        # The hotkey skips; accepting the next deal always requires a choice.
+        # Skip current target; auto-lock remains armed for a new listing.
         self.complete_deal()
 
     def refresh_overlays(self, current):
@@ -551,7 +552,7 @@ class FMApp:
         if locked:
             self.restore_chase_route()
         self.sync_archive()
-        self.status.set('LOCKED · Shift+2 to unlock' if locked else 'LIVE · following the first listing')
+        self.status.set('LOCKED · Shift+2 to unlock' if locked else 'ARMED · waiting for next new listing')
 
     def restore_chase_route(self):
         if self.manual_override_at is None:
@@ -570,7 +571,7 @@ class FMApp:
         current=self.archive.current()
         if current:self.archive.skip(current[0])
         self.sync_archive()
-        self.status.set('Skipped · click a HeneFM listing to chase')
+        self.status.set('Skipped · auto-lock armed for next new listing')
 
     def manual_go(self):
         raw=self.manual.get().strip()
@@ -647,12 +648,12 @@ class FMApp:
                 else:self.archive.skip(key)
                 self.sync_archive()
                 reply.put({'ok':True})
-                self.status.set('LOCKED · UNLOCK to follow new listings' if self.archive.chase_locked else 'LIVE · following first listing')
+                self.status.set('LOCKED · UNLOCK to follow new listings' if self.archive.chase_locked else 'ARMED · waiting for next new listing')
             elif evt[0]=='browser_visible':
                 self.sync_archive()
                 current = self.archive.current()
                 seller = current[1].ign if current else 'none'
-                self.status.set(f'{len(self.archive.live_pending())} HeneFM listings available · selected: {seller}')
+                self.status.set(f'LOCKED · {seller} · Shift+2 to unlock' if self.archive.chase_locked else 'ARMED · waiting for next new listing')
             elif evt[0]=='status':
                 self.status.set(evt[1])
         self.poll_game_chase_shortcuts(handled)

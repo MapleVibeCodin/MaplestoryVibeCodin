@@ -14,7 +14,7 @@ LIVE_PAGE_LEASE_SECONDS=45.0
 
 
 class DealArchive:
-    def __init__(self,path,manual_selection=False):
+    def __init__(self,path,manual_selection=False,auto_lock=False):
         self.path=Path(path);self.lock=threading.RLock();self.manual_selection=manual_selection
         self.path.parent.mkdir(parents=True,exist_ok=True)
         self.db=sqlite3.connect(self.path,check_same_thread=False)
@@ -27,6 +27,8 @@ class DealArchive:
         self._pending={key:json.loads(value) for key,value in self.db.execute(
             'SELECT id,data FROM listings WHERE done=0 ORDER BY seq')}
         self.chase_locked=False
+        self.auto_lock=auto_lock
+        self._auto_seen=set()
         self.focus=self._setting('focus')
         self.last_completed=self._setting('last_completed')
         self._live_keys=();self._live_seen=None;self._live_generation=0;self._live_revisions={}
@@ -89,6 +91,14 @@ class DealArchive:
             if not self.manual_selection and (self.focus is None or (first_page and self.focus not in keys)):
                 first=next((key for key in keys if key in self._pending),None)
                 if first:self.select(first)
+            if self.auto_lock:
+                # Remember every visible card, even while locked, so unlock never re-locks a stale card.
+                new_keys=[key for key in keys if key not in self._auto_seen]
+                self._auto_seen.update(keys)
+                if not self.chase_locked:
+                    candidate=next((key for key in new_keys if key in self._pending
+                                    and not self._pending[key]['deal'].get('sold')),None)
+                    if candidate is not None:self.choose(candidate)
             if self.manual_selection:self.preview_latest()
             return True
 
