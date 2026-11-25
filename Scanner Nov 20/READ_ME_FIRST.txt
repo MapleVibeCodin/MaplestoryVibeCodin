@@ -1,4 +1,4 @@
-FM RUSH v24.58.0 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.63.2 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -28,6 +28,12 @@ Supported client sizes: 1280x720 and 1366x768. Camera movement can offset the
 estimated box. Hover over doorway bottom center and press Ctrl+Alt+F to align.
 Ctrl+Alt+C moves pointer to channel cell; Ctrl+Alt+M/J moves pointer to shop.
 You click and confirm yourself. Tools contains pointer actions, map and archive.
+
+INVENTORY RECOGNITION
+Exact shop gate stays the fast path. Fixed-anchor geometry fallback requires
+multiple visible row backgrounds and expected button strips. Fallback is amber
+or sold-candidate only, never a green match or strict scroll match. No changes
+to browser extension, hotkeys, click behavior, or local settings.
 
 UPDATE
 $u = Join-Path $env:TEMP 'UPDATE_FM_RUSH.ps1'
