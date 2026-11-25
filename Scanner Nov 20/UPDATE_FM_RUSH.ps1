@@ -10,8 +10,8 @@ $ErrorActionPreference = 'Stop'
 $repo = 'MapleVibeCodin/MaplestoryVibeCodin'
 $files = @(
     'camera_alignment.py','fm_rush.py','shop_position.py','shop_pin.py',
-    'shop_inventory.py','vision_guard.py','vision_geometry.py','performance_recorder.py','SHOP_OCR.ps1',
-    'test_vision_guard.py','test_vision_geometry.py','test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py','test_inventory_hover.py',
+    'shop_inventory.py','shop_screenshot.py','vision_guard.py','vision_geometry.py','performance_recorder.py','SHOP_OCR.ps1',
+    'test_vision_guard.py','test_vision_geometry.py','test_performance_recorder.py','test_pointer_latency.py','test_auto_lock.py','test_prior_shop_placements.py','test_inventory_hover.py','test_shop_screenshot.py',
     'game_window.py','channel_overlay.py','deal_archive.py','deal_parser.py',
     'henefm_bridge.py','profit_filter.py','route_logic.py','trade_hotkeys.py',
     'START_FM_RUSH.bat','START_FM_RUSH.ps1','READ_ME_FIRST.txt'
@@ -126,6 +126,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Shop geometry regression failed; no installed files changed.' }
         & $python (Join-Path $incoming 'test_inventory_hover.py')
         if ($LASTEXITCODE -ne 0) { throw 'Shop hover regression failed; no installed files changed.' }
+        & $python (Join-Path $incoming 'test_shop_screenshot.py')
+        if ($LASTEXITCODE -ne 0) { throw 'Shop screenshot regression failed; no installed files changed.' }
     } else {
         throw 'Local Python environment unavailable; no installed files changed. Run the existing START_FM_RUSH.ps1 -SetupOnly then retry.'
     }
