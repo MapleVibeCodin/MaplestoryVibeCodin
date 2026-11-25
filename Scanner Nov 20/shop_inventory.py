@@ -325,6 +325,37 @@ class RowOCRCache:
         return lines,unavailable,bool(missing)
 
 
+class SoldRetryCache:
+    """One alternate contrast pass per exact visible seller/sold-row evidence.
+    Results are candidates only. Never infer a sold target from a sprite or prefix.
+    """
+    def __init__(self,limit=128):
+        self.entries=OrderedDict()
+        self.limit=limit
+
+    def recognize(self,frame,ocr,sections,prefixes,seller,item,price):
+        if price is None or 'scroll' in normalized(item):return [],False
+        evidence=dict(sections)
+        if -1 not in evidence:return [],False
+        selected={i for i in evidence if i>=0 and i not in prefixes and sold_row_mask(frame,i)}
+        if not selected:return [],False
+        selected.add(-1)
+        key=(seller,item,price,tuple((i,evidence[i]) for i in sorted(selected)))
+        if key in self.entries:
+            self.entries.move_to_end(key)
+            return list(self.entries[key]),False
+        png,sold=prepare_ocr(frame,selected,threshold_delta=15)
+        raw=ocr.recognize(png)
+        # The alternate image contains only seller and selected sold rows.
+        # Restrict the result to those rows and an exact numeric price.
+        hits,_=pick_rows(raw,sold,seller,item,price)
+        hits=[(i,'SOLD_CHECK') for i,mode in hits if i in selected and mode=='SOLD']
+        hits=hits if len(hits)==1 else []
+        self.entries[key]=tuple(hits)
+        while len(self.entries)>self.limit:self.entries.popitem(last=False)
+        return hits,True
+
+
 class WindowsOCR:
     """Persistent Windows PowerShell / WinRT OCR worker, warmed once."""
     def __init__(self):
@@ -380,7 +411,7 @@ class ShopInventoryTracker:
         # Two native 1366x768 screenshots share the same shop anchor.
         # Still verify pixels and fall back if the window/layout differs.
         self._anchors={(1366,768):(568,214)};self._gate_next={};self._cache=InventoryCache()
-        self._row_cache=RowOCRCache();self._scroll_checks=OrderedDict();self._ocr_failures=0
+        self._row_cache=RowOCRCache();self._sold_retry=SoldRetryCache();self._scroll_checks=OrderedDict();self._ocr_failures=0
         self._jobs=queue.Queue()
         self._worker=threading.Thread(target=self._work,daemon=True,name='FM inventory capture')
         self._worker.start()
@@ -505,11 +536,20 @@ class ShopInventoryTracker:
                 if self._key!=key:return
             ocr_started=time.perf_counter()
             lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr,sections,prefixes)
-            ocr_ms=(time.perf_counter()-ocr_started)*1000
             with self._lock:
                 if self._key!=key:return
             self._ocr_failures=0
             hits,status=pick_rows(lines,unavailable,seller,item,price,buy_step=buy_step)
+            used_sold_retry=False
+            if not hits and not strict:
+                # Primary OCR misses on faded text must not be the sole cached verdict.
+                # Mocked/older tracker fixtures may construct the object without __init__.
+                if not hasattr(self,'_sold_retry'):self._sold_retry=SoldRetryCache()
+                alternate,used_sold_retry=self._sold_retry.recognize(frame,self._ocr,sections,prefixes,seller,item,price)
+                if alternate:
+                    hits=alternate
+                    status='Sold candidate · alternate contrast; verify item and price'
+            ocr_ms=(time.perf_counter()-ocr_started)*1000
             if hits and 'scroll' in normalized(item):
                 # Independently render the seller and candidate row(s) using
                 # a second contrast cutoff. Never use a prefix or fuzzy name.
@@ -562,7 +602,7 @@ class ShopInventoryTracker:
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]
             self._publish(key,{'status':status,'hits':hits,
                               'timing':{'scan_id':started,'total_ms':round((time.perf_counter()-started)*1000,2),
-                                        'row_recognition_ms':round(ocr_ms,2),'used_ocr':bool(used_ocr),
+                                        'row_recognition_ms':round(ocr_ms,2),'used_ocr':bool(used_ocr or used_sold_retry),'sold_retry':used_sold_retry,
                                         'visible_rows':sum(i>=0 for i,_ in sections),'geometry_fallback':geometry}},digest)
         except Exception as exc:
             # A malformed capture/worker response must not kill the capture thread.
