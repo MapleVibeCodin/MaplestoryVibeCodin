@@ -301,3 +301,23 @@ class EntranceCameraTracker(GrassCameraTracker):
                 if self._requested==key:
                     self._latest=(key,at,scene)
                 self._busy=False
+
+
+# Two native strips of the end of "Free Market <"; three rows apart.
+# Valid for both cave and grass room titles, not "Free Market Entrance".
+_ROOM_TITLE = (bytes.fromhex('ffffffe3dac7e6decdccbb99ffffffffffff9c7552d0c1a2f0eae0f0eae0d0c1a2ccbb99dbd0b8ffffffffffffdbd0b8ccbb99ccbb99ffffffffffffffffffffffffccbb99ccbb99ccbb99ccbb99ccbb99d5c8aceae3d5ffffffffffffb69b79'),
+               bytes.fromhex('ffffff9c7552ccbb99ccbb99ffffffffffffe1d5cbe5dcd1c9b3a0c3ae8cccbb99ffffffffffffffffffffffffffffffffffffb0926fccbb99ffffffffffff9c7552ccbb99ccbb99ccbb99ccbb99d9cdb3e1d5cbffffffe3dacad7caafccbb99ccbb99'))
+
+def room_title_present(buffer,width,height,stride):
+    if width<=0 or height<4 or stride<width*3 or len(buffer)!=stride*height:return False
+    limit=min(height,120)
+    end=min(width,200)*3
+    first,second=_ROOM_TITLE
+    for y in range(limit-3):
+        a=buffer[y*stride:y*stride+end]
+        at=a.find(first)
+        while at>=0:
+            if at%3==0 and buffer[(y+3)*stride+at:(y+3)*stride+at+len(second)]==second:
+                return True
+            at=a.find(first,at+1)
+    return False

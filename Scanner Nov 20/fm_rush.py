@@ -16,7 +16,7 @@ from game_window import (
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
 from shop_pin import ShopPreviewPin, EntranceGuidePin, entrance_marker
-from camera_alignment import EntranceCameraTracker
+from camera_alignment import EntranceCameraTracker, room_title_present
 from shop_inventory import ShopInventoryTracker
 from shop_pin import ItemInventoryPin
 from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice, channel_entry_portal
@@ -83,7 +83,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.61.1 - Hover-safe shop preview')
+        self.root.title('FM Rush v24.62.0 - Room-only exact item scanner')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -420,8 +420,15 @@ class FMApp:
         client = window_client_rect(hwnd) if window else None
 
         supported = bool(deal and client and client[2:] in ENTRY_CLIENTS and window_has_focus(hwnd))
-        inventory = self._inventory.get(hwnd,client,deal) if supported else None
-        if not supported:self._inventory.reset()
+        # Only a positive minimap room-title signature permits inventory OCR.
+        # Entrance/black frames/unknown titles never start inventory scans.
+        room_confirmed=False
+        if supported:
+            x,y,w,h=client
+            title=capture_client((x,y,min(w,200),min(h,120)),allow_crop=True)
+            room_confirmed=bool(title and room_title_present(*title))
+        inventory = self._inventory.get(hwnd,client,deal) if room_confirmed else None
+        if not room_confirmed:self._inventory.reset()
         in_shop = inventory is not None
         item_preview = None
         if in_shop and inventory['hits']:
@@ -433,8 +440,8 @@ class FMApp:
             self._item_preview=item_preview
             if item_preview is None:self.item_pin.hide()
             else:self.item_pin.show_many(*item_preview)
-        scene = self._entrance_camera.get(hwnd, client) if supported and not in_shop else None
-        if not supported or in_shop:self._entrance_camera.reset()
+        scene = self._entrance_camera.get(hwnd, client) if supported and not room_confirmed else None
+        if not supported or room_confirmed:self._entrance_camera.reset()
         in_entrance = bool(scene and scene[0])
         recorder=getattr(self,'performance',None)
         if recorder is not None:
@@ -486,6 +493,8 @@ class FMApp:
             offscreen_notice = 'Shop OCR error' if status.startswith('Shop OCR unavailable') else status
         elif in_entrance:
             status = f'Entrance guide · FM {deal.fm}'
+        elif not room_confirmed:
+            status = 'Waiting for confirmed FM room'
         elif deal.shop_position is None:
             status = 'No map pin on this HeneFM deal'
         else:

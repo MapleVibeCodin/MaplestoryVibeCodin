@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.61.1; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.0; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## 2026-11-26 — v24.62.0 room-only exact scanner
+
+User requires fixed shop gate, hover-safe immediate visible-row highlight, exact scroll names and no inventory OCR at entrance. Minimap uses two native aligned strips of "Free Market <" from FM4; room confirmation required before inventory worker or shop marker, unknown/black/entrance blocks them. The title signatures matched 18 room screenshot files and rejected both entrance files in offline pixel checks; some older cropped/misaligned images could not be classified. Latest cappin screenshot tooltip covers rows 3–6, not hovered sold row 2; detect covered rows and bridge internal tooltip icon gaps, OCR only unobstructed rows (including seller). First shop frame no longer waits an extra worker cycle. Fixed gate 85x53 restored; one initial calibration for unknown resolution, no broad scan when known gate fails. Full normalized item name and full displayed price required; duplicate exact matches suppressed. Scroll matches also require same candidate from a second contrast rendering, cached after agreement. Never claim zero OCR errors or recognition of completely covered text. Windows OCR and live speed not run here; updater stages tests. No changes to CC camera profiles, G HUB, extension, archives or historical screenshots.
 
 ## 2026-11-26 — v24.61.1 hover-safe inventory
 

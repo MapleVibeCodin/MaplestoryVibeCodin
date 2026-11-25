@@ -43,21 +43,27 @@ def locate_shop(buffer,w,h,stride):
             at=line.find(GREEN,at+3)
     return hits[0] if len(hits)==1 else None
 
-def inventory_tooltip_visible(frame):
-    """Detect a broad purple tooltip covering the inventory text, not item icons."""
+def tooltip_blocked_rows(frame):
+    """Identify inventory rows with broad tooltip pixels; bridge internal icon gaps."""
     buf,w,h,stride=frame
-    if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:return False
-    consecutive=0
-    for y in range(23,263):
-        run=0
-        for x in range(40,198):
-            i=y*stride+x*3
-            b,g,r=buf[i:i+3]
-            run=run+1 if 40<b and r<145 and g<145 and b-r>28 and b-g>23 else 0
-            if run>=24:break
-        consecutive=consecutive+1 if run>=24 else 0
-        if consecutive>=6:return True
-    return False
+    if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:return set(range(ROWS))
+    blocked=set()
+    for row in range(ROWS):
+        consecutive=0
+        for y in range(26+row*STEP,min(h,60+row*STEP)):
+            run=0
+            for x in range(40,198):
+                i=y*stride+x*3
+                b,g,r=buf[i:i+3]
+                run=run+1 if 40<b and r<145 and g<145 and b-r>28 and b-g>23 else 0
+                if run>=12:break
+            consecutive=consecutive+1 if run>=12 else 0
+            if consecutive>=3:
+                blocked.add(row);break
+    return set(range(min(blocked),max(blocked)+1)) if blocked else set()
+
+def inventory_tooltip_visible(frame):
+    return bool(tooltip_blocked_rows(frame))
 
 
 def section_fingerprints(frame):
@@ -111,20 +117,20 @@ def pick_rows(lines, unavailable, seller, item, price):
         name=normalized(' '.join(t for y,t in group if y-base<19))
         if name!=normalized(item):continue
         price_text=' '.join(t for y,t in group if y-base>=19)
-        m=re.search(r'\bfor\s+([\d,]+)\s*mesos\b',price_text,re.I)
+        m=re.fullmatch(r'(?:[\d,]+\s+)?for\s+([\d,]+)\s*mesos',price_text.strip(),re.I)
         found=int(m.group(1).replace(',','')) if m else None
         if price is None or found is None:price_unknown.append(i);continue
         if found!=price:wrong_price.append(i);continue
         (sold if unavailable[i] else active).append(i)
-    if active:
-        mode='MATCH' if len(active)==1 else 'AMBIGUOUS'
-        return [(i,mode) for i in active], ('Name + price match · verify stats' if len(active)==1 else 'Multiple name/price matches · verify stats')
-    if sold:return [(i,'SOLD') for i in sold], 'Target sold / unavailable'
+    if len(active)>1:return [], 'Multiple exact matches · no highlight'
+    if active:return [(active[0],'MATCH')], 'Exact name + price · verify stats'
+    if len(sold)>1:return [], 'Multiple sold matches · no highlight'
+    if sold:return [(sold[0],'SOLD')], 'Target sold / unavailable'
     if wrong_price:return [],'Item found · displayed price differs'
     if price_unknown:return [],'Item found · price not verified'
     return [],'Target not visible · scroll manually'
 
-def prepare_ocr(frame, sections=None):
+def prepare_ocr(frame, sections=None, *, threshold_delta=0):
     """Create contrast-normalized 3x monochrome strip, including seller and six rows."""
     buf,w,h,stride=frame
     # Capture starts at button anchor (-140,+70). Seller is on dark blue.
@@ -149,12 +155,12 @@ def prepare_ocr(frame, sections=None):
             for x in range(9,89):
                 i=sy*stride+x*3
                 b,g,r=buf[i:i+3]
-                if min(b,g,r)>175:line[x-8]=0
+                if min(b,g,r)>175-threshold_delta:line[x-8]=0
         elif oy>=28:
             row=(oy-28)//STEP;dy=(oy-28)%STEP
             # Original list row starts 23 pixels below capture origin.
             sy=23+row*STEP+dy
-            cutoff=225 if unavailable[row] else 145
+            cutoff=(225 if unavailable[row] else 145)+threshold_delta
             if row in selected and 3<=dy<=36:
                 for x in range(40,198):
                     i=sy*stride+x*3
@@ -212,7 +218,7 @@ class RowOCRCache:
             while len(self.entries)>self.limit:self.entries.popitem(last=False)
         lines=[];unavailable=[]
         for section in range(-1,ROWS):
-            relative,sold=results[section]
+            relative,sold=results.get(section,([],False))
             lines.extend({'text':line['text'],'y':line['y']+self._base(section)*SCALE} for line in relative)
             if section>=0:unavailable.append(sold)
         return lines,unavailable,bool(missing)
@@ -273,7 +279,7 @@ class ShopInventoryTracker:
         # Two native 1366x768 screenshots share the same shop anchor.
         # Still verify pixels and fall back if the window/layout differs.
         self._anchors={(1366,768):(568,214)};self._gate_next={};self._cache=InventoryCache()
-        self._row_cache=RowOCRCache();self._ocr_failures=0
+        self._row_cache=RowOCRCache();self._scroll_checks=OrderedDict();self._ocr_failures=0
         self._jobs=queue.Queue()
         self._worker=threading.Thread(target=self._work,daemon=True,name='FM inventory capture')
         self._worker.start()
@@ -301,7 +307,7 @@ class ShopInventoryTracker:
             if self._key!=key:
                 self._key=key;self._latest=None;self._digest=None;self._next=0
             if not self._closed and not self._busy and now>=self._next:
-                self._busy=True;self._next=now+.10
+                self._busy=True;self._next=now+.05
                 self._jobs.put_nowait(key)
             return self._latest
     def _publish(self,key,result,digest=None):
@@ -315,14 +321,12 @@ class ShopInventoryTracker:
         cached=self._anchors.get(size)
         if cached is not None:
             ax,ay=cached
-            gx,gy=ax-9,ay-4
-            if gx>=0 and gy>=0 and gx+93<=w and gy+61<=h:
-                gate=capture_client((x+gx,y+gy,93,61),allow_crop=True)
-                found=locate_shop(*gate) if gate else None
-                if found is not None and abs(found[0]-9)<=4 and abs(found[1]-4)<=4:
-                    actual=(gx+found[0],gy+found[1])
-                    self._anchors[size]=actual
-                    return actual
+            gx,gy=ax-5,ay
+            if gx>=0 and gy>=0 and gx+85<=w and gy+53<=h:
+                gate=capture_client((x+gx,y+gy,85,53),allow_crop=True)
+                if gate and locate_shop(*gate)==(5,0):
+                    return cached
+            return None
         # Only search the larger centered area for initial calibration or
         # a moved shop; rate-limit when the shop is closed.
         now=time.monotonic()
@@ -351,49 +355,50 @@ class ShopInventoryTracker:
             with self._lock:
                 existing=self._latest if self._key==key else None
                 prev_digest=self._digest if self._key==key else None
-            if existing is None:
-                # Let Tk hide old room/channel markers before capturing the rows.
-                self._publish(key,{'status':'Shop open · reading inventory','hits':[]});return
             frame=capture_client((x+left,y+top,204,263),allow_crop=True)
             if not frame:return
-            sections=section_fingerprints(frame)
-            pixels=hashlib.blake2b(b''.join(value for _,value in sections),digest_size=20).digest()
-            digest=(pixels,left,top,sections[0][1])
-            if digest==prev_digest:
-                # Restore normal status when the identical clean frame returns.
-                if existing and existing.get('hover_original') is not None:
-                    self._publish(key,existing['hover_original'],digest)
-                return
-            if inventory_tooltip_visible(frame):
-                # Hover text is not new item data. Keep only a previously
-                # verified same-seller/same-position result, visibly stale.
-                original=existing.get('hover_original',existing) if existing else None
-                if prev_digest and prev_digest[1:]==digest[1:] and original:
-                    self._publish(key,{'status':'Hover tooltip · last verified, not refreshed',
-                                      'hits':original['hits'],'hover_original':original},prev_digest)
-                else:
-                    self._publish(key,{'status':'Shop open · tooltip covers text','hits':[]})
-                return
-            cached=self._cache.get(pixels)
-            if cached is None:
-                self._publish(key,{'status':'Shop open · reading inventory','hits':[]})
-                lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr,sections)
-                self._ocr_failures=0
-                # Cache the original recognized pixels, even if the shop
-                # subsequently changes. Reuse only when those pixels recur.
-                if any(0<=float(line.get('y',-100))/SCALE<22 for line in lines):
-                    self._cache.put(pixels,lines,unavailable)
-                if self._find_anchor(client)!=anchor:
-                    self._publish(key,None);return
-                frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
-                if not frame_after:
-                    self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
-                if inventory_fingerprint(frame_after)!=pixels:
-                    self._publish(key,{'status':'Shop open · rows changed, retrying','hits':[]});return
-            else:
-                lines,unavailable=cached
+            blocked=tooltip_blocked_rows(frame)
+            sections=tuple((section,fp) for section,fp in section_fingerprints(frame) if section not in blocked)
+            digest=(left,top,sections)
+            if digest==prev_digest:return
+            # Hide stale hits immediately unless seller and matched row pixels
+            # are identical and the match is still unobstructed.
+            verified=dict(sections)
+            prior=dict(prev_digest[2]) if prev_digest else {}
+            held=[]
+            if existing and prev_digest and prev_digest[:2]==digest[:2] and verified.get(-1)==prior.get(-1):
+                for mode,box in existing['hits']:
+                    row=(box[1]-top-23)//STEP
+                    if row in verified and verified[row]==prior.get(row):held.append((mode,box))
+            self._publish(key,{'status':'Shop open · verifying visible rows','hits':held},None)
+            lines,unavailable,_=self._row_cache.recognize(frame,self._ocr,sections)
+            self._ocr_failures=0
             hits,status=pick_rows(lines,unavailable,seller,item,price)
-            # Coordinates relative to game client. Outline, never click.
+            if hits and 'scroll' in normalized(item):
+                # Independently render the seller and candidate row(s) using
+                # a second contrast cutoff. Never use a prefix or fuzzy name.
+                selected={-1}|{row for row,_ in hits}
+                check_key=(seller,item,price,tuple((i,v) for i,v in sections if i in selected),tuple(hits))
+                checked=self._scroll_checks.get(check_key)
+                if checked is None:
+                    alt,alt_sold=prepare_ocr(frame,selected,threshold_delta=15)
+                    alt_hits,_=pick_rows(self._ocr.recognize(alt),alt_sold,seller,item,price)
+                    checked=alt_hits==hits
+                    if checked:
+                        self._scroll_checks[check_key]=True
+                        while len(self._scroll_checks)>512:self._scroll_checks.popitem(last=False)
+                if not checked:hits=[];status='Scroll text not independently confirmed'
+            if self._find_anchor(client)!=anchor:
+                self._publish(key,None);return
+            frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
+            if not frame_after:
+                self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
+            after_blocked=tooltip_blocked_rows(frame_after)
+            after=tuple((section,fp) for section,fp in section_fingerprints(frame_after) if section not in after_blocked)
+            if after!=sections:
+                self._publish(key,{'status':'Shop open · visible rows changed, retrying','hits':[]});return
+            if blocked and not hits and status=='Target not visible · scroll manually':
+                status='Tooltip covers rows · no unverified highlight'
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]
             self._publish(key,{'status':status,'hits':hits},digest)
         except (OSError,ValueError,RuntimeError,subprocess.SubprocessError) as exc:
