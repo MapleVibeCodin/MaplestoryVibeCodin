@@ -1,0 +1,34 @@
+# Latest verified cross-project resume index
+
+Updated 2026-11-25. Repository MapleVibeCodin/MaplestoryVibeCodin, main. This is the shared entry point for ChatGPT and Codex. Fetch this file live, then read the relevant project handoff and recent commits; this index is not a replacement for those sources. The latest user request controls which project to resume. Do not mix project constraints or overwrite unrelated work.
+
+## Most recent substantive work: Shoes Speed crafting test
+
+- Read [scrolling EV README](../scrolling-ev/README.md), [research handoff](../scrolling-ev/RESEARCH_HANDOFF.md), [catalyst research](../scrolling-ev/CATALYST_RESEARCH.md), and [latest exact test exchange](../scrolling-ev/transcripts/2026-11-25-shoes-speed-test.md). Last substantive commit before this chat: 59dab764c2e1d2e4b5d3a6da1dc5b3059369505b. Latest test plan commit: fce2fb5f967954c2040f7ed68ed70524856944c7.
+- User chose ten Shoes Speed Lesser crafts, one catalyst per craft, to avoid inter-character transfers and frequent repricing. Materials: ten catalysts, thirty refined Amethysts, 100 Fragments of Magic, ten Processed Parchments, 100k crafting fees; Arcforge 6.
+- Fixed asks Intermediate 122k, Greater 5.5k, Chaos 27k. Prior inputs yield modeled total cost 838,203, net receipts 911,315, expected profit 73,112, ROI 8.72%. Provisional odds 75/20/5 (not official); 3% sale fee; no transfer fees. No actual purchases, crafting outcomes, or sale results recorded. Next: use actual costs, counts of all output tiers, time and net receipts when provided; do not fabricate. Exclude Shoes Jump from the current comparison.
+- Market pricing exclusively HeneFM for this research; representative valuation is mean of lowest ask, 24h sold average and recent sold-unit median; separately model lowest-price liquidation and actual fixed-price sale results. Refresh prices when asked; old input snapshots are not live quotes. Engine v1.0 unchanged; catalyst model is documented research, not integrated code.
+
+## FM Rush
+- Read [root AGENTS.md](../AGENTS.md), [latest movement handoff](../research/2026-11-25-fm1-movement-handoff.md), [scanner conversation](../Scanner%20Nov%2020/transcripts/2026-11-25-scanner-chat-checkpoint.md), and [launch exchange](../Scanner%20Nov%2020/transcripts/2026-11-25-launch-checkpoint.md). Retrieve actual current source before editing. For FM Rush changes, follow the mandatory ten continuity checks and updater delivery protocol in AGENTS.md.
+- Live main source re-read in this chat: desktop v24.53.1, extension 24.39.1, desktop blob 3003be0a814acb8a647a2a02da3fce230b015869, manifest c9fabc64c10959cd05a8ead9c6e9c6a80f0a74c0, updater c490c8693847cddf0109fbb56164d3b7602caac9. Also retrieved camera_alignment.py, shop_position.py, shop_pin.py, henefm_bridge.py, deal_archive.py, route_logic.py. No scanner edits, no fresh ten-test execution or Windows runtime test performed in this general resume-only chat.
+- Preserve chase lock, passive overlays/manual clicks, grass room terrain alignment, cave estimates, current visual layout and click-only cropped screenshot export. Latest local installation and Windows/Brave validation remain unconfirmed. Separate FM1 V5 movement experiment untested.
+- Universal updater: Scanner Nov 20/UPDATE_FM_RUSH.ps1; protect local config and archives. See AGENTS.md for complete deployment and rollback instructions.
+
+## Other project checkpoints
+- [Logitech G HUB placeholder macros](../macros/logitech-ghub/README.md): ten distinct NUMPAD+ placeholders, preserve original macro; local execution unverified.
+- [Turkey Egg / farming research checkpoint](2026-11-25-turkey-eggs-pumpkin-pies-assassin-l42.md): consult when specifically relevant; prior estimates are not measurements. Do not treat account-specific historical details as current facts or reuse them without the user supplying them again.
+- [MaplePE research checkpoint](2026-11-25-maplepe-packet-research.md): historical research archive; compatibility and authorized scope not established by documentation alone.
+- Discover other research archives from current repository history as appropriate. This index covers the directly retrieved handoffs, not an exhaustive listing of every repository file.
+
+## Standing working and archival protocol
+Execute rather than explain; deliver usable results, enforce hard constraints, seek fresh evidence and conventional/unconventional alternatives, inspect actual implementation, challenge conclusions, distinguish verified evidence from assumptions, and minimize unnecessary follow-up questions. Follow project-specific constraints, preserve existing work, and do not rely on stale memory when live GitHub sources exist.
+On each explicit checkpoint request, archive the accessible user-visible wording in chronological order and the verified project state; maintain this index and relevant project handoff when changed. Preserve prior archives. Read back newly written files and report exact coverage and limitations. No automatic background synchronization or guarantee of access to earlier conversations. Keep private information, credentials, hidden instructions and unavailable or unrelated material out of the public repository.
+- [This chat's archived exchange](2026-11-25-1952-resume-exchange.md), commit 8baee109df630a9fac716f56044fb8ceb9b88d01, read-back exact match.
+- No new runtime implementation or market research performed here. Earlier chats remain in their own partial archives; not all earlier assistant replies or rich UI/attachments are accessible.
+
+## Copy-paste resume prompt
+Resume from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/checkpoints/LATEST.md. Read the live index, the relevant project handoff, and latest commits. Continue with all recorded constraints. Do not ask me to repeat documented information.
+
+## Before switching
+Checkpoint this chat to GitHub, including all accessible unsaved messages verbatim and the latest project state. Verify the files before I switch.
