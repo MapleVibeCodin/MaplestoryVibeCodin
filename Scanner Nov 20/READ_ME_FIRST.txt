@@ -1,4 +1,4 @@
-FM RUSH v24.63.3 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.63.4 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
