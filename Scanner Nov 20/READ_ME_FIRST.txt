@@ -37,10 +37,10 @@ to browser extension, hotkeys, click behavior, or local settings.
 
 UPDATE
 $u = Join-Path $env:TEMP 'UPDATE_FM_RUSH.ps1'
-Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MapleVibeCodin/MaplestoryVibeCodin/main/Scanner%20Nov%2020/UPDATE_FM_RUSH.ps1' -OutFile $u -ErrorAction Stop; powershell.exe -NoProfile -ExecutionPolicy Bypass -File $u -UpdateExtension
+Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MapleVibeCodin/MaplestoryVibeCodin/main/Scanner%20Nov%2020/UPDATE_FM_RUSH.ps1' -OutFile $u -ErrorAction Stop; powershell.exe -NoProfile -ExecutionPolicy Bypass -File $u
 
-If Brave uses a different unpacked folder, add -ExtensionDir with its actual path.
-Reload FM Rush in brave://extensions and refresh HeneFM once after updating.
+Browser v24.56.0 is unchanged; no extension reload is needed for this desktop release.
+Only use -UpdateExtension for a separate browser release.
 Updater preserves config.json and archives in LOCALAPPDATA/FM_Rush/archives.
 Every explicit HeneFM Deals listing click or CHASE saves click-time JSON to
 Desktop\Shit to sell\Click records and attempts a cropped PNG in Desktop\Shit to sell.
