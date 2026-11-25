@@ -1,6 +1,6 @@
 # Latest verified cross-project resume index
 
-Updated 2026-11-25. Repository MapleVibeCodin/MaplestoryVibeCodin, main. This is the shared entry point for ChatGPT and Codex. Fetch this file live, then read the relevant project handoff and recent commits; this index is not a replacement for those sources. The latest user request controls which project to resume. Do not mix project constraints or overwrite unrelated work.
+Updated 2026-11-26 (Taipei). Repository MapleVibeCodin/MaplestoryVibeCodin, main. This is the shared entry point for ChatGPT and Codex. Fetch this file live, then read the relevant project handoff and recent commits; this index is not a replacement for those sources. The latest user request controls which project to resume. Do not mix project constraints or overwrite unrelated work.
 
 ## Most recent substantive work: Shoes Speed crafting test
 
@@ -11,11 +11,10 @@ Updated 2026-11-25. Repository MapleVibeCodin/MaplestoryVibeCodin, main. This is
 - Fixed asks Intermediate 122k, Greater 5.5k, Chaos 27k. Prior inputs yield modeled total cost 838,203, net receipts 911,315, expected profit 73,112, ROI 8.72%. Provisional odds 75/20/5 (not official); 3% sale fee; no transfer fees. This ten-craft scenario is historical; actual ingredient and catalyst costs for the revised twelve-craft batch are recorded in CATALYST_RESEARCH.md. No crafting outcomes or sale results recorded. Next: use actual costs, counts of all output tiers, time and net receipts when provided; do not fabricate. Exclude Shoes Jump from the current comparison.
 - Market pricing exclusively HeneFM for this research; representative valuation is mean of lowest ask, 24h sold average and recent sold-unit median; separately model lowest-price liquidation and actual fixed-price sale results. Refresh prices when asked; old input snapshots are not live quotes. Engine v1.0 unchanged; catalyst model is documented research, not integrated code.
 
-## FM Rush
-- Read [root AGENTS.md](../AGENTS.md), [latest movement handoff](../research/2026-11-25-fm1-movement-handoff.md), [scanner conversation](../Scanner%20Nov%2020/transcripts/2026-11-25-scanner-chat-checkpoint.md), and [launch exchange](../Scanner%20Nov%2020/transcripts/2026-11-25-launch-checkpoint.md). Retrieve actual current source before editing. For FM Rush changes, follow the mandatory ten continuity checks and updater delivery protocol in AGENTS.md.
-- Live main source re-read in this chat: desktop v24.53.1, extension 24.39.1, desktop blob 3003be0a814acb8a647a2a02da3fce230b015869, manifest c9fabc64c10959cd05a8ead9c6e9c6a80f0a74c0, updater c490c8693847cddf0109fbb56164d3b7602caac9. Also retrieved camera_alignment.py, shop_position.py, shop_pin.py, henefm_bridge.py, deal_archive.py, route_logic.py. No scanner edits, no fresh ten-test execution or Windows runtime test performed in this general resume-only chat.
-- Preserve chase lock, passive overlays/manual clicks, grass room terrain alignment, cave estimates, current visual layout and click-only cropped screenshot export. Latest local installation and Windows/Brave validation remain unconfirmed. Separate FM1 V5 movement experiment untested.
-- Universal updater: Scanner Nov 20/UPDATE_FM_RUSH.ps1; protect local config and archives. See AGENTS.md for complete deployment and rollback instructions.
+## FM Rush — latest scanner update
+- Desktop v24.54.4, extension v24.54.2; verified runtime commit 1e0f63ec3a881dbf10ba7f286263d34cc9152c52. Read [root AGENTS.md](../AGENTS.md) and [current conversation](../Scanner%20Nov%2020/transcripts/2026-11-26-live-auto-lock-chat.md). Old movement research remains separate.
+- Auto-lock new unsold listings, Shift+2 re-arms, automatic MapleStory window detection, fixed instant red shop marker, native HeneFM live feed without forced refresh, green entrance portal marker (FM7–20 measured, FM1–6 down-warp), yellow channel guide. FM4 adjusted down 142px; FM8 remains unresolved. Windows/Brave and regression tests not run.
+- Universal updater: Scanner Nov 20/UPDATE_FM_RUSH.ps1; -UpdateExtension if extension older than 24.54.2; reload extension and HeneFM once. Preserve local config and archives. Follow ten continuity checks on resume.
 
 ## Other project checkpoints
 - [Logitech G HUB placeholder macros](../macros/logitech-ghub/README.md): ten distinct NUMPAD+ placeholders, preserve original macro; local execution unverified.
