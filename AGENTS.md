@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.5; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.6; browser extension: v24.56.1. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## Latest runtime — v24.63.6 / browser v24.56.1 exact HeneFM unit prices
+
+User screenshot shows Chained Princess Coat Buy 98K with exact hover tooltip 97,999 mesos each. Public rendered /flips/deals page independently exposes adjacent exact unit price text without hovering (examples 66.7K -> 66,666 and 60K -> 59,999). Prior extension readBuy took only first compact amount. Now prefer immediately adjacent strict integer "mesos each" only if consistent with compact display precision, not resale, profit or stack total; otherwise retain existing rounded fallback. Exact buy marker at start of raw_text disables desktop rounded bucket even when exact equals compact display. No extra HeneFM requests, hover, UI modifications or automatic inputs. 12 synthetic JS parsing cases executed and passed; Python test staged, Windows/browser live integration not run. Desktop v24.63.6/browser v24.56.1 runtime 0e643898dff73a8305dd2ce77b10c7bc6cc965d8. Update with -UpdateExtension and reload extension and page; prior rounded archive entries preserved, existing locked listing may require unlock/reselect because identity includes buy price. Actual quantity semantics for stackable game listings remain unverified. Keep local screenshot recorder and seller-free OCR. No history deleted.
 
 ## Latest runtime — v24.63.5 automatic shop screenshots and seller-free matching
 
