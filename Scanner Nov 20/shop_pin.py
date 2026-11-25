@@ -146,3 +146,15 @@ class EntranceGuidePin(OverlayPin):
                 c.create_rectangle(l,t,r,b,fill='#15241c',outline='#72ff86',width=2)
                 c.create_text((l+r)/2,(t+b)/2,text=name,fill='#72ff86',
                               font=('Segoe UI',10,'bold'),width=max(1,r-l-8))
+
+
+class ItemInventoryPin(OverlayPin):
+    """Click-through row border; no purchase or cursor action."""
+    def draw_markers(self,w,h,sw,sh,hits):
+        c=self.canvas;c.delete('all')
+        for hit in hits.values():
+            l,t,r,b=hit['box']
+            box=(l*w/sw,t*h/sh,r*w/sw,b*h/sh)
+            color={'MATCH':'#72ff86','AMBIGUOUS':'#ffdb3d','SOLD':'#ff9960'}.get(hit['mode'],'#ffdb3d')
+            c.create_rectangle(*box,outline='#161616',width=4)
+            c.create_rectangle(*box,outline=color,width=2)

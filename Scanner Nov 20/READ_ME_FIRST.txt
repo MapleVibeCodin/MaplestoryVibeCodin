@@ -1,4 +1,4 @@
-FM RUSH v24.54.12 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.55.0 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -48,3 +48,11 @@ UI: channel navigation arrow text removed from bottom strip; channel and FM over
 FM16: restored room-specific zero bottom margin, moving the default shop projection down 192 client pixels. Manual doorway alignment is unchanged.
 
 FM11: default 1366x768 shop projection moved down 66px based on screenshot 171034; manual alignment and other rooms unchanged.
+
+SHOP INVENTORY FINDER
+When a locked target's shop opens, suppress room/channel guides. Local Windows OCR
+reads the seller and six visible name/price rows; green exact name+price candidate,
+yellow multiple candidates, orange unavailable. No automatic scroll, hover or buy.
+Verify hidden stats manually. English Windows OCR language required; supported
+centered native shop UI is calibrated from the supplied screenshot. No runtime
+latency benchmark; scroll manually when target not visible.

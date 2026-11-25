@@ -1,6 +1,6 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.54.12; browser extension: v24.54.9. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.55.0; browser extension: v24.54.9. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
 ## Clickable session continuation
 - [Start a new ChatGPT chat with the checkpoint prompt](https://chatgpt.com/?q=Resume%20FM%20Rush%20checkpoint%20from%20https%3A%2F%2Fgithub.com%2FMapleVibeCodin%2FMaplestoryVibeCodin%2Fblob%2Fmain%2FAGENTS.md.%20Inspect%20the%20latest%20source%20and%20run%20the%2010%20continuity%20checks%20before%20proceeding.). The web q parameter may prefill or submit depending on the client; verify the prompt and send if necessary.
@@ -8,6 +8,8 @@ Last updated: 2026-11-26 (Taipei). Current desktop release: v24.54.12; browser e
 - Bookmark these links. They reference this live checkpoint, not a frozen version of its contents. On each future Save checkpoint, provide clickable resume links as well as a plain prompt fallback. Do not claim a new session has been tested unless actually verified.
 
 ## Resume now — authoritative short checkpoint (2026-11-26 Taipei)
+
+- v24.55.0: in-shop item finder based on screenshots 011052/011102. Native seller/buy/leave button stripes detect centered UI, background Windows OCR matches seller and exact item name plus displayed price on six visible rows, sold rows distinguished by pale text/background. Green single candidate, yellow multiple, orange unavailable. Suppress existing shop/channel/entrance guides when inventory detected. No auto scroll/hover/buy; hidden stats require manual confirmation. New shop_inventory.py and SHOP_OCR.ps1 included in updater. Windows OCR and latency not live validated. No screenshots committed.
 
 - v24.54.12: screenshot image(20261125-171034).png (1921x812) shows CH34 FM11 Bazlud target, red box on roof of yellow shop; estimated +66 native Y to lower strip. Default FM11 at 1366x768 only. Preserve all other offsets, manual alignment and click archive. Actual seller name partly obscured by chat; live accuracy not confirmed. This is a room screenshot, not an opened inventory; in-shop item identification not implemented.
 

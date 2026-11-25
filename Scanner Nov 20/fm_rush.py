@@ -17,6 +17,8 @@ from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
 from shop_pin import ShopPreviewPin, EntranceGuidePin, entrance_marker
 from camera_alignment import EntranceCameraTracker
+from shop_inventory import ShopInventoryTracker
+from shop_pin import ItemInventoryPin
 from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice
 from trade_hotkeys import TradeHotkeys
 
@@ -77,7 +79,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.54.12 - FM11 calibration')
+        self.root.title('FM Rush v24.55.0 - Shop item finder')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -109,6 +111,9 @@ class FMApp:
         self.entrance_pin = EntranceGuidePin(self.root, interval_ms=50)
         self._entrance_camera = EntranceCameraTracker()
         self._entrance_preview = None
+        self.item_pin = ItemInventoryPin(self.root, interval_ms=50)
+        self._inventory = ShopInventoryTracker()
+        self._item_preview = None
         self._shop_preview = None
         self._portal_alignment = None
         self._channel_preview = None
@@ -372,8 +377,21 @@ class FMApp:
         client = window_client_rect(hwnd) if window else None
 
         supported = bool(deal and client and client[2:] in ENTRY_CLIENTS and window_has_focus(hwnd))
-        scene = self._entrance_camera.get(hwnd, client) if supported else None
-        if not supported:self._entrance_camera.reset()
+        inventory = self._inventory.get(hwnd,client,deal) if supported else None
+        if not supported:self._inventory.reset()
+        in_shop = inventory is not None
+        item_preview = None
+        if in_shop and inventory['hits']:
+            dx,dy=client[0]-window[0],client[1]-window[1]
+            hits={str(i):{'mode':mode,'box':(l+dx,t+dy,r+dx,b+dy)}
+                  for i,(mode,(l,t,r,b)) in enumerate(inventory['hits'])}
+            item_preview=(hwnd,window[2:],hits)
+        if item_preview!=self._item_preview:
+            self._item_preview=item_preview
+            if item_preview is None:self.item_pin.hide()
+            else:self.item_pin.show_many(*item_preview)
+        scene = self._entrance_camera.get(hwnd, client) if supported and not in_shop else None
+        if not supported or in_shop:self._entrance_camera.reset()
         in_entrance = bool(scene and scene[0])
         entrance_preview = None
         if in_entrance and deal.fm:
@@ -385,7 +403,7 @@ class FMApp:
             else:self.entrance_pin.show_many(*entrance_preview)
 
         channel_preview = None
-        if deal and deal.cc and window and not in_entrance:
+        if deal and deal.cc and window and not in_entrance and not in_shop:
             _, _, width, height = window
             box = preview_channel(deal.cc, window, client)
             mode = 'GUIDE' if box else 'PRE'
@@ -417,6 +435,8 @@ class FMApp:
             status = 'Waiting for MapleStory window'
         elif deal is None:
             status = 'Waiting for next auto-lock'
+        elif in_shop:
+            status = offscreen_notice = inventory['status']
         elif in_entrance:
             status = f'Entrance guide · FM {deal.fm}'
         elif deal.shop_position is None:
@@ -720,6 +740,8 @@ class FMApp:
         self.channel_pin.close()
         self.shop_pin.close()
         self.entrance_pin.close()
+        self.item_pin.close()
+        self._inventory.close()
         self.archive.close()
         if hasattr(self,'trade_keys'):self.trade_keys.close()
         self.root.destroy()

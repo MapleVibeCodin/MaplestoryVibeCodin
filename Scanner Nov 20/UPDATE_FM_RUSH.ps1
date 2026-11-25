@@ -10,6 +10,7 @@ $ErrorActionPreference = 'Stop'
 $repo = 'MapleVibeCodin/MaplestoryVibeCodin'
 $files = @(
     'camera_alignment.py','fm_rush.py','shop_position.py','shop_pin.py',
+    'shop_inventory.py','SHOP_OCR.ps1',
     'game_window.py','channel_overlay.py','deal_archive.py','deal_parser.py',
     'henefm_bridge.py','profit_filter.py','route_logic.py','trade_hotkeys.py',
     'START_FM_RUSH.bat','START_FM_RUSH.ps1','READ_ME_FIRST.txt'
