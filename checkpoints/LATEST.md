@@ -163,3 +163,6 @@ User requests same methodology for all glove stats and range. [Glove research](.
 
 ## Latest boots 5m research
 [Boots research](../scrolling-ev/BOOTS_RESEARCH.md). No DEX/LUK/WATK shoe scrolls; damage from natural DEX only. Black Green-Lined4DEX level40 clean15k, craft8 ~16k; +5DEX258.9k sold, +6/+7 unverified; Goni5DEX price unverified craft10 inaccessible. New actual 1k DP with one fallback: 1m E speed8.5719/jump8.272/avoid10.982, 5m11.4191/10.556/12.979. Speed Chaos30k, 10 attempts +8 or+5 fallback E6.95396 net330088 cap515k. 5m max P+10 speed98.49%. Armor catalyst71k all-in, no verified odds; need positive DEX p31.75% to meet200k incremental. Arcforge6 scroll catalyst replacement EV speed108.5k vs80.733k, jump >=136.6k vs78k, fixed75/20/5 assumption. No citizenship/live stock or engine changes.
+
+## Armor catalyst empirical assumption (user-reported)
+15% positive, 25% negative, 60% neutral, separate from scroll and weapon catalyst odds. For boots assuming every positive is +1 desired DEX, craft71k/NPC4k/fallback15k: expected incremental435.667k per DEX; ten tries80.3126% success, net364.895k; until success450.667k. Catalyst target <=19.65k under200k incremental ceiling. See [boots research](../scrolling-ev/BOOTS_RESEARCH.md). No new market quotes.
