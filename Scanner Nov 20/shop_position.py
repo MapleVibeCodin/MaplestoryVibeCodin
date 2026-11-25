@@ -46,6 +46,10 @@ def entry_portal_point(room, client_size):
         return width - 225, height - bottom_margin
     # The cave door stands on its own raised platform. Use the vertical
     # offset measured for each room where an entry view is available.
+    # FM9 native 1366x768 screenshot: doorway bottom center ~633,488.
+    # Previous estimate (741,533) projected a partly visible shop beyond right edge.
+    if room == 9 and client_size == (1366, 768):
+        return 633, 488
     return width // 2 + 58, height // 2 + {7: 121, 9: 149, 11: 97, 17: 97}.get(room, 108)
 
 

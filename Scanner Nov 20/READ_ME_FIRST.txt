@@ -1,4 +1,4 @@
-FM RUSH v24.54.4 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.54.5 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -19,6 +19,7 @@ crop gates full entrance matching; fixed shop marker does not wait on it.
 SHOP BOX
 Immediate calibrated entry coordinates, not dynamic camera tracking.
 FM 4 entry marker moved down 142 client pixels using the supplied screenshot.
+FM 9 native 1366x768 doorway anchor corrected left 108 and up 45 client pixels.
 Supported client sizes: 1280x720 and 1366x768. Camera movement can offset the
 estimated box. Hover over doorway bottom center and press Ctrl+Alt+F to align.
 Ctrl+Alt+C moves pointer to channel cell; Ctrl+Alt+M/J moves pointer to shop.
