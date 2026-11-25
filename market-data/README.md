@@ -1,0 +1,15 @@
+# Market alert research data — offline importer
+2026-11-25. User wants to turn HeneFM Discord alerts into readable, reusable data across ChatGPT, GitHub and Codex. This project is separate from FM Rush and scrolling-ev. No connection to Discord has been authorized or established.
+
+## Current workflow
+Copy permitted alert text manually, then run `python market_alert_importer.py alerts.txt --date YYYY-MM-DD`. Default output is Documents/Market Alert Data. The script creates local SQLite, CSV, JSON and rejected-record diagnostics. Keep exports local; only share permitted data privately as appropriate. Do not commit raw third-party feeds, seller records, credentials or API response archives to this public repository. Code and documentation only.
+
+## Verification
+A local equivalent of the committed parser (one additional unused import) was run against the user-provided Nov 25 text: 76 parsed, 185 units, 0 rejected, 3,947,620 hypothetical cost, 1,194,253 estimated after-fee profit; identical re-import added 0 records. This verifies parsing of the supplied format and exact-record deduplication, not listing identity, current availability or realized trades. Commit b1bf25f196d7e063473ec23beb0ffe1be2ed8b13 read back exactly. No Windows execution or Discord API access tested. Date must be supplied when known; original message IDs and exact timestamps are not present in copied text.
+
+## Future automation
+Discord link provided by user identifies a channel whose type and permissions are unverified. Official bot access requires server authorization, view-channel/history permissions and message content access including embeds. If the source is an announcement channel with Follow, its published future announcements may be forwarded to a user-controlled server; historical messages and unpublished posts are not included. Ordinary text channels require the server owner's permission or a provider-approved integration. Do not automate a normal Discord account or request a user token. Discord support: https://support.discord.com/hc/en-us/articles/360028384531-Channel-Following-FAQ and https://support.discord.com/hc/en-us/articles/115002192352-Automated-User-Accounts-Self-Bots.
+HeneFM official developer API https://henefm.com/developers offers personal price lookups, not a documented flip-feed endpoint. Its terms https://henefm.com/terms explicitly restrict bulk storage, republication and deal-finding uses. Seek explicit provider approval for any automated feed archive. Do not use its API to recreate a flipping tool or bypass limits. Prices from https://henefm.com; advertised estimates are not realized sales.
+
+## Resume
+Read this README and market_alert_importer.py; use current user instructions. For crafting comparisons read ../scrolling-ev/CATALYST_RESEARCH.md. Latest immediate step is manual clipboard import; continuous ingestion remains conditional on channel/provider authorization. ChatGPT has no discovered direct Discord connector; do not claim the link was accessed or that local files automatically sync to chat.
