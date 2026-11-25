@@ -19,3 +19,7 @@ Research only. FM Rush desktop v24.63.4 and browser v24.56.0 unchanged. The thre
 - mpl-ocr: packed bitmap IoU, baseline alignment, +/-1 pixel shifts and native-font atlas generation. MIT.
 - Free Market Tracker: documented 100ms capture, 3 parallel readers, trained OCR, SQLite; recognition implementation paths not retrieved. Lupin: documentation describes capture backpressure and pixel guards. Price Checker: RapidOCR and separate passive scanner code. 
 - FM Rush inventory source reviewed: unchanged digest can reuse failed results; proposed expiry for negative results and bounded latest-frame queues. Preserve raw pixel evidence, exact seller, item, quantity, price and strict scroll checks; use shadow native glyph reader on independently labelled historical frames before deployment. No runtime edits, no upstream code executed, no full replay, no 100% accuracy claim.
+
+## Cross-game expansion
+
+See [executed experiments and audit](cross-game-experiments.md), [cross-game source bundle](cross-game-source.json) and updated [manifest](manifest.json). The original 31-file archive is preserved; eight additional licensed files and five pinned upstream projects bring the current total to 39 files and 13 repositories. Both unpack and checkout scripts now cover the expanded archive. Scripts not tested on Windows. No production changes.
