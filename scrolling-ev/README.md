@@ -17,3 +17,6 @@ Five slots, base 3,000 mesos; 100% +1 at 39,000, 60% +2 at 90,000, 10% +3 at 13,
 Version 1.0 models one additive stat, independent scroll outcomes, constant salvage for discarded surviving bases, and fixed prices. No slot restoration, protection, market slippage, or automated market fetching. The UI supports 1–20 slots; use realistic input ranges. Actual individual results can differ substantially from expectation.
 
 For future ChatGPT/Codex sessions: reuse this engine and update inputs instead of rebuilding the math. Keep this folder separate from unrelated projects.
+
+## Current research and next-session handoff
+Read [RESEARCH_HANDOFF.md](RESEARCH_HANDOFF.md) for AP-aware DEX/LUK equivalence, damage calculations, hard-budget earring-only constraints, crafting assumptions, current regression cases and future research logging conventions. This documents new requirements; it does not change the v1.0 engine implementation.
