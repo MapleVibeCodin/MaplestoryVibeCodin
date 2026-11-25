@@ -2,7 +2,7 @@
 param([string]$Destination = (Join-Path $env:USERPROFILE 'Downloads\FM-Rush-Source-Snapshots'))
 $ErrorActionPreference = 'Stop'
 $encoding = New-Object System.Text.UTF8Encoding($false)
-foreach ($bundle in @('classic-tool-source.json','rust-recognition-source.json','gpl-market-scanners-source.json')) {
+foreach ($bundle in @('classic-tool-source.json','rust-recognition-source.json','gpl-market-scanners-source.json','cross-game-source.json')) {
     $data = Get-Content -Raw -Encoding UTF8 (Join-Path $PSScriptRoot $bundle) | ConvertFrom-Json
     $sources = if ($data.sources) { $data.sources } else { @($data) }
     foreach ($s in $sources) {
