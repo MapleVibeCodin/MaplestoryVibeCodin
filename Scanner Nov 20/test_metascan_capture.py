@@ -114,4 +114,29 @@ class FastCaptureTests(unittest.TestCase):
             t._scan(t._key)
         self.assertIsNone(t._latest)
 
+    def test_current_screenshot_price_and_sold_cases(self):
+        # Manually transcribed visible rows, not an OCR success claim.
+        from shop_inventory import pick_rows, SCALE
+        def lines(rows):
+            return [{'text':text,'y':(28+i*40+offset)*SCALE}
+                    for i,(name,price) in enumerate(rows)
+                    for text,offset in ((name,9),(f'1 for {price:,} mesos',27))]
+        hecklers=lines([('Shoes Speed Scroll: Inter...',131000),('Heckler',1500),('Heckler',14500),
+                        ('Heckler',14500),('Eagle Crow',9500),('Green Legolier',7000)])
+        self.assertEqual(pick_rows(hecklers,[False]*6,None,'Heckler',1500)[0],[(1,'MATCH')])
+        self.assertEqual(pick_rows(hecklers,[False]*6,None,'Heckler',14500)[0],[])
+        self.assertEqual(pick_rows(hecklers,[False]*6,None,'Heckler',1501)[0],[])
+        pan=lines([('Blue Moonlight',500000),('Pan Lid',20000),('Gold Moon Shoes',27000),
+                   ('Brown Pierre Shoes',25000),('Blue Jangoon Shoes',25000),('Maroon Jangoon Shoes',25000)])
+        self.assertEqual(pick_rows(pan,[False,True,False,False,False,False],None,'Pan Lid',20000)[0],[(1,'SOLD')])
+        dark=lines([('Dark Shadow',39999),('Magical Destruction Bow',277777),('Magical Destruction Bow',277777),
+                    ('Bamboo Sword',177777),('Staff Magic Attack Scroll:...',26666),('Rotten Mushmom Cap',188888)])
+        self.assertEqual(pick_rows(dark,[True,False,False,False,False,False],None,'Dark Shadow',39999)[0],[(0,'SOLD')])
+        self.assertEqual(pick_rows(dark,[True,False,False,False,False,False],None,'Dark Shadow',40000)[0],[])
+        coat=lines([('Cat Lolita Gloves',55000),('Elizabeth Gloves',55000),('Mushroom Hair Pin',52000),
+                    ('Fluffy Cat Hood',80000),('Chained Princess Coat',100000),('Love Gloves',374000)])
+        self.assertEqual(pick_rows(coat,[True,False,False,True,False,False],None,'Chained Princess Coat',100000)[0],[(4,'MATCH')])
+        unrelated=lines([('Pink Sweater',45000),('Pink Sweater',45000),('Prep School Uniform Pants',40000),('Tweed Headband',45000)])
+        self.assertEqual(pick_rows(unrelated,[False,False,True,False,False,False],None,'Chained Princess Coat',100000)[0],[])
+
 if __name__=='__main__':unittest.main()

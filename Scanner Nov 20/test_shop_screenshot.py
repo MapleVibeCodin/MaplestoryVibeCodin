@@ -84,5 +84,25 @@ class ScreenshotTests(unittest.TestCase):
         self.assertIsNone(gate_quality((bytes(stride*h),w,h,stride),(ax,ay)))
 
 
+    def test_shared_presence_context_and_expiry(self):
+        import threading
+        from unittest.mock import Mock, patch
+        from shop_screenshot import ShopScreenshotRecorder
+        r=ShopScreenshotRecorder.__new__(ShopScreenshotRecorder)
+        r._lock=threading.Lock();r._presence=None;r._request=None;r.enabled=True;r._notify=Mock()
+        client=(0,0,1366,768)
+        r.observe(7,client)
+        with patch('shop_screenshot.time.monotonic',return_value=10.0):
+            r._publish_presence((7,client),True)
+            self.assertIs(r.recent_presence(7,client),True)
+            self.assertIsNone(r.recent_presence(8,client))
+            r._publish_presence((7,client),True)
+            self.assertEqual(r._notify.call_count,1)
+        with patch('shop_screenshot.time.monotonic',return_value=10.11):
+            self.assertIsNone(r.recent_presence(7,client))
+        r.observe(8,client)
+        r._publish_presence((7,client),True)
+        self.assertIsNone(r.recent_presence(8,client))
+
 if __name__=='__main__':
     unittest.main()
