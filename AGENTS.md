@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.4; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.5; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## Latest runtime — v24.63.5 automatic shop screenshots and seller-free matching
+
+Runtime 54724f26d1af0a3e9815cf1b166029f17eae9f3c; browser unchanged. New independent shop_screenshot.py observes supported focused MapleStory clients even without a target, uses exact/fixed geometry shop gates and revalidates full captured frame; saves native lossless PNG to %LOCALAPPDATA%/FM_Rush/shop_screenshots/YYYY-MM-DD. Dedicated worker and bounded writer queue; nominal 50ms polling, two observed absent gates rearm; capture failure is not absence. Tools open folder and pause/resume. Short closes, focus changes, occlusion, unsupported resolution or disk errors may cause missed captures; no guarantee of every visit. No automatic upload/deletion. User explicitly requested no seller-name recognition: live primary and alternate OCR omit seller region, pick_rows receives None; raw seller pixels retained only for change/stale safety, not name identity. Exact item and price and existing strict scroll/duplicate/tooltip/sold guards retained. Other sellers with matching item/price can highlight. Nine new tests staged (six screenshot, three seller-free); no full Windows/live test or latency measurement executed. Native glyph-first fixed-row recognition is still outstanding. All historical files preserved.
 
 ## 2026-11-26 — cross-game source archive and executed recognition experiments (research only)
 
