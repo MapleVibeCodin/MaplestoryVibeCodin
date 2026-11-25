@@ -34,3 +34,8 @@ Resume from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/chec
 
 ## Before switching
 Checkpoint this chat to GitHub, including all accessible unsaved messages verbatim and the latest project state. Verify the files before I switch.
+
+## Latest market data integration — 2026-11-25
+- [Market-data handoff](../market-data/README.md): local Windows HeneFM API client installed and verified (encrypted key, repeat lookup); manual Discord alert importer tested with pasted data; private HeneFM Research plugin v0.1.0 created at https://chatgpt.com/plugins/plugins_6b06e188df1881918eb9fea5b202381f . Desktop install/discovery/live tool call not yet verified. Discord channel permissions/Follow and HeneFM automated archival permission unresolved. No secrets or raw API responses in checkpoints.
+- [Catalyst research](../scrolling-ev/CATALYST_RESEARCH.md): 12 Shoes Speed costs, 12 Gloves Crit comparison and pasted flip-alert aggregate comparison recorded; crafting outcome/sales not yet confirmed.
+- Standing user preference reiterated: always provide the executable command first; minimize explanation; maintain sanitized GitHub project state and verified checkpoints. No verbatim archival of exposed credentials or private logs. Account memory not manually updated by this checkpoint.
