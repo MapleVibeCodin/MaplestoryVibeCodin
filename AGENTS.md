@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-## MetaScanner branch — v24.65.2 duplicate candidates / browser v24.58.0
+## MetaScanner branch — v24.66.0 instant items / browser v24.58.0
+
+User explicitly prioritizes instant item recognition, no stats. Native 14-pixel glyph candidate path now runs before WinRT for exact shop gate, clear inventory, non-scroll target. Exact visible names highlight all found rows (yellow; cyan if visible numeric price equals target; orange sold). Fresh paired capture and full visible fingerprint must agree. OCR fallback if no native match; name-only OCR candidate if prior exact-price matcher finds no hits. Scroll full-name/contrast rules unchanged; icon alone cannot resolve variants. No automatic input, stats reading, or claimed unique verified price from native candidates. Atlas from pinned MIT Classic Tool source, license included. Actual latest screenshot all six names decoded, three target rows identified; median 0.677 ms isolated uncached native pass, 500 runs, p95 0.959 ms, excludes GDI/UI. Windows full suite and live timing not yet verified. See research/2026-11-26-metascanner-instant-items.md.
+
+## Previous MetaScanner branch — v24.65.2 duplicate candidates / browser v24.58.0
 
 User reported no in-store highlight; uploaded native desktop screenshot shows old v24.65.0, two active Dark Avenger rows each 75,000 and a target with specific stats. v24.65.2 allows yellow AMBIGUOUS borders for multiple exact active non-scroll name/price matches only on exact unobstructed shop evidence. No extra OCR or green duplicate, sold/scroll/geometry/occlusion policy remains conservative. Prior pure pick_rows default remains fail-closed; live path opts in under those conditions. No automatic purchase or stat verification. See research/2026-11-26-metascanner-duplicate-candidates.md. Windows staged tests not yet rerun.
 
