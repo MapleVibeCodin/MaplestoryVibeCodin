@@ -128,6 +128,7 @@ def normalized(s):
 
 def displayed_buy_step(raw_text, price):
     """Only infer display precision from an explicit Buy token, never a resale value."""
+    if re.match(r'^Buy exact: [0-9]+ mesos each(?:\r?\n|$)',raw_text or ''):return 0
     m=re.search(r'\bBuy(?:\s+at)?\s*[:=]?\s*([\d,]+(?:\.\d+)?)\s*([KMB])\b',raw_text or '',re.I)
     if not m or price is None:return 0
     number=m[1].replace(',','')
