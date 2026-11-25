@@ -42,4 +42,15 @@ class RecorderTests(unittest.TestCase):
         self.assertEqual(r['attempts'][0]['outcome'],'unknown')
         self.assertEqual(r['metrics']['shop_pointer_to_observed_shop_ms']['median'],200)
         self.assertEqual(r['metrics']['lock_to_first_item_match_ms']['median'],500)
+    def test_inventory_timing_metrics(self):
+        base={'attempt':'a','session':'s','version':'24.63.0','schema':1}
+        rows=[{**base,'event':'lock_observed','t':1},
+              {**base,'event':'scanner_gate','t':1.1,'state':'room_confirmed'},
+              {**base,'event':'inventory_timing','t':1.2,'total_ms':110,'row_recognition_ms':90,'used_ocr':True,'visible_rows':6},
+              {**base,'event':'inventory_timing','t':1.3,'total_ms':8,'row_recognition_ms':1,'used_ocr':False,'visible_rows':5}]
+        report=summarize(rows)
+        self.assertEqual(report['metrics']['inventory_scan_ms']['n'],2)
+        self.assertEqual(report['metrics']['inventory_row_recognition_ms:ocr']['median'],90)
+        self.assertEqual(report['metrics']['inventory_row_recognition_ms:cache']['median'],1)
+        self.assertEqual(report['attempts'][0]['timeline'][1]['state'],'room_confirmed')
 if __name__=='__main__':unittest.main()

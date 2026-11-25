@@ -83,7 +83,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.62.4 - Selected-row recognition')
+        self.root.title('FM Rush v24.63.0 - Scanner pipeline repair')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -449,16 +449,22 @@ class FMApp:
         window = window_rect(hwnd) if hwnd else None
         client = window_client_rect(hwnd) if window else None
 
-        supported = bool(deal and client and client[2:] in ENTRY_CLIENTS and window_has_focus(hwnd))
-        inventory_supported = bool(inventory_deal and client and client[2:] in ENTRY_CLIENTS
-                                   and (supported or window_has_focus(hwnd)))
+        valid_size=bool(client and client[2:] in ENTRY_CLIENTS)
+        focused=bool(valid_size and hwnd and window_has_focus(hwnd))
+        supported=bool(deal and focused)
+        inventory_supported=bool(inventory_deal and focused)
         # Only a positive minimap room-title signature permits inventory OCR.
         # Entrance/black frames/unknown titles never start inventory scans.
         room_confirmed=False
+        gate_state=('no_target' if not inventory_deal else 'no_window' if not client else
+                    'unsupported_resolution' if not valid_size else 'game_not_focused' if not focused else 'title_unconfirmed')
         if inventory_supported:
             x,y,w,h=client
             title=capture_client((x,y,min(w,200),min(h,120)),allow_crop=True)
-            room_confirmed=bool(title and room_title_present(*title))
+            if title is None:gate_state='title_capture_failed'
+            else:
+                room_confirmed=room_title_present(*title)
+                if room_confirmed:gate_state='room_confirmed'
         inventory = self._inventory.get(hwnd,client,inventory_deal) if room_confirmed else None
         if not room_confirmed:self._inventory.reset()
         in_shop = inventory is not None
@@ -478,6 +484,10 @@ class FMApp:
         recorder=getattr(self,'performance',None)
         if recorder is not None:
             recorder.observe(current[0] if deal else None,deal,hwnd,client,supported,in_entrance,inventory if deal else None)
+            marker=(getattr(recorder,'active',None), 'entrance' if in_entrance else gate_state)
+            if marker!=getattr(self,'_last_gate_marker',None):
+                self._last_gate_marker=marker
+                recorder.marker('scanner_gate',state=marker[1],client_size=list(client[2:]) if client else None)
         entrance_preview = None
         if in_entrance and deal.fm:
             hits = entrance_marker(deal.fm, scene[1], client, window)
@@ -521,11 +531,15 @@ class FMApp:
         elif in_shop:
             status = inventory['status']
             offscreen_notice = 'Shop OCR error' if status.startswith('Shop OCR unavailable') else status
-        elif deal is None:
-            status = ('ARMED · watching displayed item' if room_confirmed else
-                      'ARMED · waiting for FM room' if inventory_deal else 'Waiting for next auto-lock')
         elif in_entrance:
             status = f'Entrance guide · FM {deal.fm}'
+        elif inventory_deal and not room_confirmed:
+            status = {'unsupported_resolution':'Scanner paused · unsupported client size',
+                      'game_not_focused':'Scanner paused · game not focused',
+                      'title_capture_failed':'Scanner paused · minimap capture failed',
+                      'title_unconfirmed':'Scanner paused · FM room title not recognized'}.get(gate_state,'Waiting for FM room')
+        elif deal is None:
+            status = 'ARMED · waiting for shop' if room_confirmed else 'Waiting for next auto-lock'
         elif not room_confirmed:
             status = 'Waiting for confirmed FM room'
         elif deal.shop_position is None:

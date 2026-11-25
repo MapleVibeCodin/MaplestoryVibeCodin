@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.4; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.0; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## 2026-11-26 — v24.63.0 pipeline audit and repair
+
+User requested systemic repair after 03-55-12 clip (7.7 s, 1920x1080 60fps). Actual local v24.62.4 locked Arkns CH3 FM9 Heart Sunglasses; shop opens while scanner permanently reports Waiting for confirmed FM room. Root source defect: first exact hardcoded room title RGB strip absent even on original lossless FM4/FM9/FM13 screenshots, so strict title gate can never permit recognition. Replace with bounded luminance bitmask shape match for Free Market and separately opening bracket at native minimap position; entrance word E rejected. Actual offline replay used all eight available clips at 10Hz: 500 strongly identifiable room samples accepted, 173 clear entrance/black samples rejected, 58 ambiguous transition/obscured samples excluded from scored total. Labels by stricter fixed-position title similarity/black frame heuristics, not independent ground truth. 21 available native room PNGs accepted, two entrance PNGs rejected; cropped/no title not scored. Pure Python detector median 0.36ms/p95 0.60ms on offline host, excludes capture and Windows. Original fixed shop gate found stable three-button anchors in eight full shop PNGs and one cropped shop PNG; retain exact shop anchor. No claim of real WinRT OCR or full 116-image archive replay. Added native mask and entrance fixture tests, diagnostic stage statuses (focus, client size, capture, title, room), recorder gate transition events, actual row-recognition and total scan timing in exported reports; corrected recorder match classification to inspect current hit modes, no raw OCR/pixels or names in telemetry. All prior strict matching, hover, camera and archive behavior preserved. User can export one report instead of sending each failure video. Windows staged tests and live latency still unverified.
 
 ## 2026-11-26 — v24.62.4 selected-row recognition
 

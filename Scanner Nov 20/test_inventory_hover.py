@@ -1,7 +1,7 @@
 """Offline hover and shifted shop gate checks."""
 import unittest
 from shop_inventory import inventory_tooltip_visible,tooltip_blocked_rows,locate_shop,GREEN,ORANGE,pick_rows,RowOCRCache,section_fingerprints,SCALE
-from camera_alignment import room_title_present,_ROOM_TITLE
+from camera_alignment import room_title_present,_ROOM_PREFIX_BITS,_ROOM_BRACKET_BITS
 from shop_inventory import displayed_buy_step,price_in_display_bucket,sold_row_mask,sold_line_cutoff,stable_sold_hits,selected_row_mask,row_ink,stable_item_hits
 
 def frame(w,h):
@@ -35,14 +35,25 @@ class HoverTests(unittest.TestCase):
                 for x in range(115,198):
                     i=y*s+x*3;buf[i:i+3]=bytes((132,85,83))
         self.assertEqual(tooltip_blocked_rows((buf,w,h,s)),{2,3,4,5})
-    def test_room_title_two_aligned_strips(self):
-        buf,w,h,s=frame(200,120)
-        self.assertFalse(room_title_present(buf,w,h,s))
-        for dy,strip in zip((0,3),_ROOM_TITLE):
-            i=(48+dy)*s+110*3;buf[i:i+len(strip)]=strip
-        self.assertTrue(room_title_present(buf,w,h,s))
-        buf[(51)*s+110*3]=0
-        self.assertFalse(room_title_present(buf,w,h,s))
+    def test_room_title_real_mask_fixtures(self):
+        # Actual native FM4 PNG and entrance video masks, independent of
+        # the template sampled from FM9 video. No account or seller pixels.
+        native=(147580708233393733694,221367684528231940102,261829095619404285830,226610112519440769414,226871325150414451134,239553460601601388934,222268643591044215174,235815471253019632006,155759485921842545030)
+        entrance=(147580708233393733694,221367684528231940102,262405556373856241542,226610112519440769414,226871325150414451134,239553460601601388934,222268643591044215174,236103701629171872134,151111771106385625478)
+        entrance_bracket=(504,24,24,24,504,24,24,24,504)
+        def make(prefix,bracket,x,y):
+            buf,w,h,s=frame(200,120)
+            for dy,(p,b) in enumerate(zip(prefix,bracket)):
+                row=p|(b<<70)
+                for dx in range(79):
+                    if row&(1<<dx):
+                        i=(y+dy)*s+(x+dx)*3;buf[i:i+3]=bytes((240,240,240))
+            return buf,w,h,s
+        self.assertFalse(room_title_present(*frame(200,120)))
+        self.assertTrue(room_title_present(*make(native,_ROOM_BRACKET_BITS,51,44)))
+        self.assertTrue(room_title_present(*make(_ROOM_PREFIX_BITS,_ROOM_BRACKET_BITS,48,42)))
+        self.assertFalse(room_title_present(*make(entrance,entrance_bracket,50,44)))
+        self.assertFalse(room_title_present(*make(native,(0,)*9,50,44)))
     def test_exact_scroll_and_price(self):
         seller='cappin'; item='Scroll for Gloves for ATT 60%'
         lines=[{'y':5*SCALE,'text':seller}]

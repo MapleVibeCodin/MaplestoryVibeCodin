@@ -303,21 +303,29 @@ class EntranceCameraTracker(GrassCameraTracker):
                 self._busy=False
 
 
-# Two native strips of the end of "Free Market <"; three rows apart.
-# Valid for both cave and grass room titles, not "Free Market Entrance".
-_ROOM_TITLE = (bytes.fromhex('ffffffe3dac7e6decdccbb99ffffffffffff9c7552d0c1a2f0eae0f0eae0d0c1a2ccbb99dbd0b8ffffffffffffdbd0b8ccbb99ccbb99ffffffffffffffffffffffffccbb99ccbb99ccbb99ccbb99ccbb99d5c8aceae3d5ffffffffffffb69b79'),
-               bytes.fromhex('ffffff9c7552ccbb99ccbb99ffffffffffffe1d5cbe5dcd1c9b3a0c3ae8cccbb99ffffffffffffffffffffffffffffffffffffb0926fccbb99ffffffffffff9c7552ccbb99ccbb99ccbb99ccbb99d9cdb3e1d5cbffffffe3dacad7caafccbb99ccbb99'))
+# Native client minimap title, 9 scanlines. Separate the common
+# "Free Market" text from its opening bracket to reject "Entrance".
+# Threshold luminance by channel minimum, not exact RGB bytes.
+_ROOM_PREFIX_BITS = (6755643717320766, 221367684528231940102, 261829095621551777670, 226610112519440769414, 226871325150414451134, 239553458402578133382, 222268643591044215174, 236103701629171872134, 151147797704381350278)
+_ROOM_BRACKET_BITS = (0, 256, 448, 112, 24, 112, 384, 0, 0)
 
 def room_title_present(buffer,width,height,stride):
-    if width<=0 or height<4 or stride<width*3 or len(buffer)!=stride*height:return False
-    limit=min(height,120)
-    end=min(width,200)*3
-    first,second=_ROOM_TITLE
-    for y in range(limit-3):
-        a=buffer[y*stride:y*stride+end]
-        at=a.find(first)
-        while at>=0:
-            if at%3==0 and buffer[(y+3)*stride+at:(y+3)*stride+at+len(second)]==second:
-                return True
-            at=a.find(first,at+1)
+    """Bounded binary shape match, never OCR or a full-screen search."""
+    if width<90 or height<55 or stride<width*3 or len(buffer)!=stride*height:return False
+    x0,x1=44,min(56,width-79)
+    y0,y1=38,min(50,height-9)
+    if x1<x0 or y1<y0:return False
+    rows=[]
+    for y in range(y0,y1+9):
+        line=buffer[y*stride+x0*3:y*stride+(x1+79)*3]
+        rows.append(sum(1<<i for i in range(len(line)//3) if min(line[3*i:3*i+3])>185))
+    for y in range(y1-y0+1):
+        for x in range(x1-x0+1):
+            pe=be=0
+            for j,(p,b) in enumerate(zip(_ROOM_PREFIX_BITS,_ROOM_BRACKET_BITS)):
+                r=rows[y+j]>>x
+                pe+=((r&((1<<68)-1))^p).bit_count()
+                be+=(((r>>70)&511)^b).bit_count()
+                if pe>60 or be>9:break
+            else:return True
     return False

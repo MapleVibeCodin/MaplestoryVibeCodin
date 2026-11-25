@@ -11,7 +11,7 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.60.0'
+VERSION='24.63.0'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
@@ -69,7 +69,7 @@ class PerformanceRecorder:
         self.enabled=True
         self.error=None;self.dropped=0
         self.active=None;self.key=None;self.scene=None;self.inventory=None;self.sold=None
-        self.context=None
+        self.context=None;self.last_scan_id=None
         self.worker=threading.Thread(target=self._run,name='FM-performance',daemon=True)
         self.worker.start()
 
@@ -105,14 +105,26 @@ class PerformanceRecorder:
         if inventory is not None:
             # Do not retain seller, item names, raw OCR or pixels.
             status=str(inventory.get('status',''))
-            if 'Name + price match' in status:state='unique_match'
-            elif 'Multiple name/price matches' in status:state='multiple_matches'
-            elif 'sold / unavailable' in status:state='target_unavailable'
-            elif 'seller not verified' in status:state='seller_unverified'
-            elif 'price differs' in status:state='price_differs'
-            elif 'not visible' in status:state='not_visible'
-            elif 'reading inventory' in status:state='reading'
+            modes={mode for mode,_ in inventory.get('hits',())}
+            low=status.casefold()
+            if 'MATCH' in modes or 'name + price match' in low:state='unique_match'
+            elif 'AMBIGUOUS' in modes or 'multiple exact matches' in low or 'multiple name/price matches' in low:state='multiple_matches'
+            elif modes & {'SOLD','SOLD_CHECK'} or 'sold / unavailable' in low:state='target_unavailable'
+            elif modes & {'PRICE_CHECK','ROW_CHECK'}:state='candidate'
+            elif 'seller not verified' in low:state='seller_unverified'
+            elif 'price differs' in low or 'price not verified' in low:state='price_differs'
+            elif 'not visible' in low:state='not_visible'
+            elif 'verifying visible rows' in low or 'reading inventory' in low:state='reading'
+            elif 'rows changed' in low:state='rows_changed'
+            elif 'ocr unavailable' in low:state='ocr_error'
+            elif 'tooltip' in low:state='tooltip'
             else:state='other'
+            timing=inventory.get('timing')
+            if timing and timing.get('scan_id')!=self.last_scan_id:
+                self.last_scan_id=timing['scan_id']
+                self._emit('inventory_timing',total_ms=timing['total_ms'],
+                           row_recognition_ms=timing['row_recognition_ms'],
+                           used_ocr=timing['used_ocr'],visible_rows=timing['visible_rows'])
             if state!=self.inventory:
                 self.inventory=state
                 self._emit('inventory_observed',state=state,confidence='detector')
@@ -123,7 +135,7 @@ class PerformanceRecorder:
 
     def end(self,reason):
         if self.active is not None:self._emit('attempt_end',reason=reason,outcome='unknown')
-        self.active=None;self.key=None;self.scene=None;self.inventory=None;self.sold=None;self.context=None
+        self.active=None;self.key=None;self.scene=None;self.inventory=None;self.sold=None;self.context=None;self.last_scan_id=None
 
     def set_enabled(self,enabled):
         if not enabled:self.end('recording_paused')
@@ -242,6 +254,9 @@ def summarize(rows):
                 metrics['pointer_to_displacement_ms:'+e['kind']].append(e['elapsed_ms'])
             elif event=='pointer_watch_complete':
                 metrics['pointer_max_outside_px:'+e['kind']].append(e['max_outside_px'])
+            if event=='inventory_timing':
+                metrics['inventory_scan_ms'].append(e['total_ms'])
+                metrics['inventory_row_recognition_ms:'+('ocr' if e.get('used_ocr') else 'cache')].append(e['row_recognition_ms'])
             if event=='black_end':
                 metrics['black_ms:'+e.get('association','unclassified')].append(e['duration_ms'])
             elif event=='pointer_result' and e.get('ok'):

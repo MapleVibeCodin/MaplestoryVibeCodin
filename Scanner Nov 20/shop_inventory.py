@@ -418,6 +418,7 @@ class ShopInventoryTracker:
         return result
 
     def _scan(self,key):
+        started=time.perf_counter()
         try:
             with self._lock:
                 if self._key!=key:return
@@ -458,7 +459,9 @@ class ShopInventoryTracker:
             self._publish(key,{'status':'Shop open · verifying visible rows','hits':held},None)
             with self._lock:
                 if self._key!=key:return
-            lines,unavailable,_=self._row_cache.recognize(frame,self._ocr,sections)
+            ocr_started=time.perf_counter()
+            lines,unavailable,used_ocr=self._row_cache.recognize(frame,self._ocr,sections)
+            ocr_ms=(time.perf_counter()-ocr_started)*1000
             with self._lock:
                 if self._key!=key:return
             self._ocr_failures=0
@@ -510,7 +513,10 @@ class ShopInventoryTracker:
             if blocked and not hits and status=='Target not visible · scroll manually':
                 status='Tooltip covers rows · no unverified highlight'
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]
-            self._publish(key,{'status':status,'hits':hits},digest)
+            self._publish(key,{'status':status,'hits':hits,
+                              'timing':{'scan_id':started,'total_ms':round((time.perf_counter()-started)*1000,2),
+                                        'row_recognition_ms':round(ocr_ms,2),'used_ocr':bool(used_ocr),
+                                        'visible_rows':sum(i>=0 for i,_ in sections)}},digest)
         except (OSError,ValueError,RuntimeError,subprocess.SubprocessError) as exc:
             self._publish(key,{'status':'Shop OCR unavailable · '+str(exc)[:100],'hits':[]})
             self._ocr_failures+=1
