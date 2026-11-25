@@ -11,7 +11,7 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.63.1'
+VERSION='24.63.2'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
@@ -124,7 +124,8 @@ class PerformanceRecorder:
                 self.last_scan_id=timing['scan_id']
                 self._emit('inventory_timing',total_ms=timing['total_ms'],
                            row_recognition_ms=timing['row_recognition_ms'],
-                           used_ocr=timing['used_ocr'],visible_rows=timing['visible_rows'])
+                           used_ocr=timing['used_ocr'],visible_rows=timing['visible_rows'],
+                           geometry_fallback=bool(timing.get('geometry_fallback',False)))
             if state!=self.inventory:
                 self.inventory=state
                 self._emit('inventory_observed',state=state,confidence='detector')
@@ -256,6 +257,7 @@ def summarize(rows):
                 metrics['pointer_max_outside_px:'+e['kind']].append(e['max_outside_px'])
             if event=='inventory_timing':
                 metrics['inventory_scan_ms'].append(e['total_ms'])
+                metrics['inventory_scan_ms:'+('geometry' if e.get('geometry_fallback') else 'exact')].append(e['total_ms'])
                 metrics['inventory_row_recognition_ms:'+('ocr' if e.get('used_ocr') else 'cache')].append(e['row_recognition_ms'])
             if event=='black_end':
                 metrics['black_ms:'+e.get('association','unclassified')].append(e['duration_ms'])
