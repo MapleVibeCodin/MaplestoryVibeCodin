@@ -473,4 +473,15 @@ class SellerFreeMatchingTests(unittest.TestCase):
                                     {'y':212*SCALE,'text':'1 for 400,000 mesos'}]
         self.assertEqual(SoldRetryCache().recognize(f,ocr,section_fingerprints(f),{},None,'Blue Arten',400000),([(4,'SOLD_CHECK')],True))
 
+class ExactBrowserPriceTests(unittest.TestCase):
+    def test_tooltip_price_has_no_rounding_bucket(self):
+        from shop_inventory import displayed_buy_step
+        self.assertEqual(displayed_buy_step('Buy exact: 97999 mesos each\nBuy\n98K',97999),0)
+        self.assertEqual(displayed_buy_step('Buy exact: 98000 mesos each\nBuy\n98K',98000),0)
+        self.assertEqual(displayed_buy_step('Buy\n98K',98000),1000)
+        lines=[{'y':33*SCALE,'text':'Chained Princess Coat'},
+               {'y':52*SCALE,'text':'1 for 97,999 mesos'}]
+        self.assertEqual(pick_rows(lines,[False]*6,None,'Chained Princess Coat',97999)[0],[(0,'MATCH')])
+        self.assertEqual(pick_rows(lines,[False]*6,None,'Chained Princess Coat',98000)[0],[])
+
 if __name__=='__main__':unittest.main()
