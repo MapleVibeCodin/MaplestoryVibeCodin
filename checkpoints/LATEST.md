@@ -4,6 +4,8 @@ Updated 2026-11-25. Repository MapleVibeCodin/MaplestoryVibeCodin, main. This is
 
 ## Most recent substantive work: Shoes Speed crafting test
 
+**Latest quantity update (supersedes ten-craft plan below):** 12 Shoes Speed crafts, 12 catalysts, 36 refined Amethysts, 120 Fragments of Magic, 12 Processed Parchments, 120k craft fees; Arcforge 6. Raw ore alternative adds 36k refining fees. Retain prior fixed asks and provisional odds. No actual costs or outcomes reported. [Revised exchange](../scrolling-ev/transcripts/2026-11-25-shoes-speed-12-catalysts.md); research update commit b0b68a3b3351be7b6dafe28f623d7ee52b12ef0b.
+
 - Read [scrolling EV README](../scrolling-ev/README.md), [research handoff](../scrolling-ev/RESEARCH_HANDOFF.md), [catalyst research](../scrolling-ev/CATALYST_RESEARCH.md), and [latest exact test exchange](../scrolling-ev/transcripts/2026-11-25-shoes-speed-test.md). Last substantive commit before this chat: 59dab764c2e1d2e4b5d3a6da1dc5b3059369505b. Latest test plan commit: fce2fb5f967954c2040f7ed68ed70524856944c7.
 - User chose ten Shoes Speed Lesser crafts, one catalyst per craft, to avoid inter-character transfers and frequent repricing. Materials: ten catalysts, thirty refined Amethysts, 100 Fragments of Magic, ten Processed Parchments, 100k crafting fees; Arcforge 6.
 - Fixed asks Intermediate 122k, Greater 5.5k, Chaos 27k. Prior inputs yield modeled total cost 838,203, net receipts 911,315, expected profit 73,112, ROI 8.72%. Provisional odds 75/20/5 (not official); 3% sale fee; no transfer fees. No actual purchases, crafting outcomes, or sale results recorded. Next: use actual costs, counts of all output tiers, time and net receipts when provided; do not fabricate. Exclude Shoes Jump from the current comparison.
