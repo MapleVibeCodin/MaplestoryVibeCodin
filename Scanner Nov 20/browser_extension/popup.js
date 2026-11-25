@@ -12,6 +12,10 @@ async function readStatus(){
     if(!scannerActive){statusText('Reload HeneFM after installing',true);return;}
     statusText(info.tabVisible?'Live scanner · no forced refresh':'Live scanner · tab backgrounded',!info.tabVisible);
     const sc=info.scanner||{};
+    const fmt=x=>x?.n?`${x.p50_ms} / ${x.p95_ms} ms (n=${x.n})`:'Not measured';
+    $('pro-batch').textContent=sc.pro?.batches?`${sc.pro.p50_ms} / ${sc.pro.p95_ms} ms`:'Not measured';
+    $('pro-on').textContent=fmt(sc.scanTiming?.on);
+    $('pro-off').textContent=fmt(sc.scanTiming?.off);
     $('links').textContent=sc.sellerLinks??'—';
     $('cards').textContent=sc.cardsFound??'—';
     $('sold').textContent=sc.soldCards??'—';
@@ -36,7 +40,11 @@ async function readStatus(){
   }catch(_){statusText('Reload HeneFM once',true);}
 }
 async function init(){
-  const captureSettings=await chrome.storage.local.get({fmRushScreenshotEnabled:false});
+  const captureSettings=await chrome.storage.local.get({fmRushScreenshotEnabled:false,fmRushProEnabled:true,fmRushProProfile:'normal'});
+  $('pro-enabled').checked=captureSettings.fmRushProEnabled===true;
+  $('pro-profile').value=captureSettings.fmRushProProfile;
+  $('pro-enabled').addEventListener('change',()=>chrome.storage.local.set({fmRushProEnabled:$('pro-enabled').checked}));
+  $('pro-profile').addEventListener('change',()=>chrome.storage.local.set({fmRushProProfile:$('pro-profile').value}));
   $('capture').checked=captureSettings.fmRushScreenshotEnabled===true;
   $('capture').addEventListener('change',async()=>{
     await chrome.runtime.sendMessage({kind:'fm-rush-capture-toggle',enabled:$('capture').checked});

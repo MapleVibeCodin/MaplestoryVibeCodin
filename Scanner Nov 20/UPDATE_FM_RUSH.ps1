@@ -77,7 +77,7 @@ if ($UpdateExtension) {
     if ($installedManifest.name -notlike 'FM Rush*') { throw 'Extension folder is not FM Rush. No files changed.' }
     $ExtensionDir = (Resolve-Path -LiteralPath $ExtensionDir).Path
     $files += @('browser_extension/manifest.json','browser_extension/background.js',
-        'browser_extension/content.js','browser_extension/refresh_2s.js',
+        'browser_extension/content.js','browser_extension/pro_view.js','browser_extension/refresh_2s.js',
         'browser_extension/screenshot_worker.js','browser_extension/popup.html','browser_extension/popup.js')
 }
 function Get-UpdateDestination([string]$File) {

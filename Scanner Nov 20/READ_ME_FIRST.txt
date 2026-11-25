@@ -104,3 +104,12 @@ Tools > Export performance report exports all local session logs and timing summ
 Tools > Pause/resume performance recording controls collection for this session.
 Logs: %LOCALAPPDATA%/FM_Rush/performance (separate from listing archive).
 No extension update required. Windows sampling and overhead unverified.
+
+HENEFM PRO extension v24.59.0: opt-in/out visual emphasis in Brave popup (on by default),
+15K/15%, 20K/20%, 30K/20% and all-profit presets. Native cards remain present and
+in original order; not a filter or change to automatic lock policy. Profit/ROI/CH/FM
+summary uses CSS pseudo-content on parser-excluded existing controls. Low/NPC/sold
+cards dim; focus remains prominent. Visual work occurs after bridge dispatch in
+requestAnimationFrame batches of up to 20 cards / soft 2ms JS budget. Popup reports
+scan p50/p95 separately for on/off and visual batch CPU. No additional HeneFM requests.
+Desktop remains v24.58.0. Update extension and reload Brave extension + Deals tab once.
