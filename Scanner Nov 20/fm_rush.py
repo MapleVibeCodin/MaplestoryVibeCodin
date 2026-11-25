@@ -8,7 +8,7 @@ import queue
 import re
 import time
 import tkinter as tk
-from tkinter import messagebox, ttk, filedialog, simpledialog
+from tkinter import messagebox, filedialog, simpledialog
 from game_window import (
     chase_shortcut_state, cursor_on_client, move_cursor_on_screen, window_client_rect, window_has_focus, window_rect,
     windows as list_game_windows,
@@ -16,8 +16,7 @@ from game_window import (
 from deal_archive import DealArchive
 from channel_overlay import ChannelPin, preview_channel
 from shop_pin import ShopPreviewPin
-from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice, room_theme
-from camera_alignment import GrassCameraTracker
+from shop_position import ENTRY_CLIENTS, entry_shop_point, shop_marker, shop_offscreen_notice
 from trade_hotkeys import TradeHotkeys
 
 from deal_parser import parse_deal
@@ -48,44 +47,26 @@ def settings():
 
 
 class GameWindow:
-    """Own the selected game window and the shop preview status."""
+    """Automatically select MapleStory; no manual HWND control."""
     def __init__(self, app):
         self.app = app
-        self.notice = tk.StringVar(value='Select a MapleStory window.')
+        self.notice = tk.StringVar(value='Waiting for MapleStory window')
         self.offscreen_notice = tk.StringVar(value='')
-        self.chosen = tk.StringVar()
-        self.available = []
-
-    def add_controls(self, parent):
-        self.combo = ttk.Combobox(parent, textvariable=self.chosen, state='readonly', width=23)
-        self.combo.bind('<<ComboboxSelected>>', self.change_window)
-        self.refresh_windows()
-        if not self.app.web_only:
-            self.combo.pack(side='left', padx=(0, 3))
-            self.app.btn(parent, 'Refresh', self.refresh_windows).pack(side='left', padx=(0, 8))
-
-    def change_window(self, event=None):
-        self.app.refresh_overlays(self.app.archive.current())
-
-    def refresh_windows(self):
-        current = self.chosen.get()
-        self.available = list_game_windows()
-        labels = [f'{title}  [HWND {hwnd}]' for hwnd, title in self.available]
-        self.combo['values'] = labels
-        if current not in labels:
-            candidate = next((i for i, (_, title) in enumerate(self.available)
-                              if 'maplestory' in title.lower() or 'maple story' in title.lower()), -1)
-            if candidate >= 0:
-                self.combo.current(candidate)
-            else:
-                self.chosen.set('')
-            self.change_window()
+        self._hwnd = None
+        self._next_search = 0.0
 
     def selected_hwnd(self):
-        index = self.combo.current()
-        if 0 <= index < len(self.available):
-            return self.available[index][0]
-        return None
+        if self.app.web_only:
+            return None
+        now = time.monotonic()
+        if now >= self._next_search:
+            self._next_search = now + 1.0
+            candidates = [hwnd for hwnd, title in list_game_windows()
+                          if 'maplestory' in title.casefold() or 'maple story' in title.casefold()]
+            # Prefer the focused game; otherwise keep the existing valid game.
+            self._hwnd = next((hwnd for hwnd in candidates if window_has_focus(hwnd)),
+                              self._hwnd if self._hwnd in candidates else next(iter(candidates), None))
+        return self._hwnd
 
 
 class FMApp:
@@ -95,7 +76,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.54.0 - Auto-lock')
+        self.root.title('FM Rush v24.54.1 - Fast auto-lock')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -126,8 +107,6 @@ class FMApp:
         self.shop_pin = ShopPreviewPin(self.root, interval_ms=25)
         self._shop_preview = None
         self._portal_alignment = None
-        self._grass_camera = GrassCameraTracker()
-        self._grass_offset = (0, 0)
         self._channel_preview = None
         self._chase_keys_down = None
         self.shop=GameWindow(self)
@@ -181,7 +160,6 @@ class FMApp:
 
         controls=self.control_bar=tk.Frame(self.root,bg=BG)
         controls.pack(fill='x',padx=12,pady=(4,0))
-        self.shop.add_controls(controls)
         self.btn(controls,'Skip',self.complete_deal).pack(side='left')
         tk.Button(controls,textvariable=self.chase_label,command=self.toggle_chase,bg=YELLOW,fg=BG,relief='flat').pack(side='left',padx=4)
         tools=tk.Menubutton(controls,text='Tools ▾',relief='flat',bg=CARD2,fg=FG,padx=8,pady=4)
@@ -415,26 +393,16 @@ class FMApp:
             else:
                 self._portal_alignment = None
 
-        grass = bool(deal and deal.shop_position and client and client[2:] in ENTRY_CLIENTS
-                     and room_theme(deal.fm) == 'grass')
-        auto_portal = self._grass_camera.get(hwnd, client) if grass else None
-        if not grass:
-            self._grass_camera.reset()
-        if grass and aligned_portal is None and auto_portal is not None:
-            aligned_portal = tuple(a + b for a, b in zip(auto_portal, self._grass_offset))
-
         preview = None
         offscreen_notice = ''
         if self.web_only:
             status = 'Web-only mode'
         elif client is None:
-            status = 'Open MapleStory, then click Refresh'
+            status = 'Waiting for MapleStory window'
         elif deal is None:
-            status = 'Click CHASE to preview the shop'
+            status = 'Waiting for next auto-lock'
         elif deal.shop_position is None:
             status = 'No map pin on this HeneFM deal'
-        elif grass and aligned_portal is None:
-            status = offscreen_notice = 'Waiting for grass FM scenery · Ctrl+Alt+F to align manually'
         else:
             point = entry_shop_point(deal.shop_position, deal.fm, client[2:], aligned_portal)
             if point is None:
@@ -445,9 +413,7 @@ class FMApp:
                     status = offscreen_notice = shop_offscreen_notice(point, client[2:])
                 else:
                     preview = (hwnd, window[2:], box)
-                    status = ('Camera aligned · grass terrain' if grass and auto_portal is not None and self._portal_alignment is None
-                              else 'Shop aligned manually' if aligned_portal is not None
-                              else 'Estimated cave position · Ctrl+Alt+F to align')
+                    status = 'Shop aligned to entry portal' if aligned_portal else 'Shop preview ready'
 
         if self.shop.notice.get() != status:
             self.shop.notice.set(status)
@@ -475,7 +441,7 @@ class FMApp:
             unavailable = 'Shop pointer · ' + self.shop.notice.get()
         elif self._channel_preview is None:
             preview = None
-            unavailable = 'Select MapleStory and lock a deal with a destination channel.'
+            unavailable = 'Open MapleStory and lock a deal with a destination channel.'
         else:
             hwnd, size, _, box, mode = self._channel_preview
             preview = (hwnd, size, box) if mode == 'GUIDE' else None
@@ -520,15 +486,7 @@ class FMApp:
         if portal is None:
             self.status.set('Hover over the bottom center of the FM doorway and press Ctrl+Alt+F')
             return
-        auto_portal = (self._grass_camera.get(hwnd, client)
-                       if room_theme(current[1].fm) == 'grass' else None)
-        if auto_portal is not None:
-            # A manual doorway correction now follows future camera movement.
-            self._grass_offset = tuple(a - b for a, b in zip(portal, auto_portal))
-            self._portal_alignment = None
-            self.status.set('Grass camera fine-tuned for this session')
-        else:
-            self._portal_alignment = ((current[0], hwnd, client[2:]), portal)
+        self._portal_alignment = ((current[0], hwnd, client[2:]), portal)
         self.refresh_overlays(current)
 
     def follow_overlays(self):
