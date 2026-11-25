@@ -61,3 +61,6 @@ Earlier conversation segments remain in the existing resume checkpoint and scrol
 
 ## Shoes Speed empirical batch progress — 2026-11-25 21:44
 Screenshots provisionally show 8 of 12 completed: 6 Intermediate, 1 Greater, 1 Chaos, 0 Lesser; inventory-space warning; 4 catalysts apparently remain. Assumes consecutive log sections. Consumed basis 681,600, projected net 741,565 and profit 59,965 at prior fixed asks; no actual sales. See [research](../scrolling-ev/CATALYST_RESEARCH.md) commit 489acffc55e4e0a95d08e0760cfb7b0f1eb27c1b and [dialogue archive](../scrolling-ev/transcripts/2026-11-25-shoes-speed-first-eight-results.md). This supersedes earlier no-outcomes notes; final count pending.
+
+## Completed Shoes Speed empirical batch — corrected count
+User confirms exactly 12 crafts. Distinct Greater and Chaos results in screenshots imply 9 Intermediate, 2 Greater, 1 Chaos, 0 Lesser after resolving overlap; rates 75%, 16.67%, 8.33%, 0%. Final cost 1,022,400; gross projected sales 1,136,000; net 1,101,920 after 3% fee; projected profit 79,520 (7.78%). No realized sales yet. Supersedes all provisional counts and no-outcome notes. [Research](../scrolling-ev/CATALYST_RESEARCH.md) commit e09c90f1ce0925f1acd86ca167bebc287650b54a; [dialogue archive](../scrolling-ev/transcripts/2026-11-25-shoes-speed-followup-results.md). Small sample, not official probabilities.
