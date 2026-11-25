@@ -2,6 +2,7 @@
 import unittest
 from shop_inventory import inventory_tooltip_visible,tooltip_blocked_rows,locate_shop,GREEN,ORANGE,pick_rows,RowOCRCache,section_fingerprints,SCALE
 from camera_alignment import room_title_present,_ROOM_TITLE
+from shop_inventory import displayed_buy_step,price_in_display_bucket
 
 def frame(w,h):
     stride=(w*3+3)&~3
@@ -61,4 +62,22 @@ class HoverTests(unittest.TestCase):
         lines,sold,_=RowOCRCache().recognize(f,OCR(),sections)
         self.assertEqual([x['text'] for x in lines],['seller','item'])
         self.assertEqual(len(sold),6)
+    def test_rounded_candidates_and_strict_scroll(self):
+        name='Chained Princess Face Accessory'
+        lines=[{'y':5*SCALE,'text':'Super'},{'y':33*SCALE,'text':name},{'y':52*SCALE,'text':'1 for 127,777 mesos'}]
+        step=displayed_buy_step('Profit\n17.7K\nBuy\n127.8K\nTime to resell',127800)
+        self.assertEqual(step,100)
+        self.assertEqual(pick_rows(lines,[False]*6,'Super',name,127800,buy_step=step)[0],[(0,'PRICE_CHECK')])
+        self.assertEqual(pick_rows(lines,[True]*6,'Super',name,127800,buy_step=step)[0],[(0,'SOLD_CHECK')])
+        lines[1]['text']='Chained Princess Face A...'
+        self.assertEqual(pick_rows(lines,[True]*6,'Super',name,127800,buy_step=step)[0],[])
+        name='Scroll for Gloves for ATT 60%'
+        lines[1]['text']=name
+        self.assertEqual(pick_rows(lines,[False]*6,'Super',name,127800,buy_step=step)[0],[])
+        self.assertEqual(displayed_buy_step('Buy 127,800',127800),0)
+        self.assertFalse(price_in_display_bucket(127850,127800,100))
+    def test_sold_unreadable_price(self):
+        lines=[{'y':5*SCALE,'text':'Nanamico'},{'y':33*SCALE,'text':'Blood Avarice'}]
+        self.assertEqual(pick_rows(lines,[True]*6,'Nanamico','Blood Avarice',100000)[0],[(0,'SOLD_CHECK')])
+        self.assertEqual(pick_rows(lines,[False]*6,'Nanamico','Blood Avarice',100000)[0],[])
 if __name__=='__main__':unittest.main()

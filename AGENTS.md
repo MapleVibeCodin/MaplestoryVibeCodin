@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.0; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.1; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## 2026-11-26 — v24.62.1 strict shop candidates
+
+User supplied five screenshots on local v24.61.0. Super FM13 Chained Princess Face Accessory row name truncated; HeneFM 127.8K versus displayed 127777, sold. Nanamico FM1 Blood Avarice 100000 faded sold row, OCR price unavailable. Pillarious CH38 FM10 Blush and Slime Stick are separate deals at same shop. Hunnieo inventory open while old room and channel guides remained visible. Desktop now publishes open-shop state before OCR, uses adaptive sold-row contrast, and permits unchanged matched row to survive unrelated newly covered rows. Exact full name/seller/price still required for MATCH. Rounded non-scroll exact-name candidate only amber, based on explicit compact Buy precision in existing raw_text; unreadable price on sold non-scroll exact name orange candidate, not a verified purchase. Truncated names not highlighted, including scrolls; full tooltip confirmation manual. No unrounded browser price source verified. Same-shop live positive-profit unsold list under Tools; no automatic relock, UI redesign, or purchase. Added synthetic tests to already staged test_inventory_hover.py; runtime execution not verified. No browser extension changes or historical files removed.
 
 ## 2026-11-26 — v24.62.0 room-only exact scanner
 

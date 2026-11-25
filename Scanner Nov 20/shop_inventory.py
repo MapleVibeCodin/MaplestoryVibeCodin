@@ -99,7 +99,21 @@ class InventoryCache:
 def normalized(s):
     return ' '.join(unicodedata.normalize('NFKC',str(s)).casefold().split())
 
-def pick_rows(lines, unavailable, seller, item, price):
+def displayed_buy_step(raw_text, price):
+    """Only infer display precision from an explicit Buy token, never a resale value."""
+    m=re.search(r'\bBuy(?:\s+at)?\s*[:=]?\s*([\d,]+(?:\.\d+)?)\s*([KMB])\b',raw_text or '',re.I)
+    if not m or price is None:return 0
+    number=m[1].replace(',','')
+    unit={'K':1000,'M':1000000,'B':1000000000}[m[2].upper()]
+    if abs(float(number)*unit-price)>0.01:return 0
+    digits=len(number.partition('.')[2])
+    return max(1,unit//10**digits)
+
+def price_in_display_bucket(actual, expected, step):
+    return (step>1 and actual is not None and expected is not None
+            and -step<=2*(actual-expected)<step)
+
+def pick_rows(lines, unavailable, seller, item, price, *, buy_step=0):
     """Exact normalized names and numeric displayed prices; no fuzzy guesses."""
     groups=[[] for _ in range(ROWS)]
     seller_text=[]
@@ -111,24 +125,44 @@ def pick_rows(lines, unavailable, seller, item, price):
             groups[int((y-28)//STEP)].append((y,text))
     if normalized(' '.join(seller_text))!=normalized(seller):
         return [], 'Shop open · seller not verified'
-    active=[];sold=[];wrong_price=[];price_unknown=[]
+    active=[];sold=[];wrong_price=[];price_unknown=[];candidates=[];truncated=[]
+    target=normalized(item)
+    strict='scroll' in target
     for i, group in enumerate(groups):
         base=28+i*STEP
         name=normalized(' '.join(t for y,t in group if y-base<19))
-        if name!=normalized(item):continue
+        prefix=name.rstrip('.…').strip()
+        is_truncated=(name.endswith(('...','…')) and len(prefix)>=12 and target.startswith(prefix) and name!=target)
+        if name!=target and not is_truncated:continue
         price_text=' '.join(t for y,t in group if y-base>=19)
         m=re.fullmatch(r'(?:[\d,]+\s+)?for\s+([\d,]+)\s*mesos',price_text.strip(),re.I)
         found=int(m.group(1).replace(',','')) if m else None
-        if price is None or found is None:price_unknown.append(i);continue
-        if found!=price:wrong_price.append(i);continue
+        compatible=found is not None and price is not None and (found==price or price_in_display_bucket(found,price,buy_step))
+        if is_truncated:
+            if compatible:truncated.append(i)
+            continue
+        if price is None or found is None:
+            price_unknown.append(i)
+            if unavailable[i] and not strict:candidates.append((i,'SOLD_CHECK'))
+            continue
+        if found!=price:
+            wrong_price.append(i)
+            if not strict and compatible:candidates.append((i,'SOLD_CHECK' if unavailable[i] else 'PRICE_CHECK'))
+            continue
         (sold if unavailable[i] else active).append(i)
     if len(active)>1:return [], 'Multiple exact matches · no highlight'
     if active:return [(active[0],'MATCH')], 'Exact name + price · verify stats'
     if len(sold)>1:return [], 'Multiple sold matches · no highlight'
     if sold:return [(sold[0],'SOLD')], 'Target sold / unavailable'
+    if len(candidates)==1 and not truncated:
+        row,mode=candidates[0]
+        return [(row,mode)], ('Sold candidate · price not verified' if mode=='SOLD_CHECK' else 'Rounded price candidate · verify exact price')
+    if truncated:return [], 'Name truncated · verify full tooltip manually'
+    if len(candidates)>1:return [], 'Multiple uncertain candidates · no highlight'
     if wrong_price:return [],'Item found · displayed price differs'
     if price_unknown:return [],'Item found · price not verified'
     return [],'Target not visible · scroll manually'
+
 
 def prepare_ocr(frame, sections=None, *, threshold_delta=0):
     """Create contrast-normalized 3x monochrome strip, including seller and six rows."""
@@ -148,6 +182,12 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0):
         unavailable.append(bool(len(sample)==3 and min(sample)>=230 and dark<12))
     # Precompute expansion for each of the only two output pixel values.
     black=b'\x00'*SCALE;white=b'\xff'*SCALE
+    sold_cutoffs={}
+    for row in selected & set(range(ROWS)):
+        if unavailable[row]:
+            base=23+row*STEP
+            samples=sorted(sum(buf[y*stride+194*3:y*stride+194*3+3])//3 for y in range(base+4,base+36))
+            sold_cutoffs[row]=min(245,max(225,samples[len(samples)//2]-7))
     for oy in range(out_h):
         line=bytearray([255])*out_w
         if -1 in selected and 3<=oy<16:
@@ -160,7 +200,7 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0):
             row=(oy-28)//STEP;dy=(oy-28)%STEP
             # Original list row starts 23 pixels below capture origin.
             sy=23+row*STEP+dy
-            cutoff=(225 if unavailable[row] else 145)+threshold_delta
+            cutoff=min(250,sold_cutoffs.get(row,225)+threshold_delta) if unavailable[row] else 145+threshold_delta
             if row in selected and 3<=dy<=36:
                 for x in range(40,198):
                     i=sy*stride+x*3
@@ -302,10 +342,10 @@ class ShopInventoryTracker:
     def close(self):
         self._closed=True;self.reset();self._jobs.put_nowait(None);self._ocr.close()
     def get(self,hwnd,client,deal):
-        identity=(hwnd,tuple(client),deal.listing_id,deal.ign,deal.item,deal.buy_mesos)
+        identity=(hwnd,tuple(client),deal.listing_id,deal.ign,deal.item,deal.buy_mesos,displayed_buy_step(getattr(deal,'raw_text',''),deal.buy_mesos))
         now=time.monotonic()
         with self._lock:
-            if self._key is None or self._key[:6]!=identity:
+            if self._key is None or self._key[:7]!=identity:
                 self._generation+=1
                 self._key=identity+(self._generation,)
                 self._latest=None;self._digest=None;self._next=0
@@ -348,7 +388,7 @@ class ShopInventoryTracker:
         try:
             with self._lock:
                 if self._key!=key:return
-            _,client,_,seller,item,price,_=key
+            _,client,_,seller,item,price,buy_step,_=key
             x,y,w,h=client
             anchor=self._find_anchor(client)
             if anchor is None:
@@ -360,6 +400,7 @@ class ShopInventoryTracker:
             with self._lock:
                 existing=self._latest if self._key==key else None
                 prev_digest=self._digest if self._key==key else None
+            if existing is None:self._publish(key,{'status':'Shop open · verifying visible rows','hits':[]})
             frame=capture_client((x+left,y+top,204,263),allow_crop=True)
             if not frame:return
             blocked=tooltip_blocked_rows(frame)
@@ -382,7 +423,7 @@ class ShopInventoryTracker:
             with self._lock:
                 if self._key!=key:return
             self._ocr_failures=0
-            hits,status=pick_rows(lines,unavailable,seller,item,price)
+            hits,status=pick_rows(lines,unavailable,seller,item,price,buy_step=buy_step)
             if hits and 'scroll' in normalized(item):
                 # Independently render the seller and candidate row(s) using
                 # a second contrast cutoff. Never use a prefix or fuzzy name.
@@ -406,8 +447,14 @@ class ShopInventoryTracker:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             after_blocked=tooltip_blocked_rows(frame_after)
             after=tuple((section,fp) for section,fp in section_fingerprints(frame_after) if section not in after_blocked)
+            before_map=dict(sections);after_map=dict(after)
+            # A tooltip appearing over unrelated rows must not cancel a
+            # verified candidate. Newly exposed/changed rows still require OCR.
             if after!=sections:
-                self._publish(key,{'status':'Shop open · visible rows changed, retrying','hits':[]});return
+                stable=all(before_map.get(i)==v for i,v in after)
+                if not stable or -1 not in after_map or any(i not in after_map for i,_ in hits):
+                    self._publish(key,{'status':'Shop open · visible rows changed, retrying','hits':[]});return
+                digest=(left,top,after)
             if blocked and not hits and status=='Target not visible · scroll manually':
                 status='Tooltip covers rows · no unverified highlight'
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]

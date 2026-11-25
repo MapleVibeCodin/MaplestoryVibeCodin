@@ -83,7 +83,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.62.0 - Room-only exact item scanner')
+        self.root.title('FM Rush v24.62.1 - Strict shop candidates')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -189,6 +189,7 @@ class FMApp:
                              ('Move pointer to channel',self.move_pointer_to_channel),
                              ('Place under game',self.snap),('Enter route',self.enter_route),
                              ('Channel grid',self.open_grid),('FM map',self.open_map),
+                             ('Other deals at this shop',self.show_same_shop_deals),
                              ('Export deal archive',self.export_archive),
                              ('Export performance report',self.export_performance),
                              ('Pause/resume performance recording',self.toggle_performance),
@@ -210,6 +211,24 @@ class FMApp:
         preview_status=self.lbl(footer,var=self.shop.notice,size=9,color=MUTED)
         preview_status.configure(width=1,anchor='e')
         preview_status.grid(row=0,column=1,sticky='ew')
+
+    def show_same_shop_deals(self):
+        current=self.archive.current()
+        if not current:
+            messagebox.showinfo('Same shop','Lock a listing first.',parent=self.root);return
+        key,deal=current
+        rows=[]
+        if deal.cc is None or deal.fm is None:
+            messagebox.showinfo('Same shop','The listing has no confirmed room and channel.',parent=self.root);return
+        for other_key,other in self.archive.live_pending():
+            profit=other.get('profit') or {}
+            if (other_key!=key and not other.get('sold') and
+                    other.get('ign','').casefold()==deal.ign.casefold() and
+                    other.get('cc')==deal.cc and other.get('fm')==deal.fm and
+                    (profit.get('mesos') or 0)>0):
+                buy=other.get('buy_mesos')
+                rows.append(f"{other.get('item','?')} — {buy:,} mesos" if buy is not None else other.get('item','?'))
+        messagebox.showinfo('Same shop · '+deal.ign,'\n'.join(rows) if rows else 'No other live profitable listings at this shop.',parent=self.root)
 
     def change_entry_profile(self):
         self._cc_entry_mode=bool(self._cc_entry_var.get())
