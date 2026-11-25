@@ -84,7 +84,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('MetaScanner v24.64.0 - Performance Preview')
+        self.root.title('MetaScanner v24.65.0 - Fast Capture')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -479,7 +479,7 @@ class FMApp:
                     'unsupported_resolution' if not valid_size else 'game_not_focused' if not focused else 'title_unconfirmed')
         if inventory_supported:
             x,y,w,h=client
-            title=capture_client((x,y,min(w,200),min(h,120)),allow_crop=True)
+            title=capture_client((x,y,min(w,135),min(h,59)),allow_crop=True)
             if title is None:gate_state='title_capture_failed'
             else:
                 room_confirmed=room_title_present(*title)
@@ -822,11 +822,13 @@ class FMApp:
         self.refresh_overlays(current)
 
     def follow_overlays(self):
+        current_target=False
         if self.archive.lock.acquire(blocking=False):
             try:current=self.archive.current()
             finally:self.archive.lock.release()
+            current_target=current is not None
             self.refresh_overlays(current)
-        self.schedule(50, self.follow_overlays)
+        self.schedule(25 if current_target else 50, self.follow_overlays)
 
     def toggle_chase(self):
         self.set_chase_locked(not self.archive.chase_locked)

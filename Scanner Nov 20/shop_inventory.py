@@ -17,7 +17,7 @@ import unicodedata
 import zlib
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
 from vision_guard import parse_price_line, highlight_expired, revalidate_changed_hits
-from metascan_fast import row_mask, scale3, negative_retry_due
+from metascan_fast import row_mask, scale3, negative_retry_due, purple_run, crop_bgr
 from vision_geometry import geometry_present, conservative_hits, WIDTH as GEOMETRY_WIDTH, HEIGHT as GEOMETRY_HEIGHT
 
 # Native shop UI: stable colored button borders, not seller or item pixels.
@@ -55,13 +55,8 @@ def tooltip_blocked_rows(frame):
     for row in range(ROWS):
         consecutive=0
         for y in range(26+row*STEP,min(h,60+row*STEP)):
-            run=0
-            for x in range(40,198):
-                i=y*stride+x*3
-                b,g,r=buf[i:i+3]
-                run=run+1 if 40<b and r<145 and g<145 and b-r>28 and b-g>23 else 0
-                if run>=12:break
-            consecutive=consecutive+1 if run>=12 else 0
+            pixels=buf[y*stride+40*3:y*stride+198*3]
+            consecutive=consecutive+1 if purple_run(pixels) else 0
             if consecutive>=3:
                 blocked.add(row);break
     return set(range(min(blocked),max(blocked)+1)) if blocked else set()
@@ -199,9 +194,13 @@ def sold_row_mask(frame, row):
     y=23+row*STEP
     samples=[buf[yy*stride+194*3:yy*stride+194*3+3] for yy in range(y+4,y+36)]
     pale=sum(min(v)>=230 and max(v)-min(v)<=22 for v in samples)
-    dark=sum(max(buf[j:j+3])<110 for yy in range(y+2,y+16)
-             for j in range(yy*stride+41*3,yy*stride+198*3,3))
-    return pale>=24 and dark<12
+    if pale<24:return False
+    dark=0
+    for yy in range(y+2,y+16):
+        for j in range(yy*stride+41*3,yy*stride+198*3,3):
+            dark+=max(buf[j:j+3])<110
+            if dark>=12:return False
+    return True
 
 def selected_row_mask(frame, row):
     """Recognize the native orange selection background at the row's right edge."""
@@ -427,6 +426,7 @@ class ShopInventoryTracker:
         self._anchors={(1366,768):(568,214)};self._gate_next={};self._cache=InventoryCache()
         self._row_cache=RowOCRCache();self._sold_retry=SoldRetryCache();self._scroll_checks=OrderedDict();self._ocr_failures=0
         self._last_ocr_at=0.0
+        self._paired_capture=True
         self._jobs=queue.Queue()
         self._worker=threading.Thread(target=self._work,daemon=True,name='FM inventory capture')
         self._worker.start()
@@ -460,7 +460,7 @@ class ShopInventoryTracker:
                 self._latest={'status':'Shop open · waiting for fresh verification','hits':[]}
                 self._digest=None;self._observed_at=None
             if not self._closed and not self._busy and now>=self._next:
-                self._busy=True;self._next=now+.05
+                self._busy=True;self._next=now+.025
                 self._jobs.put_nowait(self._key)
             return self._latest
     def _publish(self,key,result,digest=None):
@@ -515,6 +515,22 @@ class ShopInventoryTracker:
         frame=capture_client((x+left,y+top,GEOMETRY_WIDTH,GEOMETRY_HEIGHT),allow_crop=True)
         return anchor if geometry_present(frame) else None
 
+    def _capture_pair(self,client,anchor):
+        """One fresh ROI contains both gate types and all inventory pixels."""
+        x,y,w,h=client
+        ax,ay=anchor
+        left,top=ax-140,ay-1
+        if left<0 or top<0 or left+220>w or top+334>h:return None,None
+        combined=capture_client((x+left,y+top,220,334),allow_crop=True)
+        tiny=crop_bgr(combined,135,1,85,53)
+        if tiny is None:return None,None
+        if locate_shop(*tiny)==(5,0):
+            quality='exact'
+        elif geometry_present(crop_bgr(combined,0,0,GEOMETRY_WIDTH,GEOMETRY_HEIGHT)):
+            quality='geometry'
+        else:return None,None
+        return quality,crop_bgr(combined,0,71,204,263)
+
     def _scan(self,key):
         started=time.perf_counter()
         try:
@@ -522,11 +538,27 @@ class ShopInventoryTracker:
                 if self._key!=key:return
             _,client,_,seller,item,price,buy_step,_=key
             x,y,w,h=client
-            anchor=self._find_anchor(client)
-            geometry=anchor is None
-            if geometry:anchor=self._find_geometry_anchor(client)
-            if anchor is None:
-                self._publish(key,None);return
+            paired=getattr(self,'_paired_capture',False)
+            frame=None
+            capture_count=0
+            if paired:
+                anchor=self._anchors.get((w,h))
+                if anchor is None:
+                    anchor=self._find_anchor(client)
+                if anchor is None:
+                    self._publish(key,None);return
+                quality,frame=self._capture_pair(client,anchor)
+                capture_count+=1
+                if quality is None or frame is None:
+                    self._publish(key,None);return
+                geometry=quality=='geometry'
+            else:
+                # Compatibility path for older callers and isolated fixtures.
+                anchor=self._find_anchor(client)
+                geometry=anchor is None
+                if geometry:anchor=self._find_geometry_anchor(client)
+                if anchor is None:
+                    self._publish(key,None);return
             strict='scroll' in normalized(item)
             if geometry and strict:
                 self._publish(key,{'status':'Shop geometry detected · waiting for exact scroll gate','hits':[]});return
@@ -538,7 +570,7 @@ class ShopInventoryTracker:
                 existing=self._latest if self._key==key else None
                 prev_digest=self._digest if self._key==key else None
             if existing is None:self._publish(key,{'status':'Shop open · verifying visible rows','hits':[]})
-            frame=capture_client((x+left,y+top,204,263),allow_crop=True)
+            if not paired:frame=capture_client((x+left,y+top,204,263),allow_crop=True)
             if not frame:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             blocked=tooltip_blocked_rows(frame)
@@ -603,11 +635,17 @@ class ShopInventoryTracker:
                         self._scroll_checks[check_key]=True
                         while len(self._scroll_checks)>512:self._scroll_checks.popitem(last=False)
                 if not checked:hits=[];status='Scroll text not independently confirmed'
-            confirmed=self._find_anchor(client)
-            if confirmed!=anchor:
-                if not geometry or confirmed is not None or self._find_geometry_anchor(client)!=anchor:
+            if paired:
+                quality,frame_after=self._capture_pair(client,anchor)
+                capture_count+=1
+                if quality is None or (not geometry and quality!='exact'):
                     self._publish(key,None);return
-            frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
+            else:
+                confirmed=self._find_anchor(client)
+                if confirmed!=anchor:
+                    if not geometry or confirmed is not None or self._find_geometry_anchor(client)!=anchor:
+                        self._publish(key,None);return
+                frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
             if not frame_after:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             after_blocked=tooltip_blocked_rows(frame_after)
@@ -640,7 +678,8 @@ class ShopInventoryTracker:
             self._publish(key,{'status':status,'hits':hits,
                               'timing':{'scan_id':started,'total_ms':round((time.perf_counter()-started)*1000,2),
                                         'row_recognition_ms':round(ocr_ms,2),'used_ocr':bool(used_ocr or used_sold_retry),'sold_retry':used_sold_retry,
-                                        'visible_rows':sum(i>=0 for i,_ in sections),'geometry_fallback':geometry}},digest)
+                                        'visible_rows':sum(i>=0 for i,_ in sections),'geometry_fallback':geometry,
+                                        'paired_roi_captures':capture_count if paired else None}},digest)
         except Exception as exc:
             # A malformed capture/worker response must not kill the capture thread.
             # Report the error class without copying raw OCR or private text.

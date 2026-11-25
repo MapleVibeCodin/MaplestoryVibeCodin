@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FM Rush — MetaScanner",
-  "version": "24.57.0",
+  "version": "24.58.0",
   "description": "Passively watches live HeneFM listings and sends them to FM Rush. No automatic HeneFM refresh.",
   "permissions": [
     "storage",

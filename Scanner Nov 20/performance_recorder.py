@@ -11,7 +11,7 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.63.4'
+VERSION='24.65.0'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
@@ -126,7 +126,8 @@ class PerformanceRecorder:
                            row_recognition_ms=timing['row_recognition_ms'],
                            used_ocr=timing['used_ocr'],visible_rows=timing['visible_rows'],
                            geometry_fallback=bool(timing.get('geometry_fallback',False)),
-                           sold_retry=bool(timing.get('sold_retry',False)))
+                           sold_retry=bool(timing.get('sold_retry',False)),
+                           paired_roi_captures=timing.get('paired_roi_captures'))
             if state!=self.inventory:
                 self.inventory=state
                 self._emit('inventory_observed',state=state,confidence='detector')

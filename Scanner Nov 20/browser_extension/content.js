@@ -1,4 +1,4 @@
-/* MetaScanner v24.57.0 — passive live HeneFM deal bridge and separate listing screenshot archive.
+/* MetaScanner v24.58.0 — passive live HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Adds Chase/Skip controls and selection feedback only; no automatic game inputs.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -123,9 +123,7 @@
     }
     return {price:displayed,exact:false};
   }
-  function itemName(card, sellerLink, lines) {
-    const anchor = [...card.querySelectorAll('a[href]')]
-      .find(a => a !== sellerLink && /\/items?\//i.test(a.getAttribute('href') || ''));
+  function itemName(card, sellerLink, lines, anchor) {
     if (anchor) {
       const title = (anchor.textContent || '').replace(/\s+/g, ' ').trim();
       if (title && title.length <= 100) return title;
@@ -186,14 +184,14 @@
       try {slug = decodeURIComponent(new URL(link.href).pathname.split('/').filter(Boolean).pop());} catch (_) {}
       const ign = /^[A-Za-z0-9_]{3,24}$/.test(label) ? label : slug;
       if (!/^[A-Za-z0-9_]{3,24}$/.test(ign)) return null;
-      const item = itemName(card, link, lines);
+      const itemAnchor = [...card.querySelectorAll('a[href]')]
+        .find(a => a !== link && /\/items?\//i.test(a.getAttribute('href')||''));
+      const item = itemName(card, link, lines, itemAnchor);
       if (!item) return null;
       const statWords=/\b(?:W\.DEF|M\.DEF|M\.ATT|ATT|STR|DEX|INT|LUK|ACC|AVOID|SPEED|JUMP|HP|MP|CDMG|CRIT)\s*[-+]?\d+(?:\s*[+-]\s*\d+)?|\b\d+\s+slots?(?:\s+\d+\s+used)?/gi;
       const stats=[...text.split(/\bBuy\b/i)[0].matchAll(statWords)].map(m=>m[0].replace(/\s+/g,' ')).join(' · ').slice(0,160);
       const unusuallyCheap = /Unusually\s+cheap\s*:\s*check\s+it\s+is\s+still\s+there/i.test(text);
 
-      const itemAnchor = [...card.querySelectorAll('a[href]')]
-        .find(a => a !== link && /\/items?\//i.test(a.getAttribute('href')||''));
       const baseKey=[card.getAttribute?.('data-listing-id')||'',link.href,itemAnchor?.href||'',cc,fm,
         item,stats,buy??''].join('|').toLowerCase();
       return {sold,cc,fm,profit,buy,ign,item,stats,unusuallyCheap,baseKey,shop_position:readShopPosition(card),raw_text:((buyInfo.exact ? `Buy exact: ${buy} mesos each\n` : '')+lines.join('\n')).slice(0,6000)};
@@ -461,6 +459,7 @@
           if(wasLocked!==liveLocked || previousFocus!==activeListingId)scheduleScan();
           diagnostics.liveListings=deals.length;diagnostics.liveSentAt=liveSentAt;
           diagnostics.liveError='';
+          if(cachedDeals!==deals)scheduleScan(false); // deliver changes arriving while the prior snapshot was in flight
         } else {
           diagnostics.liveError=chrome.runtime.lastError?.message || response?.error || 'Live page not connected';
         }
@@ -571,7 +570,7 @@
         return false;
       });
     } catch (_) {/* Extension lifecycle may be changing during page load. */}
-    setInterval(()=>scheduleScan(false), 1200); // local DOM + bridge retry; NO network or page refresh
+    setInterval(()=>scheduleScan(false), 600); // local DOM + bridge retry; NO network or page refresh
     scheduleScan();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
