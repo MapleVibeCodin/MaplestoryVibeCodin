@@ -79,7 +79,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.55.3 - Cached shop finder')
+        self.root.title('FM Rush v24.56.0 - Optimized')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -219,8 +219,11 @@ class FMApp:
         self.draw_grid()
 
     def draw_grid(self):
-        c=self.grid_canvas;c.delete('all')
+        c=self.grid_canvas
         W=max(230,c.winfo_width());H=max(135,c.winfo_height())
+        key=(c,W,H,self.current_cc,self.conf['start_channel'])
+        if key==getattr(self,'_grid_draw_key',None):return
+        self._grid_draw_key=key;c.delete('all')
         gap=min(7,max(2,W//110))
         padx=max(5,W*.02);pady=max(3,H*.025)
         cw=(W-2*padx-7*gap)/8
@@ -274,8 +277,11 @@ class FMApp:
         return W/760, H/294
 
     def draw_map(self):
-        c=self.map_canvas;c.delete('all')
+        c=self.map_canvas
         sx,sy=self._scale_map()
+        key=(c,sx,sy,self.current_fm,self.displayed_listing is not None)
+        if key==getattr(self,'_map_draw_key',None):return
+        self._map_draw_key=key;c.delete('all')
         def p(x,y):return x*sx,y*sy
         for row,first,last,label in [('ROW4',17,20,'ROW 4 · FM 17–20'),
                                      ('ROW3',13,16,'ROW 3 · FM 13–16'),
@@ -529,7 +535,10 @@ class FMApp:
         self.refresh_overlays(current)
 
     def follow_overlays(self):
-        self.refresh_overlays(self.archive.current())
+        if self.archive.lock.acquire(blocking=False):
+            try:current=self.archive.current()
+            finally:self.archive.lock.release()
+            self.refresh_overlays(current)
         self.schedule(50, self.follow_overlays)
 
     def toggle_chase(self):
@@ -604,7 +613,10 @@ class FMApp:
                     self.set_chase_locked(locked)
 
     def pump(self):
-        if hasattr(self,'live_stamp') and self.live_stamp!=self.archive.live_state():self.sync_archive()
+        if self.archive.lock.acquire(blocking=False):
+            try:changed=hasattr(self,'live_stamp') and self.live_stamp!=self.archive.live_state()
+            finally:self.archive.lock.release()
+            if changed:self.sync_archive()
         handled = set()
         for _ in range(20):
             try:evt=self.events.get_nowait()
@@ -647,14 +659,16 @@ class FMApp:
                 reply.put({'ok':True})
                 self.status.set('LOCKED · UNLOCK to follow new listings' if self.archive.chase_locked else 'ARMED · waiting for next new listing')
             elif evt[0]=='browser_visible':
-                self.sync_archive()
-                current = self.archive.current()
-                seller = current[1].ign if current else 'none'
-                self.status.set(f'LOCKED · {seller} · Shift+2 to unlock' if self.archive.chase_locked else 'ARMED · waiting for next new listing')
+                # Feed generation already drives sync on the next tick.
+                if self.archive.lock.acquire(blocking=False):
+                    try:current=self.archive.current()
+                    finally:self.archive.lock.release()
+                    seller=current[1].ign if current else 'none'
+                    self.status.set(f'LOCKED · {seller} · Shift+2 to unlock' if self.archive.chase_locked else 'ARMED · waiting for next new listing')
             elif evt[0]=='status':
                 self.status.set(evt[1])
         self.poll_game_chase_shortcuts(handled)
-        self.schedule(10, self.pump)
+        self.schedule(10 if not self.events.empty() or self._chase_keys_down is not None else 20, self.pump)
 
     def resume_first_listing(self):
         """Return to the top HeneFM card after 60s, unless CHASE is locked.

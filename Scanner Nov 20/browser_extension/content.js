@@ -1,4 +1,4 @@
-/* FM Rush v24.54.9 — passive live HeneFM deal bridge and separate listing screenshot archive.
+/* FM Rush v24.56.0 — passive live HeneFM deal bridge and separate listing screenshot archive.
  * Reads only deal cards already rendered by the official HeneFM Flips page.
  * Adds Chase/Skip controls and selection feedback only; no automatic game inputs.
  * Does not request HeneFM endpoints or use the HeneFM Pricing API.
@@ -10,6 +10,8 @@
 
   const isDealsPage = () => /^\/flips\/deals\/?$/.test(location.pathname);
   let cardDeals=new WeakMap();
+  let cardCache=new WeakMap(),linkCache=new WeakMap(),dirtyCards=new WeakSet();
+  let observer=null,lastFullParse=0,parseHits=0,parseMisses=0;
   let selectionSerial=0;
   let activeListingId=null, lockedListingId=null, liveLocked=false;
   const SELLER_LINKS = 'a[href*="/shops/"],a[href*="/shop/"]';
@@ -136,7 +138,53 @@
     return theme && left >= 0 && left <= 100 && top >= 0 && top <= 100
       ? {theme, left, top} : null;
   }
+  function invalidate(records) {
+    let relevant=false;
+    for(const m of records){
+      const el=m.target.nodeType===1?m.target:m.target.parentElement;
+      if(!el || el.closest?.('[data-fm-rush-controls]'))continue;
+      const nodes=[...m.addedNodes,...m.removedNodes];
+      if(m.type==='childList' && nodes.length &&
+         nodes.every(n=>n.nodeType===1 && n.matches?.('[data-fm-rush-controls]')))continue;
+      if(m.type==='attributes' && m.attributeName==='style' &&
+         !el.matches?.('.deal-shop-pin'))continue;
+      relevant=true;
+      for(let n=el;n&&n!==document.documentElement;n=n.parentElement)dirtyCards.add(n);
+    }
+    return relevant;
+  }
+  function parseCard(card,link) {
+      const lines = linesOf(card);
+      const sold = isSold(lines, card);
+      const text = lines.join(' ');
+      const position = text.match(/\b(?:CH|CC)\s*(\d{1,2})\s*[·•/|,\-]?\s*FM\s*(\d{1,2})\b/i);
+      const cc=position?Number(position[1]):null, fm=position?Number(position[2]):null;
+      if (position && (cc<1 || cc>40 || fm<1 || fm>20)) return null;
+      const profit = readProfit(lines);
+      const buy = readBuy(lines);
+      const label = (link.textContent || '').trim().replace(/\s+/g, ' ');
+      let slug = '';
+      try {slug = decodeURIComponent(new URL(link.href).pathname.split('/').filter(Boolean).pop());} catch (_) {}
+      const ign = /^[A-Za-z0-9_]{3,24}$/.test(label) ? label : slug;
+      if (!/^[A-Za-z0-9_]{3,24}$/.test(ign)) return null;
+      const item = itemName(card, link, lines);
+      if (!item) return null;
+      const statWords=/\b(?:W\.DEF|M\.DEF|M\.ATT|ATT|STR|DEX|INT|LUK|ACC|AVOID|SPEED|JUMP|HP|MP|CDMG|CRIT)\s*[-+]?\d+(?:\s*[+-]\s*\d+)?|\b\d+\s+slots?(?:\s+\d+\s+used)?/gi;
+      const stats=[...text.split(/\bBuy\b/i)[0].matchAll(statWords)].map(m=>m[0].replace(/\s+/g,' ')).join(' · ').slice(0,160);
+      const unusuallyCheap = /Unusually\s+cheap\s*:\s*check\s+it\s+is\s+still\s+there/i.test(text);
+
+      const itemAnchor = [...card.querySelectorAll('a[href]')]
+        .find(a => a !== link && /\/items?\//i.test(a.getAttribute('href')||''));
+      const baseKey=[card.getAttribute?.('data-listing-id')||'',link.href,itemAnchor?.href||'',cc,fm,
+        item,stats,buy??''].join('|').toLowerCase();
+      return {sold,cc,fm,profit,buy,ign,item,stats,unusuallyCheap,baseKey,shop_position:readShopPosition(card),raw_text:lines.join('\n').slice(0,6000)};
+  }
   function extract() {
+    if(observer)invalidate(observer.takeRecords());
+    if(Date.now()-lastFullParse>=10000){
+      cardCache=new WeakMap();linkCache=new WeakMap();
+      lastFullParse=Date.now();
+    }
     cardDeals=new WeakMap();
     const results = [];
     const captureResults = [];
@@ -150,7 +198,11 @@
     counts.sellerLinks = links.length;
     for (const link of links) {
       if (!/^https?:/.test(link.href)) continue;
-      const card = findCard(link);
+      let card=linkCache.get(link);
+      if(!card || !card.isConnected || !card.contains(link) || dirtyCards.has(card)){
+        card=findCard(link);
+        if(card)linkCache.set(link,card);
+      }
       if (!card || uniqueCards.has(card)) continue;
       uniqueCards.add(card);
       counts.cardsFound++;
@@ -158,34 +210,14 @@
       // without scrolling; only truly hidden cards are excluded.
       if (card.closest('[hidden],[aria-hidden="true"]') ||
           (typeof card.checkVisibility === 'function' && !card.checkVisibility())) continue;
-      const lines = linesOf(card);
-      const sold = isSold(lines, card);
-      if (sold) counts.soldCards++;
-      const text = lines.join(' ');
-      const position = text.match(/\b(?:CH|CC)\s*(\d{1,2})\s*[·•/|,\-]?\s*FM\s*(\d{1,2})\b/i);
-      const cc=position?Number(position[1]):null, fm=position?Number(position[2]):null;
-      if (position && (cc<1 || cc>40 || fm<1 || fm>20)) continue;
-      const profit = readProfit(lines);
-      const buy = readBuy(lines);
-      const label = (link.textContent || '').trim().replace(/\s+/g, ' ');
-      let slug = '';
-      try {slug = decodeURIComponent(new URL(link.href).pathname.split('/').filter(Boolean).pop());} catch (_) {}
-      const ign = /^[A-Za-z0-9_]{3,24}$/.test(label) ? label : slug;
-      if (!/^[A-Za-z0-9_]{3,24}$/.test(ign)) continue;
-      const item = itemName(card, link, lines);
-      if (!item) continue;
-      const statWords=/\b(?:W\.DEF|M\.DEF|M\.ATT|ATT|STR|DEX|INT|LUK|ACC|AVOID|SPEED|JUMP|HP|MP|CDMG|CRIT)\s*[-+]?\d+(?:\s*[+-]\s*\d+)?|\b\d+\s+slots?(?:\s+\d+\s+used)?/gi;
-      const stats=[...text.split(/\bBuy\b/i)[0].matchAll(statWords)].map(m=>m[0].replace(/\s+/g,' ')).join(' · ').slice(0,160);
-      const unusuallyCheap = /Unusually\s+cheap\s*:\s*check\s+it\s+is\s+still\s+there/i.test(text);
-
-      // Screenshots are a separate feature and include every rendered item on
-      // the user's current Deals view (even low profit and sold entries).
-      // Listing delivery and screenshots both include the current page contents.
-      const r = card.getBoundingClientRect();
-      const itemAnchor = [...card.querySelectorAll('a[href]')]
-        .find(a => a !== link && /\/items?\//i.test(a.getAttribute('href')||''));
-      const baseKey=[card.getAttribute?.('data-listing-id')||'',link.href,itemAnchor?.href||'',cc,fm,
-        item,stats,buy??''].join('|').toLowerCase();
+      let parsed=cardCache.get(card);
+      if(!parsed || parsed.link!==link || dirtyCards.has(card)){
+        parsed={link,value:parseCard(card,link)};cardCache.set(card,parsed);dirtyCards.delete(card);parseMisses++;
+      }else parseHits++;
+      if(!parsed.value)continue;
+      const {sold,cc,fm,profit,buy,ign,item,stats,unusuallyCheap,baseKey,shop_position,raw_text}=parsed.value;
+      if(sold)counts.soldCards++;
+      const r=card.getBoundingClientRect();
       const occurrence=occurrences.get(baseKey)||0;occurrences.set(baseKey,occurrence+1);
       const captureKey=baseKey+'|'+occurrence;
       const captureId = fingerprint(captureKey) + fingerprint([...captureKey].reverse().join(''));
@@ -204,7 +236,7 @@
       const listing_id=captureId;
       const deal = {cc,fm,ign,item,stats:stats.slice(0,160),listing_id,sold,
         buy_mesos:buy,profit_mesos:profit?.gain??null,profit_percent:profit?.pct??null,
-        unusually_cheap:unusuallyCheap,shop_position:readShopPosition(card),raw_text:lines.join('\n').slice(0,6000)};
+        unusually_cheap:unusuallyCheap,shop_position,raw_text};
       deal.id=fingerprint([listing_id,sold,deal.profit_mesos,deal.profit_percent].join('|'));
       if (unique.has(deal.id)) continue;
       unique.add(deal.id);
@@ -224,7 +256,7 @@
     }
     screenshotCandidates = captureResults;
     counts.qualifyingDeals = results.length;
-    Object.assign(diagnostics, counts, {lastScanAt:Date.now()});
+    Object.assign(diagnostics, counts, {lastScanAt:Date.now(),parseHits,parseMisses});
     return results;
   }
   function choiceError(card,message){
@@ -450,15 +482,11 @@
     }
     console.info('[FM Rush] Click a listing or CHASE to select one seller; SKIP never records a purchase.');
     // Listing controls are excluded from parser text; normal site data stays intact.
-    const observer = new MutationObserver(mutations => {
-      if (mutations.some(m => m.type === 'childList' || m.type === 'characterData' ||
-          (m.type === 'attributes' &&
-            (m.attributeName !== 'style' || m.target.matches?.('.deal-shop-pin'))))) {
-        scheduleScan();
-      }
+    observer = new MutationObserver(mutations => {
+      if(invalidate(mutations))scheduleScan();
     });
     observer.observe(document.documentElement, {subtree: true, childList: true,
-      characterData: true, attributes: true, attributeFilter: ['data-sold', 'data-status', 'hidden', 'style']});
+      characterData: true, attributes: true, attributeFilter: ['data-sold', 'data-status', 'data-listing-id', 'href', 'src', 'hidden', 'aria-hidden', 'style']});
     document.addEventListener('visibilitychange', scheduleScan);
     window.addEventListener('pageshow', scheduleScan);
     window.addEventListener('popstate', scheduleScan);

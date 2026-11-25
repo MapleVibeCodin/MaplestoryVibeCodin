@@ -26,6 +26,7 @@ class DealArchive:
         self.db.execute('CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)')
         self._pending={key:json.loads(value) for key,value in self.db.execute(
             'SELECT id,data FROM listings WHERE done=0 ORDER BY seq')}
+        self._batch_undo=None
         self.chase_locked=False
         self.auto_lock=auto_lock
         self._auto_seen=set()
@@ -45,14 +46,19 @@ class DealArchive:
             return {key:json.loads(value) for key,value in self.db.execute('SELECT id,data FROM listings ORDER BY seq')}
 
     def _save(self,key,record,focus,last_completed=_UNCHANGED):
-        # Update caches only AFTER durable commit, so failed delivery can retry.
-        with self.db:
+        # Batch snapshots hold the archive lock through durable commit.
+        def write():
             self.db.execute('INSERT INTO listings(id,ign,done,data) VALUES (?,?,?,?) '
                 'ON CONFLICT(id) DO UPDATE SET ign=excluded.ign,done=excluded.done,data=excluded.data',
                 (key,record['deal']['ign'].casefold(),int(record['done']),json.dumps(record,ensure_ascii=False)))
             self.db.execute("INSERT OR REPLACE INTO settings VALUES ('focus',?)",(json.dumps(focus),))
             if last_completed is not _UNCHANGED:
                 self.db.execute("INSERT OR REPLACE INTO settings VALUES ('last_completed',?)",(json.dumps(last_completed),))
+        if self._batch_undo is None:
+            with self.db:write()
+        else:
+            self._batch_undo.setdefault(key,self._pending.get(key,_UNCHANGED))
+            write()
         if record['done']:self._pending.pop(key,None)
         else:self._pending[key]=record
         self.focus=focus
@@ -71,7 +77,11 @@ class DealArchive:
             if existing is not None and not update_position:
                 # Queued archive deliveries can arrive after the live snapshot.
                 payload['shop_position']=existing['deal'].get('shop_position')
-            if existing is not None and existing['deal']==payload:return key,False
+            if existing is not None:
+                prior=existing['deal']
+                # Relative Seen text alone must not trigger disk writes.
+                if all(prior.get(k)==v for k,v in payload.items() if k!='raw_text'):
+                    return key,False
             record={'deal':payload,'first_seen':time.time(),'last_seen':time.time(),'done':False} if new else {
                 **existing,'deal':payload,'last_seen':time.time()}
             focus=self.focus if self.manual_selection else self.focus or (key if not record['done'] else None)
@@ -83,7 +93,19 @@ class DealArchive:
         with self.lock:
             if revision<=self._live_revisions.get(session,-1):return False
             first_page=self._live_seen is None
-            keys=tuple(dict.fromkeys(self.record(deal)[0] for deal in deals))
+            old_focus=self.focus
+            self._batch_undo={}
+            try:
+                with self.db:
+                    keys=tuple(dict.fromkeys(self.record(deal)[0] for deal in deals))
+            except BaseException:
+                for key,previous in self._batch_undo.items():
+                    if previous is _UNCHANGED:self._pending.pop(key,None)
+                    else:self._pending[key]=previous
+                self.focus=old_focus
+                raise
+            finally:
+                self._batch_undo=None
             self._live_keys=keys;self._live_seen=time.monotonic() if now is None else now
             self._live_generation+=1
             self._live_revisions[session]=revision
@@ -106,7 +128,7 @@ class DealArchive:
         """Follow the first pending card in page order, unless explicitly locked."""
         with self.lock:
             if self.chase_locked:return
-            key=next((key for key,_ in self.live_pending()),None)
+            key=next((key for key in self._live_keys if key in self._pending),None) if self.live_state()[1] else None
             if key is not None:self.select(key)
             else:self.focus=None
 

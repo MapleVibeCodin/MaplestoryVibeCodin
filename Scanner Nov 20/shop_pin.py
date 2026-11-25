@@ -34,41 +34,55 @@ class OverlayPin:
             user.GetForegroundWindow.restype=wintypes.HWND
             self.ready=True
         self.interval_ms=interval_ms
-        self.timer=self.window.after(self.interval_ms,self.follow)
+        self.timer=None
 
     def show_many(self,hwnd,size,hits):
         self.data=(hwnd,size,dict(hits)) if hits else None
-        if not hits:self.window.withdraw();self.visible=False;self.drawn=None
-        else:self.follow(schedule=False)
+        if not hits:self.hide()
+        else:
+            self.follow(schedule=False)
+            if self.timer is None:self.timer=self.window.after(self.interval_ms,self.follow)
 
     def hide(self):
         self.data=None
-        self.window.withdraw();self.visible=False;self.drawn=None
+        if self.timer is not None:
+            self.window.after_cancel(self.timer);self.timer=None
+        if self.visible:self.window.withdraw()
+        self.visible=False;self.drawn=None
 
     def can_show(self, hwnd, rect, size, hits):
         return ctypes.windll.user32.GetForegroundWindow()==hwnd
 
     def follow(self,schedule=True):
         if self.closed:return
+        if schedule:self.timer=None
         if self.data and self.ready:
             hwnd,(sw,sh),hits=self.data
             user=ctypes.windll.user32
             rect=window_rect(hwnd)
             if rect and not user.IsIconic(hwnd) and self.can_show(hwnd, rect, (sw, sh), hits):
                 left,top,w,h=rect
-                if rect!=self.last_rect:
+                moved=rect!=self.last_rect
+                if moved:
                     self.window.geometry(f'{w}x{h}{left:+d}{top:+d}');self.last_rect=rect
                 drawing=(w,h,sw,sh,tuple(sorted((name,tuple(hit['box']),hit['mode']) for name,hit in hits.items())))
-                if drawing!=self.drawn:
+                changed=drawing!=self.drawn
+                if changed:
                     self.draw_markers(w,h,sw,sh,hits);self.drawn=drawing
-                if not self.visible:self.window.deiconify();self.visible=True
-                user.SetWindowPos(self.hwnd,-1,left,top,w,h,0x0010|0x0040)
+                shown=not self.visible
+                if shown:self.window.deiconify();self.visible=True
+                foreground=user.GetForegroundWindow()
+                focus_changed=foreground!=getattr(self,'_last_foreground',None)
+                self._last_foreground=foreground
+                if moved or changed or shown or focus_changed:
+                    user.SetWindowPos(self.hwnd,-1,left,top,w,h,0x0010|0x0040)
             elif self.visible:self.window.withdraw();self.visible=False
-        if schedule:self.timer=self.window.after(self.interval_ms,self.follow)
+        if schedule and self.data:self.timer=self.window.after(self.interval_ms,self.follow)
 
     def close(self):
         self.closed=True
-        try:self.window.after_cancel(self.timer)
+        try:
+            if self.timer is not None:self.window.after_cancel(self.timer)
         except tk.TclError:pass
         self.window.destroy()
 
