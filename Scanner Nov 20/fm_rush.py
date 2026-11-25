@@ -79,7 +79,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.56.0 - Optimized')
+        self.root.title('FM Rush v24.57.0 - Pointer latency')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -97,6 +97,9 @@ class FMApp:
         self.chase_label=tk.StringVar(value='ARMED · auto-lock next')
         self.manual=tk.StringVar(value='CC 22 FM 13')
         self.events=queue.Queue()
+        self._trade_events=queue.Queue()
+        self._pointer_serial=0
+        self.root.bind('<<FMRushTradeWake>>', self.drain_trade_events, add='+')
         self.browser_bridge=None
         self.grid=None
         self.map=None
@@ -132,7 +135,7 @@ class FMApp:
             self.status.set('ARMED · auto-lock next new listing')
         except OSError as exc:
             self.status.set('HeneFM bridge not available: '+str(exc)[:100])
-        self.trade_keys=TradeHotkeys(self.events.put_nowait);self.trade_keys.start()
+        self.trade_keys=TradeHotkeys(self.post_trade_event);self.trade_keys.start()
         self.schedule(1000,self.resume_first_listing)
 
     def schedule(self, delay, callback):
@@ -472,54 +475,136 @@ class FMApp:
                 hwnd, size, box = preview
                 self.shop_pin.show_many(hwnd, size, {'shop': {'box': box, 'mode': 'SHOP'}})
 
+    def post_trade_event(self, event):
+        # Called by the Windows hotkey thread. Tk dispatches virtual events on
+        # the GUI thread; the normal pump also drains this FIFO as a fallback.
+        if self._closing:return
+        if not event[0].startswith('trade_'):
+            self.events.put_nowait(event)
+            return
+        self._trade_events.put_nowait((time.perf_counter(),event))
+        try:self.root.event_generate('<<FMRushTradeWake>>',when='tail')
+        except (RuntimeError,tk.TclError):pass
+
+    def drain_trade_events(self, _event=None):
+        handled=set()
+        if self._closing:return handled
+        for _ in range(16):
+            try:received,evt=self._trade_events.get_nowait()
+            except queue.Empty:break
+            action=evt[0]
+            if action in ('trade_move_pointer','trade_move_channel'):
+                # Never move a cursor long after its physical shortcut.
+                if time.perf_counter()-received>.150:
+                    self._pointer_serial+=1
+                    self.status.set('Pointer shortcut expired · try again')
+                    continue
+                self.move_pointer_to_target('shop' if action=='trade_move_pointer' else 'channel',
+                                            received=received)
+            elif action=='trade_find':
+                self._pointer_serial+=1
+                self.align_shop_preview()
+            elif action=='trade_next':
+                self._pointer_serial+=1
+                self.next_live_deal()
+            elif action in ('trade_lock','trade_unlock'):
+                self._pointer_serial+=1
+                locked=action=='trade_lock'
+                self.set_chase_locked(locked)
+                handled.add(locked)
+        if not self._trade_events.empty():self.schedule(0,self.drain_trade_events)
+        return handled
+
     def move_pointer_to_shop(self):
         self.move_pointer_to_target('shop')
 
     def move_pointer_to_channel(self):
         self.move_pointer_to_target('channel')
 
-    def move_pointer_to_target(self, kind, *, after_focus_for=None):
-        current = self.archive.current()
+    def _pointer_context(self, current, hwnd):
+        if not current or not self.archive.chase_locked or not hwnd:return None
+        deal=current[1]
+        return (current[0], deal.cc, deal.fm, repr(deal.shop_position), deal.sold,
+                hwnd, window_rect(hwnd), window_client_rect(hwnd), self._portal_alignment)
+
+    def move_pointer_to_target(self, kind, *, received=None):
+        self._pointer_serial+=1
+        serial=self._pointer_serial
+        received=time.perf_counter() if received is None else received
+        started=time.perf_counter()
+        if not self.archive.lock.acquire(blocking=False):
+            self.status.set('Pointer target updating · try again')
+            return
+        try:
+            current=self.archive.current()
+            locked=self.archive.chase_locked
+        finally:self.archive.lock.release()
+        if not current or not locked:
+            self.status.set('Lock a listing before moving the pointer')
+            return
+        # Refresh the scene gate once, while game focus is still intact.
+        # Do not recompute/reset entrance or inventory state after focus loss.
         self.refresh_overlays(current)
-        if kind == 'shop':
-            preview = self._shop_preview
-            unavailable = 'Shop pointer · ' + self.shop.notice.get()
+        if kind=='shop':
+            preview=self._shop_preview
+            unavailable='Shop pointer · '+self.shop.notice.get()
         elif self._channel_preview is None:
-            preview = None
-            unavailable = 'Open MapleStory and lock a deal with a destination channel.'
+            preview=None
+            unavailable='Open MapleStory and lock a deal with a destination channel.'
         else:
-            hwnd, size, _, box, mode = self._channel_preview
-            preview = (hwnd, size, box) if mode == 'GUIDE' else None
-            unavailable = 'Channel pointer requires a 1280 × 720 or 1366 × 768 game window.'
-
+            hwnd,size,_,box,mode=self._channel_preview
+            preview=(hwnd,size,box) if mode=='GUIDE' else None
+            unavailable='Channel pointer requires a 1280 × 720 or 1366 × 768 game window.'
         if preview is None:
-            if after_focus_for is None:
-                self.status.set(unavailable)
+            self.status.set(unavailable)
             return
-        hwnd, size, box = preview
-        target = (current[0], hwnd)
-        if after_focus_for is not None and after_focus_for != target:
-            return
-        if window_has_focus(hwnd):
-            if after_focus_for is not None:
-                self.status.set('MapleStory kept focus. Switch to FM Rush and try the shortcut again.')
-                return
-            if self.root.state() in ('iconic', 'withdrawn'):
-                self.root.deiconify()
-            self.root.focus_force()
-            # Let MapleStory process losing focus before moving its pointer.
-            self.schedule(25, lambda: self.move_pointer_to_target(kind, after_focus_for=target))
-            return
-
-        window = window_rect(hwnd)
-        if window is None or window[2:] != size:
+        hwnd,size,box=preview
+        snapshot=self._pointer_context(current,hwnd)
+        if snapshot is None or snapshot[6] is None or snapshot[7] is None or snapshot[6][2:]!=size:
             self.status.set('Game window changed. Try the shortcut again.')
             return
-        left, top, right, bottom = box
-        screen_x = window[0] + (left + right) // 2
-        screen_y = window[1] + (top + bottom) // 2
-        problem = move_cursor_on_screen(hwnd, screen_x, screen_y)
-        self.status.set(problem or 'Pointer moved to the highlighted spot')
+        # Capture a single validated box and recheck lock, listing, alignment,
+        # and exact window/client geometry immediately before cursor movement.
+        focus_started=None
+        def finish():
+            if self._closing or serial!=self._pointer_serial:return
+            now=time.perf_counter()
+            if now-received>.150:
+                self.status.set('Pointer shortcut expired · try again')
+                return
+            if window_has_focus(hwnd):
+                if focus_started is not None and now-focus_started<.075:
+                    self.schedule(5,finish)
+                else:self.status.set('MapleStory kept focus. Switch to FM Rush and try again.')
+                return
+            if not self.archive.lock.acquire(blocking=False):
+                self.status.set('Pointer target updating · try again')
+                return
+            try:
+                if self._pointer_context(self.archive.current(),hwnd)!=snapshot or self.shop.selected_hwnd()!=hwnd:
+                    self.status.set('Pointer target changed · try again')
+                    return
+                # Do not move if focus has returned while checking the target.
+                if window_has_focus(hwnd):
+                    self.status.set('Game focus changed · try again')
+                    return
+                left,top,right,bottom=box
+                window=snapshot[6]
+                problem=move_cursor_on_screen(hwnd,window[0]+(left+right)//2,window[1]+(top+bottom)//2)
+            finally:self.archive.lock.release()
+            finished=time.perf_counter()
+            dispatch_ms=(started-received)*1000
+            total_ms=(finished-received)*1000
+            focus_ms=0 if focus_started is None else (now-focus_started)*1000
+            self.status.set(problem or f'Pointer moved · {total_ms:.1f} ms (queue {dispatch_ms:.1f}, focus {focus_ms:.1f})')
+        if window_has_focus(hwnd):
+            if self.root.state() in ('iconic','withdrawn'):self.root.deiconify()
+            focus_started=time.perf_counter()
+            self.root.focus_force()
+            # Check readiness instead of always sleeping 25 ms. The first
+            # deferred check gives the game a chance to process focus loss.
+            self.schedule(5,finish)
+        else:finish()
 
     def align_shop_preview(self):
         current = self.archive.current()
@@ -613,11 +698,11 @@ class FMApp:
                     self.set_chase_locked(locked)
 
     def pump(self):
+        handled=self.drain_trade_events()
         if self.archive.lock.acquire(blocking=False):
             try:changed=hasattr(self,'live_stamp') and self.live_stamp!=self.archive.live_state()
             finally:self.archive.lock.release()
             if changed:self.sync_archive()
-        handled = set()
         for _ in range(20):
             try:evt=self.events.get_nowait()
             except queue.Empty:break
@@ -668,7 +753,7 @@ class FMApp:
             elif evt[0]=='status':
                 self.status.set(evt[1])
         self.poll_game_chase_shortcuts(handled)
-        self.schedule(10 if not self.events.empty() or self._chase_keys_down is not None else 20, self.pump)
+        self.schedule(10 if not self.events.empty() or not self._trade_events.empty() or self._chase_keys_down is not None else 20, self.pump)
 
     def resume_first_listing(self):
         """Return to the top HeneFM card after 60s, unless CHASE is locked.

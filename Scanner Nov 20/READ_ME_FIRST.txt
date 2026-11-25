@@ -1,4 +1,4 @@
-FM RUSH v24.56.0 — PASSIVE LIVE AUTO-LOCK
+FM RUSH v24.57.0 — PASSIVE LIVE AUTO-LOCK
 
 START
 Run START_FM_RUSH.bat. FM Rush automatically detects the MapleStory window.
@@ -84,3 +84,11 @@ entrance landmark revalidation, and exact seller/row pixel OCR caches. Install
 both desktop and extension. Existing click records and local archives are kept.
 Windows and Brave end-to-end performance must still be measured.
 Quiet browser heartbeats reuse the last parsed snapshot; a full reconciliation occurs every 10 seconds.
+
+POINTER LATENCY v24.57.0 (desktop only): event-driven GUI wake for Windows hotkeys,
+FIFO priority over routine archive polling, one scene/overlay refresh per request,
+5ms focus-readiness checks (75ms cap), stale shortcut rejection (150ms), and
+revalidation of locked listing, game window/client and alignment before cursor move.
+Status reports total, queue and focus timing on successful pointer movement.
+No click or game key injection; G HUB remains separate. Windows/Tk focus behavior
+and end-to-end latency require live validation. Extension remains v24.56.0.
