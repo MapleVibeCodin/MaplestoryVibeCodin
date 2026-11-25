@@ -169,3 +169,6 @@ User requests same methodology for all glove stats and range. [Glove research](.
 
 ## Latest weapon catalyst empirical override
 User confirms weapon is same as armor: 15% positive, 60% neutral, 25% negative. Apply as working empirical aggregate assumptions for future weapon calculations, including claw 2H catalysts; conditional magnitude distribution unknown. Scroll 75/20/5 unchanged. Earlier claw catalyst scenario results historical only; no new rerun. [Research](../scrolling-ev/CLAW_CATALYST_RESEARCH.md).
+
+## Latest hat optimization and guaranteed ACC baseline
+[Hat research](../scrolling-ev/HAT_RESEARCH.md). 5m slot cap, no citizenship. 5DEX Green Pilfer below70k or 5LUK Dark Pilfer below200k. 7 slots, no main-stat scroll. Explicit 100% Accuracy Lesser baseline12k working FM each, 84k scroll-only, 104k incl20k base for guaranteed+7 ACC. Prior DP already includes Lesser; 500k E10.2022 net386.697k, 1m E11.4087 net633.547k, 5m E13.7142 net2.505m. Accuracy no direct range, value depends on hit chance. No verified Chaos prices; sensitivity only. Arcforge2 catalyst craft poor EV. Armor/weapon15/60/25, scroll75/20/5 unchanged. No fresh live quotes or optimizer run in baseline turn.
