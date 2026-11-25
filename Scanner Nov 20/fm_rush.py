@@ -83,7 +83,7 @@ class FMApp:
         self.conf=settings()
         self.web_only=os.environ.get('FM_RUSH_WEB_ONLY') == '1'
         self.root=tk.Tk()
-        self.root.title('FM Rush v24.62.1 - Strict shop candidates')
+        self.root.title('FM Rush v24.62.2 - Armed inventory recognition')
         self.root.config(bg=BG)
         self.root.resizable(True,True)
 
@@ -387,7 +387,6 @@ class FMApp:
             current = self.archive.current()
             self.live_stamp = self.archive.live_state()
         if self.archive.chase_locked:self.restore_chase_route()
-        self.refresh_overlays(current)
         self.chase_label.set('LOCKED · UNLOCK (Shift+2)' if self.archive.chase_locked else 'ARMED · auto-lock next')
         key,deal=current if current else (None,None)
         if key!=self.displayed_listing:
@@ -408,6 +407,8 @@ class FMApp:
             self.item.set('ITEM: '+deal.item+(' · SOLD' if deal.sold else ''))
             self.profit.set(deal.profit.label)
         if self.map is not None and self.map.winfo_exists():self.draw_map()
+        # The displayed listing must be synchronized before armed recognition.
+        self.refresh_overlays(current)
 
     def export_archive(self):
         path=filedialog.asksaveasfilename(title='Export listings grouped by seller IGN',
@@ -431,22 +432,34 @@ class FMApp:
         # Skip current target; auto-lock remains armed for a new listing.
         self.complete_deal()
 
+    def inventory_target(self, current):
+        """Read-only recognition of the displayed card, even while armed."""
+        if not current:return None
+        if self.archive.chase_locked:return current[1]
+        # Never recognize a stale/unpainted card or a manual route preview.
+        if self.manual_override_at is not None or current[0]!=self.displayed_listing:
+            return None
+        return current[1]
+
     def refresh_overlays(self, current):
-        """Update both guides from the selected listing and game geometry."""
+        """Keep navigation chase-locked; recognize displayed inventory in either mode."""
         hwnd = None if self.web_only else self.shop.selected_hwnd()
         deal = current[1] if current and self.archive.chase_locked else None
+        inventory_deal = self.inventory_target(current)
         window = window_rect(hwnd) if hwnd else None
         client = window_client_rect(hwnd) if window else None
 
         supported = bool(deal and client and client[2:] in ENTRY_CLIENTS and window_has_focus(hwnd))
+        inventory_supported = bool(inventory_deal and client and client[2:] in ENTRY_CLIENTS
+                                   and (supported or window_has_focus(hwnd)))
         # Only a positive minimap room-title signature permits inventory OCR.
         # Entrance/black frames/unknown titles never start inventory scans.
         room_confirmed=False
-        if supported:
+        if inventory_supported:
             x,y,w,h=client
             title=capture_client((x,y,min(w,200),min(h,120)),allow_crop=True)
             room_confirmed=bool(title and room_title_present(*title))
-        inventory = self._inventory.get(hwnd,client,deal) if room_confirmed else None
+        inventory = self._inventory.get(hwnd,client,inventory_deal) if room_confirmed else None
         if not room_confirmed:self._inventory.reset()
         in_shop = inventory is not None
         item_preview = None
@@ -464,7 +477,7 @@ class FMApp:
         in_entrance = bool(scene and scene[0])
         recorder=getattr(self,'performance',None)
         if recorder is not None:
-            recorder.observe(current[0] if deal else None,deal,hwnd,client,supported,in_entrance,inventory)
+            recorder.observe(current[0] if deal else None,deal,hwnd,client,supported,in_entrance,inventory if deal else None)
         entrance_preview = None
         if in_entrance and deal.fm:
             hits = entrance_marker(deal.fm, scene[1], client, window)
@@ -505,11 +518,12 @@ class FMApp:
             status = 'Web-only mode'
         elif client is None:
             status = 'Waiting for MapleStory window'
-        elif deal is None:
-            status = 'Waiting for next auto-lock'
         elif in_shop:
             status = inventory['status']
             offscreen_notice = 'Shop OCR error' if status.startswith('Shop OCR unavailable') else status
+        elif deal is None:
+            status = ('ARMED · watching displayed item' if room_confirmed else
+                      'ARMED · waiting for FM room' if inventory_deal else 'Waiting for next auto-lock')
         elif in_entrance:
             status = f'Entrance guide · FM {deal.fm}'
         elif not room_confirmed:

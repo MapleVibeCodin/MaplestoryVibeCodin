@@ -1,6 +1,10 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.1; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.62.2; browser extension: v24.56.0 (restored). This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+
+## 2026-11-26 — v24.62.2 armed inventory recognition
+
+User approved enabling read-only inventory recognition while ARMED after recording 03-38-05 showed an unlocked Ghost Costume target, already sold, HeneFM rounded 66700 versus shop 66666. Separate inventory target from navigation/chase target: locked stays unchanged; armed uses currently displayed archive listing only, excludes manual route override/unpainted selection, confirmed FM-room title and focused supported client remain required. Synchronize displayed listing before overlay refresh; clear stale inventory on room exit/target change via existing generation guard. No auto-lock, route, pointer, macro, camera or browser changes. Locked-only performance recorder preserved. Added four armed target/overlay regression tests to already staged test_inventory_hover.py; executable Windows validation pending. Historical files preserved.
 
 ## 2026-11-26 — v24.62.1 strict shop candidates
 

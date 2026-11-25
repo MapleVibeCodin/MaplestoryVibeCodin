@@ -80,4 +80,67 @@ class HoverTests(unittest.TestCase):
         lines=[{'y':5*SCALE,'text':'Nanamico'},{'y':33*SCALE,'text':'Blood Avarice'}]
         self.assertEqual(pick_rows(lines,[True]*6,'Nanamico','Blood Avarice',100000)[0],[(0,'SOLD_CHECK')])
         self.assertEqual(pick_rows(lines,[False]*6,'Nanamico','Blood Avarice',100000)[0],[])
+class ArmedInventoryTests(unittest.TestCase):
+    def setUp(self):
+        import ast
+        import pathlib
+        from types import SimpleNamespace
+        tree=ast.parse(pathlib.Path(__file__).with_name('fm_rush.py').read_text(encoding='utf-8'))
+        cls=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='FMApp')
+        nodes=[n for n in cls.body if isinstance(n,ast.FunctionDef) and n.name in ('inventory_target','refresh_overlays')]
+        ns={}
+        exec(compile(ast.Module(body=nodes,type_ignores=[]),'fm_rush.py','exec'),ns)
+        self.target=ns['inventory_target']
+        self.refresh=ns['refresh_overlays']
+        self.deal=SimpleNamespace(cc=38,fm=10,ign='Pillarious',item='Ghost Costume',buy_mesos=66700,shop_position=None)
+        self.archive=SimpleNamespace(chase_locked=False)
+        self.app=SimpleNamespace(archive=self.archive,displayed_listing='current',manual_override_at=None)
+        self.current=('current',self.deal)
+    def test_armed_displayed_listing(self):
+        self.assertIs(self.target(self.app,self.current),self.deal)
+        self.assertFalse(self.archive.chase_locked)
+    def test_no_stale_or_manual_listing(self):
+        self.assertIsNone(self.target(self.app,None))
+        self.assertIsNone(self.target(self.app,('other',self.deal)))
+        self.app.manual_override_at=1
+        self.assertIsNone(self.target(self.app,self.current))
+    def test_locked_listing_unchanged(self):
+        self.archive.chase_locked=True
+        self.app.displayed_listing=None
+        self.assertIs(self.target(self.app,self.current),self.deal)
+    def test_room_only_armed_overlay_without_navigation(self):
+        from types import SimpleNamespace as NS
+        class Var:
+            def __init__(self):self.value=''
+            def get(self):return self.value
+            def set(self,value):self.value=value
+        class Pin:
+            def __init__(self):self.visible=False
+            def hide(self):self.visible=False
+            def show_many(self,*args):self.visible=True
+        calls=[]
+        room=[True]
+        ns=self.refresh.__globals__
+        ns.update(window_rect=lambda h:(0,0,1366,768),window_client_rect=lambda h:(0,0,1366,768),
+                  ENTRY_CLIENTS={(1366,768)},window_has_focus=lambda h:True,
+                  capture_client=lambda *a,**k:(b'',1,1,3),room_title_present=lambda *a:room[0])
+        self.app.inventory_target=lambda current:self.target(self.app,current)
+        self.app.web_only=False
+        self.app.shop=NS(selected_hwnd=lambda:1,notice=Var(),offscreen_notice=Var())
+        self.app._inventory=NS(get=lambda h,c,d:(calls.append(d) or {'hits':[('SOLD_CHECK',(1,2,3,4))],'status':'Sold candidate'}),reset=lambda:calls.append('reset'))
+        self.app._entrance_camera=NS(get=lambda *a:None,reset=lambda:None)
+        self.app._portal_alignment=None
+        for name in ('item','entrance','channel','shop'):
+            setattr(self.app,name+'_pin',Pin())
+            setattr(self.app,'_'+name+'_preview',None)
+        self.refresh(self.app,self.current)
+        self.assertEqual(calls,[self.deal])
+        self.assertTrue(self.app.item_pin.visible)
+        self.assertFalse(self.app.shop_pin.visible)
+        self.assertFalse(self.app.channel_pin.visible)
+        self.assertFalse(self.archive.chase_locked)
+        room[0]=False
+        self.refresh(self.app,self.current)
+        self.assertEqual(calls,[self.deal,'reset'])
+        self.assertFalse(self.app.item_pin.visible)
 if __name__=='__main__':unittest.main()
