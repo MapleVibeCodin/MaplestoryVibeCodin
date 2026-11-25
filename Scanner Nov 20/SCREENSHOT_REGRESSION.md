@@ -11,3 +11,5 @@ Run the separate offline suite with Pillow and the original image directory. On 
 ## Earlier shop-placement cases
 
 The manifest now records the previously reported shop targets and their room-specific calibration expectations, and a separate unit test guards all 20 rooms at both supported resolutions. Source anchors were checked against the historical corrections. These tests are synthetic geometry, not original screenshot replay. FM8 remains unresolved. The full historical pass requires original screenshot coordinates and the HeneFM pin for each target; missing labels are not passes.
+
+Local executed check using a manually copied, logic-equivalent shop_position.py: 40 room/resolution anchors, 160 default-vs-aligned projection comparisons, eight historical platform corrections, four partial-sign clipping cases, four offscreen-direction cases, and two wrong-theme cases passed. This is not a direct execution of the full repository suite or historical image replay.
