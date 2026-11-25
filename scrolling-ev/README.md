@@ -38,3 +38,19 @@ User requests archiving every project turn, not only major research. Within this
 Permanent resume prompt: Resume from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/tree/main/scrolling-ev. Read the latest README, RESEARCH_HANDOFF.md, CATALYST_RESEARCH.md and transcript archives on main. Restore our project context and continue from the latest checkpoint. Follow the per-turn verbatim archive and GitHub verification protocol. Do not restart completed research. Apply my next instruction.
 
 Before switching chats: Checkpoint this chat to GitHub, including all accessible unsaved messages verbatim and the latest project state. Verify the files before I switch.
+
+## Final chat-switch checkpoint — 2026-11-25
+The latest three-recipe comparison above remains current project state; no actual crafts or new market observations have been reported. Engine v1.0 unchanged. Next chat: read README, RESEARCH_HANDOFF.md, CATALYST_RESEARCH.md, and the transcript archive index below; prioritize recent findings over superseded recommendations. Exclude Shoes Jump. Refresh HeneFM inputs and outputs when requested, do not treat old material prices or hypothetical market capture as observed current facts. Follow per-turn archival protocol.
+
+### Expanded transcript archive index
+- [Original partial conversation](transcripts/2026-11-25-partial-verbatim.md)
+- [Original sales rows, 12 tiers](transcripts/2026-11-25-henefm-sales-excerpts.txt)
+- [Prior continuation exchange](transcripts/2026-11-25-continuation.md)
+- [Crafting and liquidation replies](transcripts/2026-11-25-checkpoint-backfill.md)
+- [Three updated market-analysis replies](transcripts/2026-11-25-market-analysis-backfill.md)
+- [Gloves Crit listing rows](transcripts/2026-11-25-henefm-listings-gloves.txt)
+- [Earring LUK listing rows](transcripts/2026-11-25-henefm-listings-luk.txt)
+- [Shoes Speed listing rows](transcripts/2026-11-25-henefm-listings-speed.txt)
+- [Final checkpoint exchange](transcripts/2026-11-25-final-checkpoint.md)
+
+Archive coverage expanded, not exhaustive: manual copies may contain transcription errors. Repeated pages, site/account navigation, some page-header/chart text, interactive widgets, commentary, citation display, and earlier unavailable or omitted messages are not fully archived. Verification is repository read-back, not byte-for-byte comparison to a full original chat export. Do not publish private account information or unrelated conversations in this public repository.
