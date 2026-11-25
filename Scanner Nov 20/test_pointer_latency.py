@@ -136,6 +136,7 @@ class PointerLatencyTests(unittest.TestCase):
         tick()
         self.assertTrue(any(e=='pointer_displaced' for e,_ in s.events))
         self.assertEqual(s.moves,[(99,120,230)])
+        self.assertIn('Cursor left target',s.messages[-1])
 
     def test_watch_stops_on_unlock(self):
         a,s,tick=harness(False)

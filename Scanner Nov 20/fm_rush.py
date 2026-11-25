@@ -675,7 +675,10 @@ class FMApp:
                 recorder.marker(event,kind=kind,**fields)
         def status(text):
             # Never overwrite a newer scanner message.
-            if self.status.get()==message:self.status.set(text)
+            nonlocal message
+            if self.status.get()==message:
+                self.status.set(text)
+                message=text
         def sample():
             if self._closing or serial!=self._pointer_serial:return
             now=time.perf_counter()
@@ -703,13 +706,13 @@ class FMApp:
                 if focused and not state['focused']:
                     state['focused']=True
                     emit('pointer_game_focus',elapsed_ms=elapsed,on_target=drift==0)
-                    if drift==0:status('Game focused · pointer on target')
+                    if drift==0 and not state['drift']:status('Game focused · pointer on target')
             if now-moved_at<.180:
                 self.schedule(10,sample)
             else:
                 emit('pointer_watch_complete',elapsed_ms=elapsed,focus_observed=state['focused'],
                      displaced=state['drift'],max_outside_px=round(state['max_drift'],1),samples=state['samples'])
-                if not state['focused']:status('Pointer positioned · game focus not observed')
+                if not state['focused'] and not state['drift']:status('Pointer positioned · game focus not observed')
         self.schedule(10,sample)
 
     def align_shop_preview(self):
