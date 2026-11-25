@@ -1,6 +1,6 @@
 # FM Rush — persistent engineering instructions and handoff
 
-Last updated: 2026-11-26 (Taipei). Current desktop release: v24.55.0; browser extension: v24.54.9. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
+Last updated: 2026-11-26 (Taipei). Current desktop release: v24.55.1; browser extension: v24.54.9. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
 ## Clickable session continuation
 - [Start a new ChatGPT chat with the checkpoint prompt](https://chatgpt.com/?q=Resume%20FM%20Rush%20checkpoint%20from%20https%3A%2F%2Fgithub.com%2FMapleVibeCodin%2FMaplestoryVibeCodin%2Fblob%2Fmain%2FAGENTS.md.%20Inspect%20the%20latest%20source%20and%20run%20the%2010%20continuity%20checks%20before%20proceeding.). The web q parameter may prefill or submit depending on the client; verify the prompt and send if necessary.
@@ -8,6 +8,8 @@ Last updated: 2026-11-26 (Taipei). Current desktop release: v24.55.0; browser ex
 - Bookmark these links. They reference this live checkpoint, not a frozen version of its contents. On each future Save checkpoint, provide clickable resume links as well as a plain prompt fallback. Do not claim a new session has been tested unless actually verified.
 
 ## Resume now — authoritative short checkpoint (2026-11-26 Taipei)
+
+- **Latest published runtime: v24.55.1**, commit 2b78f6e9eadfbae09e90f2b3b43f494a6e6ad37b; extension remains v24.54.9. Supersedes the v24.55.0 runtime reference below. Screenshot `image(20261125-172014).png` confirms installed v24.55.0, locked CH04/FM19, Euphye, Frog Word Bubble Ring 175,000; the second shop row is visibly unavailable while status reads `Shop open · reading inventory`. Native 1921×950 screenshot pixel test reproduced unique shop anchor (585,256), sold flags `[false,true,false,false,false,false]`, and exactly one unwanted full-width rule at normalized OCR y=103; masking it preserved the target lettering. Screenshot alone does not establish a persistent OCR stall. v24.55.1 suppresses rules, requests Gray8 WinRT decode, surfaces worker EOF/diagnostic, backs off OCR errors, includes sold flags in digest, and reports stale capture retries. Added regression test (not executed as repository suite here); actual Windows recognition, timing, and orange overlay remain unverified. No raw screenshot committed. Preserve prior geometry, passive feed, lock and click archive. Update with pinned runtime commit and verify local title v24.55.1.
 
 - Latest verified **published source** commit: 54a358f2e2e3795a80bb91e04f654f2b1ae56200; desktop v24.55.0, browser extension v24.54.9. Read [conversation part 3](Scanner%20Nov%2020/transcripts/2026-11-26-live-auto-lock-chat-part3.md) after parts 1 and 2. Checkpoint documentation only; no runtime changes or newly executed regression tests.
 - Latest screenshot 011422 shows **local v24.54.11**, ARMED, CH18/FM8 target Steel Avarice 22,200 from ValanazOvO, actual CH25/FM6 seller AdrianBurgos with Steel Avarice 330,000. It is not a valid in-shop finder test. Deploy exact latest ref with updater and verify title v24.55.0 before diagnosing OCR. If extension is older than 24.54.9, use -UpdateExtension and reload extension plus HeneFM once.
