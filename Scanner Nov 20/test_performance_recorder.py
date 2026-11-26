@@ -1,9 +1,12 @@
 import unittest
-from performance_recorder import Transition,dark_fraction,summarize,PerformanceRecorder,summarize_transitions
+from performance_recorder import Transition,dark_fraction,summarize,PerformanceRecorder,summarize_transitions,read_integrity,atomic_report
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
 import uuid
+import json
+import queue
+from pathlib import Path
 
 class RecorderTests(unittest.TestCase):
     def test_pixels(self):
@@ -306,5 +309,128 @@ class TransitionObservationTests(unittest.TestCase):
         self.assertEqual(report['metrics']['visual_loading_ms']['median'],1000)
         self.assertEqual(report['metrics']['black_to_observed_scene_ms']['median'],200)
         self.assertEqual(len(report['attempts'][0]['transition_observations']),1)
+
+class IntegrityTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.folder=Path(self.tmp.name)
+    def event(self,seq,event,t,session='s',attempt='a',**fields):
+        row={'schema':1,'version':'24.63.4-lab5','session':session,'attempt':attempt,
+             'event':event,'t':t,**fields}
+        if seq is not None:row['seq']=seq
+        else:row['version']='24.63.4'
+        return row
+    def health(self,last,written,dropped=0,session='s',final=True):
+        return {'schema':1,'version':'24.63.4-lab5','session':session,'event':'recorder_health',
+                't':9,'last_seq':last,'written':written,'dropped':dropped,'final':final}
+    def complete(self,session='s'):
+        return [self.event(1,'lock_observed',1,session=session),self.event(2,'attempt_end',2,session=session)]
+    def write(self,name,rows,tail=b''):
+        (self.folder/name).write_bytes(b''.join(json.dumps(r).encode()+b'\n' for r in rows)+tail)
+    def read(self):
+        return read_integrity(self.folder)
+    def test_complete_finalized(self):
+        self.write('a.jsonl',self.complete()+[self.health(2,2)])
+        rows,audit=self.read()
+        self.assertEqual(len(rows),2)
+        self.assertEqual(audit['sessions'][0]['coverage'],'finalized')
+    def test_copy_deduplication(self):
+        records=self.complete()+[self.health(2,2)]
+        self.write('a.jsonl',records);self.write('b.jsonl',records)
+        rows,audit=self.read()
+        self.assertEqual(len(rows),2)
+        self.assertEqual(audit['duplicates_removed'],2)
+    def test_conflicting_sequence_quarantined(self):
+        self.write('a.jsonl',self.complete()+[self.event(2,'attempt_end',3),self.health(2,2)])
+        rows,audit=self.read()
+        self.assertEqual(rows,[])
+        self.assertIn('conflicting_sequence',audit['sessions'][0]['reasons'])
+    def test_missing_sequence_and_reported_drops(self):
+        self.write('a.jsonl',[self.event(1,'lock_observed',1),self.event(3,'attempt_end',3),self.health(3,2,1)])
+        rows,audit=self.read()
+        self.assertEqual(rows,[])
+        self.assertEqual(audit['sessions'][0]['sequence_gaps_lower_bound'],1)
+    def test_trailing_drop_detected_by_final_health(self):
+        self.write('a.jsonl',self.complete()+[self.health(3,2,1)])
+        rows,audit=self.read()
+        self.assertEqual(rows,[])
+        self.assertEqual(audit['sessions'][0]['sequence_gaps_lower_bound'],1)
+    def test_malformed_valid_json_quarantined(self):
+        self.write('a.jsonl',self.complete()+[{"event":"black_end"},self.health(2,2)])
+        rows,audit=self.read()
+        self.assertEqual(rows,[])
+        self.assertEqual(audit['invalid_lines'],1)
+    def test_truncated_tail_preserved(self):
+        self.write('a.jsonl',self.complete(),b'{"schema":')
+        before=(self.folder/'a.jsonl').read_bytes()
+        rows,audit=self.read()
+        self.assertEqual(rows,[])
+        self.assertEqual(audit['files'][0]['partial_tail'],1)
+        self.assertEqual((self.folder/'a.jsonl').read_bytes(),before)
+    def test_bad_utf8_and_nonfinite(self):
+        self.write('a.jsonl',self.complete(),b'\xff\n{"schema":NaN}\n')
+        rows,audit=self.read()
+        self.assertEqual(rows,[])
+        self.assertEqual(audit['invalid_lines'],2)
+    def test_invalid_metric_rejected(self):
+        self.write('a.jsonl',self.complete()+[self.event(3,'inventory_timing',3,total_ms=-1)])
+        rows,audit=self.read()
+        self.assertEqual(rows,[])
+        self.assertEqual(audit['invalid_lines'],1)
+    def test_open_segment_not_counted_as_completed(self):
+        self.write('a.jsonl',self.complete()+[self.event(3,'unlocked_observed',3,attempt='b')])
+        rows,audit=self.read()
+        self.assertEqual(len(rows),2)
+        self.assertEqual(audit['incomplete_segments'],1)
+        self.assertEqual(audit['excluded_segments'],1)
+        self.assertEqual(audit['sessions'][0]['coverage'],'open_or_interrupted')
+    def test_legacy_closed_remains_readable(self):
+        self.write('a.jsonl',[self.event(None,'lock_observed',1),self.event(None,'attempt_end',2)])
+        rows,audit=self.read()
+        self.assertEqual(len(rows),2)
+        self.assertEqual(audit['sessions'][0]['coverage'],'legacy_unverified')
+        self.assertIsNone(audit['sessions'][0]['sequence_gaps_lower_bound'])
+    def test_other_session_survives_corrupt_file(self):
+        self.write('bad.jsonl',self.complete('bad'),b'bad\n')
+        self.write('good.jsonl',self.complete('good')+[self.health(2,2,session='good')])
+        rows,audit=self.read()
+        self.assertEqual({r['session'] for r in rows},{'good'})
+    def test_orphan_purchase_segment_excluded(self):
+        self.write('a.jsonl',[self.event(1,'lock_observed',1),self.event(2,'purchase_outcome',2,
+            purchase_id=uuid.uuid4().hex,outcome='confirmed',confidence='verified_ui'),
+            self.event(3,'attempt_end',3),self.health(3,3)])
+        rows,audit=self.read()
+        self.assertEqual(rows,[])
+        self.assertEqual(audit['sessions'][0]['invalid_segments'],1)
+    def test_queue_full_consumes_sequence(self):
+        with patch('threading.Thread.start'):
+            r=PerformanceRecorder(self.folder)
+        r.events=queue.Queue(maxsize=1)
+        r.active='a'
+        r._emit('lock_observed',at=1)
+        r._emit('scene_observed',at=2,scene='shop')
+        self.assertEqual(r.dropped,1)
+        self.assertEqual(r.events.get_nowait()['seq'],1)
+        r._emit('attempt_end',at=3)
+        self.assertEqual(r.events.get_nowait()['seq'],3)
+    def test_atomic_failure_preserves_old_report(self):
+        p=self.folder/'report.json'
+        p.write_text('old')
+        with self.assertRaises(ValueError):atomic_report(p,{'bad':float('nan')})
+        self.assertEqual(p.read_text(),'old')
+        self.assertEqual(list(self.folder.glob('.fm-report-*.tmp')),[])
+        atomic_report(p,{'ok':True})
+        self.assertEqual(json.loads(p.read_text()),{'ok':True})
+    def test_raw_log_overwrite_refused(self):
+        p=self.folder/'raw.jsonl'
+        p.write_text('original')
+        with self.assertRaises(ValueError):atomic_report(p,{'ok':True})
+        self.assertEqual(p.read_text(),'original')
+    def test_writer_failure_isolation(self):
+        self.write('a.jsonl',self.complete()+[self.health(2,2)])
+        rows,audit=read_integrity(self.folder,failed_session='s')
+        self.assertEqual(rows,[])
+        self.assertIn('file_or_writer_error',audit['sessions'][0]['reasons'])
 
 if __name__=='__main__':unittest.main()
