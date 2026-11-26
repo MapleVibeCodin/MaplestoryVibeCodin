@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FM Rush Transition Observations — Lab 4</title>
+<style>body{font:15px system-ui,sans-serif;margin:32px auto;max-width:960px;padding:0 18px;background:#f7f8fa;color:#1e293b}h1{font-size:24px}h2{font-size:16px}.card{background:white;border:1px solid #dce3eb;padding:16px;border-radius:12px;margin:12px 0}.muted{color:#546277}table{width:100%;border-collapse:collapse}th,td{padding:10px 5px;text-align:left;border-bottom:1px solid #e7ebef}input{max-width:100%}li{margin:6px 0}</style>
+<h1>FM Rush — Transition observations</h1><p class="muted">Lab 4 · local report viewer · no network requests</p>
+<div class="card"><strong>Visual evidence only</strong><p>Black intervals and observed entrance/room state changes are not proof of portal movement, actual channel identity, or server readiness. No additional capture worker. Import a lab4 performance report; older reports without transition observations remain unavailable.</p><input id="file" type="file" accept=".json,application/json"></div><p id="status">No report loaded.</p><div id="out"></div>
+<script>
+function transitionStats(report){
+  if(!report||report.schema!==1||!Array.isArray(report.attempts)||report.attempt_count!==report.attempts.length)throw Error("Unsupported report or inconsistent segment count");
+  const groups=new Map(),seen=new Set();
+  const states=new Set(["entrance","room_confirmed",null]),changes=new Set(["entrance_to_room","room_to_entrance","same_scene","unknown"]);
+  const num=v=>typeof v==="number"&&Number.isFinite(v)&&v>=0;
+  for(const a of report.attempts){
+    if(!a||typeof a.session!=="string"||typeof a.attempt!=="string")throw Error("Invalid segment");
+    const id=JSON.stringify([a.session,a.attempt]);if(seen.has(id))throw Error("Duplicate segment");seen.add(id);
+    if(!Array.isArray(a.transition_observations))continue;
+    const v=typeof a.version==="string"?a.version:"unknown",scope=["locked","unlocked","unknown"].includes(a.scope)?a.scope:"unknown";
+    const key=JSON.stringify([v,scope]);if(!groups.has(key))groups.set(key,{label:"Recorder "+v+" / "+scope,segments:0,loading:[],readiness:[],incomplete:0,destinationMissing:0,channelHints:0,changes:{entrance_to_room:0,room_to_entrance:0,same_scene:0,unknown:0},reasons:Object.create(null)});
+    const g=groups.get(key);g.segments++;
+    for(const x of a.transition_observations){
+      if(!x||!["incomplete","loading_observed"].includes(x.status)||!states.has(x.source)||!states.has(x.destination)||!changes.has(x.scene_change)||!["unclassified","channel_shortcut_recent"].includes(x.association)||typeof x.reason!=="string")throw Error("Invalid transition observation");
+      if(x.status==="incomplete"){if(x.loading_ms!==null||x.readiness_ms!==null||x.destination!==null||x.scene_change!=="unknown")throw Error("Incomplete transition has unsupported measurements");g.incomplete++}
+      else{
+        if(!num(x.loading_ms))throw Error("Invalid loading duration");
+        g.loading.push(x.loading_ms);
+        if(x.destination===null){if(x.readiness_ms!==null||x.scene_change!=="unknown")throw Error("Missing destination with unsupported timing");g.destinationMissing++}
+        else{
+          if(!num(x.readiness_ms)||x.readiness_ms>3000)throw Error("Invalid readiness observation");
+          const expected=x.source===null?"unknown":x.source===x.destination?"same_scene":x.source==="entrance"?"entrance_to_room":"room_to_entrance";
+          if(x.scene_change!==expected)throw Error("Inconsistent scene change");
+          g.readiness.push(x.readiness_ms);
+        }
+        if(x.association==="channel_shortcut_recent")g.channelHints++;
+        g.changes[x.scene_change]++;
+      }
+      g.reasons[x.reason]=(g.reasons[x.reason]||0)+1;
+    }
+  }
+  const dist=x=>{const v=x.slice().sort((a,b)=>a-b),n=v.length;const q=p=>n?v[Math.ceil(p*n)-1]:null;return {n,p50:q(.5),p90:q(.9),p95:q(.95),p99:q(.99)}};
+  return [...groups.values()].map(g=>({...g,loading:dist(g.loading),readiness:dist(g.readiness)}));
+}
+const el=(tag,t)=>{const e=document.createElement(tag);if(t!==undefined)e.textContent=t;return e};
+const fmt=x=>x===null||x===undefined?"—":Number(x).toLocaleString(undefined,{maximumFractionDigits:1});
+function render(g){const out=document.getElementById("out");out.replaceChildren();for(const c of g){const box=el("section");box.className="card";box.append(el("h2",c.label),el("p",c.segments+" segments · "+c.incomplete+" incomplete observations · "+c.destinationMissing+" missing destination · "+c.channelHints+" channel-shortcut associations"));const table=el("table");const header=el("tr");for(const t of ["Metric (ms)","n","p50","p90","p95*","p99*"])header.append(el("th",t));table.append(header);for(const [name,x] of [["Observed black interval",c.loading],["Black end to observed scene",c.readiness]]){const tr=el("tr");for(const t of [name,fmt(x.n),fmt(x.p50),fmt(x.p90),x.n>=30?fmt(x.p95):"—",x.n>=100?fmt(x.p99):"—"])tr.append(el("td",t));table.append(tr)}box.append(table,el("p","* p95 requires n ≥ 30; p99 requires n ≥ 100."));const list=el("ul");for(const [k,v] of Object.entries(c.changes))list.append(el("li",k.replaceAll("_"," ")+": "+v));box.append(el("h2","Observed scene classifications"),list);const rs=el("ul");for(const [k,v] of Object.entries(c.reasons))rs.append(el("li",k.replaceAll("_"," ")+": "+v));box.append(el("h2","Observation outcomes"),rs);out.append(box)}}
+document.getElementById("file").addEventListener("change",async e=>{try{const f=e.target.files[0];if(!f)return;if(f.size>20000000)throw Error("File exceeds 20 MB");const d=JSON.parse((await f.text()).replace(/^\uFEFF/,""));const g=transitionStats(d);render(g);document.getElementById("status").textContent=g.length?g.length+" cohort(s) imported; metrics from observed lab report, not independently verified.":"No transition observations in this report."}catch(err){render([]);document.getElementById("status").textContent="Import rejected: "+err.message}});
+</script></html>
