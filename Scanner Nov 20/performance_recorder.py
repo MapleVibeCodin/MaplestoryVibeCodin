@@ -42,7 +42,8 @@ class RotatingLog:
     def write(self,text):
         data=text.encode('utf-8')
         if self.size and self.size+len(data)>self.limit:
-            self.out.flush();self.out.close();self.part+=1;self._open()
+            self.out.flush();os.fsync(self.out.fileno())
+            self.out.close();self.part+=1;self._open()
         self.out.write(data);self.size+=len(data)
         # One flush per batch, not one per telemetry event.
         self.out.flush()
