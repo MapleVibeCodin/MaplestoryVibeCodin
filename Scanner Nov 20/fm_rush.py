@@ -484,6 +484,7 @@ class FMApp:
             else:
                 room_confirmed=room_title_present(*title)
                 if room_confirmed:gate_state='room_confirmed'
+        self._inventory_fast_poll=room_confirmed
         inventory = self._inventory.get(hwnd,client,inventory_deal) if room_confirmed else None
         if not room_confirmed:self._inventory.reset()
         in_shop = inventory is not None
@@ -830,7 +831,7 @@ class FMApp:
             try:current=self.archive.current()
             finally:self.archive.lock.release()
             self.refresh_overlays(current)
-        self.schedule(50, self.follow_overlays)
+        self.schedule(20 if getattr(self,'_inventory_fast_poll',False) else 50, self.follow_overlays)
 
     def toggle_chase(self):
         self.set_chase_locked(not self.archive.chase_locked)
