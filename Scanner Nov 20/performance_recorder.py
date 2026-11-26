@@ -3,7 +3,6 @@ from __future__ import annotations
 import collections
 import datetime
 import json
-import math
 import os
 import tempfile
 from pathlib import Path
@@ -235,7 +234,7 @@ class PerformanceRecorder:
 
     def set_enabled(self,enabled):
         if not enabled:self.end('recording_paused')
-        self.enabled=bool(enabled)
+        self.enabled=bool(enabled) and not self.stop.is_set()
 
     def _sample(self,context):
         if not context or self.capture is None:return None
@@ -320,7 +319,8 @@ class PerformanceRecorder:
                 os.fsync(out.fileno())
         except Exception as exc:
             self.error=type(exc).__name__
-            with self._emit_lock:self.stop.set()
+            with self._emit_lock:
+                self.enabled=False;self.stop.set()
         finally:
             if self.release_capture:
                 try:self.release_capture()
@@ -336,6 +336,10 @@ class PerformanceRecorder:
         # across sessions; an interrupted last line is excluded, not fabricated.
         rows,integrity=read_integrity(self.folder,failed_session=self.session if self.error else None)
         report=summarize(rows)
+        cohorts=collections.defaultdict(list)
+        for row in rows:cohorts[row['version']].append(row)
+        report['metrics_by_recorder_version']={v:summarize(events)['metrics'] for v,events in sorted(cohorts.items())}
+        if len(cohorts)>1:report['metrics']={}
         report.update({'schema':SCHEMA,'version':VERSION,'invalid_lines':integrity['invalid_lines'],
                        'integrity':integrity,'writer_alive':self.worker.is_alive(),
                        'current_session_pending_events':self.events.qsize(),
@@ -352,7 +356,7 @@ class PerformanceRecorder:
         atomic_report(path,report)
 
 def _finite_number(value):
-    return type(value) in (int,float) and 0<=value<float('inf')
+    return type(value) in (int,float) and 0<=value<=1e15
 
 def _counter(value):
     return type(value) is int and 0<=value<=2**53-1
