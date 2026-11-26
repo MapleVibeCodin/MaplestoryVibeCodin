@@ -3,6 +3,9 @@ from __future__ import annotations
 import collections
 import datetime
 import json
+import math
+import os
+import tempfile
 from pathlib import Path
 import queue
 import statistics
@@ -11,7 +14,7 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.63.4-lab4'
+VERSION='24.63.4-lab5'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
@@ -19,6 +22,8 @@ PURCHASE_TIMEOUT=10.0 # Proposed evidence-correlation window; not a live benchma
 GATE_HEARTBEAT=1.0
 GATE_SOURCE_MAX_AGE=1.25
 GATE_READY_TIMEOUT=3.0
+HEALTH_INTERVAL=5.0
+MAX_LINE_BYTES=65536
 
 def dark_fraction(frame):
     if frame is None:return None
@@ -72,6 +77,8 @@ class PerformanceRecorder:
         self.stop=threading.Event()
         self.enabled=True
         self.error=None;self.dropped=0
+        self._emit_lock=threading.Lock()
+        self._seq=0;self._written=0
         self.active=None;self.key=None;self.scope=None;self.scene=None;self.inventory=None;self.sold=None
         self.context=None;self.last_scan_id=None
         self.last_gate_sample=None;self.last_gate_at=None
@@ -87,8 +94,13 @@ class PerformanceRecorder:
         if not self.enabled or attempt is None:return
         row={'schema':SCHEMA,'version':VERSION,'session':self.session,'attempt':attempt,
              'event':event,'t':time.perf_counter() if at is None else at,**data}
-        try:self.events.put_nowait(row)
-        except queue.Full:self.dropped+=1
+        # Assign sequence numbers in enqueue order, including rejected events.
+        # Never perform disk I/O or wait for queue space on the producer.
+        with self._emit_lock:
+            if self.stop.is_set() or not self.enabled:return
+            self._seq+=1;row['seq']=self._seq
+            try:self.events.put_nowait(row)
+            except queue.Full:self.dropped+=1
 
     def observe(self, key, deal, hwnd, client, supported, entrance, inventory, *, unlocked=False):
         """Observe existing state only; unlocked segments are not chase/purchase attempts."""
@@ -240,6 +252,14 @@ class PerformanceRecorder:
         if not self.focused(hwnd) or self.geometry(hwnd)!=client:return None
         return min(vals)>=DARK_THRESHOLD
 
+    def _health(self, out, final=False):
+        with self._emit_lock:
+            row={'schema':SCHEMA,'version':VERSION,'session':self.session,
+                 'event':'recorder_health','t':time.perf_counter(),
+                 'last_seq':self._seq,'written':self._written,'dropped':self.dropped,
+                 'final':final}
+        out.write(json.dumps(row,separators=(',',':'),allow_nan=False)+'\n')
+
     def _run(self):
         detector=Transition()
         previous=None;last_focus=None;next_sample=0
@@ -249,6 +269,8 @@ class PerformanceRecorder:
             self.folder.mkdir(parents=True,exist_ok=True)
             if self.init_capture:self.init_capture()
             with self.file.open('a',encoding='utf-8',buffering=1) as out:
+                self._health(out)
+                next_health=time.perf_counter()+HEALTH_INTERVAL
                 while not self.stop.is_set() or not self.events.empty():
                     for _ in range(128):
                         try:row=self.events.get_nowait()
@@ -256,7 +278,11 @@ class PerformanceRecorder:
                         if row['event']=='pointer_requested' and row.get('kind')=='channel':
                             last_channel[row['attempt']]=row['t']
                             if len(last_channel)>32:last_channel.pop(next(iter(last_channel)))
-                        out.write(json.dumps(row,separators=(',',':'))+'\n')
+                        out.write(json.dumps(row,separators=(',',':'),allow_nan=False)+'\n')
+                        self._written+=1
+                    if time.perf_counter()>=next_health:
+                        self._health(out)
+                        next_health=time.perf_counter()+HEALTH_INTERVAL
                     if self.stop.is_set():continue
                     now=time.perf_counter();ctx=self.context
                     if ctx!=previous:
@@ -289,7 +315,12 @@ class PerformanceRecorder:
                                     data['confidence']='visual_estimate'
                                 self._emit(event,attempt=ctx[0],at=stamp,**data)
                     self.stop.wait(.01 if ctx is not None else .10)
-        except Exception as exc:self.error=type(exc).__name__
+                self._health(out,final=True)
+                out.flush()
+                os.fsync(out.fileno())
+        except Exception as exc:
+            self.error=type(exc).__name__
+            with self._emit_lock:self.stop.set()
         finally:
             if self.release_capture:
                 try:self.release_capture()
@@ -297,20 +328,17 @@ class PerformanceRecorder:
 
     def close(self):
         self.end('scanner_closed')
-        self.stop.set()
+        with self._emit_lock:self.stop.set()
         self.worker.join(timeout=.5)
 
     def export(self,path):
         # No raw frames or identifying seller/listing fields. Read completed lines
         # across sessions; an interrupted last line is excluded, not fabricated.
-        rows=[];bad=0
-        for file in sorted(self.folder.glob('*.jsonl')):
-            with file.open(encoding='utf-8') as source:
-                for line in source:
-                    try:rows.append(json.loads(line))
-                    except ValueError:bad+=1
+        rows,integrity=read_integrity(self.folder,failed_session=self.session if self.error else None)
         report=summarize(rows)
-        report.update({'schema':SCHEMA,'version':VERSION,'invalid_lines':bad,
+        report.update({'schema':SCHEMA,'version':VERSION,'invalid_lines':integrity['invalid_lines'],
+                       'integrity':integrity,'writer_alive':self.worker.is_alive(),
+                       'current_session_pending_events':self.events.qsize(),
                        'current_session_dropped_events':self.dropped,'recorder_error':self.error,
                        'purchase_source_verified_current_session':self.purchase_source_verified,
                        'notes':['Times are scanner observations, not server confirmations.',
@@ -319,8 +347,191 @@ class PerformanceRecorder:
                                 'Black intervals use sampled pixels and may be interrupted by focus loss.',
                                 'Recent channel shortcut is an association, not proof of channel loading.',
                                 'Transition observations pair black intervals with existing scene gates; entrance/room changes are visual estimates, not proof of portal movement or actual channel identity.',
-                                'Current session may have queued events not yet flushed.']})
-        Path(path).write_text(json.dumps(report,indent=2),encoding='utf-8')
+                                'Current session may have queued events not yet flushed.',
+                                'Only complete structurally valid segments from non-quarantined sessions enter metrics; legacy coverage remains unverified.']})
+        atomic_report(path,report)
+
+def _finite_number(value):
+    return type(value) in (int,float) and 0<=value<float('inf')
+
+def _counter(value):
+    return type(value) is int and 0<=value<=2**53-1
+
+def _identifier(value):
+    return isinstance(value,str) and 0<len(value)<=256
+
+def _unique_object(pairs):
+    result={}
+    for key,value in pairs:
+        if key in result:raise ValueError('duplicate JSON key')
+        result[key]=value
+    return result
+
+def _reject_constant(value):
+    raise ValueError('non-finite JSON constant')
+
+def _valid_record(row):
+    if not isinstance(row,dict) or type(row.get('schema')) is not int or row['schema']!=1:return False
+    if not all(_identifier(row.get(k)) for k in ('version','session','event')) or not _finite_number(row.get('t')):return False
+    event=row['event']
+    if event=='recorder_health':
+        return (type(row.get('final')) is bool and all(_counter(row.get(k)) for k in ('last_seq','written','dropped'))
+                and row['written']+row['dropped']<=row['last_seq'])
+    if not _identifier(row.get('attempt')):return False
+    if 'seq' in row or row['version'].endswith('-lab5'):
+        if not _counter(row.get('seq')) or row['seq']==0:return False
+    required={'pointer_game_focus':('elapsed_ms',),'pointer_displaced':('elapsed_ms',),
+              'pointer_watch_complete':('max_outside_px',),'inventory_timing':('total_ms','row_recognition_ms'),
+              'black_end':('duration_ms',)}
+    if event=='pointer_result' and row.get('ok') is True:required[event]=('total_ms',)
+    if event in required and not all(_finite_number(row.get(k)) for k in required[event]):return False
+    if event in ('pointer_game_focus','pointer_displaced','pointer_watch_complete','pointer_result'):
+        if not _identifier(row.get('kind')):return False
+    if event=='pointer_result' and type(row.get('ok')) is not bool:return False
+    if event=='inventory_timing' and type(row.get('used_ocr')) is not bool:return False
+    if event=='transition_gate_sample' and row.get('state') not in ('entrance','room_confirmed','unclassified','unavailable'):return False
+    if event in ('scene_observed','inventory_observed'):
+        if not _identifier(row.get('scene' if event=='scene_observed' else 'state')):return False
+    if event=='black_end' and 'association' in row and not _identifier(row['association']):return False
+    if event in ('purchase_attempt','purchase_outcome'):
+        try:
+            token=row.get('purchase_id')
+            if uuid.UUID(token).version!=4 or uuid.UUID(token).hex!=token:return False
+        except (ValueError,TypeError,AttributeError):return False
+        if event=='purchase_attempt' and row.get('confidence')!='verified_ui':return False
+        if event=='purchase_outcome':
+            if row.get('outcome') not in ('confirmed','failed','canceled','unknown'):return False
+            if row.get('confidence')!=('unknown' if row['outcome']=='unknown' else 'verified_ui'):return False
+    return True
+
+def read_integrity(folder,failed_session=None):
+    """Read-only snapshot. Quarantine suspect sessions, never repair raw history."""
+    groups=collections.defaultdict(list);health=collections.defaultdict(list)
+    tainted=set();files=[];invalid=0;duplicates=0
+    for file in sorted(Path(folder).glob('*.jsonl')):
+        sessions=set();bad=0;tail=0;read_error=None
+        try:
+            with file.open('rb') as source:
+                while True:
+                    raw=source.readline(MAX_LINE_BYTES+1)
+                    if not raw:break
+                    if len(raw)>MAX_LINE_BYTES:
+                        while raw and not raw.endswith(b'\n'):raw=source.readline(MAX_LINE_BYTES+1)
+                        bad+=1;continue
+                    if not raw.endswith(b'\n'):
+                        tail+=1;break
+                    try:
+                        row=json.loads(raw,object_pairs_hook=_unique_object,parse_constant=_reject_constant)
+                        if not _valid_record(row):raise ValueError('invalid event')
+                        # Reject nested non-finite numbers including overflowed 1e999.
+                        json.dumps(row,allow_nan=False)
+                    except (ValueError,TypeError,OverflowError,RecursionError):
+                        bad+=1;continue
+                    sid=row['session'];sessions.add(sid)
+                    (health if row['event']=='recorder_health' else groups)[sid].append(row)
+        except OSError as exc:read_error=type(exc).__name__
+        # A partial tail may be an active writer; completed prior records remain
+        # readable, but no metrics are derived from any affected session.
+        if bad or tail or read_error:tainted.update(sessions)
+        invalid+=bad
+        files.append({'file':file.name,'invalid_lines':bad,'partial_tail':tail,'read_error':read_error})
+    if failed_session:tainted.add(failed_session)
+    eligible=[];summaries=[];excluded=0;incomplete=0
+    for sid in sorted(set(groups)|set(health)|tainted):
+        raw=groups[sid];checks=health[sid];reasons=[]
+        if sid in tainted:reasons.append('file_or_writer_error')
+        by_seq={};legacy=set();clean=[];versions=set();dup=0
+        for row in raw:
+            versions.add(row['version'])
+            canonical=json.dumps(row,sort_keys=True,separators=(',',':'),allow_nan=False)
+            if 'seq' in row:
+                n=row['seq']
+                if n in by_seq:
+                    if by_seq[n]!=canonical:reasons.append('conflicting_sequence')
+                    else:dup+=1
+                    continue
+                by_seq[n]=canonical
+            else:
+                if canonical in legacy:dup+=1;continue
+                legacy.add(canonical)
+            clean.append(row)
+        duplicates+=dup
+        if len(versions)>1:reasons.append('mixed_versions')
+        if legacy and (by_seq or checks):reasons.append('mixed_sequence_formats')
+        if checks and versions and any(h['version'] not in versions for h in checks):reasons.append('health_version_mismatch')
+        max_seq=max(by_seq,default=0)
+        gap=max_seq-len(by_seq) if by_seq else 0
+        finals={ (h['last_seq'],h['written'],h['dropped']) for h in checks if h['final'] }
+        if len(finals)>1:reasons.append('conflicting_final_health')
+        if finals:
+            last,written,dropped=next(iter(finals))
+            gap=max(last,max_seq)-len(by_seq)
+            if last<max_seq or written!=len(by_seq) or last!=written+dropped:reasons.append('final_count_mismatch')
+        else:dropped=None
+        if gap:reasons.append('sequence_gap')
+        if any(h['dropped']>0 for h in checks):reasons.append('reported_drops')
+        segments=collections.defaultdict(list)
+        for row in clean:segments[row['attempt']].append(row)
+        completed=[];open_count=0;invalid_segments=0
+        for events in segments.values():
+            anchors=[e for e in events if e['event'] in ('lock_observed','unlocked_observed')]
+            ends=[e for e in events if e['event']=='attempt_end']
+            if len(anchors)!=1 or len(ends)>1:
+                invalid_segments+=1;continue
+            if not ends:
+                open_count+=1;continue
+            if ends[0]['t']<anchors[0]['t']:
+                invalid_segments+=1;continue
+            # Late worker events outside the segment are not valid observations.
+            if any(e['t']<anchors[0]['t'] or e['t']>ends[0]['t'] for e in events):
+                invalid_segments+=1;continue
+            purchases={};valid=True
+            for event in sorted(events,key=lambda e:(e['t'],e.get('seq',0))):
+                k=event['event']
+                if k not in ('purchase_attempt','purchase_outcome'):continue
+                token=event['purchase_id']
+                if k=='purchase_attempt':
+                    if token in purchases:valid=False;break
+                    purchases[token]=False
+                else:
+                    if token not in purchases or purchases[token]:valid=False;break
+                    purchases[token]=True
+            if not valid:invalid_segments+=1;continue
+            completed.append(events)
+        incomplete+=open_count
+        if reasons:
+            excluded+=len(segments);included=0
+        else:
+            included=len(completed)
+            excluded+=open_count+invalid_segments
+            for events in completed:eligible.extend(events)
+        summaries.append({'session':sid,'coverage':'quarantined' if reasons else
+                          'finalized' if finals else 'open_or_interrupted' if by_seq or checks else 'legacy_unverified',
+                          'reasons':sorted(set(reasons)),'events_read':len(raw),'unique_events':len(clean),
+                          'duplicates':dup,'sequence_gaps_lower_bound':gap if by_seq or finals else None,
+                          'final_reported_drops':dropped,'segments':len(segments),'included_segments':included,
+                          'open_segments':open_count,'invalid_segments':invalid_segments})
+    return eligible,{'files':files,'sessions':summaries,'invalid_lines':invalid,
+                     'duplicates_removed':duplicates,'excluded_segments':excluded,
+                     'incomplete_segments':incomplete,'included_events':len(eligible)}
+
+def atomic_report(path,report):
+    """Same-directory temporary file; failed writes preserve the previous export."""
+    path=Path(path)
+    if path.suffix.lower()=='.jsonl':raise ValueError('report must not overwrite a raw log')
+    path.parent.mkdir(parents=True,exist_ok=True)
+    temp=None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=path.parent,
+                                         prefix='.fm-report-',suffix='.tmp',delete=False) as out:
+            temp=Path(out.name)
+            json.dump(report,out,indent=2,allow_nan=False)
+            out.flush();os.fsync(out.fileno())
+        os.replace(temp,path)
+    finally:
+        if temp is not None:
+            try:temp.unlink(missing_ok=True)
+            except OSError:pass
 
 def summarize_transitions(events):
     """Conservative offline correlation of existing visual observations.
