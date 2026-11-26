@@ -1,0 +1,24 @@
+# Performance Lab — Step 7: historical regression
+
+Candidate: Step 6 head 4f449ca5c7e5678c8945ac0ed13c74a3fdb8e36c. Isolated branch only. Production base 45e68cef9f1eb10c950bc811fec8f193ffeb62d2. Comparison verified 21 commits ahead, zero behind, only three existing source/test files modified (fm_rush.py observer hook, performance_recorder.py, test_performance_recorder.py), and six lab files added. No deletions; calibration and recognition files unchanged.
+
+## Freshly executed
+- Recovered the 109,961,754-byte private complete checkpoint ZIP and later 04-39-52 MP4 from Library. Verified CRC, exact ZIP manifest membership, all 57 SHA-256/size matches, 57 unique hashes. Decoded and verified all 42 PNG members. No raw media uploaded or modified.
+- Decoded all 11 videos, 6,979 frames total (5,777 original ten + 1,202 additional). Seven videos decoded one fewer frame than declared metadata; the original ten reproduce prior decoded lengths. This is not proof that all nominal frames are present.
+- Copied geometry module byte-identically (Git blob 9576c4afa81f3e71e1716617bafc36d9828fc566) and copied current room-title and exact-shop functions/constants into isolated offline replay. Assumed prior native 1366x768 client at desktop origin for video samples, fixed geometry anchor (568,214), every 30th decoded frame. All 199 previously sampled geometry outcomes match previous frame indices (47 positive, 152 other); prior per-clip room counts reproduced (140 positive). Old labels are calibration-dependent, not independent ground truth; no 100% recognition claim. Exact gate returned zero positives in compressed recordings. Additional video 41 samples, 13 geometry positives, 23 room positives, no independent labels. Detector-only median 1.659 ms, p95 2.567 ms across 240 samples, includes array conversion, excludes video decode/capture/OCR/live processing.
+- All 42 exact shop-anchor outcomes matched prior summary, including ten exact positives and ten geometry confirmations at those anchors. Null anchor reproduction is not independent evidence of shop absence; PNGs are not full item-identity tests.
+- Ran copied current read_integrity helper block (FNV32 79e930f4 matched retrieved source) against all five actual JSONL files extracted to a temporary directory. 2,914 events/37 segments parsed, 2,909 events/35 closed segments eligible, two open segments excluded, no malformed lines, duplicates or quarantines, all five sessions legacy_unverified. No purchase events; no success rate inferred.
+- Ran exact repository shop_position.py and test_prior_shop_placements.py with matching Git blob hashes: seven test methods passed, including all 20 rooms at both native resolutions, historical platform offsets, offscreen clipping, channel-entry groups and manual alignment. This is source-level calibration coverage, not independently labelled image geometry.
+- Raw 116-unique-PNG archive manifest (127 aliases, ten legacy expectation records) remains pinned at abac54c3d3a20f25c4b0bb416b81d983a67ddae5. Verified commit accessible and fetched one actual historical PNG with matching blob (DeathVeil.png). Current checkout does not contain that path. Remaining 116-image full corpus replay not executed; ten legacy OCR expectations are not equivalent to current inventory recognition.
+
+## Reproducibility
+See replay_historical.py, newly saved but not yet executed as a complete exact-checkout runner. It extracts only pure detector definitions via AST, uses exact checkout geometry and recorder, validates hashes, replays videos, decodes PNGs and imports logs into a temporary directory. Optional --historical-git-pngs reads pinned historical Git objects without modifying checkout and records image decode/anchor results as unscored. Run from a full checkout of this branch with OpenCV, NumPy and Pillow available:
+```powershell
+py -3 "performance-lab\replay_historical.py" --archive "C:\path\FM_Rush_2026-11-26_complete_checkpoint.zip" --extra-video "C:\path\2026-11-26 04-39-52.mp4" --prior-summary "C:\path\replay_summary.json" --historical-git-pngs --output "C:\path\FM_Rush_Lab7_Replay.json"
+py -3 "Scanner Nov 20\test_prior_shop_placements.py"
+py -3 "Scanner Nov 20\test_performance_recorder.py"
+```
+Replace example paths. Prior summary optional; original archive needed. Historical commit must exist locally (fetch pinned ref/history if missing); no production install or upload. Raw logs/media remain private.
+
+## Remaining gates
+Historical regression is partial: old 116 images, full Windows suite, OCR/item/price/hover/publish behavior, actual receipt/channel detectors, and independent frame labels remain unqualified. No claim of 100% end-to-end accuracy. Step 8 live qualification remains pending. Space connector unavailable; no Page edit. Results aggregate in step-7-results.json; no raw screenshots/videos or logs committed.
