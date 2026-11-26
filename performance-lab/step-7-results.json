@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "kind": "executed_historical_regression",
+  "candidate": "4f449ca5c7e5678c8945ac0ed13c74a3fdb8e36c",
+  "production_base": "45e68cef9f1eb10c950bc811fec8f193ffeb62d2",
+  "archive": {
+    "members": 57,
+    "sha256_matches": 57,
+    "crc_ok": true,
+    "unique_members": 57,
+    "pngs_decoded": 42,
+    "video_members": 10,
+    "log_members": 5
+  },
+  "video": {
+    "clips": 11,
+    "decoded_frames": 6979,
+    "metadata_frame_shortfall_clips": 7,
+    "samples": 240,
+    "prior_samples": 199,
+    "prior_geometry_outcomes_reproduced": 199,
+    "prior_geometry_positives": 47,
+    "prior_room_positive_count": 140,
+    "additional_unlabelled_samples": 41,
+    "additional_geometry_positives": 13,
+    "additional_room_positives": 23,
+    "exact_gate_positives": 0,
+    "detector_only_p50_ms": 1.6587395,
+    "detector_only_p95_ms": 2.56739385
+  },
+  "png": {
+    "prior_anchor_results_reproduced": 42,
+    "exact_positive": 10,
+    "geometry_at_exact_anchor_pass": 10
+  },
+  "logs": {
+    "files": 5,
+    "raw_events": 2914,
+    "raw_segments": 37,
+    "eligible_events": 2909,
+    "eligible_segments": 35,
+    "open_segments_excluded": 2,
+    "invalid_lines": 0,
+    "duplicates": 0,
+    "coverage": "legacy_unverified",
+    "purchase_events": 0
+  },
+  "calibration": {
+    "unit_methods_passed": 7,
+    "unit_methods_total": 7,
+    "rooms": 20,
+    "resolutions": [
+      "1280x720",
+      "1366x768"
+    ],
+    "source_blob": "71990ff859329c26d1d3af51459842dce3d10949",
+    "test_blob": "08cbccd4b090d5da74b8c89e660206c463ffb801"
+  },
+  "unqualified": {
+    "historical_git_pngs": 116,
+    "historical_git_paths": 127,
+    "historical_git_ref": "abac54c3d3a20f25c4b0bb416b81d983a67ddae5",
+    "full_runtime_suite": true,
+    "actual_windows": true,
+    "purchase_evidence": true,
+    "actual_channel_identity": true
+  }
+}
