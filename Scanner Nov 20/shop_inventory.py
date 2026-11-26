@@ -30,6 +30,9 @@ STEP = 40
 SCALE = 3
 CACHE_LIMIT = 64
 GATE_INTERVAL = .75
+ACTIVE_SCAN_INTERVAL = .020
+OBSERVATION_WIDTH = 220
+OBSERVATION_HEIGHT = 334
 
 def locate_shop(buffer,w,h,stride):
     """Return SELLER INFO button left highlight anchor, or None."""
@@ -67,6 +70,15 @@ def _tooltip_blocked_rows_python(frame):
             if consecutive>=3:
                 blocked.add(row);break
     return set(range(min(blocked),max(blocked)+1)) if blocked else set()
+
+def crop_observation(frame,left,top,width,height):
+    """Extract exact native BGR pixels, excluding source stride padding."""
+    if frame is None:return None
+    buf,w,h,stride=frame
+    if (stride<w*3 or len(buf)!=stride*h or min(left,top)<0 or min(width,height)<=0
+            or left+width>w or top+height>h):return None
+    data=b''.join(buf[y*stride+left*3:y*stride+(left+width)*3] for y in range(top,top+height))
+    return data,width,height,width*3
 
 def tooltip_blocked_rows(frame):
     """Equivalent native-array implementation, with original Python fallback."""
@@ -211,6 +223,28 @@ def pick_rows(lines, unavailable, seller, item, price, *, buy_step=0):
     if wrong_price:return [],'Item found · displayed price differs'
     if price_unknown:return [],'Item found · price not verified'
     return [],'Target not visible · scroll manually'
+
+
+def locate_exact_name(lines, unavailable, item, blocked):
+    """An advisory location only: one exact, complete, active non-scroll name.
+    Never mark a truncated name, an obscured row, sold stock or a duplicate.
+    """
+    target=normalized(item)
+    if not target or 'scroll' in target:return []
+    groups=[[] for _ in range(ROWS)]
+    for line in lines:
+        y=float(line.get('y',-100))/SCALE
+        if 28<=y<28+ROWS*STEP:
+            row=int((y-28)//STEP)
+            if y-(28+row*STEP)<19:groups[row].append(str(line.get('text','')).strip())
+    names=[normalized(' '.join(group)) for group in groups]
+    matches=[i for i,name in enumerate(names) if name==target]
+    # An ellipsized competing name is ambiguous even when one exact line exists.
+    if any(name.endswith(('...','…')) and len(name.rstrip('.…').strip())>=12
+           and target.startswith(name.rstrip('.…').strip()) for name in names):return []
+    if len(matches)!=1:return []
+    row=matches[0]
+    return [(row,'ROW_CHECK')] if row not in blocked and not unavailable[row] else []
 
 
 def sold_row_mask(frame, row):
@@ -555,7 +589,7 @@ class ShopInventoryTracker:
                 self._latest={'status':'Shop open · waiting for fresh verification','hits':[]}
                 self._digest=None;self._observed_at=None
             if not self._closed and not self._busy and now>=self._next:
-                self._busy=True;self._next=now+.05
+                self._busy=True;self._next=now+ACTIVE_SCAN_INTERVAL
                 self._jobs.put_nowait(self._key)
             return self._latest
     def _publish(self,key,result,digest=None):
@@ -564,11 +598,20 @@ class ShopInventoryTracker:
                 self._latest=result;self._digest=digest;self._observed_at=time.monotonic()
     def _find_anchor(self,client):
         """Learn one anchor per client resolution; use a tiny fixed pixel gate."""
+        self._observation=None
         x,y,w,h=client
         size=(w,h)
         cached=self._anchors.get(size)
         if cached is not None:
             ax,ay=cached
+            left,top=ax-140,ay-1
+            if left>=0 and top>=0 and left+OBSERVATION_WIDTH<=w and top+OBSERVATION_HEIGHT<=h:
+                observation=capture_client((x+left,y+top,OBSERVATION_WIDTH,OBSERVATION_HEIGHT),allow_crop=True)
+                gate=crop_observation(observation,135,1,85,53)
+                if gate is not None:
+                    self._observation=(tuple(client),cached,observation)
+                    return cached if locate_shop(*gate)==(5,0) else None
+                return None
             gx,gy=ax-5,ay
             if gx>=0 and gy>=0 and gx+85<=w and gy+53<=h:
                 gate=capture_client((x+gx,y+gy,85,53),allow_crop=True)
@@ -597,8 +640,22 @@ class ShopInventoryTracker:
         ax,ay=anchor
         left,top=ax-140,ay-1
         if left<0 or top<0 or left+GEOMETRY_WIDTH>w or top+GEOMETRY_HEIGHT>h:return None
-        frame=capture_client((x+left,y+top,GEOMETRY_WIDTH,GEOMETRY_HEIGHT),allow_crop=True)
+        observation=getattr(self,'_observation',None)
+        if observation is not None and observation[:2]==(tuple(client),anchor):
+            frame=crop_observation(observation[2],0,0,GEOMETRY_WIDTH,GEOMETRY_HEIGHT)
+        else:
+            frame=capture_client((x+left,y+top,GEOMETRY_WIDTH,GEOMETRY_HEIGHT),allow_crop=True)
         return anchor if geometry_present(frame) else None
+
+    def _inventory_frame(self,client,anchor):
+        observation=getattr(self,'_observation',None)
+        self._observation=None
+        if observation is not None and observation[:2]==(tuple(client),anchor):
+            frame=crop_observation(observation[2],0,71,204,263)
+            if frame is not None:return frame
+        x,y,_,_=client
+        ax,ay=anchor
+        return capture_client((x+ax-140,y+ay+70,204,263),allow_crop=True)
 
     def _scan(self,key):
         started=time.perf_counter()
@@ -607,6 +664,7 @@ class ShopInventoryTracker:
                 if self._key!=key:return
             _,client,_,seller,item,price,buy_step,_=key
             x,y,w,h=client
+            self._observation=None
             anchor=self._find_anchor(client)
             geometry=anchor is None
             if geometry:anchor=self._find_geometry_anchor(client)
@@ -623,7 +681,7 @@ class ShopInventoryTracker:
                 existing=self._latest if self._key==key else None
                 prev_digest=self._digest if self._key==key else None
             if existing is None:self._publish(key,{'status':'Shop open · verifying visible rows','hits':[]})
-            frame=capture_client((x+left,y+top,204,263),allow_crop=True)
+            frame=self._inventory_frame(client,anchor)
             if not frame:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             blocked=tooltip_blocked_rows(frame)
@@ -652,6 +710,11 @@ class ShopInventoryTracker:
                 if self._key!=key:return
             self._ocr_failures=0
             hits,status=pick_rows(lines,unavailable,None,item,price,buy_step=buy_step)
+            # The user wants the item location even when its price differs or
+            # is unreadable. Keep exact-price green and scroll rules unchanged.
+            if not hits and status in ('Item found · displayed price differs','Item found · price not verified'):
+                hits=locate_exact_name(lines,unavailable,item,blocked)
+                if hits:status='Exact item name · price not verified'
             used_sold_retry=False
             if not hits and not strict:
                 # Primary OCR misses on faded text must not be the sole cached verdict.
@@ -678,11 +741,12 @@ class ShopInventoryTracker:
                         self._scroll_checks[check_key]=True
                         while len(self._scroll_checks)>512:self._scroll_checks.popitem(last=False)
                 if not checked:hits=[];status='Scroll text not independently confirmed'
+            self._observation=None
             confirmed=self._find_anchor(client)
             if confirmed!=anchor:
                 if not geometry or confirmed is not None or self._find_geometry_anchor(client)!=anchor:
                     self._publish(key,None);return
-            frame_after=capture_client((x+left,y+top,204,263),allow_crop=True)
+            frame_after=self._inventory_frame(client,anchor)
             if not frame_after:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             after_blocked=tooltip_blocked_rows(frame_after)
