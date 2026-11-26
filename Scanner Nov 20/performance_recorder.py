@@ -11,11 +11,14 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.63.4-lab3'
+VERSION='24.63.4-lab4'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
 PURCHASE_TIMEOUT=10.0 # Proposed evidence-correlation window; not a live benchmark.
+GATE_HEARTBEAT=1.0
+GATE_SOURCE_MAX_AGE=1.25
+GATE_READY_TIMEOUT=3.0
 
 def dark_fraction(frame):
     if frame is None:return None
@@ -71,6 +74,7 @@ class PerformanceRecorder:
         self.error=None;self.dropped=0
         self.active=None;self.key=None;self.scope=None;self.scene=None;self.inventory=None;self.sold=None
         self.context=None;self.last_scan_id=None
+        self.last_gate_sample=None;self.last_gate_at=None
         # Fail closed until a passive, independently validated receipt source exists.
         self.purchase_source_verified=bool(purchase_source_verified)
         self.purchase_pending=None
@@ -189,6 +193,20 @@ class PerformanceRecorder:
         self._finish_purchase(kind,'explicit_ui_result')
         return True
 
+    def observe_gate(self, state, client_size=None):
+        """Reuse existing GUI gate state only; no capture or new recognition."""
+        if not self.enabled or self.active is None:return
+        # Every state change is retained; stable observed state gets a bounded
+        # heartbeat so the offline reducer never assumes an arbitrarily old scene.
+        if self.context is None:state='unavailable'
+        elif state not in ('entrance','room_confirmed'):state='unclassified'
+        now=time.perf_counter()
+        if state==self.last_gate_sample and self.last_gate_at is not None and now-self.last_gate_at<GATE_HEARTBEAT:return
+        self.last_gate_sample=state;self.last_gate_at=now
+        self._emit('transition_gate_sample',at=now,state=state,
+                   client_size=list(client_size) if client_size is not None else None,
+                   confidence='existing_detector' if state in ('entrance','room_confirmed') else 'unknown')
+
     def marker(self,event,at=None,**data):
         # Late pointer/watch callbacks belong to the locked workflow, not an
         # unlocked observation segment. Only the existing scanner gate is shared.
@@ -201,6 +219,7 @@ class PerformanceRecorder:
         self.purchase_seen.clear()
         if self.active is not None:self._emit('attempt_end',reason=reason,outcome='unknown')
         self.active=None;self.key=None;self.scope=None;self.scene=None;self.inventory=None;self.sold=None;self.context=None;self.last_scan_id=None
+        self.last_gate_sample=None;self.last_gate_at=None
 
     def set_enabled(self,enabled):
         if not enabled:self.end('recording_paused')
@@ -260,6 +279,8 @@ class PerformanceRecorder:
                                 self._emit('sampling_available' if valid else 'sampling_gap',
                                            attempt=ctx[0],at=at,confidence='observed')
                                 last_focus=valid
+                            if valid and detector.dark_at is not None and detector.last is not None and at-detector.last>.25:
+                                self._emit('black_interrupted',attempt=ctx[0],at=at,confidence='unknown',reason='sample_gap')
                             for event,stamp,data in detector.observe(at,dark):
                                 if event=='black_end':
                                     started=stamp-data['duration_ms']/1000
@@ -297,8 +318,77 @@ class PerformanceRecorder:
                                 'Unlocked observation segments are not lock attempts; no target means no inventory recognition.',
                                 'Black intervals use sampled pixels and may be interrupted by focus loss.',
                                 'Recent channel shortcut is an association, not proof of channel loading.',
+                                'Transition observations pair black intervals with existing scene gates; entrance/room changes are visual estimates, not proof of portal movement or actual channel identity.',
                                 'Current session may have queued events not yet flushed.']})
         Path(path).write_text(json.dumps(report,indent=2),encoding='utf-8')
+
+def summarize_transitions(events):
+    """Conservative offline correlation of existing visual observations.
+    A transition is never proof of an actual channel change or portal use.
+    Incomplete/interrupted loading and missing destination are explicit.
+    """
+    result=[];source=None;pending=None;ready=None
+    known={'entrance','room_confirmed'}
+    def number(x):
+        return isinstance(x,(int,float)) and not isinstance(x,bool) and 0<=x<float('inf')
+    def finish_pending(reason):
+        nonlocal pending
+        if pending is None:return
+        result.append({'status':'incomplete','reason':reason,'source':pending[1],
+                       'destination':None,'loading_ms':None,'readiness_ms':None,
+                       'association':'unclassified','scene_change':'unknown'})
+        pending=None
+    def finish_ready(reason):
+        nonlocal ready
+        if ready is None:return
+        ready['reason']=reason
+        result.append(ready);ready=None
+    for e in sorted(events,key=lambda row:row['t']):
+        t=e['t'];kind=e['event']
+        if ready is not None and t-ready['end_t']>GATE_READY_TIMEOUT:finish_ready('destination_timeout')
+        if kind=='transition_gate_sample':
+            state=e.get('state')
+            if state=='unavailable':
+                finish_pending('observation_gap');finish_ready('observation_gap')
+                source=None;continue
+            if state not in known:
+                source=None;continue
+            if ready is not None and t>=ready['end_t']:
+                ready['destination']=state
+                ready['readiness_ms']=round((t-ready['end_t'])*1000,1)
+                old=ready['source']
+                ready['scene_change']=('same_scene' if old==state else
+                    'entrance_to_room' if old=='entrance' and state=='room_confirmed' else
+                    'room_to_entrance' if old=='room_confirmed' and state=='entrance' else 'unknown')
+                finish_ready('destination_observed')
+            source=(state,t)
+        elif kind in ('sampling_gap','black_interrupted','attempt_end'):
+            finish_pending('segment_ended' if kind=='attempt_end' else 'observation_gap')
+            finish_ready('segment_ended' if kind=='attempt_end' else 'observation_gap')
+            source=None
+        elif kind=='black_start':
+            finish_pending('superseded');finish_ready('next_loading')
+            scene=source[0] if source and 0<=t-source[1]<=GATE_SOURCE_MAX_AGE else None
+            pending=(t,scene);source=None
+        elif kind=='black_end':
+            if pending is None:
+                finish_ready('unpaired_black_end')
+                result.append({'status':'incomplete','reason':'unpaired_black_end','source':None,
+                               'destination':None,'loading_ms':None,'readiness_ms':None,
+                               'association':'unclassified','scene_change':'unknown'})
+                source=None;continue
+            start,scene=pending
+            d=e.get('duration_ms')
+            if not number(d) or t<start or abs(d-(t-start)*1000)>1:
+                finish_pending('duration_mismatch');source=None;continue
+            pending=None;source=None
+            ready={'status':'loading_observed','reason':None,'source':scene,'destination':None,
+                   'loading_ms':d,'readiness_ms':None,'end_t':t,
+                   'association':'channel_shortcut_recent' if e.get('association')=='channel_shortcut_recent' else 'unclassified',
+                   'scene_change':'unknown'}
+    finish_pending('missing_black_end');finish_ready('destination_unobserved')
+    for row in result:row.pop('end_t',None)
+    return result
 
 def summarize(rows):
     attempts=collections.defaultdict(list)
@@ -341,8 +431,13 @@ def summarize(rows):
             else:continue
             if label not in first and elapsed is not None:
                 first.add(label);metrics[label].append(elapsed)
+        transitions=summarize_transitions(events)
+        for transition in transitions:
+            if transition['loading_ms'] is not None:metrics['visual_loading_ms'].append(transition['loading_ms'])
+            if transition['readiness_ms'] is not None:metrics['black_to_observed_scene_ms'].append(transition['readiness_ms'])
         result.append({'attempt':aid,'session':session,'version':events[0]['version'],
-                       'scope':scope,'outcome':'unknown','timeline':timeline})
+                       'scope':scope,'outcome':'unknown','timeline':timeline,
+                       'transition_observations':transitions})
     def distribution(values):
         v=sorted(values);idx=lambda p:v[min(len(v)-1,max(0,int((len(v)-1)*p+.5)))]
         return {'n':len(v),'min':v[0],'median':statistics.median(v),'p90':idx(.9),'max':v[-1]}
