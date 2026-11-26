@@ -1,5 +1,5 @@
 import unittest
-from performance_recorder import Transition,dark_fraction,summarize,PerformanceRecorder
+from performance_recorder import Transition,dark_fraction,summarize,PerformanceRecorder,summarize_transitions
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -228,5 +228,83 @@ class PurchaseEvidenceTests(unittest.TestCase):
         self.r.observe('a',SimpleNamespace(cc=1,fm=2,sold=True),1,self.client,True,False,
                        {'status':'sold / unavailable','hits':[]},unlocked=True)
         self.assertEqual(self.events(),[])
+
+class TransitionObservationTests(unittest.TestCase):
+    @staticmethod
+    def gate(t,state):
+        return {'t':t,'event':'transition_gate_sample','state':state}
+    @staticmethod
+    def start(t):
+        return {'t':t,'event':'black_start'}
+    @staticmethod
+    def end(t,d=1000,association='unclassified'):
+        return {'t':t,'event':'black_end','duration_ms':d,'association':association}
+    def test_entrance_to_room_visual_only(self):
+        r=summarize_transitions([self.gate(0,'entrance'),self.start(.5),self.end(1.5),self.gate(1.6,'room_confirmed')])
+        self.assertEqual(len(r),1)
+        self.assertEqual(r[0]['scene_change'],'entrance_to_room')
+        self.assertEqual(r[0]['loading_ms'],1000)
+        self.assertEqual(r[0]['readiness_ms'],100)
+        self.assertNotIn('channel',r[0])
+    def test_room_to_entrance(self):
+        r=summarize_transitions([self.gate(0,'room_confirmed'),self.start(.5),self.end(1.5),self.gate(2,'entrance')])
+        self.assertEqual(r[0]['scene_change'],'room_to_entrance')
+    def test_shortcut_hint_not_channel_confirmation(self):
+        r=summarize_transitions([self.gate(0,'room_confirmed'),self.start(.5),
+             self.end(1.5,association='channel_shortcut_recent'),self.gate(2,'room_confirmed')])
+        self.assertEqual(r[0]['association'],'channel_shortcut_recent')
+        self.assertEqual(r[0]['scene_change'],'same_scene')
+    def test_old_source_not_assumed(self):
+        r=summarize_transitions([self.gate(0,'entrance'),self.start(2),self.end(3),self.gate(3.1,'room_confirmed')])
+        self.assertIsNone(r[0]['source'])
+        self.assertEqual(r[0]['scene_change'],'unknown')
+    def test_unclassified_invalidates_source(self):
+        r=summarize_transitions([self.gate(0,'entrance'),self.gate(.2,'unclassified'),self.start(.5),
+                                 self.end(1.5),self.gate(2,'room_confirmed')])
+        self.assertEqual(r[0]['scene_change'],'unknown')
+    def test_focus_gap_interrupts(self):
+        r=summarize_transitions([self.gate(0,'entrance'),self.start(.5),{'event':'sampling_gap','t':1},
+                                 self.end(1.5),self.gate(2,'room_confirmed')])
+        self.assertTrue(all(x['status']=='incomplete' and x['loading_ms'] is None for x in r))
+    def test_no_destination_preserves_loading(self):
+        r=summarize_transitions([self.start(.5),self.end(1.5),{'event':'attempt_end','t':2}])
+        self.assertEqual(r[0]['loading_ms'],1000)
+        self.assertIsNone(r[0]['readiness_ms'])
+    def test_late_destination_not_associated(self):
+        r=summarize_transitions([self.start(.5),self.end(1.5),self.gate(5,'room_confirmed')])
+        self.assertIsNone(r[0]['destination'])
+        self.assertEqual(r[0]['reason'],'destination_timeout')
+    def test_bad_duration_rejected(self):
+        r=summarize_transitions([self.start(.5),self.end(1.5,200)])
+        self.assertEqual(r[0]['reason'],'duration_mismatch')
+        self.assertIsNone(r[0]['loading_ms'])
+    def test_missing_start_and_end(self):
+        r=summarize_transitions([self.end(1),self.start(2)])
+        self.assertEqual([x['reason'] for x in r],['unpaired_black_end','missing_black_end'])
+    def test_next_loading_cannot_supply_previous_destination(self):
+        r=summarize_transitions([self.start(.5),self.end(1.5),self.start(2),self.end(3),self.gate(3.1,'room_confirmed')])
+        self.assertIsNone(r[0]['destination'])
+        self.assertEqual(r[1]['destination'],'room_confirmed')
+    def test_gate_heartbeat_and_focus_invalidation(self):
+        with TemporaryDirectory() as tmp:
+            with patch('threading.Thread.start'):
+                r=PerformanceRecorder(tmp)
+            r.observe(None,None,1,(0,0,1366,768),True,False,None,unlocked=True)
+            with patch('performance_recorder.time.perf_counter',side_effect=[1,1.1,2.1,2.2]):
+                r.observe_gate('entrance',(1366,768))
+                r.observe_gate('entrance',(1366,768))
+                r.observe_gate('entrance',(1366,768))
+                r.context=None
+                r.observe_gate('entrance',(1366,768))
+            events=[x for x in r.events.queue if x['event']=='transition_gate_sample']
+            self.assertEqual([x['state'] for x in events],['entrance','entrance','unavailable'])
+    def test_export_transition_fields(self):
+        base={'session':'s','attempt':'a','version':'24.63.4-lab4','schema':1}
+        rows=[dict(base,**x) for x in [{'t':0,'event':'unlocked_observed'},self.gate(.1,'entrance'),
+              self.start(.5),self.end(1.5),self.gate(1.7,'room_confirmed')]]
+        report=summarize(rows)
+        self.assertEqual(report['metrics']['visual_loading_ms']['median'],1000)
+        self.assertEqual(report['metrics']['black_to_observed_scene_ms']['median'],200)
+        self.assertEqual(len(report['attempts'][0]['transition_observations']),1)
 
 if __name__=='__main__':unittest.main()
