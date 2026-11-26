@@ -122,3 +122,57 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(ocr.calls,2)
         self.assertEqual([x['text'] for x in second[0]],
                          ['Seller','Item0','Item1','New item','Item3','Item4','Item5'])
+
+
+class OCRCleanupTests(unittest.TestCase):
+    def make_worker(self):
+        import subprocess,sys
+        from unittest.mock import patch
+        from shop_inventory import WindowsOCR
+        popen=subprocess.Popen
+        code="import sys,json\nfor line in sys.stdin:\n print(json.dumps({'ok':True,'lines':[]}),flush=True)"
+        worker=WindowsOCR()
+        self.addCleanup(worker.shutdown)
+        patcher=patch('shop_inventory.subprocess.Popen',side_effect=lambda *a,**kw:popen([sys.executable,'-u','-c',code],**kw))
+        patcher.start();self.addCleanup(patcher.stop)
+        return worker
+
+    def test_shutdown_reaps_real_child_and_closes_pipes(self):
+        worker=self.make_worker();worker.start()
+        proc=worker.proc;reader=worker._reader
+        self.assertEqual(worker.recognize(b'synthetic'),[])
+        self.assertTrue(worker.shutdown())
+        self.assertIsNotNone(proc.poll())
+        self.assertTrue(proc.stdin.closed);self.assertTrue(proc.stdout.closed)
+        self.assertFalse(reader.is_alive());self.assertIsNone(worker.proc)
+        self.assertTrue(worker.shutdown())
+        with self.assertRaisesRegex(RuntimeError,'closed'):worker.start()
+
+    def test_restart_reaps_previous_child_and_isolates_responses(self):
+        worker=self.make_worker();worker.start()
+        old=worker.proc;old_queue=worker.responses
+        self.assertTrue(worker.close(expected=old))
+        worker.start();new=worker.proc
+        self.assertIsNot(new,old);self.assertIsNot(worker.responses,old_queue)
+        self.assertIsNotNone(old.poll())
+        self.assertTrue(worker.close(expected=old))
+        self.assertIs(worker.proc,new)
+        self.assertEqual(worker.recognize(b'synthetic'),[])
+
+    def test_already_exited_child_is_reaped_before_restart(self):
+        worker=self.make_worker();worker.start()
+        old=worker.proc;old.terminate();old.wait(timeout=3)
+        worker.start()
+        self.assertIsNot(worker.proc,old)
+        self.assertTrue(old.stdin.closed);self.assertTrue(old.stdout.closed)
+
+    def test_tracker_shutdown_joins_inventory_worker(self):
+        from unittest.mock import patch
+        from shop_inventory import WindowsOCR,ShopInventoryTracker
+        with patch.object(WindowsOCR,'start',return_value=None):
+            tracker=ShopInventoryTracker()
+            self.addCleanup(tracker.close)
+            self.assertTrue(tracker.close())
+            self.assertFalse(tracker._worker.is_alive())
+            self.assertTrue(tracker._ocr._shutdown)
+
