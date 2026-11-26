@@ -3,6 +3,7 @@ from performance_recorder import Transition,dark_fraction,summarize,PerformanceR
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
+import uuid
 
 class RecorderTests(unittest.TestCase):
     def test_pixels(self):
@@ -155,5 +156,77 @@ class UnlockedRecorderTests(unittest.TestCase):
         self.observe()
         self.observe()
         self.assertFalse(any(x['event']=='inventory_observed' for x in self.rows()))
+
+class PurchaseEvidenceTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        with patch('threading.Thread.start'):
+            self.r=PerformanceRecorder(self.tmp.name,purchase_source_verified=True)
+        self.client=(0,0,1366,768)
+        self.r.observe(None,None,1,self.client,True,False,None,unlocked=True)
+        self.segment=self.r.active
+        self.token=uuid.uuid4().hex
+    def observe(self,kind,token=None,segment=None):
+        return self.r.observe_purchase(kind,token or self.token,segment=segment or self.segment)
+    def events(self):
+        return [x for x in list(self.r.events.queue) if x['event'].startswith('purchase_')]
+    def test_source_disabled(self):
+        self.r.purchase_source_verified=False
+        self.assertFalse(self.observe('submitted'))
+        self.assertEqual(self.events(),[])
+    def test_confirmation_needs_submission(self):
+        self.assertFalse(self.observe('confirmed'))
+        self.assertEqual(self.events(),[])
+    def test_confirmed_once(self):
+        self.assertTrue(self.observe('submitted'))
+        self.assertFalse(self.observe('submitted'))
+        self.assertTrue(self.observe('confirmed'))
+        self.assertFalse(self.observe('confirmed'))
+        self.assertEqual([e['event'] for e in self.events()],['purchase_attempt','purchase_outcome'])
+        self.assertEqual(self.events()[-1]['outcome'],'confirmed')
+    def test_explicit_failure(self):
+        self.assertTrue(self.observe('submitted'))
+        self.assertTrue(self.observe('failed'))
+        self.assertEqual(self.events()[-1]['outcome'],'failed')
+    def test_canceled_separate(self):
+        self.observe('submitted')
+        self.observe('canceled')
+        self.assertEqual(self.events()[-1]['outcome'],'canceled')
+    def test_focus_gap_unknown(self):
+        self.observe('submitted')
+        self.r.observe(None,None,1,self.client,False,False,None,unlocked=True)
+        self.assertEqual(self.events()[-1]['outcome'],'unknown')
+        self.assertEqual(self.events()[-1]['reason'],'focus_gap')
+        self.assertFalse(self.observe('confirmed'))
+    def test_timeout_unknown(self):
+        self.observe('submitted')
+        with patch('performance_recorder.time.perf_counter',return_value=self.r.purchase_pending[2]+11):
+            self.assertFalse(self.observe('confirmed'))
+        self.assertEqual(self.events()[-1]['reason'],'receipt_timeout')
+    def test_segment_change_unknown(self):
+        self.observe('submitted')
+        self.r.end('scope_change')
+        self.assertEqual(self.events()[-1]['outcome'],'unknown')
+        self.assertFalse(self.observe('confirmed'))
+    def test_wrong_segment_and_token_rejected(self):
+        self.assertFalse(self.observe('submitted',segment='wrong'))
+        self.assertFalse(self.observe('submitted',token='not-a-token'))
+        self.observe('submitted')
+        self.assertFalse(self.observe('confirmed',token=uuid.uuid4().hex))
+        self.assertEqual(len(self.events()),1)
+    def test_superseded_unknown(self):
+        self.observe('submitted')
+        token2=uuid.uuid4().hex
+        self.assertTrue(self.observe('submitted',token=token2))
+        self.assertEqual(self.events()[1]['outcome'],'unknown')
+        self.assertFalse(self.observe('confirmed'))
+        self.assertTrue(self.observe('confirmed',token=token2))
+    def test_sold_and_generic_marker_not_purchase(self):
+        self.r.marker('purchase_attempt',purchase_id=self.token)
+        self.r.marker('purchase_outcome',purchase_id=self.token,outcome='confirmed')
+        self.r.observe('a',SimpleNamespace(cc=1,fm=2,sold=True),1,self.client,True,False,
+                       {'status':'sold / unavailable','hits':[]},unlocked=True)
+        self.assertEqual(self.events(),[])
 
 if __name__=='__main__':unittest.main()
