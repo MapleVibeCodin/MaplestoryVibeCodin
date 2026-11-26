@@ -11,10 +11,11 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.63.4-lab2'
+VERSION='24.63.4-lab3'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
+PURCHASE_TIMEOUT=10.0 # Proposed evidence-correlation window; not a live benchmark.
 
 def dark_fraction(frame):
     if frame is None:return None
@@ -58,7 +59,7 @@ class Transition:
 
 class PerformanceRecorder:
     def __init__(self, folder, *, capture=None, focused=None, geometry=None, point_window=None,
-                 init_capture=None, release_capture=None):
+                 init_capture=None, release_capture=None, purchase_source_verified=False):
         self.folder=Path(folder)
         self.session=uuid.uuid4().hex
         self.file=self.folder/(self.session+'.jsonl')
@@ -70,6 +71,10 @@ class PerformanceRecorder:
         self.error=None;self.dropped=0
         self.active=None;self.key=None;self.scope=None;self.scene=None;self.inventory=None;self.sold=None
         self.context=None;self.last_scan_id=None
+        # Fail closed until a passive, independently validated receipt source exists.
+        self.purchase_source_verified=bool(purchase_source_verified)
+        self.purchase_pending=None
+        self.purchase_seen=set()
         self.worker=threading.Thread(target=self._run,name='FM-performance',daemon=True)
         self.worker.start()
 
@@ -102,6 +107,7 @@ class PerformanceRecorder:
                 self._emit('unlocked_observed',target_present=deal is not None,**fields)
         # Context is one immutable reference, atomically replaced by GUI thread.
         self.context=(self.active,hwnd,tuple(client)) if supported and hwnd is not None and client is not None else None
+        self._expire_purchase('focus_gap' if self.context is None else None)
         # No feed outcome is inferred when the user has not selected a listing.
         if deal is not None and self.sold!=deal.sold:
             self.sold=deal.sold
@@ -141,13 +147,58 @@ class PerformanceRecorder:
                 self._emit('inventory_observed',state=state,confidence='detector')
         else:self.inventory=None
 
+    def _finish_purchase(self, outcome, reason, at=None):
+        pending=self.purchase_pending
+        if pending is None:return
+        pid,segment,started=pending
+        stamp=time.perf_counter() if at is None else at
+        self.purchase_pending=None
+        self._emit('purchase_outcome',attempt=segment,at=stamp,purchase_id=pid,
+                   outcome=outcome,reason=reason,duration_ms=round(max(0,stamp-started)*1000,1),
+                   confidence='verified_ui' if outcome in ('confirmed','failed','canceled') else 'unknown')
+
+    def _expire_purchase(self, reason=None):
+        if self.purchase_pending is None:return
+        if reason is None and time.perf_counter()-self.purchase_pending[2]>=PURCHASE_TIMEOUT:
+            reason='receipt_timeout'
+        if reason is not None:self._finish_purchase('unknown',reason)
+
+    def observe_purchase(self, kind, token, *, segment):
+        """Internal passive receipt-source contract; no clicks, key hooks, or raw text.
+        Only a qualified visible-UI detector may call this method. A submitted
+        purchase must precede its explicit result; listing/sold status is not evidence.
+        Token is an opaque UUID4 per observed submission, never an item/account ID.
+        """
+        if not self.purchase_source_verified or not self.enabled or self.context is None:return False
+        if segment!=self.active or self.context[0]!=segment:return False
+        if kind not in ('submitted','confirmed','failed','canceled'):return False
+        try:
+            parsed=uuid.UUID(token)
+            if parsed.version!=4 or parsed.hex!=token:return False
+        except (ValueError,TypeError,AttributeError):return False
+        self._expire_purchase()
+        if kind=='submitted':
+            if token in self.purchase_seen or len(self.purchase_seen)>=4096:return False
+            self._finish_purchase('unknown','superseded')
+            self.purchase_seen.add(token)
+            stamp=time.perf_counter()
+            self.purchase_pending=(token,segment,stamp)
+            self._emit('purchase_attempt',at=stamp,purchase_id=token,confidence='verified_ui')
+            return True
+        if self.purchase_pending is None or self.purchase_pending[:2]!=(token,segment):return False
+        self._finish_purchase(kind,'explicit_ui_result')
+        return True
+
     def marker(self,event,at=None,**data):
         # Late pointer/watch callbacks belong to the locked workflow, not an
         # unlocked observation segment. Only the existing scanner gate is shared.
+        if event.startswith('purchase_'):return # use the evidence contract only
         if self.scope=='unlocked' and event!='scanner_gate':return
         self._emit(event,at=at,**data)
 
     def end(self,reason):
+        self._expire_purchase('segment_ended')
+        self.purchase_seen.clear()
         if self.active is not None:self._emit('attempt_end',reason=reason,outcome='unknown')
         self.active=None;self.key=None;self.scope=None;self.scene=None;self.inventory=None;self.sold=None;self.context=None;self.last_scan_id=None
 
@@ -240,8 +291,9 @@ class PerformanceRecorder:
         report=summarize(rows)
         report.update({'schema':SCHEMA,'version':VERSION,'invalid_lines':bad,
                        'current_session_dropped_events':self.dropped,'recorder_error':self.error,
+                       'purchase_source_verified_current_session':self.purchase_source_verified,
                        'notes':['Times are scanner observations, not server confirmations.',
-                                'No purchase success or movement key recording; outcome unknown.',
+                                'Purchase outcomes require a validated visible-UI submission and receipt; current app has no qualified source. No movement keys recorded.',
                                 'Unlocked observation segments are not lock attempts; no target means no inventory recognition.',
                                 'Black intervals use sampled pixels and may be interrupted by focus loss.',
                                 'Recent channel shortcut is an association, not proof of channel loading.',
