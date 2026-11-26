@@ -1,0 +1,8 @@
+# Step 9 — isolated speed candidate
+Base: 763578e3f7ca68ff820ac4d5533fa1eeccbf57d9. Runtime change 1d790f2d3cf3da84a90fd74515c3f6bc0ecfb4a7; differential tests e0dbceb2258c9340d211b661f5f53952398c45b0. No production merge/install; all historical files, calibration and prior backup remain intact.
+
+Optional NumPy vectorization of tooltip run detection and monochrome OCR preparation. Original Python functions preserved as fallback. Exact thresholds, PNG scale/encoding, row grouping, sold/selected masks, fingerprints, OCR, current pixel confirmation and strict match rules unchanged. No game input or added network calls.
+
+Executed offline differential benchmark using copied original and candidate functions, 26 actual shop screenshot crops (10 archive anchors and 16 newer captures) plus 14 synthetic frames. All 40 tooltip results agreed and all 160 PNG/availability results were byte-identical across four section/contrast/prefix configurations. Median tooltip 5.368 -> 0.248 ms (21.63x); preprocessing 5.032 -> 1.615 ms (3.12x). These are isolated component measurements on the execution host, not Windows live capture/OCR/highlight timings. Exact committed module and new Windows tests have not yet been executed. Prior 174 Windows tests apply to the earlier cleanup build only.
+
+Next: make a separate worktree, verify NumPy availability, run new test_speed_equivalence.py, launch with equivalent settings/calibrations, compare actual live total_ms and row_recognition_ms to the earlier lab build for comparable cold/cached, tooltip/sold, normal and strict-scroll scenarios. No 2x end-to-end claim until matched Windows evidence. Do not overwrite existing checkout or delete raw logs; no raw private images in GitHub.
