@@ -1,0 +1,3 @@
+# Windows OCR cleanup verification
+
+User-provided PowerShell output confirms checkout 5e394e92c56cd046bfbfcb9f1ae9d2bbe0e2f3a3 and `py -3 -X tracemalloc=5 -W always::ResourceWarning -m unittest discover -s <lab checkout>/Scanner Nov 20 -p test_*.py` completed 174 tests in 13.788 seconds, OK. No ResourceWarning appeared. The four new cleanup tests and existing 170 tests passed. This resolves the warnings in the tested suite, not proof of every real WinRT lifecycle scenario. Production remains unchanged. Live passive capture/recognition latency, process overhead, channel identity and purchase evidence remain unqualified. Historical image decode and prior benchmark evidence are documented separately.
