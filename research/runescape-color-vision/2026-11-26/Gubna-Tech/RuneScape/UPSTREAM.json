@@ -1,0 +1,23 @@
+{
+  "repository": "Gubna-Tech/RuneScape",
+  "commit": "2aeca7025ed3ff7b8520732d4db293d9026746ff",
+  "stars": 44,
+  "license": "MIT",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha": "0394143aba0a2c2860c1c3d862082f2527058473",
+      "url": "https://github.com/Gubna-Tech/RuneScape/blob/2aeca7025ed3ff7b8520732d4db293d9026746ff/LICENSE"
+    },
+    {
+      "path": "Templates/Color/Color Detection Script Template.ahk",
+      "sha": "e8d98e09315e56ba5927071aea36c008556ed535",
+      "url": "https://github.com/Gubna-Tech/RuneScape/blob/2aeca7025ed3ff7b8520732d4db293d9026746ff/Templates/Color/Color Detection Script Template.ahk"
+    },
+    {
+      "path": "Templates/MultiColor/Multi Color Detection Script Template.ahk",
+      "sha": "bd7b7e53d7236ac39cfc8878bcac234a2cad6626",
+      "url": "https://github.com/Gubna-Tech/RuneScape/blob/2aeca7025ed3ff7b8520732d4db293d9026746ff/Templates/MultiColor/Multi Color Detection Script Template.ahk"
+    }
+  ]
+}

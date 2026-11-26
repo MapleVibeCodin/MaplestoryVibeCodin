@@ -1,0 +1,28 @@
+{
+  "repository": "Villavu/Simba",
+  "commit": "2591bfe12142b71d370d08f89bf08c5edc95aeaf",
+  "stars": 279,
+  "license": "GPL-3.0",
+  "files": [
+    {
+      "path": "COPYING",
+      "sha": "94a9ed024d3859793618152ea559a168bbcbb5e2",
+      "url": "https://github.com/Villavu/Simba/blob/2591bfe12142b71d370d08f89bf08c5edc95aeaf/COPYING"
+    },
+    {
+      "path": "Source/simba.finder_color.pas",
+      "sha": "2a45ff47833a0f915632d20f77779582a18a0206",
+      "url": "https://github.com/Villavu/Simba/blob/2591bfe12142b71d370d08f89bf08c5edc95aeaf/Source/simba.finder_color.pas"
+    },
+    {
+      "path": "Source/simba.finder_image.pas",
+      "sha": "f022600511edc1ed9d2782966c96624b86cb21b4",
+      "url": "https://github.com/Villavu/Simba/blob/2591bfe12142b71d370d08f89bf08c5edc95aeaf/Source/simba.finder_image.pas"
+    },
+    {
+      "path": "Source/simba.pixelocr.pas",
+      "sha": "f4ac1a50e68806df70fa83d7b03c62cdcc01bbc9",
+      "url": "https://github.com/Villavu/Simba/blob/2591bfe12142b71d370d08f89bf08c5edc95aeaf/Source/simba.pixelocr.pas"
+    }
+  ]
+}

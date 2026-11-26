@@ -1,0 +1,33 @@
+{
+  "repository": "Villavu/SRL-Development",
+  "commit": "f1319a3e7e77fe8739d4682b69de127a821f2242",
+  "stars": 35,
+  "license": "GPL-3.0",
+  "files": [
+    {
+      "path": "LICENCE",
+      "sha": "94a9ed024d3859793618152ea559a168bbcbb5e2",
+      "url": "https://github.com/Villavu/SRL-Development/blob/f1319a3e7e77fe8739d4682b69de127a821f2242/LICENCE"
+    },
+    {
+      "path": "osr/itemfinder/itemfinder.simba",
+      "sha": "3cd6b0e34403881c95281c3fc58b370aaf450774",
+      "url": "https://github.com/Villavu/SRL-Development/blob/f1319a3e7e77fe8739d4682b69de127a821f2242/osr/itemfinder/itemfinder.simba"
+    },
+    {
+      "path": "osr/ocr.simba",
+      "sha": "f0f5ff13593fbefcd265f9345d4b237fbb5fc432",
+      "url": "https://github.com/Villavu/SRL-Development/blob/f1319a3e7e77fe8739d4682b69de127a821f2242/osr/ocr.simba"
+    },
+    {
+      "path": "utils/color.simba",
+      "sha": "97754ace27bc602acabc92ae9ab158b145f23b55",
+      "url": "https://github.com/Villavu/SRL-Development/blob/f1319a3e7e77fe8739d4682b69de127a821f2242/utils/color.simba"
+    },
+    {
+      "path": "utils/pixelshift.simba",
+      "sha": "f425c7ccaa05e996aa030d2090236ec368be4570",
+      "url": "https://github.com/Villavu/SRL-Development/blob/f1319a3e7e77fe8739d4682b69de127a821f2242/utils/pixelshift.simba"
+    }
+  ]
+}

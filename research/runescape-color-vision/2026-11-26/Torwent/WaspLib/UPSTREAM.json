@@ -1,0 +1,28 @@
+{
+  "repository": "Torwent/WaspLib",
+  "commit": "54a4a6b494c46e1dea2e34b54d65ad3e10c61a0d",
+  "stars": 43,
+  "license": "GPL-3.0",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha": "e62ec04cdeece724caeeeeaeb6ae1f6af1bb6b9a",
+      "url": "https://github.com/Torwent/WaspLib/blob/54a4a6b494c46e1dea2e34b54d65ad3e10c61a0d/LICENSE"
+    },
+    {
+      "path": "main/finders/itemfinder/itemfinder.simba",
+      "sha": "1bc3c7ebc18bd127a7eeadd49e73715cd64119a9",
+      "url": "https://github.com/Torwent/WaspLib/blob/54a4a6b494c46e1dea2e34b54d65ad3e10c61a0d/main/finders/itemfinder/itemfinder.simba"
+    },
+    {
+      "path": "utils/color.simba",
+      "sha": "ee97901e59d99a17398e64e9c14cb318beca69c7",
+      "url": "https://github.com/Torwent/WaspLib/blob/54a4a6b494c46e1dea2e34b54d65ad3e10c61a0d/utils/color.simba"
+    },
+    {
+      "path": "utils/pixelshift.simba",
+      "sha": "0820e321dd3bbd4e63a7e3ea4ea06fbaa4c34735",
+      "url": "https://github.com/Torwent/WaspLib/blob/54a4a6b494c46e1dea2e34b54d65ad3e10c61a0d/utils/pixelshift.simba"
+    }
+  ]
+}

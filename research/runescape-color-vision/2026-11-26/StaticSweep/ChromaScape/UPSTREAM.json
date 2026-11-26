@@ -1,0 +1,28 @@
+{
+  "repository": "StaticSweep/ChromaScape",
+  "commit": "5ea3b995f5d13e19c592a6399973fe7dadb5e656",
+  "stars": 63,
+  "license": "GPL-3.0",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha": "f288702d2fa16d3cdf0035b15a9fcbc552cd88e7",
+      "url": "https://github.com/StaticSweep/ChromaScape/blob/5ea3b995f5d13e19c592a6399973fe7dadb5e656/LICENSE"
+    },
+    {
+      "path": "src/main/java/com/chromascape/utils/core/screen/topology/ColourContours.java",
+      "sha": "8bf69acf5500f64dd41fe0ed10bdc8d29a186888",
+      "url": "https://github.com/StaticSweep/ChromaScape/blob/5ea3b995f5d13e19c592a6399973fe7dadb5e656/src/main/java/com/chromascape/utils/core/screen/topology/ColourContours.java"
+    },
+    {
+      "path": "src/main/java/com/chromascape/utils/core/screen/topology/TemplateMatching.java",
+      "sha": "d2bf5107d2468dc6e8f9d27b38ad3638d5f2fd4b",
+      "url": "https://github.com/StaticSweep/ChromaScape/blob/5ea3b995f5d13e19c592a6399973fe7dadb5e656/src/main/java/com/chromascape/utils/core/screen/topology/TemplateMatching.java"
+    },
+    {
+      "path": "src/main/java/com/chromascape/utils/domain/ocr/Ocr.java",
+      "sha": "5b36be74905f9cedd7dc1c064e50c17948d8b03f",
+      "url": "https://github.com/StaticSweep/ChromaScape/blob/5ea3b995f5d13e19c592a6399973fe7dadb5e656/src/main/java/com/chromascape/utils/domain/ocr/Ocr.java"
+    }
+  ]
+}
