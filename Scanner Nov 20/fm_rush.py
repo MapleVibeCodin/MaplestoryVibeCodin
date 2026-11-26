@@ -506,6 +506,7 @@ class FMApp:
             recorder.observe(current[0] if inventory_deal or deal else None,
                              deal if deal is not None else inventory_deal,hwnd,client,
                              focused,in_entrance,inventory,unlocked=deal is None)
+            recorder.observe_gate('entrance' if in_entrance else gate_state, client[2:] if client else None)
             marker=(getattr(recorder,'active',None), 'entrance' if in_entrance else gate_state)
             if marker!=getattr(self,'_last_gate_marker',None):
                 self._last_gate_marker=marker
