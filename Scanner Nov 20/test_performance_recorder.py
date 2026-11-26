@@ -441,9 +441,12 @@ class OverheadTests(unittest.TestCase):
                 log.write('{"a":1}\n{"a":2}\n')
                 log.write('{"a":3}\n')
                 log.write('{"a":4}\n')
-            files=sorted(Path(tmp).glob('*.jsonl'))
-            self.assertEqual(len(files),2)
-            self.assertEqual(b''.join(p.read_bytes() for p in files[::-1]),b'{"a":1}\n{"a":2}\n{"a":3}\n{"a":4}\n')
+            # Verify named parts explicitly; pathlib ordering differs by platform.
+            part=path.with_name('session.part0001.jsonl')
+            self.assertEqual(set(Path(tmp).glob('*.jsonl')),{path,part})
+            self.assertEqual(path.read_bytes(),b'{"a":1}\n{"a":2}\n')
+            self.assertEqual(part.read_bytes(),b'{"a":3}\n{"a":4}\n')
+            self.assertEqual(path.read_bytes()+part.read_bytes(),b'{"a":1}\n{"a":2}\n{"a":3}\n{"a":4}\n')
     def test_existing_history_never_overwritten(self):
         with TemporaryDirectory() as tmp:
             path=Path(tmp)/'session.jsonl'
