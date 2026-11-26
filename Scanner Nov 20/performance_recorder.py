@@ -11,7 +11,7 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.63.4'
+VERSION='24.63.4-lab2'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
@@ -68,7 +68,7 @@ class PerformanceRecorder:
         self.stop=threading.Event()
         self.enabled=True
         self.error=None;self.dropped=0
-        self.active=None;self.key=None;self.scene=None;self.inventory=None;self.sold=None
+        self.active=None;self.key=None;self.scope=None;self.scene=None;self.inventory=None;self.sold=None
         self.context=None;self.last_scan_id=None
         self.worker=threading.Thread(target=self._run,name='FM-performance',daemon=True)
         self.worker.start()
@@ -81,23 +81,32 @@ class PerformanceRecorder:
         try:self.events.put_nowait(row)
         except queue.Full:self.dropped+=1
 
-    def observe(self, key, deal, hwnd, client, supported, entrance, inventory):
+    def observe(self, key, deal, hwnd, client, supported, entrance, inventory, *, unlocked=False):
+        """Observe existing state only; unlocked segments are not chase/purchase attempts."""
         if not self.enabled:return
-        if key!=self.key:
-            self.end('lock_changed_or_released')
-            if key is not None:
-                self.active=uuid.uuid4().hex
-                self.key=key
-                self._emit('lock_observed',cc=deal.cc,fm=deal.fm,
-                           utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                           confidence='scanner_state')
-        if self.active is None:return
+        scope='unlocked' if unlocked else 'locked' if key is not None and deal is not None else None
+        if scope!=self.scope or key!=self.key:
+            self.end('observation_scope_or_target_changed')
+        if self.active is None:
+            # Do not start an unlocked segment while the game is unfocused/unavailable.
+            # Preserve legacy locked-start behavior.
+            if scope is None or (scope=='unlocked' and not supported):return
+            self.active=uuid.uuid4().hex
+            self.key=key
+            self.scope=scope
+            fields={'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    'confidence':'scanner_state'}
+            if scope=='locked':
+                self._emit('lock_observed',cc=deal.cc,fm=deal.fm,**fields)
+            else:
+                self._emit('unlocked_observed',target_present=deal is not None,**fields)
         # Context is one immutable reference, atomically replaced by GUI thread.
-        self.context=(self.active,hwnd,tuple(client)) if supported else None
-        if self.sold!=deal.sold:
+        self.context=(self.active,hwnd,tuple(client)) if supported and hwnd is not None and client is not None else None
+        # No feed outcome is inferred when the user has not selected a listing.
+        if deal is not None and self.sold!=deal.sold:
             self.sold=deal.sold
             if self.sold:self._emit('listing_unavailable',confidence='feed_observed')
-        if not supported:return
+        if self.context is None:return
         scene='shop' if inventory is not None else 'entrance' if entrance else 'unclassified'
         if scene!=self.scene:
             self.scene=scene
@@ -133,11 +142,14 @@ class PerformanceRecorder:
         else:self.inventory=None
 
     def marker(self,event,at=None,**data):
+        # Late pointer/watch callbacks belong to the locked workflow, not an
+        # unlocked observation segment. Only the existing scanner gate is shared.
+        if self.scope=='unlocked' and event!='scanner_gate':return
         self._emit(event,at=at,**data)
 
     def end(self,reason):
         if self.active is not None:self._emit('attempt_end',reason=reason,outcome='unknown')
-        self.active=None;self.key=None;self.scene=None;self.inventory=None;self.sold=None;self.context=None;self.last_scan_id=None
+        self.active=None;self.key=None;self.scope=None;self.scene=None;self.inventory=None;self.sold=None;self.context=None;self.last_scan_id=None
 
     def set_enabled(self,enabled):
         if not enabled:self.end('recording_paused')
@@ -230,6 +242,7 @@ class PerformanceRecorder:
                        'current_session_dropped_events':self.dropped,'recorder_error':self.error,
                        'notes':['Times are scanner observations, not server confirmations.',
                                 'No purchase success or movement key recording; outcome unknown.',
+                                'Unlocked observation segments are not lock attempts; no target means no inventory recognition.',
                                 'Black intervals use sampled pixels and may be interrupted by focus loss.',
                                 'Recent channel shortcut is an association, not proof of channel loading.',
                                 'Current session may have queued events not yet flushed.']})
@@ -237,12 +250,14 @@ class PerformanceRecorder:
 
 def summarize(rows):
     attempts=collections.defaultdict(list)
-    for row in rows:attempts[row['attempt']].append(row)
+    for row in rows:attempts[(row['session'],row['attempt'])].append(row)
     metrics=collections.defaultdict(list);result=[]
     pointer_counts=collections.Counter()
-    for aid,events in attempts.items():
+    for (session,aid),events in attempts.items():
         events.sort(key=lambda e:e['t'])
-        start=next((e['t'] for e in events if e['event']=='lock_observed'),None)
+        anchor=next((e for e in events if e['event'] in ('lock_observed','unlocked_observed')),None)
+        scope=('unlocked' if anchor['event']=='unlocked_observed' else 'locked') if anchor else 'unknown'
+        start=anchor['t'] if anchor else None
         first=set();timeline=[];shop_pointer=None
         for e in events:
             event=e['event'];elapsed=None if start is None else round((e['t']-start)*1000,1)
@@ -268,16 +283,20 @@ def summarize(rows):
             elif event=='scene_observed' and e.get('scene')=='shop' and shop_pointer is not None:
                 metrics['shop_pointer_to_observed_shop_ms'].append(round((e['t']-shop_pointer)*1000,1));shop_pointer=None
             if event=='scene_observed' and e.get('scene') in ('entrance','shop'):
-                label='lock_to_first_'+e['scene']+'_ms'
+                label=scope+'_to_first_'+e['scene']+'_ms' if scope!='locked' else 'lock_to_first_'+e['scene']+'_ms'
             elif event=='inventory_observed' and e.get('state') in ('unique_match','multiple_matches'):
-                label='lock_to_first_item_match_ms'
+                label='lock_to_first_item_match_ms' if scope=='locked' else scope+'_to_first_item_match_ms'
             else:continue
             if label not in first and elapsed is not None:
                 first.add(label);metrics[label].append(elapsed)
-        result.append({'attempt':aid,'session':events[0]['session'],'version':events[0]['version'],
-                       'outcome':'unknown','timeline':timeline})
+        result.append({'attempt':aid,'session':session,'version':events[0]['version'],
+                       'scope':scope,'outcome':'unknown','timeline':timeline})
     def distribution(values):
         v=sorted(values);idx=lambda p:v[min(len(v)-1,max(0,int((len(v)-1)*p+.5)))]
         return {'n':len(v),'min':v[0],'median':statistics.median(v),'p90':idx(.9),'max':v[-1]}
-    return {'attempt_count':len(result),'metrics':{k:distribution(v) for k,v in metrics.items()},
+    return {'attempt_count':len(result),
+            'locked_attempt_count':sum(a['scope']=='locked' for a in result),
+            'unlocked_segment_count':sum(a['scope']=='unlocked' for a in result),
+            'unknown_scope_count':sum(a['scope']=='unknown' for a in result),
+            'metrics':{k:distribution(v) for k,v in metrics.items()},
             'pointer_event_counts':dict(pointer_counts),'attempts':result}
