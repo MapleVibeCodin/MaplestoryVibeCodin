@@ -363,10 +363,17 @@ class WindowsOCR:
         self.proc=None
         self.responses=queue.Queue()
         self._process_lock=threading.Lock()
+        self._reader=None
+        self._shutdown=False
+        self._retiring=False
+        self.cleanup_error=None
     def start(self):
         with self._process_lock:self._start()
     def _start(self):
-        if self.proc and self.proc.poll() is None:return
+        if self._shutdown:raise RuntimeError('Windows OCR closed')
+        if self.proc is not None:
+            if not self._retiring and self.proc.poll() is None:return
+            if not self._dispose_locked():raise RuntimeError('Previous Windows OCR worker not reaped')
         self.responses=queue.Queue()
         self.proc=subprocess.Popen(['powershell.exe','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
             '-File',str(Path(__file__).with_name('SHOP_OCR.ps1'))],
@@ -376,33 +383,74 @@ class WindowsOCR:
         proc=self.proc;responses=self.responses
         def read():
             diagnostic=''
-            for line in proc.stdout:
-                try:responses.put(json.loads(line))
-                except ValueError:
-                    if line.strip():diagnostic=line.strip()[:160]
-            responses.put({'ok':False,'error':diagnostic or 'Windows OCR worker exited'})
-        threading.Thread(target=read,daemon=True).start()
+            try:
+                for line in proc.stdout:
+                    try:responses.put(json.loads(line))
+                    except ValueError:
+                        if line.strip():diagnostic=line.strip()[:160]
+            except (OSError,ValueError) as exc:
+                diagnostic=type(exc).__name__
+            finally:
+                try:proc.stdout.close()
+                except OSError:pass
+                responses.put({'ok':False,'error':diagnostic or 'Windows OCR worker exited'})
+        self._reader=threading.Thread(target=read,daemon=True,name='FM OCR stdout')
+        self._reader.start()
     def recognize(self,png):
-        self.start()
+        with self._process_lock:
+            self._start()
+            proc=self.proc;responses=self.responses
         with tempfile.TemporaryDirectory(prefix='fm_rush_ocr_') as tmp:
             path=Path(tmp)/'inventory.png';path.write_bytes(png)
-            proc=self.proc
-            if proc is None or proc.poll() is not None:raise RuntimeError('Windows OCR worker exited')
-            proc.stdin.write(json.dumps(str(path))+'\n');proc.stdin.flush()
-            try:res=self.responses.get(timeout=8)
+            if proc.poll() is not None:
+                self.close(expected=proc);raise RuntimeError('Windows OCR worker exited')
+            try:
+                proc.stdin.write(json.dumps(str(path))+'\n');proc.stdin.flush()
+            except (OSError,ValueError) as exc:
+                self.close(expected=proc);raise RuntimeError('Windows OCR pipe closed') from exc
+            try:res=responses.get(timeout=8)
             except queue.Empty:
-                self.close();raise RuntimeError('Windows OCR timed out')
+                self.close(expected=proc);raise RuntimeError('Windows OCR timed out')
             if not res.get('ok'):
-                # A handled recognition error does not require a worker restart.
-                if proc.poll() is not None:self.close()
+                if proc.poll() is not None:self.close(expected=proc)
                 raise RuntimeError(res.get('error','Windows OCR unavailable'))
             return res.get('lines',[])
-    def close(self):
+    def _dispose_locked(self):
+        proc=self.proc
+        if proc is None:return True
+        self._retiring=True
+        # Terminate first to unblock a reader or a writer; wait explicitly so
+        # Popen cannot be collected with a live child. Only kill our own child.
+        try:
+            if proc.poll() is None:
+                try:proc.terminate()
+                except OSError:
+                    if proc.poll() is None:raise
+            try:proc.wait(timeout=.5)
+            except subprocess.TimeoutExpired:
+                proc.kill();proc.wait(timeout=1)
+            if proc.stdin is not None:proc.stdin.close()
+            if self._reader is not None:
+                self._reader.join(timeout=.5)
+                if self._reader.is_alive():raise RuntimeError('OCR reader did not stop')
+            if proc.stdout is not None:proc.stdout.close()
+        except (OSError,ValueError,RuntimeError,subprocess.TimeoutExpired) as exc:
+            # Keep the process handle for a later cleanup attempt; never spawn
+            # a replacement while the old child or reader remains unresolved.
+            self.cleanup_error=type(exc).__name__
+            return False
+        self.proc=None;self._reader=None;self._retiring=False;self.cleanup_error=None
+        return True
+    def close(self,*,expected=None):
+        """Retire a worker; normal recognition errors may restart it later."""
         with self._process_lock:
-            if self.proc:
-                try:self.proc.terminate()
-                except OSError:pass
-                self.proc=None
+            if expected is not None and self.proc is not expected:return True
+            return self._dispose_locked()
+    def shutdown(self):
+        """Terminal shutdown: no late queued recognition can spawn a new child."""
+        with self._process_lock:
+            self._shutdown=True
+            return self._dispose_locked()
 
 class ShopInventoryTracker:
     def __init__(self):
@@ -421,19 +469,23 @@ class ShopInventoryTracker:
         try:
             if os.name=='nt' and not self._closed:
                 try:self._ocr.start()
-                except OSError:pass
+                except (OSError,RuntimeError):pass
             while True:
                 key=self._jobs.get()
                 if key is None or self._closed:return
                 self._scan(key)
         finally:
-            self._ocr.close();release_capture_cache()
+            try:self._ocr.shutdown()
+            finally:release_capture_cache()
     def reset(self):
         with self._lock:
             if self._key is not None:self._generation+=1
             self._key=None;self._latest=None;self._next=0;self._digest=None;self._observed_at=None
     def close(self):
-        self._closed=True;self.reset();self._jobs.put_nowait(None);self._ocr.close()
+        self._closed=True;self.reset();self._jobs.put_nowait(None)
+        cleaned=self._ocr.shutdown()
+        if threading.current_thread() is not self._worker:self._worker.join(timeout=2)
+        return cleaned and not self._worker.is_alive() and self._ocr.cleanup_error is None
     def get(self,hwnd,client,deal):
         identity=(hwnd,tuple(client),deal.listing_id,deal.ign,deal.item,deal.buy_mesos,displayed_buy_step(getattr(deal,'raw_text',''),deal.buy_mesos))
         now=time.monotonic()
