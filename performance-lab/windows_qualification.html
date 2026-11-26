@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FM Rush Lab 8 — Windows qualification</title><style>body{max-width:900px;margin:32px auto;padding:0 16px;font:16px system-ui;color:#1d2939;background:#f8fafc}section{padding:18px;background:white;border:1px solid #d6dee8;border-radius:12px;margin:16px 0}h1{font-size:24px}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:9px;border-bottom:1px solid #e4e7ec}p{line-height:1.5}</style><h1>FM Rush · Windows process overhead</h1><section><p>Choose six JSON reports from Measure-FMRushOverhead.ps1: three consecutive matched off/on pairs, with at least one reversed pair. Same process lifetime, duration, build, resolution and normal manual workload. Local processing only.</p><input id="files" type="file" multiple accept=".json,application/json"><p id="status">No reports loaded.</p></section><div id="output"></div><script>
+function evaluateWindows(reports){
+  const num=x=>typeof x==="number"&&Number.isFinite(x)&&x>=0;
+  if(!Array.isArray(reports)||reports.length!==6)throw Error("Exactly six process reports (three matched pairs) required.");
+  const sorted=[...reports].sort((a,b)=>Date.parse(a.utc)-Date.parse(b.utc));
+  const seen=new Set();const first=sorted[0];
+  for(const r of sorted){
+    if(!r||r.schema!==1||r.kind!=="windows_process_observation"||!["off","on"].includes(r.mode_label)||r.mode_verified!==false)throw Error("Unsupported process report.");
+    if(!Number.isFinite(Date.parse(r.utc))||seen.has(r.utc))throw Error("Invalid or duplicate report timestamp.");
+    seen.add(r.utc);
+    if(!Number.isSafeInteger(r.process_id)||r.process_id<=0||typeof r.process_start_utc_ticks!=="string"||!r.process_start_utc_ticks||typeof r.process_name!=="string"||!r.process_name||!Number.isSafeInteger(r.logical_processors)||r.logical_processors<1)throw Error("Invalid process identity.");
+    if(["process_id","process_start_utc_ticks","process_name","logical_processors"].some(k=>r[k]!==first[k]))throw Error("Reports must refer to the same process lifetime and logical processor count.");
+    if(!num(r.elapsed_seconds)||r.elapsed_seconds<30||r.elapsed_seconds>620||!num(r.cpu_percent_one_core)||!num(r.cpu_percent_all_logical_processors)||r.cpu_percent_all_logical_processors>101||Math.abs(r.cpu_percent_one_core/r.logical_processors-r.cpu_percent_all_logical_processors)>.01)throw Error("Invalid CPU normalization or duration.");
+    if(!Array.isArray(r.samples)||r.samples.length<20)throw Error("Insufficient memory samples.");
+    for(const s of r.samples)if(!s||!num(s.elapsed_seconds)||!num(s.private_bytes)||!num(s.working_set_bytes))throw Error("Invalid memory sample.");
+    for(const k of ["private_max_sample_bytes","working_set_max_sample_bytes"])if(!num(r[k]))throw Error("Missing memory summary.");
+    for(const k of ["io_read_transfer_bytes","io_write_transfer_bytes"])if(r[k]!==null&&!num(r[k]))throw Error("Invalid I/O counter.");
+  }
+  const pairs=[];
+  for(let i=0;i<6;i+=2){
+    const a=sorted[i],b=sorted[i+1];
+    if(a.mode_label===b.mode_label)throw Error("Adjacent measurements must be opposite modes.");
+    if(i>0&&Date.parse(a.utc)-a.elapsed_seconds*1000<Date.parse(sorted[i-1].utc)-2000)throw Error("Overlapping measurement periods.");
+    if(Date.parse(b.utc)-b.elapsed_seconds*1000<Date.parse(a.utc)-2000)throw Error("Overlapping measurement periods.");
+    const off=a.mode_label==="off"?a:b,on=a.mode_label==="on"?a:b;
+    if(Math.abs(off.elapsed_seconds-on.elapsed_seconds)>Math.max(2,.05*off.elapsed_seconds))throw Error("Pair durations differ by more than 5% or two seconds.");
+    pairs.push({order:a.mode_label+" → "+b.mode_label,
+      cpu_delta_pp:on.cpu_percent_all_logical_processors-off.cpu_percent_all_logical_processors,
+      private_peak_delta_mib:(on.private_max_sample_bytes-off.private_max_sample_bytes)/1048576,
+      working_set_peak_delta_mib:(on.working_set_max_sample_bytes-off.working_set_max_sample_bytes)/1048576,
+      write_transfer_delta_bytes_per_s:off.io_write_transfer_bytes===null||on.io_write_transfer_bytes===null?null:on.io_write_transfer_bytes/on.elapsed_seconds-off.io_write_transfer_bytes/off.elapsed_seconds});
+  }
+  if(pairs.every(p=>p.order===pairs[0].order))throw Error("Use both off→on and on→off order to reduce ordering bias.");
+  const cpu=pairs.map(p=>p.cpu_delta_pp).sort((a,b)=>a-b);
+  return {pairs,median_cpu_delta_pp:cpu[1],max_cpu_delta_pp:cpu[2],
+    cpu_threshold_met:cpu.every(v=>v<=1),
+    live_windows_qualified:false,release_approved:false,
+    limitation:"Mode labels and comparable workload are operator assertions; these measurements do not verify the recorder version, capture latency, recognition, or purchase/channel evidence."};
+}
+const el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e};
+const f=n=>n===null?"—":n.toFixed(3);
+document.getElementById("files").addEventListener("change",async e=>{const out=document.getElementById("output");out.replaceChildren();try{const files=[...e.target.files];if(files.some(x=>x.size>2000000))throw Error("Report exceeds 2 MB");const r=evaluateWindows(await Promise.all(files.map(async x=>JSON.parse((await x.text()).replace(/^\uFEFF/,"")))));document.getElementById("status").textContent="Six reports accepted. CPU threshold "+(r.cpu_threshold_met?"met":"not met")+". Release remains unqualified.";const section=el("section");section.append(el("h2","Paired process measurements"),el("p","Median normalized CPU increase: "+f(r.median_cpu_delta_pp)+" percentage points; max "+f(r.max_cpu_delta_pp)+". Proposed gate: every pair ≤ 1 pp."));const table=el("table");for(const row of [["Order","CPU Δ pp","Private peak Δ MiB","Working set peak Δ MiB","Write transfer Δ B/s"],...r.pairs.map(p=>[p.order,f(p.cpu_delta_pp),f(p.private_peak_delta_mib),f(p.working_set_peak_delta_mib),f(p.write_transfer_delta_bytes_per_s)])]){const tr=el("tr");row.forEach(x=>tr.append(el("td",x)));table.append(tr)}section.append(table,el("p",r.limitation));out.append(section)}catch(err){document.getElementById("status").textContent="Rejected: "+err.message}});
+</script></html>
