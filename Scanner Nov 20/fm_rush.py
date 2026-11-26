@@ -502,7 +502,10 @@ class FMApp:
         in_entrance = bool(scene and scene[0])
         recorder=getattr(self,'performance',None)
         if recorder is not None:
-            recorder.observe(current[0] if deal else None,deal,hwnd,client,supported,in_entrance,inventory if deal else None)
+            # Passive telemetry shares existing observations; navigation and recognition gates above are unchanged.
+            recorder.observe(current[0] if inventory_deal or deal else None,
+                             deal if deal is not None else inventory_deal,hwnd,client,
+                             focused,in_entrance,inventory,unlocked=deal is None)
             marker=(getattr(recorder,'active',None), 'entrance' if in_entrance else gate_state)
             if marker!=getattr(self,'_last_gate_marker',None):
                 self._last_gate_marker=marker
