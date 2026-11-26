@@ -1,5 +1,5 @@
 import unittest
-from performance_recorder import Transition,dark_fraction,summarize,PerformanceRecorder,summarize_transitions,read_integrity,atomic_report
+from performance_recorder import Transition,dark_fraction,summarize,PerformanceRecorder,summarize_transitions,read_integrity,atomic_report,RotatingLog
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -432,5 +432,47 @@ class IntegrityTests(unittest.TestCase):
         rows,audit=read_integrity(self.folder,failed_session='s')
         self.assertEqual(rows,[])
         self.assertIn('file_or_writer_error',audit['sessions'][0]['reasons'])
+
+class OverheadTests(unittest.TestCase):
+    def test_rotation_preserves_whole_lines_and_bytes(self):
+        with TemporaryDirectory() as tmp:
+            path=Path(tmp)/'session.jsonl'
+            with RotatingLog(path,limit=20) as log:
+                log.write('{"a":1}\n{"a":2}\n')
+                log.write('{"a":3}\n')
+                log.write('{"a":4}\n')
+            files=sorted(Path(tmp).glob('*.jsonl'))
+            self.assertEqual(len(files),2)
+            self.assertEqual(b''.join(p.read_bytes() for p in files[::-1]),b'{"a":1}\n{"a":2}\n{"a":3}\n{"a":4}\n')
+    def test_existing_history_never_overwritten(self):
+        with TemporaryDirectory() as tmp:
+            path=Path(tmp)/'session.jsonl'
+            path.write_bytes(b'original')
+            with self.assertRaises(FileExistsError):
+                with RotatingLog(path):pass
+            self.assertEqual(path.read_bytes(),b'original')
+    def test_export_limit_leaves_raw_unchanged(self):
+        with TemporaryDirectory() as tmp:
+            path=Path(tmp)/'old.jsonl';path.write_bytes(b'x'*20)
+            with patch('performance_recorder.MAX_EXPORT_BYTES',10):
+                with self.assertRaises(ValueError):read_integrity(tmp)
+            self.assertEqual(path.read_bytes(),b'x'*20)
+    def test_rotated_parts_reconcile_sequence_health(self):
+        with TemporaryDirectory() as tmp:
+            path=Path(tmp)/'s.jsonl'
+            base={'schema':1,'version':'24.63.4-lab6','session':'s'}
+            events=[dict(base,event='lock_observed',attempt='a',t=1,seq=1),
+                    dict(base,event='attempt_end',attempt='a',t=2,seq=2),
+                    dict(base,event='recorder_health',t=3,last_seq=2,written=2,dropped=0,final=True)]
+            with RotatingLog(path,limit=150) as log:
+                for row in events:log.write(json.dumps(row)+'\n')
+            rows,integrity=read_integrity(tmp)
+            self.assertEqual(len(rows),2)
+            self.assertEqual(integrity['sessions'][0]['coverage'],'finalized')
+    def test_row_limit_rejects_instead_of_partial_summary(self):
+        with TemporaryDirectory() as tmp:
+            (Path(tmp)/'a.jsonl').write_bytes(b'{}\n{}\n')
+            with patch('performance_recorder.MAX_EXPORT_ROWS',1):
+                with self.assertRaises(ValueError):read_integrity(tmp)
 
 if __name__=='__main__':unittest.main()
