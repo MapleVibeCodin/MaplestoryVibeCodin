@@ -13,7 +13,7 @@ import time
 import uuid
 
 SCHEMA=1
-VERSION='24.63.4-lab5'
+VERSION='24.63.4-lab6'
 SAMPLE_INTERVAL=.05
 DARK_THRESHOLD=.96
 PATCH=16
@@ -23,6 +23,35 @@ GATE_SOURCE_MAX_AGE=1.25
 GATE_READY_TIMEOUT=3.0
 HEALTH_INTERVAL=5.0
 MAX_LINE_BYTES=65536
+MAX_LOG_PART_BYTES=10*1024*1024
+MAX_EXPORT_BYTES=64*1024*1024
+MAX_EXPORT_ROWS=200000
+WRITE_BATCH=64
+
+class RotatingLog:
+    """Single-writer append-only parts; never delete or overwrite history."""
+    def __init__(self,path,limit=MAX_LOG_PART_BYTES):
+        self.path=Path(path);self.limit=limit;self.part=0
+        self.out=None;self.size=0
+    def _open(self):
+        path=self.path if self.part==0 else self.path.with_name(f'{self.path.stem}.part{self.part:04d}.jsonl')
+        self.out=path.open('xb')
+        self.size=0
+    def __enter__(self):
+        self._open();return self
+    def write(self,text):
+        data=text.encode('utf-8')
+        if self.size and self.size+len(data)>self.limit:
+            self.out.flush();self.out.close();self.part+=1;self._open()
+        self.out.write(data);self.size+=len(data)
+        # One flush per batch, not one per telemetry event.
+        self.out.flush()
+    def flush(self):
+        self.out.flush()
+    def fileno(self):
+        return self.out.fileno()
+    def __exit__(self,*exc):
+        if self.out is not None:self.out.close()
 
 def dark_fraction(frame):
     if frame is None:return None
@@ -267,18 +296,21 @@ class PerformanceRecorder:
         try:
             self.folder.mkdir(parents=True,exist_ok=True)
             if self.init_capture:self.init_capture()
-            with self.file.open('a',encoding='utf-8',buffering=1) as out:
+            with RotatingLog(self.file) as out:
                 self._health(out)
                 next_health=time.perf_counter()+HEALTH_INTERVAL
                 while not self.stop.is_set() or not self.events.empty():
-                    for _ in range(128):
+                    batch=[]
+                    for _ in range(WRITE_BATCH):
                         try:row=self.events.get_nowait()
                         except queue.Empty:break
                         if row['event']=='pointer_requested' and row.get('kind')=='channel':
                             last_channel[row['attempt']]=row['t']
                             if len(last_channel)>32:last_channel.pop(next(iter(last_channel)))
-                        out.write(json.dumps(row,separators=(',',':'),allow_nan=False)+'\n')
-                        self._written+=1
+                        batch.append(json.dumps(row,separators=(',',':'),allow_nan=False)+'\n')
+                    if batch:
+                        out.write(''.join(batch))
+                        self._written+=len(batch)
                     if time.perf_counter()>=next_health:
                         self._health(out)
                         next_health=time.perf_counter()+HEALTH_INTERVAL
@@ -352,7 +384,8 @@ class PerformanceRecorder:
                                 'Recent channel shortcut is an association, not proof of channel loading.',
                                 'Transition observations pair black intervals with existing scene gates; entrance/room changes are visual estimates, not proof of portal movement or actual channel identity.',
                                 'Current session may have queued events not yet flushed.',
-                                'Only complete structurally valid segments from non-quarantined sessions enter metrics; legacy coverage remains unverified.']})
+                                'Only complete structurally valid segments from non-quarantined sessions enter metrics; legacy coverage remains unverified.',
+                                'Log parts rotate near 10 MiB; all parts must be kept together. Export refuses histories above 64 MiB or 200000 input lines.']})
         atomic_report(path,report)
 
 def _finite_number(value):
@@ -382,7 +415,7 @@ def _valid_record(row):
         return (type(row.get('final')) is bool and all(_counter(row.get(k)) for k in ('last_seq','written','dropped'))
                 and row['written']+row['dropped']<=row['last_seq'])
     if not _identifier(row.get('attempt')):return False
-    if 'seq' in row or row['version'].endswith('-lab5'):
+    if 'seq' in row or row['version'].endswith(('-lab5','-lab6')):
         if not _counter(row.get('seq')) or row['seq']==0:return False
     required={'pointer_game_focus':('elapsed_ms',),'pointer_displaced':('elapsed_ms',),
               'pointer_watch_complete':('max_outside_px',),'inventory_timing':('total_ms','row_recognition_ms'),
@@ -412,15 +445,25 @@ def read_integrity(folder,failed_session=None):
     """Read-only snapshot. Quarantine suspect sessions, never repair raw history."""
     groups=collections.defaultdict(list);health=collections.defaultdict(list)
     tainted=set();files=[];invalid=0;duplicates=0
-    for file in sorted(Path(folder).glob('*.jsonl')):
+    paths=sorted(Path(folder).glob('*.jsonl'))
+    # Refuse oversized exports explicitly instead of silently omitting history.
+    try:total_bytes=sum(p.stat().st_size for p in paths)
+    except OSError as exc:raise ValueError('Cannot inspect all log files') from exc
+    if total_bytes>MAX_EXPORT_BYTES:raise ValueError('Raw history exceeds 64 MiB export limit; use a separate copied cohort folder')
+    rows_read=0;bytes_read=0
+    for file in paths:
         sessions=set();bad=0;tail=0;read_error=None
         try:
             with file.open('rb') as source:
                 while True:
                     raw=source.readline(MAX_LINE_BYTES+1)
                     if not raw:break
+                    bytes_read+=len(raw);rows_read+=1
+                    if rows_read>MAX_EXPORT_ROWS or bytes_read>MAX_EXPORT_BYTES:raise ValueError('History exceeds bounded export budget; use a separate copied cohort folder')
                     if len(raw)>MAX_LINE_BYTES:
-                        while raw and not raw.endswith(b'\n'):raw=source.readline(MAX_LINE_BYTES+1)
+                        while raw and not raw.endswith(b'\n'):
+                            raw=source.readline(MAX_LINE_BYTES+1);bytes_read+=len(raw)
+                            if bytes_read>MAX_EXPORT_BYTES:raise ValueError('History exceeds bounded export budget')
                         bad+=1;continue
                     if not raw.endswith(b'\n'):
                         tail+=1;break
