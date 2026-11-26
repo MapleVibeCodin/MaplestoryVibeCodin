@@ -14,6 +14,10 @@ import threading
 import time
 import unicodedata
 import zlib
+try:
+    import numpy as np
+except ImportError:
+    np=None
 from camera_alignment import capture_client, enable_capture_cache, release_capture_cache
 from vision_guard import parse_price_line, highlight_expired, revalidate_changed_hits
 from vision_geometry import geometry_present, conservative_hits, WIDTH as GEOMETRY_WIDTH, HEIGHT as GEOMETRY_HEIGHT
@@ -45,7 +49,7 @@ def locate_shop(buffer,w,h,stride):
             at=line.find(GREEN,at+3)
     return hits[0] if len(hits)==1 else None
 
-def tooltip_blocked_rows(frame):
+def _tooltip_blocked_rows_python(frame):
     """Identify inventory rows with broad tooltip pixels; bridge internal icon gaps."""
     buf,w,h,stride=frame
     if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:return set(range(ROWS))
@@ -62,6 +66,24 @@ def tooltip_blocked_rows(frame):
             consecutive=consecutive+1 if run>=12 else 0
             if consecutive>=3:
                 blocked.add(row);break
+    return set(range(min(blocked),max(blocked)+1)) if blocked else set()
+
+def tooltip_blocked_rows(frame):
+    """Equivalent native-array implementation, with original Python fallback."""
+    if np is None:return _tooltip_blocked_rows_python(frame)
+    buf,w,h,stride=frame
+    if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:return set(range(ROWS))
+    pixels=np.frombuffer(buf,dtype=np.uint8).reshape(h,stride)[:,:w*3].reshape(h,w,3)
+    a=pixels[26:260,40:198].astype(np.int16)
+    b,g,r=a[:,:,0],a[:,:,1],a[:,:,2]
+    purple=(b>40)&(r<145)&(g<145)&(b-r>28)&(b-g>23)
+    runs=purple[:,:147].copy()
+    for offset in range(1,12):runs &= purple[:,offset:offset+147]
+    good=runs.any(axis=1)
+    blocked=set()
+    for row in range(ROWS):
+        s=good[row*STEP:row*STEP+34]
+        if (s[:-2]&s[1:-1]&s[2:]).any():blocked.add(row)
     return set(range(min(blocked),max(blocked)+1)) if blocked else set()
 
 def tooltip_prefixes(frame, blocked):
@@ -234,7 +256,7 @@ def stable_sold_hits(hits, before, after):
     return [(i,'SOLD_CHECK') for i,mode in hits if mode in ('SOLD','SOLD_CHECK')
             and i in before and before[i]==after.get(i)]
 
-def prepare_ocr(frame, sections=None, *, threshold_delta=0, prefixes=None):
+def _prepare_ocr_python(frame, sections=None, *, threshold_delta=0, prefixes=None):
     """Create contrast-normalized 3x monochrome strip, including seller and six rows."""
     buf,w,h,stride=frame
     # Capture starts at button anchor (-140,+70). Seller is on dark blue.
@@ -275,6 +297,41 @@ def prepare_ocr(frame, sections=None, *, threshold_delta=0, prefixes=None):
     ww,hh=out_w*SCALE,out_h*SCALE
     # Standard top-down 8-bit grayscale PNG, no BMP decoder conversion.
     return encode_gray_png(ww,hh,rows),unavailable
+
+def prepare_ocr(frame, sections=None, *, threshold_delta=0, prefixes=None):
+    """Preserve exact OCR pixels; vectorize arithmetic and nearest-neighbor scaling."""
+    buf,w,h,stride=frame
+    prefixes=prefixes or {}
+    if (np is None or w<204 or h<263 or stride<w*3 or len(buf)!=stride*h
+            or not isinstance(threshold_delta,int) or abs(threshold_delta)>100
+            or any(not isinstance(v,int) or not 40<=v<=198 for v in prefixes.values())):
+        return _prepare_ocr_python(frame,sections,threshold_delta=threshold_delta,prefixes=prefixes)
+    selected=set(range(-1,ROWS)) if sections is None else set(sections)
+    pixels=np.frombuffer(buf,dtype=np.uint8).reshape(h,stride)[:,:w*3].reshape(h,w,3)
+    canvas=np.full((28+ROWS*STEP,162),255,dtype=np.uint8)
+    unavailable=[False]*ROWS
+    if -1 in selected:
+        canvas[3:16,1:81]=np.where(pixels[3:16,9:89].min(axis=2)>175-threshold_delta,0,255)
+    for row in selected & set(range(ROWS)):
+        y=23+row*STEP
+        unavailable[row]=False if row in prefixes else sold_row_mask(frame,row)
+        selected_row=row not in prefixes and selected_row_mask(frame,row)
+        native=pixels[y+3:y+37,40:198]
+        if selected_row:
+            ink=native[:,:,2].astype(np.int16)<145+threshold_delta
+        else:
+            average=native.sum(axis=2,dtype=np.uint16)//3
+            if unavailable[row]:
+                background=np.partition(average,118,axis=1)[:,118].astype(np.int16)
+                cutoff=np.clip(background-max(5,12-threshold_delta//3),0,250)
+                ink=average<cutoff[:,None]
+            else:ink=average.astype(np.int16)<145+threshold_delta
+        width=prefixes.get(row,198)-40
+        ink=ink[:,:width]
+        ink[ink.sum(axis=1)>=120]=False
+        canvas[31+row*STEP:65+row*STEP,:width]=np.where(ink,0,255)
+    scaled=canvas.repeat(SCALE,axis=0).repeat(SCALE,axis=1)
+    return encode_gray_png(162*SCALE,(28+ROWS*STEP)*SCALE,[line.tobytes() for line in scaled]),unavailable
 
 def encode_gray_png(width,height,rows):
     if len(rows)!=height or any(len(row)!=width for row in rows):
