@@ -1,9 +1,24 @@
 <!doctype html>
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FM Rush Transition Observations — Lab 4</title>
 <style>body{font:15px system-ui,sans-serif;margin:32px auto;max-width:960px;padding:0 18px;background:#f7f8fa;color:#1e293b}h1{font-size:24px}h2{font-size:16px}.card{background:white;border:1px solid #dce3eb;padding:16px;border-radius:12px;margin:12px 0}.muted{color:#546277}table{width:100%;border-collapse:collapse}th,td{padding:10px 5px;text-align:left;border-bottom:1px solid #e7ebef}input{max-width:100%}li{margin:6px 0}</style>
-<h1>FM Rush — Transition observations</h1><p class="muted">Lab 4 · local report viewer · no network requests</p>
-<div class="card"><strong>Visual evidence only</strong><p>Black intervals and observed entrance/room state changes are not proof of portal movement, actual channel identity, or server readiness. No additional capture worker. Import a lab4 performance report; older reports without transition observations remain unavailable.</p><input id="file" type="file" accept=".json,application/json"></div><p id="status">No report loaded.</p><div id="out"></div>
+<h1>FM Rush — Transition observations</h1><p class="muted">Lab 5 · local report viewer · no network requests</p>
+<div class="card"><strong>Visual evidence only</strong><p>Black intervals and observed entrance/room state changes are not proof of portal movement, actual channel identity, or server readiness. No additional capture worker. Import a lab4 or lab5 performance report; older reports without transition observations remain unavailable.</p><input id="file" type="file" accept=".json,application/json"></div><p id="status">No report loaded.</p><div id="audit"></div><div id="out"></div>
 <script>
+function integrityView(report){
+  const x=report.integrity;
+  if(x===undefined)return null;
+  const count=n=>Number.isSafeInteger(n)&&n>=0;
+  if(!x||!Array.isArray(x.sessions)||!Array.isArray(x.files)||!["invalid_lines","duplicates_removed","excluded_segments","incomplete_segments","included_events"].every(k=>count(x[k])))throw Error("Invalid integrity summary");
+  const seen=new Set();
+  for(const s of x.sessions){
+    if(!s||typeof s.session!=="string"||seen.has(s.session)||!["quarantined","finalized","open_or_interrupted","legacy_unverified"].includes(s.coverage)||!["segments","included_segments","open_segments","invalid_segments","duplicates"].every(k=>count(s[k]))||!Array.isArray(s.reasons)||!s.reasons.every(r=>typeof r==="string")||s.included_segments>s.segments||(s.coverage==="quarantined"&&s.included_segments!==0))throw Error("Invalid session integrity record");
+    seen.add(s.session);
+  }
+  if(!x.files.every(f=>f&&typeof f.file==="string"&&count(f.invalid_lines)&&count(f.partial_tail)&&(f.read_error===null||typeof f.read_error==="string")))throw Error("Invalid file integrity record");
+  const included=x.sessions.reduce((n,s)=>n+s.included_segments,0);
+  if(included!==report.attempt_count||x.sessions.reduce((n,s)=>n+s.segments-s.included_segments,0)!==x.excluded_segments)throw Error("Integrity totals disagree with report");
+  return {included,excluded:x.excluded_segments,incomplete:x.incomplete_segments,invalid:x.invalid_lines,duplicates:x.duplicates_removed,quarantined:x.sessions.filter(s=>s.coverage==="quarantined").length,partial:x.files.reduce((n,f)=>n+f.partial_tail,0),sessions:x.sessions,files:x.files};
+}
 function transitionStats(report){
   if(!report||report.schema!==1||!Array.isArray(report.attempts)||report.attempt_count!==report.attempts.length)throw Error("Unsupported report or inconsistent segment count");
   const groups=new Map(),seen=new Set();
@@ -40,6 +55,15 @@ function transitionStats(report){
 }
 const el=(tag,t)=>{const e=document.createElement(tag);if(t!==undefined)e.textContent=t;return e};
 const fmt=x=>x===null||x===undefined?"—":Number(x).toLocaleString(undefined,{maximumFractionDigits:1});
+function renderAudit(a){
+  const root=document.getElementById("audit");root.replaceChildren();
+  const box=el("section");box.className="card";box.append(el("h2","Data integrity"));
+  if(a===null){box.append(el("p","No integrity metadata in this report. Completeness is unverified."));root.append(box);return}
+  box.append(el("p",a.included+" included segments · "+a.excluded+" excluded · "+a.incomplete+" open/interrupted · "+a.quarantined+" quarantined sessions"),el("p",a.invalid+" invalid lines · "+a.partial+" partial tails · "+a.duplicates+" duplicate events removed"));
+  const list=el("ul");for(const s of a.sessions)list.append(el("li",s.session+" · "+s.coverage+" · "+s.included_segments+"/"+s.segments+" included"+(s.reasons.length?" · "+s.reasons.join(", "):"")));
+  box.append(list,el("p","Only eligible closed segments contribute to metrics. Finalized does not prove correct game recognition; legacy and open sessions have unverified tail coverage."));
+  root.append(box);
+}
 function render(g){const out=document.getElementById("out");out.replaceChildren();for(const c of g){const box=el("section");box.className="card";box.append(el("h2",c.label),el("p",c.segments+" segments · "+c.incomplete+" incomplete observations · "+c.destinationMissing+" missing destination · "+c.channelHints+" channel-shortcut associations"));const table=el("table");const header=el("tr");for(const t of ["Metric (ms)","n","p50","p90","p95*","p99*"])header.append(el("th",t));table.append(header);for(const [name,x] of [["Observed black interval",c.loading],["Black end to observed scene",c.readiness]]){const tr=el("tr");for(const t of [name,fmt(x.n),fmt(x.p50),fmt(x.p90),x.n>=30?fmt(x.p95):"—",x.n>=100?fmt(x.p99):"—"])tr.append(el("td",t));table.append(tr)}box.append(table,el("p","* p95 requires n ≥ 30; p99 requires n ≥ 100."));const list=el("ul");for(const [k,v] of Object.entries(c.changes))list.append(el("li",k.replaceAll("_"," ")+": "+v));box.append(el("h2","Observed scene classifications"),list);const rs=el("ul");for(const [k,v] of Object.entries(c.reasons))rs.append(el("li",k.replaceAll("_"," ")+": "+v));box.append(el("h2","Observation outcomes"),rs);out.append(box)}}
-document.getElementById("file").addEventListener("change",async e=>{try{const f=e.target.files[0];if(!f)return;if(f.size>20000000)throw Error("File exceeds 20 MB");const d=JSON.parse((await f.text()).replace(/^\uFEFF/,""));const g=transitionStats(d);render(g);document.getElementById("status").textContent=g.length?g.length+" cohort(s) imported; metrics from observed lab report, not independently verified.":"No transition observations in this report."}catch(err){render([]);document.getElementById("status").textContent="Import rejected: "+err.message}});
+document.getElementById("file").addEventListener("change",async e=>{try{const f=e.target.files[0];if(!f)return;if(f.size>20000000)throw Error("File exceeds 20 MB");const d=JSON.parse((await f.text()).replace(/^\uFEFF/,""));const a=integrityView(d);const g=transitionStats(d);renderAudit(a);render(g);document.getElementById("status").textContent=g.length?g.length+" cohort(s) imported; metrics from observed lab report, not independently verified.":"No transition observations in this report."}catch(err){document.getElementById("audit").replaceChildren();render([]);document.getElementById("status").textContent="Import rejected: "+err.message}});
 </script></html>
