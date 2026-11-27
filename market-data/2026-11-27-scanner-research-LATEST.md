@@ -94,3 +94,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Method 5/5 — decision-focused ensemble completed
 [Final five-method comparison](2026-11-27-method05-ensemble.md). 95 mixtures/3326 policies, selected original uniform HSMM validation+3.076s/test0; best genuine blend25% Hawkes+75% mild density HSMM +2.257/0; equal four-way0/0. None of five selected methods positive on common test. Freeze contenders; next new prospective data after21:19:37.057. No runtime edits.
+
+## Frozen prospective evaluation protocol
+[Three-contender protocol](2026-11-27-frozen-prospective-protocol.md). Original HSMM, density+historical-alert HSMM, and75% mild HSMM/25% Hawkes frozen. Evaluator and regression saved; old86-event baseline and all three results reproduced; empty/synthetic extension/prefix rejection checks passed. Await new real cumulative export after21:19:37.057; no tuning on new data. No runtime edits.
