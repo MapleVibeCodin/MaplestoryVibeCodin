@@ -203,3 +203,6 @@ Read [shop population prior](../market-data/2026-11-27-shop-density-prior.md), i
 
 ## HeneFM model comparison — method 5 of 5 completed
 Read [final ensemble comparison](../market-data/2026-11-27-method05-ensemble.md) and [shop density prior](../market-data/2026-11-27-shop-density-prior.md). 95 configurations/3326 policies, best original HSMM validation+3.076s/test0, best genuine blend+2.257/0. No positive common test time savings for any of five selected models. Freeze selected contenders, prospectively test fresh observations after21:19:37.057. Eight original datasets retained, latest2558 records. No runtime changes. Full historical continuity audit remains incomplete.
+
+## HeneFM frozen three-contender replay — ready for unseen data
+Read [frozen protocol](../market-data/2026-11-27-frozen-prospective-protocol.md). Fixed model definitions, hashes, replay and regression checks archived. Original2558 cutoff21:19:37.057 Taipei. Need next cumulative export preserving prefix; do not optimize using new test observations. No new real data supplied yet. No runtime changes; incomplete historical continuity audit and dialogue archive.
