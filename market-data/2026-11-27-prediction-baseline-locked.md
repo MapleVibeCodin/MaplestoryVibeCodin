@@ -1,0 +1,13 @@
+# Locked historical forecast and data collection requirements
+Date 2026-11-27, clock anchor 19:54:18 Taipei (11:54:18 UTC), prior export ends 19:51:01.001. User wants comparison against next 100 screenshot room/channel observations. Existing manual evidence: 522 distinct screenshot identifiers, 301 room/channel pairs, 39 channels, 4 Flips snapshots, 2 Coverage snapshots; prior audit files preserved. No new records used to fit this forecast. Method: parse 522 filename channel-room pairs in chronological order, partition consecutive equal room pairs into blocks, resample blocks uniformly using LCG seed271126, update state=(Math.imul(state,1664525)+1013904223)>>>0, select floor(state/4294967296 * blocks.length), concatenate and truncate to100. Historical holdout first422 fit last100 test: ordered pair0/100, ordered channel1/100, multiset pair overlap3/100, multiset channel overlap15/100. Not a validated route model. Exact forecast:
+1–10: 23-09,26-13,16-16,25-17,07-04,39-10,38-13,38-13,38-13,38-13
+11–20: 38-13,07-07,07-07,27-07,18-07,18-07,37-01,09-20,09-20,09-20
+21–30: 20-15,05-10,23-05,23-05,23-05,23-05,14-18,40-07,10-14,10-14
+31–40: 34-13,34-13,22-03,19-01,28-04,35-04,17-02,17-02,17-14,17-14
+41–50: 17-14,25-02,39-01,38-07,17-13,17-13,21-04,35-05,07-04,18-16
+51–60: 20-19,27-07,06-11,23-17,14-02,14-02,30-02,19-04,02-12,26-09
+61–70: 10-15,32-02,06-02,06-02,17-07,17-07,17-07,17-07,20-11,20-11
+71–80: 20-11,10-20,17-13,17-13,40-07,01-10,21-17,21-07,08-08,01-04
+81–90: 11-13,12-04,38-08,38-08,38-08,35-05,35-05,08-08,35-14,35-14
+91–100: 09-13,21-15,13-06,04-12,04-12,12-08,12-08,25-03,16-08,40-11.
+Evaluation: score first100 new unique screenshots strictly after forecast clock anchor (not unseen records from earlier gap); report ordered and multiset overlap, do not retune before scoring. Separate earlier time-only forecast anchored19:53:48: 35.5 screenshots/min,100 by19:56:37,~75 of100 interarrival gaps under400ms; timestamp-only benchmark not actual deals. Filename export time distinct from source Seen time. More useful inputs: manually observed second-resolution Seen ages with reliable local capture timestamp; stable filters and longer samples; full room coverage when available, including rooms without deals. User asks to save all as data; this file preserves derived metrics, forecast and reproducible method, not raw premium listing records or seller identities. No runtime changes, no live tracking or claimed exact scan route.
