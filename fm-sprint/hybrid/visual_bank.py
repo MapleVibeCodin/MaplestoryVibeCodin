@@ -20,11 +20,13 @@ class Review:
 
 
 class VerifiedVisualBank:
-    def __init__(self, limit=2048, conflict_limit=2048):
-        if limit < 1 or conflict_limit < 1:
-            raise ValueError('positive limits required')
+    def __init__(self, limit=2048, conflict_limit=2048, history_limit=8192):
+        if limit < 1 or conflict_limit < 1 or history_limit < limit:
+            raise ValueError('invalid bank limits')
         self.limit = limit
         self.conflict_limit = conflict_limit
+        self.history_limit = history_limit
+        self.claims = {}
         self.entries = OrderedDict()
         self.conflicts = set()
         self.disabled = False
@@ -44,8 +46,8 @@ class VerifiedVisualBank:
                 and bool(name) and not name.endswith(('...', '…'))
                 and '\ufffd' not in name and not any(ord(c) < 32 for c in review.name)
                 and 0 < len(review.name) <= 256
-                and 0 < len(review.source_id.strip()) <= 128
-                and 0 < len(review.review_id.strip()) <= 128)
+                and bool(review.source_id.strip()) and len(review.source_id) <= 128
+                and bool(review.review_id.strip()) and len(review.review_id) <= 128)
 
     def __bool__(self):
         return not self.disabled and bool(self.entries)
@@ -68,10 +70,17 @@ class VerifiedVisualBank:
                 or not self.valid_review(review)):
             return False
         existing = self.entries.get(key)
-        if existing is not None and normalized(existing.name) != normalized(review.name):
+        claim = self.claims.get(key)
+        if claim is not None and claim != normalized(review.name):
             self.invalidate(key)
             return False
-        # Keep the first independent evidence for this signature; no OCR promotion.
+        if claim is None:
+            if len(self.claims) >= self.history_limit:
+                self.disabled = True
+                self.entries.clear()
+                return False
+            self.claims[key] = normalized(review.name)
+        # Keep the first active independent evidence; no OCR promotion.
         if existing is None:
             self.entries[key] = review
         self.entries.move_to_end(key)
