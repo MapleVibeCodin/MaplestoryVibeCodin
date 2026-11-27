@@ -41,3 +41,7 @@ The 2026-11-27 chat-history searches did not recover the original assistant answ
 
 ## Resume prompt
 Resume level-50 equipment upgrades from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/tree/main/level-50-equipment-upgrades. Read README.md, research snapshots, recovered late requests, and relevant dialogue files. Reuse verified prior work; do not restart completed research. Apply latest constraints, refresh HeneFM only when needed, identify missing results, and save every new substantive turn in this folder with verified readback.
+
+
+## Superseding boot base rule — 2026-11-27
+User: "no lets only use Black Green-Lined". For subsequent equipment optimization, use Black Green-Lined Shoes exclusively as the boot base unless the user changes this instruction. Level 40, standard clean +4 DEX, +4 avoidability, 22 WDEF, no natural speed, 5 upgrade slots. Historical HeneFM clean quote 15,000 mesos; NPC recovery 4,200 assumed for surviving failed openers. Refresh clean price when needed. Speed is a valued secondary utility objective; compare speed scroll policies on this base only. Historical Lesser/Greater/Chaos inputs 15k/7k/29k: five Lesser +5 speed at 90k; Greater opener then four Lesser +7 speed at expected 10*(15k+7k)-9*4.2k+60k = 242,200; Chaos opener then four Lesser +8 speed at expected 481,100. Renewal costs not guaranteed hard-budget outcomes. Do not substitute Blue-Lined, Goni or lower-level boots. Prior comparison remains historical.
