@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 3646a64731e95e5cbbf8a561725454d27807ee3b
+          ref: 3ca447ed5c10b86b245f3f60c6bd6d7097134805
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
@@ -36,6 +36,7 @@ jobs:
           $codes+=$LASTEXITCODE
           python -m unittest discover -s fixes/FIX-011-Popup-Placement -p 'test_*.py' -v
           $codes+=$LASTEXITCODE
-          Write-Host 'Original pinned scanner suite already executed in run 45968901695; rerun separately if pinned source changes.'
+          python research/run_pinned_current_regressions.py
+          $codes+=$LASTEXITCODE
           Write-Host "Suite exit codes: $codes"
           if (@($codes | Where-Object {$_ -ne 0}).Count -gt 0) { exit 1 }
