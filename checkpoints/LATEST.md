@@ -182,3 +182,6 @@ Read [next-chat handoff](../market-data/2026-11-27-next-chat-handoff.md) and [sc
 
 ## HeneFM predictive positioning — 21:03 Taipei continuation
 Read [latest 404-observation validation](../market-data/2026-11-27-404-holdout.md), [research index](../market-data/2026-11-27-scanner-research-LATEST.md), and [raw archive](../market-data/raw/2026-11-27/README.md). Latest original2456 distinct records,404 new,261 consolidated, cutoff21:02:59.731. 81-event reconstruction verified by independent Python replay; new net -24.801s at assumed2s CC; do not deploy. Exact channel and actual time saved still primary. No duplicate data request. Previous original model weights and full travel simulator missing; historical transcript partial. Full ten-check audit not completed. No runtime edits or deletions.
+
+## HeneFM methodology reset — 21:19 Taipei
+Read [decision-focused research](../market-data/2026-11-27-decision-focused-methodology-reset.md) and [raw archive](../market-data/raw/2026-11-27/README.md). Eight originals, latest2558 unique, cutoff21:19:37.057. Continuous-state evaluation 225 policies, best no-switch; net0s on86 retrospective test events. Exact channel before desirable alert and actual seconds saved remain primary. Need true event timestamps and movement data. No runtime changes or deletions; historical transcript and full ten-check audit remain incomplete.
