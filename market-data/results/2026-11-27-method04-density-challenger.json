@@ -1,0 +1,327 @@
+{
+  "train": 889,
+  "raw": 1909,
+  "consolidated": 1237,
+  "rowCounts": [
+    309,
+    268,
+    193,
+    119
+  ],
+  "rowPerRoom": [
+    51.5,
+    44.666666666666664,
+    48.25,
+    29.75
+  ],
+  "channelGroups": [
+    250,
+    229,
+    194,
+    216
+  ],
+  "fits": [
+    {
+      "p": {
+        "name": "uniform",
+        "rank": 0,
+        "fit": false
+      },
+      "ll": -6973.042784420046,
+      "minWeight": 1,
+      "maxWeight": 1
+    },
+    {
+      "p": {
+        "name": "rank prior mild",
+        "rank": 0.25,
+        "fit": false
+      },
+      "ll": -6995.460128911344,
+      "minWeight": 0.4855510707083078,
+      "maxWeight": 1.6947397601347987
+    },
+    {
+      "p": {
+        "name": "rank prior stronger",
+        "rank": 0.6,
+        "fit": false
+      },
+      "ll": -7113.760577164824,
+      "minWeight": 0.15277351458153723,
+      "maxWeight": 3.0685380680126157
+    },
+    {
+      "p": {
+        "name": "rank plus alert proxy",
+        "rank": 0.25,
+        "fit": true
+      },
+      "ll": -6929.559053730783,
+      "minWeight": 0.426331026551402,
+      "maxWeight": 1.7611590507692858
+    }
+  ],
+  "policyCount": 141,
+  "selected": {
+    "p": {
+      "model": 0,
+      "margin": 0.04,
+      "cool": 0
+    },
+    "val": {
+      "n": 261,
+      "baseline": 560.4429993629456,
+      "policy": 557.3669996261597,
+      "net": 3.0759997367858887,
+      "earlyBase": 17,
+      "early": 18,
+      "switches": 3,
+      "gain": 2,
+      "loss": 0
+    }
+  },
+  "test": {
+    "n": 86,
+    "baseline": 196.87800192832947,
+    "policy": 196.87800192832947,
+    "net": 0,
+    "earlyBase": 1,
+    "early": 1,
+    "switches": 0,
+    "gain": 0,
+    "loss": 0
+  },
+  "byModel": [
+    {
+      "p": {
+        "name": "uniform",
+        "rank": 0,
+        "fit": false
+      },
+      "best": {
+        "p": {
+          "model": 0,
+          "margin": 0.04,
+          "cool": 0
+        },
+        "val": {
+          "n": 261,
+          "baseline": 560.4429993629456,
+          "policy": 557.3669996261597,
+          "net": 3.0759997367858887,
+          "earlyBase": 17,
+          "early": 18,
+          "switches": 3,
+          "gain": 2,
+          "loss": 0
+        }
+      },
+      "test": {
+        "n": 86,
+        "baseline": 196.87800192832947,
+        "policy": 196.87800192832947,
+        "net": 0,
+        "earlyBase": 1,
+        "early": 1,
+        "switches": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "validationScore": {
+        "n": 1624,
+        "hit": 112,
+        "logLoss": 3.2013442157883474,
+        "floor": {
+          "n": 261,
+          "dist": 177,
+          "base": 242
+        }
+      },
+      "testScore": {
+        "n": 688,
+        "hit": 58,
+        "logLoss": 3.4993680401583918,
+        "floor": {
+          "n": 86,
+          "dist": 79,
+          "base": 77
+        }
+      }
+    },
+    {
+      "p": {
+        "name": "rank prior mild",
+        "rank": 0.25,
+        "fit": false
+      },
+      "best": {
+        "p": {
+          "model": 1,
+          "margin": 0.02,
+          "cool": 0
+        },
+        "val": {
+          "n": 261,
+          "baseline": 560.4429993629456,
+          "policy": 557.3669996261597,
+          "net": 3.0759997367858887,
+          "earlyBase": 17,
+          "early": 18,
+          "switches": 4,
+          "gain": 3,
+          "loss": 1
+        }
+      },
+      "test": {
+        "n": 86,
+        "baseline": 196.87800192832947,
+        "policy": 196.87800192832947,
+        "net": 0,
+        "earlyBase": 1,
+        "early": 1,
+        "switches": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "validationScore": {
+        "n": 1624,
+        "hit": 124,
+        "logLoss": 3.1931724586907766,
+        "floor": {
+          "n": 261,
+          "dist": 171,
+          "base": 242
+        }
+      },
+      "testScore": {
+        "n": 688,
+        "hit": 33,
+        "logLoss": 3.5151968088218135,
+        "floor": {
+          "n": 86,
+          "dist": 78,
+          "base": 77
+        }
+      }
+    },
+    {
+      "p": {
+        "name": "rank prior stronger",
+        "rank": 0.6,
+        "fit": false
+      },
+      "best": {
+        "p": {
+          "model": 2,
+          "margin": 0.08,
+          "cool": 15
+        },
+        "val": {
+          "n": 261,
+          "baseline": 560.4429993629456,
+          "policy": 559.8639996051788,
+          "net": 0.5789997577667236,
+          "earlyBase": 17,
+          "early": 17,
+          "switches": 6,
+          "gain": 1,
+          "loss": 1
+        }
+      },
+      "test": {
+        "n": 86,
+        "baseline": 196.87800192832947,
+        "policy": 196.87800192832947,
+        "net": 0,
+        "earlyBase": 1,
+        "early": 1,
+        "switches": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "validationScore": {
+        "n": 1624,
+        "hit": 134,
+        "logLoss": 3.220701434960372,
+        "floor": {
+          "n": 261,
+          "dist": 180,
+          "base": 242
+        }
+      },
+      "testScore": {
+        "n": 688,
+        "hit": 49,
+        "logLoss": 3.5521332772667633,
+        "floor": {
+          "n": 86,
+          "dist": 70,
+          "base": 77
+        }
+      }
+    },
+    {
+      "p": {
+        "name": "rank plus alert proxy",
+        "rank": 0.25,
+        "fit": true
+      },
+      "best": {
+        "p": {
+          "model": 3,
+          "margin": 0.04,
+          "cool": 0
+        },
+        "val": {
+          "n": 261,
+          "baseline": 560.4429993629456,
+          "policy": 557.3669996261597,
+          "net": 3.0759997367858887,
+          "earlyBase": 17,
+          "early": 17,
+          "switches": 3,
+          "gain": 3,
+          "loss": 1
+        }
+      },
+      "test": {
+        "n": 86,
+        "baseline": 196.87800192832947,
+        "policy": 196.87800192832947,
+        "net": 0,
+        "earlyBase": 1,
+        "early": 1,
+        "switches": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "validationScore": {
+        "n": 1624,
+        "hit": 131,
+        "logLoss": 3.194386294412481,
+        "floor": {
+          "n": 261,
+          "dist": 173,
+          "base": 242
+        }
+      },
+      "testScore": {
+        "n": 688,
+        "hit": 24,
+        "logLoss": 3.5161896931725294,
+        "floor": {
+          "n": 86,
+          "dist": 78,
+          "base": 77
+        }
+      }
+    }
+  ],
+  "checks": {
+    "baselineMatch": true,
+    "uniformMatch": true,
+    "probabilityMass": true
+  },
+  "notes": "Rank prior weights illustrative, not shop counts. Channel and row soft multiplicative prior normalized mean1; rank plus alert proxy uses training-only counts shrinkage 8 pseudo-counts, counts confounded by visits and selection. No strict channel-major ordering assumed. Retrospective same split, no live timestamps, actual shop counts, movement or independent test."
+}
