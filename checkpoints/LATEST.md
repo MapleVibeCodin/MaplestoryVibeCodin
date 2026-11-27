@@ -302,3 +302,7 @@ Use exactly seven scanners and exclusively the 0,0,0,0 observation regime for mo
 ## Variable scanner count — supersedes fixed seven
 User verbatim: update the number of scanners to whateever you wANT
 [Flexible route and count research](../market-data/2026-11-27-variable-count-route-reconstruction.md). Zero-filter-only remains mandatory; seven no longer a hard constraint. Provisional research count11, seven challenger. Flexible schedules assign all3303 raw/1651 anchors, zero duplicates and no modeled anchor timing violations; 11 winner395 switches, validation46/363,test50/472 vs persistence51/472, no verified advantage or physical count. 60 count configurations, 48 path-cover and36 seven-track beam experiments archived with source. Existing circular route supported451 direct forward vs20 reverse within4–12s. No new data, no runtime edits/deletions. Historical full transcript/continuity audit incomplete.
+
+
+## Revisit-rate worker-equivalent estimate
+[Report](../market-data/2026-11-27-scanner-revisit-count.md): zero-filter3303 raw/1651 anchors, twelve sensitivity variants imply6.58–7.53 regular full-sweep worker equivalents, representative revisit828.667s. Adopt seven as working estimate, not hard physical count; prior11-track prediction challenger retained. No stable cross-channel handoff or live advance edge established. No new data/runtime changes or deletions. Historical full archive/audit incomplete.
