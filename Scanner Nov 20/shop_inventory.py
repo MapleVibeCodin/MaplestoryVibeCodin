@@ -798,6 +798,49 @@ class ShopInventoryTracker:
             digest=(left,top,sections,geometry,tuple(sorted(prefixes.items())))
             if digest==prev_digest:
                 self._publish(key,existing,digest);return
+            # 50ms target path: exact item-name recognition only. No seller,
+            # price or stats OCR; one captured frame; amber advisory highlight.
+            # Scroll targets retain the original independent contrast checks.
+            if not strict:
+                queued_at=self._request_at or started
+                shop_open_at=time.perf_counter()
+                name_start=time.perf_counter()
+                name_rows=tuple(i for i,_ in sections if i>=0)
+                names,cache_hits,cache_misses,used_name_ocr=self._name_cache.recognize(frame,name_rows,self._ocr)
+                name_end=time.perf_counter()
+                target_rows=exact_name_rows(names,item,blocked)
+                target_at=name_end if len(target_rows)==1 else None
+                fast_timing={
+                    'scan_id':started,
+                    'total_ms':round((name_end-started)*1000,2),
+                    'row_recognition_ms':round((name_end-name_start)*1000,2),
+                    'used_ocr':bool(used_name_ocr),
+                    'sold_retry':False,
+                    'visible_rows':len(name_rows),
+                    'geometry_fallback':geometry,
+                    'fast_path':'name_only',
+                    'name_cache_hits':cache_hits,
+                    'name_cache_misses':cache_misses,
+                    'queue_to_target_ms':round((target_at-queued_at)*1000,2) if target_at else None,
+                    'shop_open_to_target_ms':round((target_at-shop_open_at)*1000,2) if target_at else None,
+                    'target_found_at':target_at,
+                    'shop_detected_at':shop_open_at,
+                    'queued_at':queued_at,
+                }
+                if target_at is not None:
+                    row=target_rows[0]
+                    box=(left+1,top+23+row*STEP,left+200,top+23+(row+1)*STEP-2)
+                    status=('Geometry candidate · exact item name only' if geometry
+                            else 'Exact item name · price/stats not checked')
+                    self._publish(key,{'status':status,'hits':[('ROW_CHECK',box)],'timing':fast_timing},digest)
+                    return
+                target=normalized(item)
+                duplicate=sum(normalized(value)==target for value in names.values())>1
+                status='Multiple exact item names · no highlight' if duplicate else 'Target not visible · name-only scan'
+                self._publish(key,{'status':status,'hits':[],'timing':fast_timing},digest)
+                return
+            # Strict scroll targets retain the original price and independent
+            # contrast verification path below.
             # Hide stale hits immediately unless seller and matched row pixels
             # are identical and the match is still unobstructed.
             verified=dict(sections)
