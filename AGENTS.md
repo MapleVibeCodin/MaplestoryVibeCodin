@@ -1,5 +1,13 @@
 # FM Rush — persistent engineering instructions and handoff
 
+## Mandatory first-read rule — failure prevention on EVERY project message
+
+Before any project-related response, investigation, command, or implementation (not just at new-chat resume), retrieve the live `AGENTS.md` and `fm-sprint/NEXT-CHAT.md` on the active branch. Read the permanent failure-prevention rule and latest checkpoint, inspect relevant prior failures and current source, and honor the latest user requirements. Do not rely on stale chat memory. If retrieval fails, disclose it and do not claim continuity was checked.
+
+For every failure: record symptom/build, root cause or uncertainty, correction, evidence, and a reproducible regression check. Add the check to the permanent release gate, run applicable checks before subsequent delivery, and distinguish static, offline and live evidence. Preserve working functionality, especially user-triggered Logitech pointer shortcuts; eliminate only unsolicited competing movements. Diagnostic exports must pair session IDs, preserve original names, and fall back to raw logs if build metadata or reports are missing. Deliver one PowerShell 5.1 command where applicable. Checkpoint each project request before implementation and each result afterward, verify readback, and preserve history. No guarantee that failures are impossible; disclose unverified behavior and failed checks.
+
+Current active Beast branch: `fm-sprint/hybrid`; consult the latest continuation for runtime identity rather than historical version labels below.
+
 Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.6; browser extension: v24.56.1. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
 
 ## Latest runtime — v24.63.6 / browser v24.56.1 exact HeneFM unit prices
