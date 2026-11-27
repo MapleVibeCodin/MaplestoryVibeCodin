@@ -24,7 +24,7 @@ class Lifecycle:
     def reset(self, key, same_channel=False):
         self.key=key; self.context=None; self.same=same_channel; self.stage='route' if key else 'idle'
         self.seen_entrance=False; self.menu_seen=False; self.black_count=0
-        self.cell_sent=False; self.confirm_sent=False; self.shop_sent=False
+        self.cell_sent=False; self.confirm_sent=False; self.shop_sent=False; self.channel_blocked=False
     def bind(self, key, context, same_channel=False):
         """Do not rearm a locked run when its window/target changes."""
         if key != self.key:
@@ -35,8 +35,16 @@ class Lifecycle:
         elif context != self.context:
             self.stop();return 'context_changed'
         return 'same'
-    def step(self, key, scene, *, same_channel=False, navigate=False):
+    def step(self, key, scene, *, same_channel=False, navigate=False, channel_request=False):
         if key != self.key: self.reset(key,same_channel)
+        if not channel_request and not navigate:
+            self.channel_blocked=False
+            # A new deliberate hold can recover a click the game did not register.
+            # Never retry continuously during the same hold.
+            if scene.focus and scene.menu and self.stage=='channel':
+                if not scene.selected:self.cell_sent=False
+                if scene.selected and scene.confirm:self.confirm_sent=False
+        channel_enabled=(navigate or channel_request) and not self.channel_blocked
         if not key or not scene.focus:
             self.black_count=0; return []
         if self.stage in ('idle','stopped'): return []
@@ -55,9 +63,9 @@ class Lifecycle:
         if self.stage=='channel':
             if scene.menu:
                 self.menu_seen=True
-                if navigate and not scene.selected and not self.cell_sent:
+                if channel_enabled and not scene.selected and not self.cell_sent:
                     self.cell_sent=True;out.append('select_channel')
-                elif navigate and scene.selected and scene.confirm and not self.confirm_sent:
+                elif channel_enabled and scene.selected and scene.confirm and not self.confirm_sent:
                     self.confirm_sent=True;out.append('confirm_channel')
             elif blackout and self.menu_seen:
                 self.stage='cc_loading'
@@ -79,7 +87,33 @@ class Lifecycle:
             if not scene.shop:self.stage='stopped'
             elif not scene.hit:self.stage='scan'
         return out
+    def channel_failed(self, action):
+        # Re-arm a failed action only after a deliberate key release. Automatic
+        # navigation remains blocked after failure until the run is reset.
+        if action=='select_channel':self.cell_sent=False
+        elif action=='confirm_channel':self.confirm_sent=False
+        self.channel_blocked=True
     def stop(self):self.stage='stopped';self.black_count=0
+
+
+def mini_route(room):
+    # 160 x 185 client-pixel schematic, matching the existing four-row map.
+    if not 1<=room<=20:raise ValueError('FM room must be 1–20')
+    nodes={}
+    for first,count,y in ((17,4,40),(13,4,67),(7,6,94),(1,6,121)):
+        for i in range(count):nodes[first+i]=(80+int((i-(count-1)/2)*24),y)
+    start=(80,77); x,y=nodes[room]
+    side='LEFT' if x<80 else 'RIGHT'
+    if room<=6:
+        path=(start,(80,104),(153,104),(153,131),(x,131),(x,y)); cue=('DROP > RIGHT WARP','LEFT > W ENTER')
+    elif room<=12:
+        path=(start,(80,104),(x,104),(x,y));cue=('DROP (S + SPACE)',side+' > W ENTER')
+    elif room<=16:
+        path=(start,(x,77),(x,y));cue=(side+' TO PORTAL','W ENTER')
+    else:
+        path=(start,(80,50),(x,50),(x,y));cue=('CLIMB (W)',side+' > W ENTER')
+    return nodes,path,cue
+
 
 def fresh_inventory(result, key, expected, observed_at, now, max_age=.35):
     """Return (shop, active candidate), only for fresh matching capture identity."""
