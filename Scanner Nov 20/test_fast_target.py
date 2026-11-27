@@ -31,10 +31,8 @@ class FakeOCR:
         self.last_png=None
     def recognize(self,png):
         self.calls+=1;self.last_png=png
-        width,height=struct.unpack('>II',png[16:24])
-        slots=height//(inv.NAME_ROW_SLOT*inv.SCALE)
         return [{'text':self.names[slot],'y':(slot*inv.NAME_ROW_SLOT+8)*inv.SCALE}
-                for slot in range(min(slots,len(self.names))) if self.names[slot]]
+                for slot in range(len(self.names)) if self.names[slot]]
 
 
 class NameOnlyPreparationTests(unittest.TestCase):
