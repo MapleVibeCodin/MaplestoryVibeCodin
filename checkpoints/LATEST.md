@@ -248,3 +248,7 @@ Read [latest holdout report](../market-data/2026-11-27-dense-holdout-2313.md). T
 
 ## One-scanner rolling-hour trajectory
 Read [one-scanner reconstruction](../market-data/2026-11-27-one-scanner-hour-reconstruction.md). New retrospective synthetic one-worker model on exact rolling hour22:13:51.434–23:13:51.434, full timeline505 room intervals/25 CCs,151 supported/354 silent,160 matched marks of1299,15 distinct channels. 7s fixed room window,20-room full sweep, arbitrary entry phase,2–12s CC assumed. Primary CH11 FM6 at cutoff; equally supported alternative CH39 FM11 (objective difference .035 only). No exact physical worker recovered. No new data or change to frozen channel model. Complete room/minute CSV and reproducible model, alternate fits archived. Earlier sparse phase especially ambiguous. Next data cutoff unchanged23:13:51.174. Transcript partial; no historical deletions.
+
+
+## Exact one-scanner deal evidence
+[Evidence report](../market-data/2026-11-27-one-scanner-deal-evidence.md):160/160 exact matched anchors on each track,157 common,311/312 raw matching screenshots. CSV lists all original matched deals; no unmatched anchors, no new data or changed model. Source filename time not confirmed scan time. Current cutoff unchanged.
