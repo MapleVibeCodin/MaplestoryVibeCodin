@@ -1,0 +1,21 @@
+# Level 40–50 cheap bases and resale screen — 2026-11-27
+User: "awesome, now find similar equips that match. remember, level 40-50 that also have some resell value and doesnt cost that much clean"
+
+Scope female-compatible Assassin gear, strict level 40–50, HeneFM only prices. Prior Greater scroll inputs reused, no authenticated price synchronization. HeneFM Sold denotes provider-reported sold-out listing, not independently confirmed trade; Gone and asking prices not sales.
+
+| Base | Level | Clean observed k | Natural bonuses | Slots | Greater k |
+|---|---:|---:|---|---:|---:|
+| Black Green-Lined Shoes |40|15–20|4 DEX|5|Speed 6|
+| Dark Pilfer |40|15–25|4 LUK|7|Accuracy 1.8|
+| Pansy Earrings |45|15–30 observed; keep 30 model|3 crit damage|5|DEX 20|
+| Green Napoleon |50|35 recent sale, 30 archived assumption|3 DEX|5|DEX 42.2|
+| Dark Cleave Gloves |40|43–45 older ask|4 LUK/2 crit|5|Crit 30|
+| Adamantium Avarice |40|50–90|29 ATT/1 crit|7|ATT 59|
+| Black Napoleon |50|70–100|3 LUK|5|LUK 40|
+| White Napoleon |50|13 observed sale|3 speed/4 ACC|5|LUK 40 (mixed utility)|
+| Yellow Icarus |46|11.1–20|2 speed/3 ACC|5|LUK 40 (mixed utility)|
+| Green Icarus |46|12 ask|2 DEX/3 ACC|5|DEX 42.2|
+
+Market evidence: https://henefm.com/shops/Allu +10 speed fully scrolled 2.54m Sold (opened result); cached search snapshot +8 speed 700k Sold, alternate opened snapshot has +8 711.1k Gone not verified sold in that snapshot; https://henefm.com/shops/film +5 speed 105k Sold; https://henefm.com/shops/StarPower +3 speed three remaining slots 150k ASK; https://henefm.com/shops/CrazyBOOM Black Napoleon +3 added LUK (6 total), 3 remaining slots 500k Sold; https://henefm.com/shops/mmmakabak similar 555.6k Sold; https://henefm.com/shops/Bororo Green Napoleon +3 DEX 3 remaining 250k Sold; https://henefm.com/shops/River96 +3 DEX 2 remaining 400k Sold; https://henefm.com/shops/Caught standard Green Napoleon clean 35k Sold; https://henefm.com/shops/Fridayyy Dark Pilfer +7 accuracy all slots used 100k Sold; https://henefm.com/shops/StorNN Pansy +2 LUK 2 remaining 70k Sold; https://henefm.com/shops/Shelbys Pansy +4 LUK 1 remaining 180k Sold; https://henefm.com/shops/Rotations Adamantium Avarice +7 ATT fully used 450k Sold; https://henefm.com/shops/Singer similar 539k Sold; https://henefm.com/shops/6xCrit Dark Cleave +3 crit 3 remaining 300k observed offer not sale; https://henefm.com/shops/Mistal +3 crit/+3 accuracy fully used 100k Sold; https://henefm.com/shops/KIT01 White Napoleon clean 13k Sold; https://henefm.com/shops/Page1 Yellow Icarus clean 11.1k Sold; https://henefm.com/shops/DandeIions Green Icarus clean 12k ask.
+
+Second Greater after surviving failed first opener threshold (G+.1R)/.097 at 3% assumed fee: shoes 6k/R4.2k ->66,186; Black Napoleon 40k/R13k ->425,773; Green Napoleon 42.2k/R13k ->448,454; Dark Cleave30k/R8.4k ->317,938. Black Napoleon actual resale evidence 500–555.6k suggests conditional second Greater positive marginal EV 7,200–12,593, not profitable standalone fresh opener (80k clean +40k G, R13k -> expected 1.083m per first success). Green Napoleon 250k observed same-slot sale insufficient at 42.2k scroll. Boots +3 150k asking exceeds threshold but exact sale unverified. Boots +8 finished renewal at archived 29k Chaos and15k Lesser costs481.1k; cached 700k sold snapshot gives 197.9k net expected spread at 3% fee, not guaranteed, sale price not synchronized. Adamantium Avarice 50k+7*63k=491k guaranteed finishing cost, reported gross 450–539k -> net loss53? exact 436.5–522.83k proceeds minus491k = -54.5k to+31.83k; no compelling ordinary flip. White Napoleon natural speed3 plus LUK scrolls intriguing for mixed utility but no same-variant completed sale verified. Exclude Dark Avenger from strict list because level35; optional exception if user relaxes requirement, cheap 15k and +3 added LUK/8 remaining reported 300k sale https://henefm.com/shops/TalenUlf. No comparable level40–50 female thief overall confirmed from checked catalog; no citizenship assumed. Keep mandatory Pansy failed four-slot NPC rule unchanged. No global optimizer run, purchase, or guaranteed profit.
