@@ -60,6 +60,17 @@ class RecorderTests(unittest.TestCase):
         self.assertEqual(report['metrics']['inventory_row_recognition_ms:ocr']['median'],90)
         self.assertEqual(report['metrics']['inventory_row_recognition_ms:cache']['median'],1)
         self.assertEqual(report['attempts'][0]['timeline'][1]['state'],'room_confirmed')
+    def test_50ms_target_latency_p95_is_reported(self):
+        base={'attempt':'a','session':'s','version':'24.63.6-lab11','schema':1}
+        rows=[{**base,'event':'lock_observed','t':1},
+              {**base,'event':'inventory_timing','t':1.1,'total_ms':25,'row_recognition_ms':18,'used_ocr':True,'visible_rows':6,'fast_path':'name_only','shop_open_to_overlay_ms':43,'queue_to_overlay_ms':48},
+              {**base,'event':'inventory_timing','t':1.2,'total_ms':61,'row_recognition_ms':52,'used_ocr':True,'visible_rows':6,'fast_path':'name_only','shop_open_to_overlay_ms':61,'queue_to_overlay_ms':65}]
+        report=summarize(rows)
+        metric=report['metrics']['shop_open_to_overlay_ms']
+        self.assertEqual(metric['n'],2)
+        self.assertEqual(metric['p95'],61)
+        self.assertEqual(report['metrics']['queue_to_overlay_ms']['p95'],65)
+
 class UnlockedRecorderTests(unittest.TestCase):
     def setUp(self):
         self.tmp=TemporaryDirectory()
