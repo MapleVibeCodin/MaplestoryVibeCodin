@@ -9,3 +9,7 @@ Update this record with each recurrence, actual check results, and the new commi
 
 ## Centered live evidence
 2026-11-27 Centered: 239 inventory scans, 124 OCR, median total 29.2ms; six ROW_CHECK name-only candidate diagnostic states across three locked attempts. Candidate is not a verified correct item or purchase. No new recognition correction; open.
+
+
+## Spatial live trial evidence
+Spatial session: 478 inventory scans, 267 OCR, median total 31.63ms, 467 fallback geometry, 11 exact geometry, all name_only. Diagnostic states: 37 target not visible, 14 verifying, 2 ROW_CHECK name-only candidate events (one lock), 1 strict scroll geometry wait; zero verified unique matches. Pinned shop_inventory.py explicitly rejects strict scroll on fallback geometry and exact-name fast path abstains on no match; no actual row text or screenshots in archive, cannot identify wrong shop vs OCR mismatch. Next: labeled shop captures, verified geometry and item recognition regression, no relaxed matching.
