@@ -160,7 +160,7 @@ def main():
             if binding=='new':
                 self._identity=identity;self._f9_inhibit=self.f9_down()
                 self._message=plan(deal.cc,deal.fm,args.start_channel).route_text
-                self.status.set(self._message)
+                self.status.set('LOCKED · Shift+2 to unlock')
             f8=bool(user.GetAsyncKeyState(0x77)&0x8000)
             if f8 and not self._f8:self.status.set(self._message)
             self._f8=f8
