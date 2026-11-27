@@ -10,6 +10,50 @@ Date: 2026-11-26. Continue the existing GitHub + Windows PowerShell workflow. Do
 - Windows OCR cleanup: source fixed owned subprocess terminate/wait/kill fallback, pipe closure, reader join, stale-worker isolation, terminal shutdown and tracker worker join. Actual Windows command with tracemalloc and ResourceWarning enabled at 5e394e9: 174 tests in 13.788s, OK, no warnings reported. This is suite evidence, not proof of all real WinRT lifecycles.
 - All raw private screenshots, recordings and logs remain private; do not push raw media/logs to GitHub. No full verbatim chat transcript or permanent memory write verified. Current notes preserve substantive decisions/results, not every message.
 
+## Current checkpoint — Step 11 (50ms item target)
+- Branch: `performance-lab/step-11-50ms-target`; current candidate commit: `a28483814e1f938c695065e4ce9902ef4f5fbcd7`.
+- Step 11 changes: compact six-row name-only OCR (no seller, price or stats), background WinRT warmup, row text cache independent of price pixels, one-frame exact-name target, amber overlay, 5ms worker scan cadence and 10ms UI polling in confirmed FM room. Scroll targets retain legacy strict path.
+- Telemetry exports shop gate, name OCR, queue-to-target, scan-start-to-target, target-to-overlay, scan-start-to-overlay and queue-to-overlay timings, plus p95. Acceptance target is P95 `shop_open_to_overlay_ms` ≤ 50ms; `queue_to_overlay_ms` ≤ 40ms reserves approximately 10ms for polling. **Not yet measured.** Cold OCR can still exceed 50ms.
+- Historical screenshots were visually inspected for name-band geometry: the name text fits the 20px crop; seller, price and stats are excluded. All prior captures remain in Library/private archives.
+- Diff from Step 10 touches only `fm_rush.py`, `shop_inventory.py`, `performance_recorder.py`, tests and lab documentation. No production branch, backup or calibration modified.
+
+## Next — targeted Windows qualification
+Close FM Rush normally and paste:
+
+```powershell
+$Lab = "$env:LOCALAPPDATA\FM_Rush_Lab_20261126_154536"
+$Fast = "$env:LOCALAPPDATA\FM_Rush_50MS"
+
+git -C $Lab fetch origin performance-lab/step-11-50ms-target
+if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
+
+git -C $Lab worktree add --detach $Fast a28483814e1f938c695065e4ce9902ef4f5fbcd7
+if ($LASTEXITCODE -ne 0) { throw "Worktree failed" }
+
+$Scanner = "$Fast\Scanner Nov 20"
+py -3 -m py_compile "$Scanner\shop_inventory.py" "$Scanner\fm_rush.py" "$Scanner\performance_recorder.py"
+if ($LASTEXITCODE -ne 0) { throw "Compile failed" }
+
+Push-Location $Scanner
+py -3 test_fast_target.py
+if ($LASTEXITCODE -ne 0) { throw "Step 11 tests failed" }
+py -3 test_item_first.py
+if ($LASTEXITCODE -ne 0) { throw "Step 10 tests failed" }
+py -3 test_speed_equivalence.py
+if ($LASTEXITCODE -ne 0) { throw "Step 9 differential tests failed" }
+py -3 test_inventory_hover.py
+if ($LASTEXITCODE -ne 0) { throw "Inventory regression failed" }
+py -3 test_performance_recorder.py
+if ($LASTEXITCODE -ne 0) { throw "Telemetry regression failed" }
+Pop-Location
+
+Start-Process -FilePath py.exe -ArgumentList "-3", "`"$Scanner\fm_rush.py`"" -WorkingDirectory $Scanner
+```
+
+Live qualification: run about 30 shop openings, include never-seen names and cache hits, and export Tools → Export performance report. Inspect P50/P95/max for `shop_open_to_overlay_ms` and `queue_to_overlay_ms`, plus name OCR/cache timing. If cold OCR misses 50ms, next work is an OCR-verified glyph/template matcher—not fuzzy matching.
+
+Do not repeat the 174-test Step 8 suite or historical media replay without a reason. No release, merge or production install authorized.
+
 ## Read first
 - performance-lab/STEP-7.md
 - performance-lab/STEP-8.md
