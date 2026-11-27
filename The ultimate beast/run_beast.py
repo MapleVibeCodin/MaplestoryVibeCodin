@@ -59,17 +59,25 @@ def main():
     import fm_sprint as sprint
     from performance_recorder import PerformanceRecorder, RotatingLog
     record = [None]
+    screenshots = [None]
+    OriginalScreenshotRecorder = base.ShopScreenshotRecorder
+    class SessionScreenshotRecorder(OriginalScreenshotRecorder):
+        def __init__(self,folder,**kwargs):
+            super().__init__(folder,**kwargs)
+            screenshots[0]=self
 
     class CaptureFreeRecorder(PerformanceRecorder):
         def __init__(self, folder, **kwargs):
             super().__init__(folder)  # deliberately ignore all capture callbacks
             record[0] = self
+            if screenshots[0] is not None:
+                screenshots[0].folder=self.folder.parent/'visual_evidence'/self.session/'shops'
         def _run(self):
             writer_loop(self, RotatingLog)
 
     base.DealArchive = soft_lock_archive_type(base.DealArchive)
     base.PerformanceRecorder = CaptureFreeRecorder
-    base.ShopScreenshotRecorder = NoScreenshots
+    base.ShopScreenshotRecorder = SessionScreenshotRecorder
 
     class ObservedLifecycle(sprint.Lifecycle):
         def step(self, key, scene, **kwargs):
@@ -82,7 +90,7 @@ def main():
                     self._beast_phase = marker
                     rec.marker('beast_phase',stage=self.stage,previous=prior)
                 if actions:
-                    rec.marker('beast_actions',actions=list(actions),dispatched=False,build='Smooth Shortcuts Spatial')
+                    rec.marker('beast_actions',actions=list(actions),dispatched=False,build='Smooth Shortcuts Stable')
             return actions
         def channel_failed(self, action):
             super().channel_failed(action)
