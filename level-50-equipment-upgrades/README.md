@@ -63,3 +63,7 @@ Use Dark Pilfer exclusively for the hat slot (level 40, standard +4 LUK, seven u
 
 ## Superseding price-source workflow — 2026-11-27
 User: "no ask me to scrape the api for hene fm cause your prices are wrong". For current actionable crafting or equipment calculations, ask for authenticated HeneFM personal item-price JSON from the existing installed Windows client (market-data/README.md) instead of substituting cached public search snapshots. Give a single PowerShell command first, use on-demand targeted lookups respecting API limits, no key reset or disclosure, no bulk market scraping or persistent raw-data archive. Inspect asOf, usualPrice and its basis, cheapestPrice, sold24h.averagePrice/count, listings/sellers/fewSellers; null is unknown, not zero. Mark mismatched/unverified IDs and missing quotes; do not claim full live price coverage or current profits before data is provided. Keep 70k catalyst acquisition price and the 75/20/5 probability assumption. Prior public-snapshot rankings are provisional, not executable current market quotes. No local API access from ordinary chat. No raw responses committed.
+
+
+## Crafting shortlist exclusion — 2026-11-27
+User: "glove accuraccy is kinda useless, get rid of". Exclude Gloves Accuracy from actionable catalyst crafting recommendations and rankings regardless of apparent profit. Preserve historical research; no deletion. Remaining current comparison: Shoes Jump (liquidity caveat), Gloves Crit Rate, Shoes Speed, Earring LUK. No new prices in this turn.
