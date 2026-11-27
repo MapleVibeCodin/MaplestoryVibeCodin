@@ -98,7 +98,15 @@ def build_report(events, *, writer_error=None, dropped=0, writer_alive=False):
     handoffs = [e for e in events if e.get('event')=='beast_pointer_handoff']
     health = [e for e in events if e.get('event')=='recorder_health']
     final = bool(health and health[-1].get('final'))
-    return {'schema': 'ultimate-beast-trial-2', 'engine': 'runescape', 'build': 'Smooth Shortcuts Centered', 'extra_capture': False,
+    requests=[e for e in events if e.get('event')=='beast_pointer_request']
+    outcomes=[e for e in events if e.get('event')=='beast_pointer_outcome']
+    ids={e.get('request_id') for e in outcomes}
+    return {'schema': 'ultimate-beast-trial-2', 'engine': 'runescape', 'build': 'Smooth Shortcuts Spatial', 'extra_capture': True,
+        'camera_capture': 'passive grass landmarks; no saved pixels',
+        'pointer_audit': {'requests':len(requests),'outcomes':len(outcomes),
+                          'unmatched':sum(e.get('request_id') not in ids for e in requests),
+                          'reasons':dict(Counter(e.get('reason','unknown') for e in outcomes)),
+                          'move_ms':stats([e.get('total_ms') for e in outcomes if e.get('ok') is True])},
         'writer_error': writer_error, 'dropped': dropped, 'writer_alive': writer_alive,
         'final_health': final, 'events': len(events), 'locked_attempts': len(runs),
         'session_observed_seconds': round(max(e['t'] for e in events)-min(e['t'] for e in events),2) if events else 0,
