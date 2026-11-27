@@ -49,16 +49,49 @@ class SpatialTests(unittest.TestCase):
             self.assertEqual(latch.choose('a',None),('waiting_landmark',None))
             self.assertEqual(latch.choose('a',(252,128)),('landmark_estimate',(252,128)))
         self.assertEqual(latch.choose('b',None),('none',None))
-    def test_inventory_fallback_structure(self):
+    def test_exact_price_guard(self):
+        import os,sys
+        sys.path.insert(1,os.environ['BEAST_PINNED_SCANNER'])
+        from shop_inventory import pick_rows
+        from beast_inventory import exact_active_hits
+        name='Pansy Earrings'
+        def lines(prices):
+            result=[]
+            for i,price in enumerate(prices):
+                result.append({'text':name,'y':(30+40*i)*3})
+                if price is not None:result.append({'text':f'1 for {price:,} mesos','y':(49+40*i)*3})
+            return result
+        def match(prices,blocked=(),sold=(),target=30000):
+            mask=[i in sold for i in range(6)]
+            hits,_=pick_rows(lines(prices),mask,None,name,target,buy_step=0)
+            return exact_active_hits(hits,blocked,None,lambda frame,row:row in sold)
+        self.assertEqual(match([31000,30000]),[(1,'MATCH')])
+        self.assertEqual(match([30000]),[(0,'MATCH')])
+        for prices in ([31000],[29999],[30001],[None],[30000,30000],[]):
+            with self.subTest(prices=prices):self.assertEqual(match(prices),[])
+        self.assertEqual(match([30000],blocked=(0,)),[])
+        self.assertEqual(match([30000],sold=(0,)),[])
+        self.assertEqual(match([30000,31000],target=31000),[(1,'MATCH')])
+        wrong,_=pick_rows(lines([30000]),[False]*6,None,'Blue Earrings',30000,buy_step=0)
+        self.assertEqual(wrong,[])
+        for mode in ('ROW_CHECK','PRICE_CHECK','SOLD','SOLD_CHECK'):
+            self.assertEqual(exact_active_hits([(0,mode)],(),None,lambda frame,row:False),[])
+    def test_exact_price_structure(self):
         root=Path(__file__).resolve().parent
         source=(root/'beast_inventory.py').read_text(encoding='utf-8')
         tree=ast.parse(source)
-        self.assertIn("'fast_path':'strict_scroll' if strict else 'full_fallback'",source)
+        self.assertIn("'fast_path':'exact_price'",source)
         self.assertIn("if geometry and strict:",source)
         self.assertIn("frame_after=self._inventory_frame(client,anchor)",source)
+        self.assertIn("after!=sections or after_blocked!=blocked",source)
+        self.assertIn("sold_before",source)
+        self.assertNotIn("locate_exact_name",source)
+        self.assertNotIn("self._name_cache.recognize",source)
         scan=next(n for n in ast.walk(tree) if isinstance(n,ast.FunctionDef) and n.name=='_scan')
-        fast=next(n for n in ast.walk(scan) if isinstance(n,ast.If) and ast.unparse(n.test)=='not strict')
-        self.assertFalse(isinstance(fast.body[-1],ast.Return))
+        calls=[n for n in ast.walk(scan) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='pick_rows']
+        self.assertEqual(len(calls),2)
+        for call in calls:
+            self.assertTrue(any(k.arg=='buy_step' and isinstance(k.value,ast.Constant) and k.value.value==0 for k in call.keywords))
         wrapper=(root/'fm_sprint.py').read_text(encoding='utf-8')
         self.assertIn("class Tracker(InventoryFallbackMixin,shop_inventory.ShopInventoryTracker)",wrapper)
     def test_compile_and_structural_guard(self):
