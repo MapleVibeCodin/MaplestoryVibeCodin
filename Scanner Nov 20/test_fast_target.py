@@ -15,12 +15,12 @@ def synthetic_frame():
         for x in range(40+row,55+row):
             for dy in range((x+row)%4,15,4):
                 i=(y0+dy)*stride+x*3
-                pixels[i:i+3]=b'\\x00\\x00\\x00'
+                pixels[i:i+3]=b'\x00\x00\x00'
         # Dark pixels below the name band represent a price and must not enter
         # the compact item-name OCR image or its cache key.
         py=47+row*inv.STEP
         i=py*stride+120*3
-        pixels[i:i+3]=b'\\x00\\x00\\x00'
+        pixels[i:i+3]=b'\x00\x00\x00'
     return bytes(pixels),w,h,stride
 
 
@@ -53,7 +53,7 @@ class NameOnlyPreparationTests(unittest.TestCase):
         # Change only price-band pixels. Name-only fingerprint should hit cache.
         buf,w,h,stride=frame
         changed=bytearray(buf)
-        changed[47*stride+120*3:47*stride+120*3+3]=b'\\xff\\xff\\xff'
+        changed[47*stride+120*3:47*stride+120*3+3]=b'\xff\xff\xff'
         names2,hits2,misses2,used2=cache.recognize((bytes(changed),w,h,stride),range(6),ocr)
         self.assertEqual(names2,names)
         self.assertEqual((hits2,misses2,used2),(6,0,False))
@@ -65,6 +65,19 @@ class NameOnlyPreparationTests(unittest.TestCase):
         self.assertEqual(inv.exact_name_rows({1:'Brown Dress Shoes',3:'Brown Dress Shoes'},'Brown Dress Shoes'),[])
         self.assertEqual(inv.exact_name_rows({1:'Brown Dress Sh...'},'Brown Dress Shoes'),[])
         self.assertEqual(inv.exact_name_rows({1:'Brown Dress Shoes'},' brown   dress shoes '),[1])
+        self.assertEqual(inv.exact_name_rows({1:'Brown Dress Shoes',3:'Brown Dress Sh...'},'Brown Dress Shoes'),[])
+    def test_empty_ocr_read_is_retried(self):
+        frame=synthetic_frame()
+        ocr=FakeOCR(['','','','','',''])
+        cache=inv.NameOCRCache()
+        names,hits,misses,used=cache.recognize(frame,range(6),ocr)
+        self.assertEqual(ocr.calls,1)
+        self.assertEqual(len(cache.entries),0)
+        ocr.names=['Potion','Hat','Brown Dress Shoes','Cape','Gloves','Boots']
+        names,hits,misses,used=cache.recognize(frame,range(6),ocr)
+        self.assertEqual(ocr.calls,2)
+        self.assertEqual(names[2],'Brown Dress Shoes')
+
     def test_numpy_and_python_fallback_have_same_png_dimensions(self):
         frame=synthetic_frame()
         if inv.np is None:self.skipTest('NumPy unavailable')
@@ -72,6 +85,8 @@ class NameOnlyPreparationTests(unittest.TestCase):
             png,layout=inv.prepare_name_ocr(frame,(0,5))
         self.assertEqual(struct.unpack('>II',png[16:24]),(158*3,(2*20+8)*3))
         self.assertEqual(layout,{0:0,1:5})
+        numpy_png,_=inv.prepare_name_ocr(frame,(0,5))
+        self.assertEqual(png,numpy_png)
 
 
 class FastTargetScanTests(unittest.TestCase):
@@ -105,6 +120,15 @@ class FastTargetScanTests(unittest.TestCase):
             t._scan(t._key)
         self.assertEqual(t._latest['hits'],[])
         self.assertIn('Multiple exact item names',t._latest['status'])
+    def test_sold_row_is_not_targeted(self):
+        t,frame=self.tracker()
+        t._name_cache=type('Cache',(),{'recognize':lambda self,frame,rows,ocr:
+            ({2:'Brown Dress Shoes'} if 2 in rows else {},0,len(rows),True)})()
+        sections=tuple((i,bytes([i+1])*20) for i in range(-1,6))
+        with patch('shop_inventory.tooltip_blocked_rows',return_value=set()),patch('shop_inventory.tooltip_prefixes',return_value={}),patch('shop_inventory.section_fingerprints',return_value=sections),patch('shop_inventory.sold_row_mask',side_effect=lambda frame,row:row==2):
+            t._scan(t._key)
+        self.assertEqual(t._latest['hits'],[])
+
     def test_blocked_row_is_not_recognized(self):
         t,frame=self.tracker()
         sections=tuple((i,bytes([i+1])*20) for i in (-1,0,1,3,4,5))
