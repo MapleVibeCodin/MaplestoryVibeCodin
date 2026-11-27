@@ -49,9 +49,12 @@ if (!(Test-Python $Python)) {
         if ($LASTEXITCODE -or !(Test-Python $Python)) { throw 'Python/NumPy verification failed.' }
     }
 }
+# Compile the exact package before opening the game-facing application.
+& $Python -c 'import pathlib,sys; root=pathlib.Path(sys.argv[1]); [compile((root/f).read_bytes(),str(root/f),"exec") for f in ("run_beast.py","beast_feedback.py","fm_sprint.py","fm_sprint_core.py")]' $PSScriptRoot
+if ($LASTEXITCODE) { throw 'Runtime compile preflight failed. Existing installations are unchanged.' }
 $env:BEAST_PINNED_SCANNER=$Scanner
 $env:BEAST_START_CHANNEL="$StartChannel"
-Write-Host 'The ultimate beast | RuneScape R3 | passive feedback | close other FM Rush/Sprint instances first.' -ForegroundColor Cyan
+Write-Host 'The ultimate beast Trial R4 | RuneScape R3 | passive feedback | close other FM Rush/Sprint instances first.' -ForegroundColor Cyan
 & $Python (Join-Path $PSScriptRoot 'run_beast.py')
 $RunCode=$LASTEXITCODE
 $Feedback=Join-Path $HomeDir 'runescape\feedback'
