@@ -116,7 +116,7 @@ def main():
             self._f9_inhibit=False;self._park_serial=0
             super().__init__();self.conf['start_channel']=args.start_channel
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
-            self.root.title('The ultimate beast — Passive Stability — '+args.engine.title())
+            self.root.title('The ultimate beast — Smooth Shortcuts — '+args.engine.title())
         def sync_archive(self):
             # Do not pop the separate old map window on every new alert.
             self._syncing_archive=True
@@ -150,9 +150,11 @@ def main():
             self.flow.reset(None)
             super().complete_deal()
         def move_pointer_to_target(self,kind,*,received=None):
-            # Global pointer shortcuts must not steal focus or warp the cursor.
-            self.cancel_pending_pointers()
-            self.status.set('Passive mode · move and click manually')
+            if self.flow.stage=='stopped' or user.GetAsyncKeyState(0x7B)&0x8000:
+                self.cancel_pending_pointers()
+                self.status.set('F12 stopped this run — unlock to reset');return
+            self._park_serial+=1
+            super().move_pointer_to_target(kind,received=received)
         def close(self):
             self.cancel_pending_pointers()
             if self._route_mini is not None:self._route_mini.close()
