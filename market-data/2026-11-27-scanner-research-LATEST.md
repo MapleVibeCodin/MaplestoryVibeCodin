@@ -115,3 +115,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Dense scanner track reconstruction
 [Tracking analysis](2026-11-27-dense-scanner-tracking.md). 815 dense events,314 direct route transitions median7.006s, sum edge medians141.641s.35 wraps including16 FM2->1; no mandatory exit at FM2.44 strong envelopes peak7, min path cover7 for120s gaps,8 for90s; seven feasible fixed-group coloring but assignment unstable. Working7–8 conditional, no exact count or repeatable CC order. No runtime edits.
+
+## Scanner count identifiability audit
+[Exact-count audit](2026-11-27-scanner-count-identifiability.md). Dense815 marks, eight distinct channels within2s; min individual cover9 for CC2s/step2s, six excluding first2min. Seven concurrent envelopes/short compatible intervals remain feasible, exact physical count unidentifiable; timestamps are downloads, scanner CC speed unknown. No claim exact seven or nine; no runtime changes.
