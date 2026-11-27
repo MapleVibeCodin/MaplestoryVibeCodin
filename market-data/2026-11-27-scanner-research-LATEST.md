@@ -154,3 +154,7 @@ Read [one-scanner reconstruction](2026-11-27-one-scanner-hour-reconstruction.md)
 
 ## Experimental 40-scanner residual extension
 [Report](2026-11-27-scanners-13-40-residual.md): tracks1–12 frozen; tracks13–40 add603 raw, total2558/2625 (97.45%),67 unassigned, zero duplicates. Exact track12 objective and visits reproduced using optimized equivalent DP; all additional tracks have zero sweeps with >=5 supported visits; tracks16–40 end CH1 (tie-break dominated). Not evidence of40 physical scanners; no new controls or prospective tests. Same historical cutoff23:13:51.174, no new data or runtime changes. Full compact paths/minutes/record indices archived. Preserve all historical files; full transcript and historical continuity audit incomplete.
+
+
+## Fixed seven-scanner assumption (supersedes count search)
+[Seven-scanner model](2026-11-27-fixed-seven-scanner-model.md). User verbatim: use 7 scanners. assume that is real. Fix exactly seven as a modeling constraint, not verified physical count. Joint coordinate refit 1474→1476 raw,736/1299 anchors unchanged,713 supported visits; two passes, no added workers. Preserve all older tracks. Next vary movement and observation assumptions under fixed seven, evaluate held-out exact channel predictions. No new data/runtime changes. Historical transcript and full continuity audit incomplete.
