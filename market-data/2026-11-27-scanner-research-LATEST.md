@@ -49,3 +49,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Third live validation — latest
 [Third validation](2026-11-27-third-live-route-validation.md), commit 3f18f4fc187e7fa4a410f9ec3878e83abb478981. 30 new IDs,13 eligible transitions,7s exact6/13 vs6.25s4/13. Explicit prior forward predictions: 0/5 next changed observed room,1/5 within three predicted rooms; CH40 no observation. Do not conflate conditional timed accuracy with forward predictions. Latest cutoff20:19:28.203 Taipei. No runtime changes or new fit.
+
+## Interruptible cycle tests — latest
+[Full cycle and rolling model audit](2026-11-27-interruptible-cycle-backtest.md), commit 5388cd1848da462ceda8a6a2ff4903b1978eed19. User reports random scanner can be dispatched by users to scan arbitrary full channel. Fixed 640 schedules failed; explicit retest 706 consolidated evening observations,128 held out. Rolling model best held-out active candidate set8 with40% unexplained mixture; not eight physical workers or measured dispatch rate. Prospective exact1/128; conditional exact3/128. 33 coherent runs max5 simultaneous, sensitivity3–6. Five physical workers remains tentative; dedicated vs diverted scanner unresolved. No further data requested; no runtime change.
