@@ -139,7 +139,7 @@ class FMApp:
         self.snap(restore=True)
         self.sync_archive()
         self.schedule(35,self.pump)
-        self.schedule(50,self.follow_overlays)
+        self.schedule(10,self.follow_overlays)
         try:
             self.browser_bridge=BrowserBridge(self.events,self.archive)
             self.browser_bridge.start()
