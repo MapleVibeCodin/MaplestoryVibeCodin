@@ -1,0 +1,450 @@
+{
+  "raw": 1909,
+  "consolidated": 1237,
+  "train": 889,
+  "exposure": 141820,
+  "period": 855,
+  "widths": [
+    0,
+    60,
+    120,
+    240
+  ],
+  "intervalStats": {
+    "n": 849,
+    "median": 17.064000129699707,
+    "episodeIntervals": 188,
+    "episodeMedian": 588.0874999761581,
+    "recurrenceEligible": 125,
+    "within120": 54,
+    "within240": 86
+  },
+  "pool": [
+    {
+      "upper": "1",
+      "exposure": 873,
+      "events": 41,
+      "hazard": 0.042046546954048525
+    },
+    {
+      "upper": "2",
+      "exposure": 834.5,
+      "events": 33,
+      "hazard": 0.03536115361484566
+    },
+    {
+      "upper": "5",
+      "exposure": 2310.5,
+      "events": 95,
+      "hazard": 0.039396100031010156
+    },
+    {
+      "upper": "10",
+      "exposure": 3233.5,
+      "events": 131,
+      "hazard": 0.0392879740943403
+    },
+    {
+      "upper": "20",
+      "exposure": 4978.5,
+      "events": 150,
+      "hazard": 0.02956795550169073
+    },
+    {
+      "upper": "40",
+      "exposure": 6959.5,
+      "events": 148,
+      "hazard": 0.021011684599953416
+    },
+    {
+      "upper": "60",
+      "exposure": 4959.5,
+      "events": 61,
+      "hazard": 0.012157145609876992
+    },
+    {
+      "upper": "120",
+      "exposure": 12066,
+      "events": 28,
+      "hazard": 0.0023594469986353344
+    },
+    {
+      "upper": "240",
+      "exposure": 21835.5,
+      "events": 5,
+      "hazard": 0.00026199454010932053
+    },
+    {
+      "upper": "480",
+      "exposure": 36114.5,
+      "events": 50,
+      "hazard": 0.0014006601753955535
+    },
+    {
+      "upper": "720",
+      "exposure": 22094,
+      "events": 53,
+      "hazard": 0.0024197452563865214
+    },
+    {
+      "upper": "960",
+      "exposure": 6093.5,
+      "events": 43,
+      "hazard": 0.007041477609297527
+    },
+    {
+      "upper": "1440",
+      "exposure": 4014.5,
+      "events": 4,
+      "hazard": 0.001149406488177576
+    },
+    {
+      "upper": "2160",
+      "exposure": 700.5,
+      "events": 6,
+      "hazard": 0.00822939808088993
+    },
+    {
+      "upper": "Infinity",
+      "exposure": 0,
+      "events": 0,
+      "hazard": 0.006268509378084896
+    },
+    {
+      "upper": "unknown",
+      "exposure": 14752.5,
+      "events": 41,
+      "hazard": 0.0028073438309208394
+    }
+  ],
+  "phaseCounts": [
+    [
+      [
+        141820,
+        889
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    [
+      [
+        94018.5,
+        764
+      ],
+      [
+        4702,
+        40
+      ],
+      [
+        5053,
+        14
+      ],
+      [
+        38046.5,
+        71
+      ]
+    ],
+    [
+      [
+        94018.5,
+        764
+      ],
+      [
+        9755,
+        54
+      ],
+      [
+        12023.5,
+        32
+      ],
+      [
+        26023,
+        39
+      ]
+    ],
+    [
+      [
+        94018.5,
+        764
+      ],
+      [
+        21778.5,
+        86
+      ],
+      [
+        26023,
+        39
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  ],
+  "policyCount": 141,
+  "activeCount": 0,
+  "selected": {
+    "p": null,
+    "val": {
+      "n": 261,
+      "baseline": 560.4429993629456,
+      "policy": 560.4429993629456,
+      "net": 0,
+      "earlyBase": 17,
+      "early": 17,
+      "switches": 0,
+      "reactive": 232,
+      "baselineReactive": 232,
+      "gain": 0,
+      "loss": 0
+    }
+  },
+  "test": {
+    "n": 86,
+    "baseline": 196.87800192832947,
+    "policy": 196.87800192832947,
+    "net": 0,
+    "earlyBase": 1,
+    "early": 1,
+    "switches": 0,
+    "reactive": 70,
+    "baselineReactive": 70,
+    "gain": 0,
+    "loss": 0
+  },
+  "bestActive": null,
+  "byModel": [
+    {
+      "width": 0,
+      "best": {
+        "p": {
+          "model": 0,
+          "margin": 0,
+          "cool": 0
+        },
+        "val": {
+          "n": 261,
+          "baseline": 560.4429993629456,
+          "policy": 560.4429993629456,
+          "net": 0,
+          "earlyBase": 17,
+          "early": 17,
+          "switches": 0,
+          "reactive": 232,
+          "baselineReactive": 232,
+          "gain": 0,
+          "loss": 0
+        }
+      },
+      "test": {
+        "n": 86,
+        "baseline": 196.87800192832947,
+        "policy": 196.87800192832947,
+        "net": 0,
+        "earlyBase": 1,
+        "early": 1,
+        "switches": 0,
+        "reactive": 70,
+        "baselineReactive": 70,
+        "gain": 0,
+        "loss": 0
+      },
+      "validationScore": {
+        "n": 1624,
+        "hit": 135,
+        "baseHit": 36,
+        "logLoss": 3.006552833748888,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 102
+      },
+      "testScore": {
+        "n": 688,
+        "hit": 34,
+        "baseHit": 4,
+        "logLoss": 3.3193966576872613,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 30
+      }
+    },
+    {
+      "width": 60,
+      "best": {
+        "p": {
+          "model": 1,
+          "margin": 0,
+          "cool": 0
+        },
+        "val": {
+          "n": 261,
+          "baseline": 560.4429993629456,
+          "policy": 560.4429993629456,
+          "net": 0,
+          "earlyBase": 17,
+          "early": 17,
+          "switches": 0,
+          "reactive": 232,
+          "baselineReactive": 232,
+          "gain": 0,
+          "loss": 0
+        }
+      },
+      "test": {
+        "n": 86,
+        "baseline": 196.87800192832947,
+        "policy": 196.87800192832947,
+        "net": 0,
+        "earlyBase": 1,
+        "early": 1,
+        "switches": 1,
+        "reactive": 70,
+        "baselineReactive": 70,
+        "gain": 0,
+        "loss": 0
+      },
+      "validationScore": {
+        "n": 1624,
+        "hit": 134,
+        "baseHit": 36,
+        "logLoss": 2.9995431265018158,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 101
+      },
+      "testScore": {
+        "n": 688,
+        "hit": 35,
+        "baseHit": 4,
+        "logLoss": 3.3122130556116676,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 30
+      }
+    },
+    {
+      "width": 120,
+      "best": {
+        "p": {
+          "model": 2,
+          "margin": 0,
+          "cool": 0
+        },
+        "val": {
+          "n": 261,
+          "baseline": 560.4429993629456,
+          "policy": 560.4429993629456,
+          "net": 0,
+          "earlyBase": 17,
+          "early": 17,
+          "switches": 0,
+          "reactive": 232,
+          "baselineReactive": 232,
+          "gain": 0,
+          "loss": 0
+        }
+      },
+      "test": {
+        "n": 86,
+        "baseline": 196.87800192832947,
+        "policy": 196.87800192832947,
+        "net": 0,
+        "earlyBase": 1,
+        "early": 1,
+        "switches": 1,
+        "reactive": 70,
+        "baselineReactive": 70,
+        "gain": 0,
+        "loss": 0
+      },
+      "validationScore": {
+        "n": 1624,
+        "hit": 134,
+        "baseHit": 36,
+        "logLoss": 3.0063034311283534,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 101
+      },
+      "testScore": {
+        "n": 688,
+        "hit": 34,
+        "baseHit": 4,
+        "logLoss": 3.332705088134965,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 30
+      }
+    },
+    {
+      "width": 240,
+      "best": {
+        "p": {
+          "model": 3,
+          "margin": 0,
+          "cool": 0
+        },
+        "val": {
+          "n": 261,
+          "baseline": 560.4429993629456,
+          "policy": 560.4429993629456,
+          "net": 0,
+          "earlyBase": 17,
+          "early": 17,
+          "switches": 0,
+          "reactive": 232,
+          "baselineReactive": 232,
+          "gain": 0,
+          "loss": 0
+        }
+      },
+      "test": {
+        "n": 86,
+        "baseline": 196.87800192832947,
+        "policy": 196.87800192832947,
+        "net": 0,
+        "earlyBase": 1,
+        "early": 1,
+        "switches": 0,
+        "reactive": 70,
+        "baselineReactive": 70,
+        "gain": 0,
+        "loss": 0
+      },
+      "validationScore": {
+        "n": 1624,
+        "hit": 134,
+        "baseHit": 36,
+        "logLoss": 3.0102100990082437,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 101
+      },
+      "testScore": {
+        "n": 688,
+        "hit": 34,
+        "baseHit": 4,
+        "logLoss": 3.333699340925761,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 30
+      }
+    }
+  ],
+  "checks": {
+    "baseMatch": true,
+    "probabilityMass": true,
+    "trainCount": true
+  },
+  "notes": "Pure renewal pooled age hazard plus three modulated renewal variants using last observed episode onset (>60s gap) proximity to positive multiples of fixed 855s, not actual visits; right-censored exposure included, initial unknown state separate. Half-second approximate intensity counts and survival integration. Same chronological split and 2s noncancelable stateful simulator; retrospective, conditional scores correlated, no true alert timing/profit/room movement; no prospective deployment."
+}
