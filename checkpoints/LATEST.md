@@ -224,3 +224,6 @@ Read [zero-filter analysis](../market-data/2026-11-27-zero-filter-route-analysis
 
 ## HeneFM dense route replication — 22:55 Taipei
 Read [twelfth export analysis](../market-data/2026-11-27-zero-filter-next-holdout.md). 440 new,242 consolidated, latest22:55:03.028. Unchanged6.721s conditional model48.3% exact room/95.0% within1 row,60% lower predicted row distance. Recency channel36/242 vs persistence19. Frozen CC policies no new savings. Seven overlapping strong envelopes again, no repeated strict cross-channel handoff. Preserve all originals, no runtime edits. Historical audit and dialogue archive incomplete.
+
+## Dense scanner tracking — count and movement
+Read [tracking report](../market-data/2026-11-27-dense-scanner-tracking.md). 44 strong envelopes, peak7, minimum seven tracks feasible with120s unobserved gaps, eight with90s. Circular route supported by314 direct forward vs10 reverse within4–12s; median7.006s,35 wraps. Seven-worker fixed grouping feasible but ambiguous, no actual worker identity or next-channel sequence verified. Working7–8 conditional; retain frozen6.721s route model. No runtime changes. Historical audit/dialogue incomplete.
