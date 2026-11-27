@@ -712,7 +712,7 @@ def summarize(rows):
                        'transition_observations':transitions})
     def distribution(values):
         v=sorted(values);idx=lambda p:v[min(len(v)-1,max(0,int((len(v)-1)*p+.5)))]
-        return {'n':len(v),'min':v[0],'median':statistics.median(v),'p90':idx(.9),'max':v[-1]}
+        return {'n':len(v),'min':v[0],'median':statistics.median(v),'p90':idx(.9),'p95':idx(.95),'max':v[-1]}
     return {'attempt_count':len(result),
             'locked_attempt_count':sum(a['scope']=='locked' for a in result),
             'unlocked_segment_count':sum(a['scope']=='unlocked' for a in result),
