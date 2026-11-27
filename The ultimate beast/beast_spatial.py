@@ -5,6 +5,8 @@ a80a9ffbcc2a4a1616b5cfdc8c91b35c430df8fb. No additional input dispatch.
 """
 import time
 import uuid
+import queue
+import threading
 
 
 def sign_bounds(point):
@@ -60,6 +62,35 @@ class PointerAudit:
         self.emit('beast_pointer_outcome',reason=reason,ok=ok,**data)
 
 
+class TitleEvidence:
+    """Save a bounded set of already-captured minimap crops locally, off GUI thread."""
+    def __init__(self,folder):
+        self.folder=folder
+        self.pending=queue.Queue(maxsize=4)
+        self.stop=threading.Event()
+        self.count=0
+        self.next_at=0.
+        self.worker=threading.Thread(target=self._write,daemon=True,name='Beast title evidence')
+        self.worker.start()
+    def offer(self,frame):
+        now=time.monotonic()
+        if not frame or self.count>=24 or now<self.next_at:return
+        try:self.pending.put_nowait(frame)
+        except queue.Full:return
+        self.count+=1;self.next_at=now+2.
+    def _write(self):
+        from datetime import datetime
+        from shop_screenshot import save_png
+        while not self.stop.is_set() or not self.pending.empty():
+            try:frame=self.pending.get(timeout=.1)
+            except queue.Empty:continue
+            try:save_png(self.folder,frame,datetime.now(),'title_unconfirmed')
+            except Exception:pass
+    def close(self):
+        self.stop.set()
+        self.worker.join(timeout=1)
+
+
 def spatial_mixin(old):
     from camera_alignment import GrassCameraTracker, capture_client, room_title_present
     from game_window import window_rect, window_client_rect, window_has_focus, move_cursor_on_screen
@@ -101,11 +132,15 @@ def spatial_mixin(old):
         def beast_spatial_init(self):
             self._beast_grass=ScopedGrassTracker()
             self._beast_camera_mode=CameraModeLatch()
+            recorder=getattr(self,'performance',None)
+            self._beast_title_evidence=TitleEvidence(recorder.folder.parent/'visual_evidence'/recorder.session/'titles') if recorder is not None else None
             self._beast_edge=EdgePin(self.root,interval_ms=50)
             self._beast_edge_key=None
             self._beast_projection=None
             self._beast_projection_state=None
         def beast_spatial_close(self):
+            evidence=getattr(self,'_beast_title_evidence',None)
+            if evidence is not None:evidence.close()
             tracker=getattr(self,'_beast_grass',None)
             if tracker is not None:tracker.close()
             pin=getattr(self,'_beast_edge',None)
@@ -174,6 +209,9 @@ def spatial_mixin(old):
                 else:
                     room_confirmed=room_title_present(*title)
                     if room_confirmed:gate_state='room_confirmed'
+                    else:
+                        evidence=getattr(self,'_beast_title_evidence',None)
+                        if evidence is not None:evidence.offer(title)
             # Fast poll only after the FM room-title gate confirms the room.
             self._inventory_fast_poll=room_confirmed
             inventory = self._inventory.get(hwnd,client,inventory_deal) if room_confirmed else None
