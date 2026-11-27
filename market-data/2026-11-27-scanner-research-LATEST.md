@@ -150,3 +150,7 @@ Read [one-scanner reconstruction](2026-11-27-one-scanner-hour-reconstruction.md)
 
 ## Remaining scanner reconstruction (7–12)
 [Report](2026-11-27-remaining-scanners-reconstruction.md): primary tracks1–6 frozen; tracks7–12 add139/125/107/86/94/69 raw,72/62/55/44/39/34 anchors. Combined1955/2625 raw and970/1299 consolidated, no duplicate assignment. Track7/8/9 have5/4/3 sweeps with>=5 matched rooms,10–12 zero. Exploratory three shuffled controls each for7/9/10/12: actual70/54/43/34 vs controls50–53/44–45/37–42/29–34. Additional fit near chance at12; stop arbitrary fitting at12, no exact worker count. Full movement, deal, minute records and controls archived. No new data, same cutoff. Preserve all previous paths and assumptions.
+
+
+## Experimental 40-scanner residual extension
+[Report](2026-11-27-scanners-13-40-residual.md): tracks1–12 frozen; tracks13–40 add603 raw, total2558/2625 (97.45%),67 unassigned, zero duplicates. Exact track12 objective and visits reproduced using optimized equivalent DP; all additional tracks have zero sweeps with >=5 supported visits; tracks16–40 end CH1 (tie-break dominated). Not evidence of40 physical scanners; no new controls or prospective tests. Same historical cutoff23:13:51.174, no new data or runtime changes. Full compact paths/minutes/record indices archived. Preserve all historical files; full transcript and historical continuity audit incomplete.
