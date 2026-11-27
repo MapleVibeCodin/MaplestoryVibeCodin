@@ -6,6 +6,9 @@ Before any project-related response, investigation, command, or implementation (
 
 For every failure: record symptom/build, root cause or uncertainty, correction, evidence, and a reproducible regression check. Add the check to the permanent release gate, run applicable checks before subsequent delivery, and distinguish static, offline and live evidence. Preserve working functionality, especially user-triggered Logitech pointer shortcuts; eliminate only unsolicited competing movements. Diagnostic exports must pair session IDs, preserve original names, and fall back to raw logs if build metadata or reports are missing. Deliver one PowerShell 5.1 command where applicable. Checkpoint each project request before implementation and each result afterward, verify readback, and preserve history. No guarantee that failures are impossible; disclose unverified behavior and failed checks.
 
+
+**Mandatory fix registry:** Read [The ultimate beast/fixes/README.md](The%20ultimate%20beast/fixes/README.md) and each relevant FIX.md before any project troubleshooting, command or implementation. Search existing IDs first. Update the matching record with new evidence and actual regression results instead of creating duplicate fixes. New failures get their own folder and stable ID, with exact source/test references and honest status. Keep the Windows mirror at Desktop/Beast-Fixes synchronized whenever the registry changes. Never treat a documented workaround or historical result as a current live pass.
+
 Current active Beast branch: `fm-sprint/hybrid`; consult the latest continuation for runtime identity rather than historical version labels below.
 
 Last updated: 2026-11-26 (Taipei). Current desktop release: v24.63.6; browser extension: v24.56.1. This is the shared ChatGPT/Codex project checkpoint, not a transcript or personal profile.
