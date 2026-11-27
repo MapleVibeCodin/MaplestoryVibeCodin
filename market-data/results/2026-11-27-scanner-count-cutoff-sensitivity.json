@@ -1,0 +1,300 @@
+{
+  "scores": [
+    {
+      "from": "22:34:00",
+      "raw": 1803,
+      "n": 815,
+      "rawGapMedian": 0.252000093460083,
+      "windows": [
+        {
+          "s": 1,
+          "n": 5
+        },
+        {
+          "s": 2,
+          "n": 8
+        },
+        {
+          "s": 3,
+          "n": 9
+        }
+      ],
+      "covers": [
+        {
+          "cc": 1,
+          "step": 0,
+          "phase": false,
+          "count": 5
+        },
+        {
+          "cc": 1,
+          "step": 2,
+          "phase": false,
+          "count": 6
+        },
+        {
+          "cc": 2,
+          "step": 0,
+          "phase": false,
+          "count": 8
+        },
+        {
+          "cc": 2,
+          "step": 2,
+          "phase": false,
+          "count": 9
+        },
+        {
+          "cc": 3,
+          "step": 0,
+          "phase": false,
+          "count": 9
+        },
+        {
+          "cc": 3,
+          "step": 2,
+          "phase": false,
+          "count": 12
+        }
+      ]
+    },
+    {
+      "from": "22:36:00",
+      "raw": 1511,
+      "n": 687,
+      "rawGapMedian": 0.25999999046325684,
+      "windows": [
+        {
+          "s": 1,
+          "n": 5
+        },
+        {
+          "s": 2,
+          "n": 6
+        },
+        {
+          "s": 3,
+          "n": 7
+        }
+      ],
+      "covers": [
+        {
+          "cc": 1,
+          "step": 0,
+          "phase": false,
+          "count": 5
+        },
+        {
+          "cc": 1,
+          "step": 2,
+          "phase": false,
+          "count": 5
+        },
+        {
+          "cc": 2,
+          "step": 0,
+          "phase": false,
+          "count": 6
+        },
+        {
+          "cc": 2,
+          "step": 2,
+          "phase": false,
+          "count": 6
+        },
+        {
+          "cc": 3,
+          "step": 0,
+          "phase": false,
+          "count": 7
+        },
+        {
+          "cc": 3,
+          "step": 2,
+          "phase": false,
+          "count": 7
+        }
+      ]
+    },
+    {
+      "from": "22:40:00",
+      "raw": 978,
+      "n": 471,
+      "rawGapMedian": 0.2669999599456787,
+      "windows": [
+        {
+          "s": 1,
+          "n": 5
+        },
+        {
+          "s": 2,
+          "n": 5
+        },
+        {
+          "s": 3,
+          "n": 6
+        }
+      ],
+      "covers": [
+        {
+          "cc": 1,
+          "step": 0,
+          "phase": false,
+          "count": 5
+        },
+        {
+          "cc": 1,
+          "step": 2,
+          "phase": false,
+          "count": 5
+        },
+        {
+          "cc": 2,
+          "step": 0,
+          "phase": false,
+          "count": 5
+        },
+        {
+          "cc": 2,
+          "step": 2,
+          "phase": false,
+          "count": 6
+        },
+        {
+          "cc": 3,
+          "step": 0,
+          "phase": false,
+          "count": 6
+        },
+        {
+          "cc": 3,
+          "step": 2,
+          "phase": false,
+          "count": 6
+        }
+      ]
+    },
+    {
+      "from": "22:45:00",
+      "raw": 485,
+      "n": 264,
+      "rawGapMedian": 0.2974998950958252,
+      "windows": [
+        {
+          "s": 1,
+          "n": 3
+        },
+        {
+          "s": 2,
+          "n": 4
+        },
+        {
+          "s": 3,
+          "n": 6
+        }
+      ],
+      "covers": [
+        {
+          "cc": 1,
+          "step": 0,
+          "phase": false,
+          "count": 3
+        },
+        {
+          "cc": 1,
+          "step": 2,
+          "phase": false,
+          "count": 3
+        },
+        {
+          "cc": 2,
+          "step": 0,
+          "phase": false,
+          "count": 4
+        },
+        {
+          "cc": 2,
+          "step": 2,
+          "phase": false,
+          "count": 4
+        },
+        {
+          "cc": 3,
+          "step": 0,
+          "phase": false,
+          "count": 6
+        },
+        {
+          "cc": 3,
+          "step": 2,
+          "phase": false,
+          "count": 6
+        }
+      ]
+    },
+    {
+      "from": "22:50:00",
+      "raw": 181,
+      "n": 112,
+      "rawGapMedian": 0.39049994945526123,
+      "windows": [
+        {
+          "s": 1,
+          "n": 3
+        },
+        {
+          "s": 2,
+          "n": 3
+        },
+        {
+          "s": 3,
+          "n": 4
+        }
+      ],
+      "covers": [
+        {
+          "cc": 1,
+          "step": 0,
+          "phase": false,
+          "count": 3
+        },
+        {
+          "cc": 1,
+          "step": 2,
+          "phase": false,
+          "count": 3
+        },
+        {
+          "cc": 2,
+          "step": 0,
+          "phase": false,
+          "count": 3
+        },
+        {
+          "cc": 2,
+          "step": 2,
+          "phase": false,
+          "count": 3
+        },
+        {
+          "cc": 3,
+          "step": 0,
+          "phase": false,
+          "count": 4
+        },
+        {
+          "cc": 3,
+          "step": 2,
+          "phase": false,
+          "count": 4
+        }
+      ]
+    }
+  ],
+  "sourceBlobs": [
+    "217edebe06785c6c5f053feb6414f522ed9dc994",
+    "9abca1d2a6c960b1b1b037d5479971bdc87e51c5",
+    "c5c67a1b52d39bf27797086b6204ac58afb5b4b7"
+  ],
+  "method": "Replace initial origin string and restrict loops to CC1/2/3, step0/2, no phase. All other archived code unchanged. Suffix windows overlap."
+}
