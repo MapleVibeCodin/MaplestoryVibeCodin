@@ -194,3 +194,6 @@ Read [Hawkes model](../market-data/2026-11-27-method02-hawkes.md). 25 trained fi
 
 ## HeneFM model comparison — method 3 of 5
 Read [renewal model](../market-data/2026-11-27-method03-renewal.md). Four variants,141 policies, net0s validation/test selected abstention; no active validation policy. Methods1/2 test -3.31/0s. Next HSMM, then decision-focused ensemble. Same source2558 original/cutoff21:19:37.057 and persistent benchmark; fresh unseen final validation needed. No runtime changes.
+
+## HeneFM model comparison — method 4 of 5
+Read [HSMM](../market-data/2026-11-27-method04-hsmm.md). 12 fitted configurations,106 policies, validation+3.076s/test0s (no proactive switching). Methods1/2/3 test-3.31/0/0s. Next decision-focused ensemble. Same original2558 records/cutoff21:19:37.057, identical stateful benchmark; fresh unseen validation needed. No runtime changes.
