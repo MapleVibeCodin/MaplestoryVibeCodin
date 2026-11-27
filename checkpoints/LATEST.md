@@ -200,3 +200,6 @@ Read [HSMM](../market-data/2026-11-27-method04-hsmm.md). 12 fitted configuration
 
 ## HeneFM shop density update — before Method 5
 Read [shop population prior](../market-data/2026-11-27-shop-density-prior.md), including user verbatim correction and executed four-variant challenger. Keep scanner occupancy distinct from expected shop/deal density; retain qualitative row/channel prior, do not invent shop counts. Same dataset, no test time savings, exploratory conditional floor improvement. Next decision-focused ensemble; preserve all frozen models. No runtime changes.
+
+## HeneFM model comparison — method 5 of 5 completed
+Read [final ensemble comparison](../market-data/2026-11-27-method05-ensemble.md) and [shop density prior](../market-data/2026-11-27-shop-density-prior.md). 95 configurations/3326 policies, best original HSMM validation+3.076s/test0, best genuine blend+2.257/0. No positive common test time savings for any of five selected models. Freeze selected contenders, prospectively test fresh observations after21:19:37.057. Eight original datasets retained, latest2558 records. No runtime changes. Full historical continuity audit remains incomplete.
