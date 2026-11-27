@@ -183,3 +183,7 @@ User verbatim: update the number of scanners to whateever you wANT
 
 ## All-original-export seven-role audit
 [Report](2026-11-27-seven-role-all-archive-audit.md):14 originals,12708 unique,9405 pre-dense excluded,3303 eligible exactly prior input. Zero wrong assignments/duplicates/modeled anchor violations.450/451 direct forward links retained;119/154 episodes unsplit;279 distinct CC pairs/315 switches, no stable channel cycle. Retrospective consistency only, not independent validation. No new data/runtime edits/deletions; historical audit/archive incomplete.
+
+
+## Prediction upgrade completed — causal replay, calibrated forecasts, robust policy
+[Complete report](2026-11-27-prediction-upgrade-complete.md). Zero-filter3303/1651, no new data. V2 selected61/472 exact CH vs persistence51; fixed-grid49/329 vs43; joint CH/FM45/472; sweep start revisit9/43; prefix1117 identical. Calibrated 40-channel horizon probabilities and timestamped historical snapshot archived. 8640 robust policy configurations, sparse scenarios all reactive; full2s +1.783s with17 extra moves, penalized negative. Freeze advisory models and keep reactive live; no demonstrated deployment benefit. Source/lag/eligibility limitations documented. Preserve all prior files, historical full audit/archive incomplete.
