@@ -130,3 +130,7 @@ Read [one-scanner reconstruction](2026-11-27-one-scanner-hour-reconstruction.md)
 
 ## Second scanner residual fit
 [Two-scanner report](2026-11-27-two-scanner-residual-reconstruction.md): original scanner1 frozen; scanner2 273 raw/134 consolidated/131 supported,373 silent,504 rooms/25 CC,ends CH39 FM11. Combined584 unique raw/294 consolidated, no duplicate attribution and zero simultaneous same-channel occupancy. Alternate ends CH29 FM15 with130 supported. Sequential fit only; identities unverified, no new data or changed cutoff. Full minute/room/deal CSVs and model archived. No prior deletions.
+
+
+## Third scanner residual fit
+[Three-scanner report](2026-11-27-three-scanner-residual-reconstruction.md): scanner1 and scanner2 frozen; scanner3 240 raw/113 consolidated/110 supported,393 silent,503 rooms/25 CC,ends CH38 FM12. Combined824 unique raw/407 consolidated, no duplicate attribution or same-room overlap. Same-channel overlap33s/109s; forcing separation costs1 supported visit, retains end. Alternate ends CH29 FM8 with109 supported. Sequential fit only; identities unverified, no new data or changed cutoff. Full minute/room/deal CSVs and model archived. No prior deletions.
