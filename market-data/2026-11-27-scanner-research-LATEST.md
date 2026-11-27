@@ -126,3 +126,7 @@ Read [latest holdout report](2026-11-27-dense-holdout-2313.md). Thirteenth origi
 
 ## One-scanner rolling-hour trajectory
 Read [one-scanner reconstruction](2026-11-27-one-scanner-hour-reconstruction.md). New retrospective synthetic one-worker model on exact rolling hour22:13:51.434–23:13:51.434, full timeline505 room intervals/25 CCs,151 supported/354 silent,160 matched marks of1299,15 distinct channels. 7s fixed room window,20-room full sweep, arbitrary entry phase,2–12s CC assumed. Primary CH11 FM6 at cutoff; equally supported alternative CH39 FM11 (objective difference .035 only). No exact physical worker recovered. No new data or change to frozen channel model. Complete room/minute CSV and reproducible model, alternate fits archived. Earlier sparse phase especially ambiguous. Next data cutoff unchanged23:13:51.174. Transcript partial; no historical deletions.
+
+
+## Second scanner residual fit
+[Two-scanner report](2026-11-27-two-scanner-residual-reconstruction.md): original scanner1 frozen; scanner2 273 raw/134 consolidated/131 supported,373 silent,504 rooms/25 CC,ends CH39 FM11. Combined584 unique raw/294 consolidated, no duplicate attribution and zero simultaneous same-channel occupancy. Alternate ends CH29 FM15 with130 supported. Sequential fit only; identities unverified, no new data or changed cutoff. Full minute/room/deal CSVs and model archived. No prior deletions.

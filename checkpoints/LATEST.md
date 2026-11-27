@@ -252,3 +252,7 @@ Read [one-scanner reconstruction](../market-data/2026-11-27-one-scanner-hour-rec
 
 ## Exact one-scanner deal evidence
 [Evidence report](../market-data/2026-11-27-one-scanner-deal-evidence.md):160/160 exact matched anchors on each track,157 common,311/312 raw matching screenshots. CSV lists all original matched deals; no unmatched anchors, no new data or changed model. Source filename time not confirmed scan time. Current cutoff unchanged.
+
+
+## Second scanner residual fit
+[Two-scanner report](../market-data/2026-11-27-two-scanner-residual-reconstruction.md): original scanner1 frozen; scanner2 273 raw/134 consolidated/131 supported,373 silent,504 rooms/25 CC,ends CH39 FM11. Combined584 unique raw/294 consolidated, no duplicate attribution and zero simultaneous same-channel occupancy. Alternate ends CH29 FM15 with130 supported. Sequential fit only; identities unverified, no new data or changed cutoff. Full minute/room/deal CSVs and model archived. No prior deletions.
