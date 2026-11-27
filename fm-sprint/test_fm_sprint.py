@@ -54,6 +54,29 @@ class FlowTests(unittest.TestCase):
     def test_no_shop_pin(self):
         f=Lifecycle();f.step('a',Scene(entrance=True),same_channel=True);f.step('a',Scene(room=True),same_channel=True)
         self.assertEqual(f.step('a',Scene(room=True),navigate=True),[])
+    def test_stop_latched_across_geometry_changes(self):
+        f=Lifecycle();self.assertEqual(f.bind('a',('old',)), 'new');f.stop()
+        self.assertEqual(f.bind('a',('new',)), 'context_changed')
+        self.assertEqual(f.bind('a',('old',)), 'same')
+        self.assertEqual(f.stage,'stopped')
+        self.assertEqual(f.step('a',Scene(entrance=True,room=True),navigate=True),[])
+        self.assertEqual(f.bind('b',('new',)), 'new');self.assertEqual(f.stage,'route')
+    def test_initial_window_missing_then_available(self):
+        f=Lifecycle();f.bind('a',None);f.bind('a',('window',));self.assertEqual(f.stage,'route')
+        self.assertEqual(f.bind('a',None),'context_changed');self.assertEqual(f.stage,'stopped')
+    def test_item_ready_requires_current_hit(self):
+        f=Lifecycle();f.step('a',Scene(entrance=True),same_channel=True)
+        f.step('a',Scene(room=True,shop=True,hit=True),same_channel=True)
+        self.assertEqual(f.stage,'item_ready')
+        f.step('a',Scene(room=True,shop=True,hit=False));self.assertEqual(f.stage,'scan')
+    def test_inventory_fresh_identity_and_sold_rejection(self):
+        key=(1,(0,0,1366,768),'id','seller','item',100,0,1)
+        result={'hits':[('ROW_CHECK',(1,2,3,4))]}
+        self.assertEqual(fresh_inventory(result,key,key[:6],1.,1.1),(True,True))
+        self.assertEqual(fresh_inventory(result,key,key[:6],1.,1.36),(False,False))
+        self.assertEqual(fresh_inventory(result,key,key[:5]+(200,),1.,1.1),(False,False))
+        self.assertEqual(fresh_inventory({'hits':[('SOLD',(1,2,3,4))]},key,key[:6],1.,1.1),(True,False))
+        self.assertEqual(fresh_inventory(result,key,key[:6],None,1.1),(False,False))
     def test_grid_points(self):
         self.assertEqual(channel_points(1),((437,353),(837,473)))
         self.assertEqual(channel_points(40),((927,441),(837,473)))
