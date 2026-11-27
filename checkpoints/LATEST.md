@@ -218,3 +218,6 @@ Read [final full-history report](../market-data/2026-11-27-final-full-history-po
 
 ## HeneFM extended frozen holdout — 22:36 Taipei
 Read [past-hour research](../market-data/2026-11-27-hour-live-tracking-holdout.md). Tenth original819 records,237 overlap,582 new,296 consolidated; all three frozen contenders positive due to one common CH19 FM5 event, A+1.407s/B+2s/C+.407s. No refitting. Last22:36:41.931. Preserve all originals and models. Real gameplay advantage and exact worker count unverified. No runtime edits or additional data request. Full historical continuity audit and dialogue archive incomplete.
+
+## Broader zero-filter scan feed — 22:45 Taipei
+Read [zero-filter analysis](../market-data/2026-11-27-zero-filter-route-analysis.md). User changed filter0,0,0,0 approximately; still profitable-only, exact change time unknown. Eleventh original1787 records,968 new, latest22:45:41.002. Two boundary backfills preserved. Seven concurrent route-compatible envelopes, not confirmed scanner count. Dense-test conditional room prediction55%, row76.9%, within1 93.4%; channel remains weak. No new frozen savings or runtime edits. Historical continuity audit and dialogue archive incomplete.
