@@ -3,7 +3,7 @@ Live purchase is deliberately not dispatched: verified transaction evidence abse
 """
 import argparse,base64,os,sys,zlib,time
 from pathlib import Path
-from fm_sprint_core import Lifecycle,Scene,RuneCache,channel_points,menu_evidence,bgr_array
+from fm_sprint_core import Lifecycle,Scene,RuneCache,channel_points,menu_evidence,bgr_array,fresh_inventory
 import numpy as np
 
 # Historical channel-menu template recovered from the prior project snapshot.
@@ -86,11 +86,16 @@ def main():
             if not current or not self.archive.chase_locked:
                 self.flow.reset(None);self._identity=None;return
             key,deal=current
-            if not deal.cc or not deal.fm or deal.sold:return
+            if not deal.cc or not deal.fm or deal.sold:
+                self.flow.stop();return
             hwnd=self.shop.selected_hwnd();client=window_client_rect(hwnd) if hwnd else None
-            identity=(key,deal.cc,deal.fm,deal.item,deal.buy_mesos,hwnd,client)
-            if identity!=self._identity:
-                self._identity=identity;self.flow.reset(identity,deal.cc==args.start_channel)
+            identity=key
+            context=(deal.cc,deal.fm,deal.item,deal.buy_mesos,hwnd,client) if hwnd and client else None
+            binding=self.flow.bind(identity,context,deal.cc==args.start_channel)
+            if binding=='context_changed':
+                self.status.set('Target/window changed · unlock before restarting');return
+            if binding=='new':
+                self._identity=identity
                 self._message=plan(deal.cc,deal.fm,args.start_channel).route_text
                 self.status.set(self._message)
             f8=bool(user.GetAsyncKeyState(0x77)&0x8000)
@@ -105,12 +110,16 @@ def main():
             with self._inventory._lock:
                 inv=self._inventory._latest
                 inv_key=self._inventory._key
-            shop=bool(room and inv is not None and inv_key and inv_key[2]==deal.listing_id)
+                observed_at=self._inventory._observed_at
+            expected=(hwnd,tuple(client),deal.listing_id,deal.ign,deal.item,deal.buy_mesos)
+            shop,hit=fresh_inventory(inv,inv_key,expected,observed_at,time.monotonic())
+            shop=room and shop
             menu,selected,confirm,_=self.menu(client,deal.cc) if self.flow.stage=='channel' else (False,False,False,0.)
             expect_fade=(self.flow.stage=='route' and self.flow.seen_entrance) or (self.flow.stage=='channel' and self.flow.menu_seen)
             black=expect_fade and not room and not entrance and not menu and self.black(client)
             pin=self.pin(deal,client,not self.flow.same)
-            actions=self.flow.step(identity,Scene(focus=True,entrance=entrance,room=room,black=black,menu=menu,selected=selected,shop=shop,hit=bool(shop and inv.get('hits')),pin=pin is not None,confirm=confirm),same_channel=deal.cc==args.start_channel,navigate=args.navigate)
+            previous_stage=self.flow.stage
+            actions=self.flow.step(identity,Scene(focus=True,entrance=entrance,room=room,black=black,menu=menu,selected=selected,shop=shop,hit=bool(shop and hit),pin=pin is not None,confirm=confirm),same_channel=deal.cc==args.start_channel,navigate=args.navigate)
             points=channel_points(deal.cc,client[2:]);cell,button=points
             for a in actions:
                 if a=='park_channel':self.at(hwnd,client,cell)
@@ -129,6 +138,7 @@ def main():
                     self.at(hwnd,client,pin,click=True)
             if actions:self.status.set(self.flow.stage.upper()+' · '+', '.join(actions))
             if self.flow.stage=='item_ready':self.status.set('ITEM LOCATED · verify price/quantity; purchase remains manual')
+            elif previous_stage=='item_ready':self.status.set('Item evidence changed · waiting for fresh recognition')
         def follow_overlays(self):
             if self.archive.lock.acquire(blocking=False):
                 try:current=self.archive.current()
