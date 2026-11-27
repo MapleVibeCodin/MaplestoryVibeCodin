@@ -667,7 +667,7 @@ class ShopInventoryTracker:
                     blank=b'\\xff'*(158*SCALE)
                     warm=encode_gray_png(158*SCALE,NAME_ROW_HEIGHT*SCALE,[blank]*(NAME_ROW_HEIGHT*SCALE))
                     self._ocr.recognize(warm)
-                except (OSError,RuntimeError,ValueError):pass
+                except Exception:pass
             while True:
                 key=self._jobs.get()
                 if key is None or self._closed:return
