@@ -805,14 +805,14 @@ class ShopInventoryTracker:
                 queued_at=self._request_at or started
                 shop_open_at=time.perf_counter()
                 name_start=time.perf_counter()
-                name_rows=tuple(i for i,_ in sections if i>=0)
+                name_rows=tuple(i for i,_ in sections if i>=0 and i not in blocked)
                 names,cache_hits,cache_misses,used_name_ocr=self._name_cache.recognize(frame,name_rows,self._ocr)
                 name_end=time.perf_counter()
                 target_rows=exact_name_rows(names,item,blocked)
-                target_at=name_end if len(target_rows)==1 else None
+                target_at=time.perf_counter() if len(target_rows)==1 else None
                 fast_timing={
                     'scan_id':started,
-                    'total_ms':round((name_end-started)*1000,2),
+                    'total_ms':round(((target_at or name_end)-started)*1000,2),
                     'row_recognition_ms':round((name_end-name_start)*1000,2),
                     'used_ocr':bool(used_name_ocr),
                     'sold_retry':False,
