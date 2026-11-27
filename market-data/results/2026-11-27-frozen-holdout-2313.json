@@ -1,0 +1,62 @@
+{
+  "n": 1535,
+  "baseline": {
+    "lat": 3846.370993375778,
+    "early": 45,
+    "reactive": 1066
+  },
+  "scores": [
+    {
+      "name": "A HSMM",
+      "net": 1.4070000648498535,
+      "n": 363,
+      "newNet": 0,
+      "newBaseline": 864.9809987545013,
+      "switches": [
+        {
+          "t": 12722,
+          "from": 22,
+          "to": 15
+        },
+        {
+          "t": 12730,
+          "from": 7,
+          "to": 15
+        }
+      ],
+      "gains": 0,
+      "losses": 0
+    },
+    {
+      "name": "B density HSMM",
+      "net": 2,
+      "n": 363,
+      "newNet": 0,
+      "newBaseline": 864.9809987545013,
+      "switches": [
+        {
+          "t": 12719,
+          "from": 22,
+          "to": 15
+        },
+        {
+          "t": 12728,
+          "from": 7,
+          "to": 15
+        }
+      ],
+      "gains": 0,
+      "losses": 0
+    },
+    {
+      "name": "C hybrid",
+      "net": 0.4070000648498535,
+      "n": 363,
+      "newNet": 0,
+      "newBaseline": 864.9809987545013,
+      "switches": [],
+      "gains": 0,
+      "losses": 0
+    }
+  ]
+}

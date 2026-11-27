@@ -37,3 +37,7 @@ Completion reported 8:29pm.
 
 ## Twelfth original export — 22:55 Taipei
 `Pasted text(20261127-145516).txt`:2140 lines incl header,2139 filenames,193072 bytes, blob `c5c67a1b52d39bf27797086b6204ac58afb5b4b7`; mounted and remote hash match. 1699 overlap,440 new,88 earlier omitted naturally by rolling window but archived. Latest22:55:03.028.
+
+
+## Thirteenth original export — 23:13 Taipei
+`Pasted text(20261127-151407).txt`:2626 lines including header,2625 distinct filenames,237401 bytes, mounted Git SHA `4c59dd31094b106798d51f8cca4086e3b9b21cf0` matched created remote blob. 1983 overlap,642 new after22:55:03.028, no new backfill, last23:13:51.174. Header23:13:51.434. Original CRLF/no final newline preserved.

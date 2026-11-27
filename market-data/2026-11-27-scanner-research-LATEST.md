@@ -118,3 +118,7 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Scanner count identifiability audit
 [Exact-count audit](2026-11-27-scanner-count-identifiability.md). Dense815 marks, eight distinct channels within2s; min individual cover9 for CC2s/step2s, six excluding first2min. Seven concurrent envelopes/short compatible intervals remain feasible, exact physical count unidentifiable; timestamps are downloads, scanner CC speed unknown. No claim exact seven or nine; no runtime changes.
+
+
+## Dense-feed holdout — 23:13 Taipei
+Read [latest holdout report](2026-11-27-dense-holdout-2313.md). Thirteenth original verified SHA4c59dd31094b106798d51f8cca4086e3b9b21cf0,642 new/363 consolidated, total11850 filenames/8599 consolidated, latest23:13:51.174. Frozen6.721s route160/363 exact room,334 near row; recent15 channel39/363. Frozen channel-switch policies net0 new. Peak7 strong envelopes,80 total,7 feasible tracks with300s gaps, no exact count; 3 repeated broad channel links,0 strict repeats. Keep seven anonymous tracks with overflow and FM9–10 standby. No runtime edits or prior file deletions. Transcript partial, prior missing evidence remains.
