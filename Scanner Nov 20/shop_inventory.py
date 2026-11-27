@@ -803,7 +803,7 @@ class ShopInventoryTracker:
             # Scroll targets retain the original independent contrast checks.
             if not strict:
                 queued_at=self._request_at or started
-                shop_open_at=time.perf_counter()
+                shop_open_at=started
                 name_start=time.perf_counter()
                 name_rows=tuple(i for i,_ in sections if i>=0 and i not in blocked)
                 names,cache_hits,cache_misses,used_name_ocr=self._name_cache.recognize(frame,name_rows,self._ocr)
@@ -824,7 +824,8 @@ class ShopInventoryTracker:
                     'queue_to_target_ms':round((target_at-queued_at)*1000,2) if target_at else None,
                     'shop_open_to_target_ms':round((target_at-shop_open_at)*1000,2) if target_at else None,
                     'target_found_at':target_at,
-                    'shop_detected_at':shop_open_at,
+                    'scan_started_at':shop_open_at,
+                    'shop_gate_ms':round((time.perf_counter()-shop_open_at),2),
                     'queued_at':queued_at,
                 }
                 if target_at is not None:
