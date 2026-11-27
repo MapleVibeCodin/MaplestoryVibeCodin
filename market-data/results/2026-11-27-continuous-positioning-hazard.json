@@ -1,0 +1,174 @@
+{
+  "raw": 1909,
+  "consolidated": 1237,
+  "cutoffs": [
+    3545.773999929428,
+    5219.730999946594,
+    6217.056999921799
+  ],
+  "trainingExposure": [
+    {
+      "n": 141360,
+      "y": 1772
+    },
+    {
+      "n": 141360,
+      "y": 8878
+    }
+  ],
+  "selected": {
+    "p": {
+      "model": "hazard",
+      "risk": 0,
+      "threshold": 0.2,
+      "cool": 5
+    },
+    "net": 0,
+    "sp": 0,
+    "early": 17
+  },
+  "validation": {
+    "n": 261,
+    "baselineLatency": 560.4429993629456,
+    "policyLatency": 560.4429993629456,
+    "net": 0,
+    "baselineEarly": 17,
+    "policyEarly": 17,
+    "speculative": 0,
+    "baselineReactive": 232,
+    "reactive": 232,
+    "baselineOccupied": 462.2649998664856,
+    "occupied": 462.2649998664856,
+    "gain": 0,
+    "loss": 0
+  },
+  "test": {
+    "n": 86,
+    "baselineLatency": 196.87800192832947,
+    "policyLatency": 196.87800192832947,
+    "net": 0,
+    "baselineEarly": 1,
+    "policyEarly": 1,
+    "speculative": 0,
+    "baselineReactive": 70,
+    "reactive": 70,
+    "baselineOccupied": 139.75899982452393,
+    "occupied": 139.75899982452393,
+    "gain": 0,
+    "loss": 0
+  },
+  "top": [
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 0,
+        "threshold": 0.2,
+        "cool": 5
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    },
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 0,
+        "threshold": 0.2,
+        "cool": 15
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    },
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 0,
+        "threshold": 0.2,
+        "cool": 30
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    },
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 0,
+        "threshold": 0.2,
+        "cool": 60
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    },
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 0,
+        "threshold": 0.4,
+        "cool": 5
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    },
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 0,
+        "threshold": 0.4,
+        "cool": 15
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    },
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 0,
+        "threshold": 0.4,
+        "cool": 30
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    },
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 0,
+        "threshold": 0.4,
+        "cool": 60
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    },
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 1,
+        "threshold": 0.2,
+        "cool": 5
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    },
+    {
+      "p": {
+        "model": "hazard",
+        "risk": 1,
+        "threshold": 0.2,
+        "cool": 15
+      },
+      "net": 0,
+      "sp": 0,
+      "early": 17
+    }
+  ],
+  "candidateCount": 225,
+  "note": "Retrospective, not prospective; simulator earliest possible arrival if alert prioritized, latest queued reactive event; no walking or profit labels, filename timing proxy. Initial state reset at split only. Ties in grid: process alert before speculative decision. Forecast features only strict past; train windows end before training cutoff."
+}
