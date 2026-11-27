@@ -504,7 +504,7 @@ class FMApp:
                 if timing and timing.get('target_found_at') is not None:
                     overlay_at=time.perf_counter()
                     timing['overlay_ms']=round((overlay_at-timing['target_found_at'])*1000,2)
-                    timing['shop_open_to_overlay_ms']=round((overlay_at-timing['shop_detected_at'])*1000,2)
+                    timing['shop_open_to_overlay_ms']=round((overlay_at-timing['scan_started_at'])*1000,2)
                     timing['queue_to_overlay_ms']=round((overlay_at-timing['queued_at'])*1000,2)
         scene = self._entrance_camera.get(hwnd, client) if supported and not room_confirmed else None
         if not supported or room_confirmed:self._entrance_camera.reset()
