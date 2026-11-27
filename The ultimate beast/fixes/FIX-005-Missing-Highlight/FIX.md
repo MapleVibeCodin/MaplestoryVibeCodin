@@ -13,3 +13,7 @@ Update this record with each recurrence, actual check results, and the new commi
 
 ## Spatial live trial evidence
 Spatial session: 478 inventory scans, 267 OCR, median total 31.63ms, 467 fallback geometry, 11 exact geometry, all name_only. Diagnostic states: 37 target not visible, 14 verifying, 2 ROW_CHECK name-only candidate events (one lock), 1 strict scroll geometry wait; zero verified unique matches. Pinned shop_inventory.py explicitly rejects strict scroll on fallback geometry and exact-name fast path abstains on no match; no actual row text or screenshots in archive, cannot identify wrong shop vs OCR mismatch. Next: labeled shop captures, verified geometry and item recognition regression, no relaxed matching.
+
+
+## Stable candidate
+2a6a083553dcdd4f0e1f9e95729a2c87c7bff052: retained name-only fast hit path; a name-only miss now falls through to the pinned full-row recognition, exact price checks, alternate sold contrast and post-capture revalidation. Strict scroll/fallback geometry guards retained; no seller OCR or automatic inputs. Structural checks only, actual OCR accuracy and performance still open. Session shop captures restored to permit independent verification.
