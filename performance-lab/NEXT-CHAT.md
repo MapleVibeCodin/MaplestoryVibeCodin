@@ -1,5 +1,11 @@
 # FM Rush Performance Lab — next-chat checkpoint
 
+## Latest checkpoint — Step 13 (2026-11-27)
+- Read `performance-lab/STEP-13-RUNESCAPE-1000-IMAGE-SHADOW.md`. Replayed 1,000 new unique image hashes, zero Step 12 overlap, using RuneScape-inspired multi-point color/bitmap templates. 968 corrected shop-interval positives, 32 reviewed controls. Nine known templates; same-corpus tuning, no independent holdout.
+- V2: all 1,000 shadow scans <=50ms, P95 0.4575ms, max 3.2847ms. Gate 958/968, 32/32 controls. Target 386/388 unique positives, 340/340 expected rejects, 272 unscored. Replay reproduced all decisions. Step 13 has not replaced production OCR, strict scroll recognition, capture or overlay; Windows live 50ms remains unverified.
+- Shadow source: `performance-lab/research/step13_rs_shadow.py`. Private replay artifacts in chat; no raw media committed. Next: independently labeled held-out native shop images and real Windows capture-to-overlay qualification. Preserve all branches and backups.
+
+
 ## Latest checkpoint — Step 12 (2026-11-27)
 - Branch: `performance-lab/step-11-50ms-target`; read `performance-lab/STEP-12-1000-REAL-FRAME-AUDIT.md` before making latency claims.
 - Recovered private 42-PNG/10-video archive without user upload. Decoded 5,777 video frames, selected 1,000 real shop-preview frames (982 unique crop SHA-256 hashes, **not** 1,000 independent shops). Private media was not pushed to GitHub.
