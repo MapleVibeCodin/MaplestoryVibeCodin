@@ -1,0 +1,16 @@
+# Six-scanner residual reconstruction
+
+User verbatim: scanner 6
+
+Same exact original rolling hour22:13:51.434–23:13:51.434 Taipei, no new data. Preserve primary scanner1–5 hypotheses unmodified. Original2s consolidation on full input first; exclude prior CH/FM room-window matching marks afterward,589 of1299 removed,710 residual. All1170 previous unique original matching filenames excluded from raw attribution of scanner6. Run same one-worker DP with same7s room window,20-room full sweep,arbitrary phase at each CC,2–12s transitions,score1 per supported visit and .035 per second of excess CC. Historical source unchanged; separate residual source. Not joint global optimization.
+
+Scanner6: 505 room visits,75 supported,430 silent,75 exact consolidated anchors,165 raw matched filenames,25 CC,3531s scanning,69s CC,score74.33500000000004,cutoff CH10 FM2. Continuous full3600s timeline validated; no gaps/overlaps within track. Same-channel occupancy overlap83s/29s/113s/287s/0s with scanners1–5 respectively; same-room overlap0s/0s/17s/0s/0s. Zero shared raw filenames. Separate-channel constraint for scanner6 yields73 supported,73 anchors,149 raw,score72.160,ends CH10 FM2. Prior overlaps remain unchanged. Combined1335 unique raw matches of2625 (50.86%),664 disjoint consolidated anchors of1299,643 supported visits,3025 total room windows,2382 silent,151 CC. Original filename timestamps, not verified actual scan timing. Silent rooms not necessarily empty.
+
+Scanner6 channel sequence 21 -> 27 -> 13 -> 8 -> 14 -> 16 -> 28 -> 9 -> 12 -> 6 -> 16 -> 7 -> 17 -> 7 -> 36 -> 3 -> 37 -> 34 -> 40 -> 38 -> 3 -> 6 -> 31 -> 33 -> 17 -> 10.
+Alternate end excluding CH10 at3599.99s:74 supported,76 anchors,157 raw,score73.580,ends CH8 FM10. Only .755 objective below primary. Primary cutoff FM2 inferred; last anchor23:13:15.445 CH10 FM12 Star Earrings4499. No physical identity or exact live location verified. Actual listed item/price strings from original filenames, no profitability/purchase verification.
+
+Source blobs 9d93784bcd26f183d5ac889ec1fb9eda0d5e31b2, 03bc459d075ea12b15ef40d37d6d22acea93cda1, 4c59dd31094b106798d51f8cca4086e3b9b21cf0, 039821d1a99e030005731b17ece7a826b068375c, 780eebaa97444f5983724de07ba93d5a38f6611b, 070f8855a5a5a560658acff86f00b623f3782958, 903b9d13ad2552181a42de9713cee129a50afc7b. All75 anchors matched exact original filenames. No changes to earlier tracks or cutoff. No complete platform transcript; exact user request archived here, report and output preserve numerical evidence. Final response not included before verification.
+
+Retrieval failure: five-scanner JSON contents endpoint returned zero-length content although SHA was present (blob size1089475 characters). JSON.parse failed before analysis. Recovered via fetch_blob on verified SHA03bc459d075ea12b15ef40d37d6d22acea93cda1; parsed complete JSON. Six-scanner result serialized compactly (696732 characters) to avoid this limit; use blob fallback whenever content is empty. No prior files changed.
+
+Files: market-data/results/2026-11-27-six-scanner-room-visits.csv, market-data/results/2026-11-27-six-scanner-minute-positions.csv, market-data/results/2026-11-27-six-scanner-scanner6-deals.csv, market-data/results/2026-11-27-six-scanner-scanner6-anchors.csv, market-data/results/2026-11-27-six-scanner-result.json.
