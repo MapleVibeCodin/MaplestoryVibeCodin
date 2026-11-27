@@ -1,0 +1,109 @@
+{
+  "tests": [
+    {
+      "k": 7,
+      "remaining": 635,
+      "actual": 70,
+      "actualStrong": 5,
+      "control": [
+        {
+          "seed": 711,
+          "supported": 53,
+          "objective": 51.88000000000003,
+          "strongSweeps": 1
+        },
+        {
+          "seed": 722,
+          "supported": 52,
+          "objective": 51.615,
+          "strongSweeps": 0
+        },
+        {
+          "seed": 733,
+          "supported": 50,
+          "objective": 49.755,
+          "strongSweeps": 0
+        }
+      ]
+    },
+    {
+      "k": 9,
+      "remaining": 501,
+      "actual": 54,
+      "actualStrong": 3,
+      "control": [
+        {
+          "seed": 711,
+          "supported": 45,
+          "objective": 44.65000000000001,
+          "strongSweeps": 0
+        },
+        {
+          "seed": 722,
+          "supported": 44,
+          "objective": 43.790000000000006,
+          "strongSweeps": 0
+        },
+        {
+          "seed": 733,
+          "supported": 44,
+          "objective": 43.86000000000001,
+          "strongSweeps": 0
+        }
+      ]
+    },
+    {
+      "k": 10,
+      "remaining": 446,
+      "actual": 43,
+      "actualStrong": 0,
+      "control": [
+        {
+          "seed": 711,
+          "supported": 37,
+          "objective": 36.754999999999995,
+          "strongSweeps": 0
+        },
+        {
+          "seed": 722,
+          "supported": 39,
+          "objective": 38.86000000000001,
+          "strongSweeps": 0
+        },
+        {
+          "seed": 733,
+          "supported": 42,
+          "objective": 41.68500000000001,
+          "strongSweeps": 0
+        }
+      ]
+    },
+    {
+      "k": 12,
+      "remaining": 363,
+      "actual": 34,
+      "actualStrong": 0,
+      "control": [
+        {
+          "seed": 711,
+          "supported": 29,
+          "objective": 29,
+          "strongSweeps": 0
+        },
+        {
+          "seed": 722,
+          "supported": 34,
+          "objective": 33.93,
+          "strongSweeps": 0
+        },
+        {
+          "seed": 733,
+          "supported": 33,
+          "objective": 32.65,
+          "strongSweeps": 0
+        }
+      ]
+    }
+  ],
+  "notes": "Exploratory 3 shuffle controls per residual stage, room labels permuted within same channel and 10-minute block, preserves exact residual timestamps, channel labels and within-block room frequencies. No reconsolidation; fit same one-worker DP. Residual selection conditioned on earlier data-fitted tracks. Not a formal hypothesis test, not a count estimator. Seeds fixed."
+}

@@ -146,3 +146,7 @@ Read [one-scanner reconstruction](2026-11-27-one-scanner-hour-reconstruction.md)
 
 ## Sixth scanner residual fit
 [Six-scanner report](2026-11-27-six-scanner-residual-reconstruction.md): scanners1–5 frozen; scanner6 165 raw/75 consolidated/75 supported,430 silent,505 rooms/25 CC,ends CH10 FM2. Combined1335 unique raw/664 consolidated, no duplicate attribution. Same-channel overlap83s/29s/113s/287s/0s and same-room overlap17s with scanner3. Separate-channel variant73 supported ends CH10 FM2; end-excluded variant74 supported ends CH8 FM10. Sequential fit only; identities unverified, no new data or changed cutoff. Large JSON retrieval fallback: fetch_blob by verified SHA if fetch_file content empty; six-scanner JSON compact. Full minute/room/deal CSVs and model archived. No prior deletions.
+
+
+## Remaining scanner reconstruction (7–12)
+[Report](2026-11-27-remaining-scanners-reconstruction.md): primary tracks1–6 frozen; tracks7–12 add139/125/107/86/94/69 raw,72/62/55/44/39/34 anchors. Combined1955/2625 raw and970/1299 consolidated, no duplicate assignment. Track7/8/9 have5/4/3 sweeps with>=5 matched rooms,10–12 zero. Exploratory three shuffled controls each for7/9/10/12: actual70/54/43/34 vs controls50–53/44–45/37–42/29–34. Additional fit near chance at12; stop arbitrary fitting at12, no exact worker count. Full movement, deal, minute records and controls archived. No new data, same cutoff. Preserve all previous paths and assumptions.
