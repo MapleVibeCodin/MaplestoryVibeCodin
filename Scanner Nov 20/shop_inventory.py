@@ -390,6 +390,93 @@ def encode_gray_png(width,height,rows):
     data=zlib.compress(b''.join(b'\x00'+row for row in rows),1)
     return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',header)+chunk(b'IDAT',data)+chunk(b'IEND',b'')
 
+def prepare_name_ocr(frame,rows=None):
+    """OCR only the six item-name bands; prices, stats and seller are excluded."""
+    buf,w,h,stride=frame
+    if w<204 or h<263 or stride<w*3 or len(buf)!=stride*h:
+        raise ValueError('Invalid item-name capture')
+    rows=tuple(range(ROWS)) if rows is None else tuple(sorted(set(rows)))
+    if any(row not in range(ROWS) for row in rows):raise ValueError('Invalid item row')
+    out_w=158
+    out_h=max(1,len(rows)*NAME_ROW_SLOT-NAME_ROW_GAP)
+    if np is not None:
+        pixels=np.frombuffer(buf,dtype=np.uint8).reshape(h,stride)[:,:w*3].reshape(h,w,3)
+        canvas=np.full((out_h,out_w),255,dtype=np.uint8)
+        for slot,row in enumerate(rows):
+            y=NAME_ROW_TOP+row*STEP
+            native=pixels[y:y+NAME_ROW_HEIGHT,40:198]
+            selected=selected_row_mask(frame,row)
+            sold=sold_row_mask(frame,row)
+            avg=native.sum(axis=2,dtype=np.uint16)//3
+            if selected:ink=native[:,:,2].astype(np.int16)<145
+            elif sold:
+                flat=avg.reshape(-1)
+                pos=max(0,int(flat.size*.75)-1)
+                bg=int(np.partition(flat,pos)[pos])
+                ink=avg.astype(np.int16)<max(0,bg-12)
+            else:ink=avg<145
+            canvas[slot*NAME_ROW_SLOT:slot*NAME_ROW_SLOT+NAME_ROW_HEIGHT]=np.where(ink,0,255)
+        scaled=canvas.repeat(SCALE,axis=0).repeat(SCALE,axis=1)
+        png=encode_gray_png(out_w*SCALE,out_h*SCALE,[line.tobytes() for line in scaled])
+    else:
+        canvas=[bytearray([255])*out_w for _ in range(out_h)]
+        for slot,row in enumerate(rows):
+            y=NAME_ROW_TOP+row*STEP
+            selected=selected_row_mask(frame,row);sold=sold_row_mask(frame,row)
+            values=[]
+            for yy in range(y,y+NAME_ROW_HEIGHT):
+                for x in range(40,198):
+                    i=yy*stride+x*3;b,g,r=buf[i:i+3];values.append((b+g+r)//3)
+            bg=sorted(values)[max(0,int(len(values)*.75)-1)] if sold else 0
+            for dy,yy in enumerate(range(y,y+NAME_ROW_HEIGHT)):
+                for dx,x in enumerate(range(40,198)):
+                    i=yy*stride+x*3;b,g,r=buf[i:i+3]
+                    ink=(r<145) if selected else ((b+g+r)//3<max(0,bg-12) if sold else (b+g+r)//3<145)
+                    if ink:canvas[slot*NAME_ROW_SLOT+dy][dx]=0
+        scaled=[]
+        for line in canvas:
+            row_bytes=b''.join(b'\\x00'*SCALE if v==0 else b'\\xff'*SCALE for v in line)
+            scaled.extend([row_bytes]*SCALE)
+        png=encode_gray_png(out_w*SCALE,out_h*SCALE,scaled)
+    return png,{slot:row for slot,row in enumerate(rows)}
+
+def exact_name_rows(names,item,blocked=()):
+    """Unique exact full-name match only; no fuzzy/truncated/sprite guessing."""
+    target=normalized(item)
+    if not target:return []
+    matches=[row for row,name in names.items() if row not in blocked and normalized(name)==target]
+    return matches if len(matches)==1 else []
+
+class NameOCRCache:
+    """Target-independent row-name cache; price pixels do not invalidate it."""
+    def __init__(self,limit=512):
+        self.limit=limit;self.entries=OrderedDict()
+    def recognize(self,frame,rows,ocr):
+        rows=tuple(sorted(set(rows)))
+        names={};keys={}
+        for row in rows:
+            key=name_row_fingerprint(frame,row);keys[row]=key
+            if key in self.entries:
+                names[row]=self.entries[key];self.entries.move_to_end(key)
+        missing=[row for row in rows if row not in names]
+        if missing:
+            png,layout=prepare_name_ocr(frame,missing)
+            raw=ocr.recognize(png)
+            grouped={row:[] for row in missing}
+            for line in raw:
+                yy=float(line.get('y',-100))/SCALE
+                slot=int(yy//NAME_ROW_SLOT)
+                if slot in layout and yy-slot*NAME_ROW_SLOT<NAME_ROW_HEIGHT:
+                    text=str(line.get('text','')).strip()
+                    if text:grouped[layout[slot]].append(text)
+            for row in missing:
+                value=' '.join(grouped[row])
+                names[row]=value
+                self.entries[keys[row]]=value
+                self.entries.move_to_end(keys[row])
+            while len(self.entries)>self.limit:self.entries.popitem(last=False)
+        return names,len(rows)-len(missing),len(missing),bool(missing)
+
 class RowOCRCache:
     """Cache OCR by exact native seller or row pixels, independent of row index."""
     def __init__(self,limit=512):
