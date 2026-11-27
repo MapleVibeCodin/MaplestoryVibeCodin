@@ -19,3 +19,6 @@ Every shop in the channel is checked within a few minutes, and you get a Discord
 One call every 30 minutes.
 Called channel 1 (1st in line). Its shops are checked within a few minutes; you will get a Discord DM when it is done.
 Completion reported 8:29pm.
+
+## Seventh original export — 21:03 Taipei
+`Pasted text(20261127-130346).txt`: 2457 lines incl header, 2456 unique records, blob `11003eeb70569ff53e5bbea9b6544d0fe4947364`, 222239 bytes; byte-exact hash verified against mounted attachment. 404 new observations after20:35:05.774, last21:02:59.731. Previous 2052 exact. All seven original exports preserved.
