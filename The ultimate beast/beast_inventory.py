@@ -2,7 +2,7 @@
 Source: a80a9ffbcc2a4a1616b5cfdc8c91b35c430df8fb; no input or seller OCR added.
 """
 import time
-from shop_inventory import (STEP, normalized, tooltip_blocked_rows, section_fingerprints, sold_row_mask, pick_rows, prepare_ocr)
+from shop_inventory import (ROWS, STEP, normalized, tooltip_blocked_rows, section_fingerprints, sold_row_mask, pick_rows, prepare_ocr)
 
 def exact_active_hits(hits,blocked,frame,sold_mask):
     """Reject rounded/unknown price, sold, ambiguous, blocked and name-only candidates."""
@@ -44,7 +44,8 @@ class InventoryFallbackMixin:
             blocked=tooltip_blocked_rows(frame)
             prefixes={}
             sections=tuple((section,fp) for section,fp in section_fingerprints(frame) if section not in blocked or section in prefixes)
-            digest=(left,top,sections,geometry,tuple(sorted(prefixes.items())))
+            sold_before=tuple(sold_row_mask(frame,row) for row in range(ROWS))
+            digest=(left,top,sections,geometry,tuple(sorted(blocked)),sold_before)
             if digest==prev_digest:
                 self._publish(key,existing,digest);return
             # Never publish a name-only hit or carry an old positive across changed pixels.
@@ -62,14 +63,15 @@ class InventoryFallbackMixin:
             hits=exact_active_hits(hits,blocked,frame,sold_row_mask)
             if not hits:
                 status='No unique active exact name + price match'
-            ocr_ms=(time.perf_counter()-ocr_started)*1000
+            second_checked=bool(hits)
             if hits:
                 # Verify candidate independently at another contrast setting.
-                selected={row for row,_ in hits}
+                selected={row for row,_ in row_sections}
                 alt,alt_sold=prepare_ocr(frame,selected,threshold_delta=15)
                 alt_hits,_=pick_rows(self._ocr.recognize(alt),alt_sold,None,item,price,buy_step=0)
                 if exact_active_hits(alt_hits,blocked,frame,sold_row_mask)!=hits:
                     hits=[];status='Exact price not independently confirmed'
+            ocr_ms=(time.perf_counter()-ocr_started)*1000
             self._observation=None
             confirmed=self._find_anchor(client)
             if confirmed!=anchor:
@@ -80,7 +82,7 @@ class InventoryFallbackMixin:
                 self._publish(key,{'status':'Shop open · capture retry','hits':[]});return
             after_blocked=tooltip_blocked_rows(frame_after)
             after=tuple((section,fp) for section,fp in section_fingerprints(frame_after) if section not in after_blocked)
-            if after!=sections or after_blocked!=blocked:
+            if after!=sections or after_blocked!=blocked or tuple(sold_row_mask(frame_after,row) for row in range(ROWS))!=sold_before:
                 self._publish(key,{'status':'Shop evidence changed · retrying','hits':[]});return
             hits=exact_active_hits(hits,after_blocked,frame_after,sold_row_mask)
             if hits and geometry:
@@ -91,7 +93,7 @@ class InventoryFallbackMixin:
             hits=[(mode,(left+1,top+23+i*STEP,left+200,top+23+(i+1)*STEP-2)) for i,mode in hits]
             self._publish(key,{'status':status,'hits':hits,
                               'timing':{'scan_id':started,'total_ms':round((time.perf_counter()-started)*1000,2),
-                                        'row_recognition_ms':round(ocr_ms,2),'used_ocr':bool(used_ocr or hits),'sold_retry':False,
+                                        'row_recognition_ms':round(ocr_ms,2),'used_ocr':bool(used_ocr or second_checked),'sold_retry':False,
                                         'fast_path':'exact_price',
                                         'visible_rows':sum(i>=0 for i,_ in sections),'geometry_fallback':geometry}},digest)
         except Exception as exc:
