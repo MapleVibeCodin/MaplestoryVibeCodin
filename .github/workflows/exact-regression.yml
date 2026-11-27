@@ -13,6 +13,11 @@ jobs:
         with:
           ref: 4c938a5816bf87542603840587e33d69b1c9ba76
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: a80a9ffbcc2a4a1616b5cfdc8c91b35c430df8fb
+          path: pinned-base
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -20,11 +25,7 @@ jobs:
       - name: Fetch pinned scanner and run historical and current offline tests
         shell: pwsh
         run: |
-          git fetch --depth=1 origin a80a9ffbcc2a4a1616b5cfdc8c91b35c430df8fb
-          if ($LASTEXITCODE) { throw 'Pinned fetch failed' }
-          git worktree add --detach "$env:RUNNER_TEMP\beast-pinned" FETCH_HEAD
-          if ($LASTEXITCODE) { throw 'Pinned checkout failed' }
-          $env:BEAST_PINNED_SCANNER="$env:RUNNER_TEMP\beast-pinned\Scanner Nov 20"
+          $env:BEAST_PINNED_SCANNER="$env:GITHUB_WORKSPACE\pinned-base\Scanner Nov 20"
           Set-Location 'The ultimate beast'
           $ErrorActionPreference='Continue'
           $codes=@()
@@ -38,4 +39,4 @@ jobs:
           python -m unittest discover -s . -p 'test_*.py' -v
           $codes+=$LASTEXITCODE
           Write-Host "Suite exit codes: $codes"
-          if ($codes -contains 1 -or $codes -contains 2) { exit 1 }
+          if (@($codes | Where-Object {$_ -ne 0}).Count -gt 0) { exit 1 }
