@@ -91,3 +91,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Shop density correction — before Method 5
 [User prior and executed HSMM challenger](2026-11-27-shop-density-prior.md). Shop population varies by channel/room; row hierarchy1–6 >7–12 >13–16 >17–20, lower channels generally more populated. Exact counts unknown. Four variants/141 policies: uniform wins selection, mild/proxy tie +3.076s validation, strong+.579; all test0s. Strong prior reduces conditional floor distance79→70/86 on reused test, exploratory only. Preserve separate visit and emission models. Carry soft density prior into Method5; no live changes.
+
+## Method 5/5 — decision-focused ensemble completed
+[Final five-method comparison](2026-11-27-method05-ensemble.md). 95 mixtures/3326 policies, selected original uniform HSMM validation+3.076s/test0; best genuine blend25% Hawkes+75% mild density HSMM +2.257/0; equal four-way0/0. None of five selected methods positive on common test. Freeze contenders; next new prospective data after21:19:37.057. No runtime edits.
