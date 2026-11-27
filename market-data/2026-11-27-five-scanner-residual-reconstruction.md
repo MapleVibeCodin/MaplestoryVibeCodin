@@ -1,0 +1,14 @@
+# Five-scanner residual reconstruction
+
+User verbatim: now do 5
+
+Same exact original rolling hour22:13:51.434–23:13:51.434 Taipei, no new data. Preserve primary scanner1–4 hypotheses unmodified. Original2s consolidation on full input first; exclude prior CH/FM room-window matching marks afterward,508 of1299 removed,791 residual. All1009 previous unique original matching filenames excluded from raw attribution of scanner5. Run same one-worker DP with same7s room window,20-room full sweep,arbitrary phase at each CC,2–12s transitions,score1 per supported visit and .035 per second of excess CC. Historical source unchanged; separate residual source. Not joint global optimization.
+
+Scanner5: 505 room visits,79 supported,426 silent,81 exact consolidated anchors,161 raw matched filenames,26 CC,3534s scanning,66s CC,score78.51000000000002,cutoff CH29 FM13. Continuous full3600s timeline validated; no gaps/overlaps within track. Same-channel occupancy overlap0s/80s/0s/343s with scanners1–4 respectively; same-room overlap0s/44s/0s/0s. Zero shared raw filenames. Separate-channel constraint for scanner5 yields79 supported,81 anchors,164 raw,score78.125,ends CH8 FM10. Prior overlaps remain unchanged. Combined1170 unique raw matches of2625 (44.57%),589 disjoint consolidated anchors of1299,568 supported visits,2520 total room windows,1952 silent,126 CC. Original filename timestamps, not verified actual scan timing. Silent rooms not necessarily empty.
+
+Scanner5 channel sequence 3 -> 10 -> 22 -> 3 -> 4 -> 10 -> 15 -> 22 -> 8 -> 20 -> 3 -> 37 -> 33 -> 32 -> 20 -> 34 -> 2 -> 8 -> 21 -> 2 -> 32 -> 25 -> 14 -> 22 -> 13 -> 2 -> 29.
+Alternate end excluding CH29 at3599.99s:79 supported,79 anchors,165 raw,score78.440,ends CH10 FM2. Only .070 objective below primary. Primary cutoff FM13 supported by23:13:46.995 Orihalcon Ore99; no physical identity or exact live location verified. Actual listed item/price strings from original filenames, no profitability/purchase verification. Equal supported visits across all three variants demonstrates nonidentifiability of endpoint.
+
+Source blobs 269e8a6d4a34972a52fe57390a57ace5c1d7dba0, 903b9d13ad2552181a42de9713cee129a50afc7b, 4c59dd31094b106798d51f8cca4086e3b9b21cf0, 039821d1a99e030005731b17ece7a826b068375c, 780eebaa97444f5983724de07ba93d5a38f6611b, 070f8855a5a5a560658acff86f00b623f3782958. All81 anchors matched exact original filenames. No changes to earlier tracks or cutoff. No complete platform transcript; exact user request archived here, report and output preserve numerical evidence. Final response not included before verification.
+
+Files: market-data/results/2026-11-27-five-scanner-room-visits.csv, market-data/results/2026-11-27-five-scanner-minute-positions.csv, market-data/results/2026-11-27-five-scanner-scanner5-deals.csv, market-data/results/2026-11-27-five-scanner-scanner5-anchors.csv, market-data/results/2026-11-27-five-scanner-result.json.
