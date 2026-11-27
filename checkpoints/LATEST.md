@@ -221,3 +221,6 @@ Read [past-hour research](../market-data/2026-11-27-hour-live-tracking-holdout.m
 
 ## Broader zero-filter scan feed — 22:45 Taipei
 Read [zero-filter analysis](../market-data/2026-11-27-zero-filter-route-analysis.md). User changed filter0,0,0,0 approximately; still profitable-only, exact change time unknown. Eleventh original1787 records,968 new, latest22:45:41.002. Two boundary backfills preserved. Seven concurrent route-compatible envelopes, not confirmed scanner count. Dense-test conditional room prediction55%, row76.9%, within1 93.4%; channel remains weak. No new frozen savings or runtime edits. Historical continuity audit and dialogue archive incomplete.
+
+## HeneFM dense route replication — 22:55 Taipei
+Read [twelfth export analysis](../market-data/2026-11-27-zero-filter-next-holdout.md). 440 new,242 consolidated, latest22:55:03.028. Unchanged6.721s conditional model48.3% exact room/95.0% within1 row,60% lower predicted row distance. Recency channel36/242 vs persistence19. Frozen CC policies no new savings. Seven overlapping strong envelopes again, no repeated strict cross-channel handoff. Preserve all originals, no runtime edits. Historical audit and dialogue archive incomplete.
