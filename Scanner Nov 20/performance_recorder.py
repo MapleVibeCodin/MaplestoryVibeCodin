@@ -183,7 +183,7 @@ class PerformanceRecorder:
             if timing and timing.get('scan_id')!=self.last_scan_id:
                 self.last_scan_id=timing['scan_id']
                 extra={k:timing[k] for k in (
-                    'fast_path','name_cache_hits','name_cache_misses','queue_to_target_ms',
+                    'fast_path','name_cache_hits','name_cache_misses','shop_gate_ms','name_ocr_ms','queue_to_target_ms',
                     'shop_open_to_target_ms','overlay_ms','shop_open_to_overlay_ms',
                     'queue_to_overlay_ms') if k in timing}
                 self._emit('inventory_timing',total_ms=timing['total_ms'],
@@ -681,6 +681,8 @@ def summarize(rows):
                 metrics['inventory_scan_ms:'+('geometry' if e.get('geometry_fallback') else 'exact')].append(e['total_ms'])
                 metrics['inventory_row_recognition_ms:'+('ocr' if e.get('used_ocr') else 'cache')].append(e['row_recognition_ms'])
                 for field,label in (
+                    ('shop_gate_ms','shop_gate_ms'),
+                    ('name_ocr_ms','name_ocr_ms'),
                     ('queue_to_target_ms','queue_to_target_ms'),
                     ('shop_open_to_target_ms','shop_open_to_target_ms'),
                     ('overlay_ms','target_to_overlay_ms'),
