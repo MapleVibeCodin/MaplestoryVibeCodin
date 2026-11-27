@@ -101,7 +101,7 @@ def build_report(events, *, writer_error=None, dropped=0, writer_alive=False):
     requests=[e for e in events if e.get('event')=='beast_pointer_request']
     outcomes=[e for e in events if e.get('event')=='beast_pointer_outcome']
     ids={e.get('request_id') for e in outcomes}
-    return {'schema': 'ultimate-beast-trial-2', 'engine': 'runescape', 'build': 'Smooth Shortcuts Stable', 'extra_capture': True,
+    return {'schema': 'ultimate-beast-trial-2', 'engine': 'runescape', 'build': 'Smooth Shortcuts Exact', 'extra_capture': True,
         'camera_capture': 'passive grass landmarks; local session title crops and shop screenshots',
         'pointer_audit': {'requests':len(requests),'outcomes':len(outcomes),
                           'unmatched':sum(e.get('request_id') not in ids for e in requests),
