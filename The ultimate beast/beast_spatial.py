@@ -26,6 +26,21 @@ def clipped_directions(point, size):
                                 ('LEFT',l<2),('RIGHT',r>w-2)) if yes)
 
 
+class CameraModeLatch:
+    """Once current target has landmark evidence, never fall back to entry guesses."""
+    def __init__(self):
+        self.scope=None
+        self.landmark_seen=False
+    def choose(self,scope,live):
+        if scope!=self.scope:
+            self.scope=scope
+            self.landmark_seen=False
+        if live is not None:
+            self.landmark_seen=True
+            return 'landmark_estimate',live
+        return ('waiting_landmark',None) if self.landmark_seen else ('none',None)
+
+
 class PointerAudit:
     """One correlated result per invocation in an observed locked segment."""
     def __init__(self, recorder, kind, received):
@@ -85,6 +100,7 @@ def spatial_mixin(old):
     class SpatialMixin:
         def beast_spatial_init(self):
             self._beast_grass=ScopedGrassTracker()
+            self._beast_camera_mode=CameraModeLatch()
             self._beast_edge=EdgePin(self.root,interval_ms=50)
             self._beast_edge_key=None
             self._beast_projection=None
@@ -238,9 +254,9 @@ def spatial_mixin(old):
                          deal.shop_position and deal.shop_position.get('theme')=='grass')
             if tracker is not None:
                 if grass and aligned_portal is None:
-                    live = tracker.get_scoped(hwnd,client,(current[0],deal.fm,self._cc_entry_mode))
-                    if live is not None:
-                        aligned_portal=live;camera='landmark_estimate'
+                    scope=(current[0],deal.fm,hwnd,tuple(client),self._cc_entry_mode)
+                    live = tracker.get_scoped(hwnd,client,scope)
+                    camera,aligned_portal=self._beast_camera_mode.choose(scope,live)
                 else:tracker.reset_scoped()
             if aligned_portal is not None and camera=='none':camera='manual'
             preview = None
@@ -265,6 +281,8 @@ def spatial_mixin(old):
                 status = 'Waiting for confirmed FM room'
             elif deal.shop_position is None:
                 status = 'No map pin on this HeneFM deal'
+            elif camera=='waiting_landmark':
+                status = offscreen_notice = 'Camera landmarks temporarily unavailable · verify shop manually'
             else:
                 cc_profile = self._cc_entry_mode and channel_entry_portal(deal.fm, client[2:]) is not None
                 if camera=='none':camera='cc_entry_estimate' if cc_profile else 'entry_estimate'
