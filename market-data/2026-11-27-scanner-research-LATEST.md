@@ -175,3 +175,7 @@ User verbatim: update the number of scanners to whateever you wANT
 
 ## Revisit-rate worker-equivalent estimate
 [Report](2026-11-27-scanner-revisit-count.md): zero-filter3303 raw/1651 anchors, twelve sensitivity variants imply6.58–7.53 regular full-sweep worker equivalents, representative revisit828.667s. Adopt seven as working estimate, not hard physical count; prior11-track prediction challenger retained. No stable cross-channel handoff or live advance edge established. No new data/runtime changes or deletions. Historical full archive/audit incomplete.
+
+
+## Seven scanner role simulation
+[Report](2026-11-27-seven-scanner-role-reconstruction.md): 12 retrospective seven-worker beam variants, winner315 switches, 3303/3303 unique raw and1651/1651 anchors, zero modeled timing violations/duplicates. Exact remote model reproduction confirmed. All channel sequences and room timestamps archived. Future-aware heuristic, not a live predictive model or verified physical identity. No new data/runtime changes/deletions; full historical continuity audit/archive incomplete.
