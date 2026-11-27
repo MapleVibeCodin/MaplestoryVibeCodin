@@ -233,3 +233,6 @@ Read [exact-count audit](../market-data/2026-11-27-scanner-count-identifiability
 
 ## New-chat handoff — dense-feed scanner tracking
 Read [dense-feed handoff](../market-data/2026-11-27-dense-feed-new-chat-handoff.md) before continuing. All12 original exports re-fetched and matched expected blob hashes;11208 unique filenames. Latest cutoff22:55:03.028 Taipei. Full prior results and models intact. Latest exact-count exchange and live-filter messages/commands archived; full verbatim archive blocked and incomplete, explicit gaps in handoff. No runtime changes/deletions. Seven anonymous tracks with overflow only; exact physical count and CC assignment unresolved. Retain6.721s route model, do not repeat completed work. Full historical continuity audit incomplete.
+
+## User-pasted verbatim tracking transcript
+[Original user-pasted text](../market-data/transcripts/2026-11-27-user-pasted-tracking-and-handoff-verbatim.txt) preserved exactly, including original line breaks, trailing `50` and archival request. Blob `493e4ee582538b3186125268f1ffe57b6152f9c4`, commit `d3e9134a89eec092b690163c7a105be269129e60`; exact remote readback verified. This fills the user-supplied tracking and count discussion gap for the pasted excerpt only, not the entire historical transcript. No research or runtime changes.
