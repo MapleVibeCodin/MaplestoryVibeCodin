@@ -13,7 +13,7 @@ Once the FM shop is visible, identify the unique exact item name and draw an amb
 - One native observation/capture per shop scan, reusing Step 10 anchor/geometry evidence.
 - Exact, unique full normalized item-name match only. No fuzzy match, truncated name, tooltip-covered row, or duplicate match.
 - Immediate `ROW_CHECK` amber overlay. Name-only is not price/stats verified and never green. No automatic click.
-- Active scan cadence 5ms; GUI polling 10ms while a target is armed and the game is focused.
+- Active scan cadence 5ms; GUI polling 10ms while the FM room-title gate is confirmed; 50ms outside the room.
 - Scroll targets keep the previous strict OCR/contrast verification path.
 - Telemetry now records `shop_gate_ms`, `name_ocr_ms`, `queue_to_target_ms`, `shop_open_to_target_ms`, `target_to_overlay_ms`, `shop_open_to_overlay_ms`, `queue_to_overlay_ms`, cache hits/misses, and p95 distributions.
 
