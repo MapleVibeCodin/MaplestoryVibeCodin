@@ -11,10 +11,10 @@ Date: 2026-11-26. Continue the existing GitHub + Windows PowerShell workflow. Do
 - All raw private screenshots, recordings and logs remain private; do not push raw media/logs to GitHub. No full verbatim chat transcript or permanent memory write verified. Current notes preserve substantive decisions/results, not every message.
 
 ## Current checkpoint — Step 11 (50ms item target)
-- Branch: `performance-lab/step-11-50ms-target`; current candidate commit: `a28483814e1f938c695065e4ce9902ef4f5fbcd7`.
+- Branch: `performance-lab/step-11-50ms-target`; current candidate commit: `e93b9ee03235e85fb739bc2fecf4544ea3c79388`.
 - Step 11 changes: compact six-row name-only OCR (no seller, price or stats), background WinRT warmup, row text cache independent of price pixels, one-frame exact-name target, amber overlay, 5ms worker scan cadence and 10ms UI polling in confirmed FM room. Scroll targets retain legacy strict path.
 - Telemetry exports shop gate, name OCR, queue-to-target, scan-start-to-target, target-to-overlay, scan-start-to-overlay and queue-to-overlay timings, plus p95. Acceptance target is P95 `shop_open_to_overlay_ms` ≤ 50ms; `queue_to_overlay_ms` ≤ 40ms reserves approximately 10ms for polling. **Not yet measured.** Cold OCR can still exceed 50ms.
-- Historical screenshots were visually inspected for name-band geometry: the name text fits the 20px crop; seller, price and stats are excluded. All prior captures remain in Library/private archives.
+- Historical screenshot geometry checked across 16 captures: name glyphs fit the 20px crop; seller, price and stats are excluded. Raw captures remain in Library/private archives.
 - Diff from Step 10 touches only `fm_rush.py`, `shop_inventory.py`, `performance_recorder.py`, tests and lab documentation. No production branch, backup or calibration modified.
 
 ## Next — targeted Windows qualification
@@ -27,7 +27,7 @@ $Fast = "$env:LOCALAPPDATA\FM_Rush_50MS"
 git -C $Lab fetch origin performance-lab/step-11-50ms-target
 if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
-git -C $Lab worktree add --detach $Fast a28483814e1f938c695065e4ce9902ef4f5fbcd7
+git -C $Lab worktree add --detach $Fast e93b9ee03235e85fb739bc2fecf4544ea3c79388
 if ($LASTEXITCODE -ne 0) { throw "Worktree failed" }
 
 $Scanner = "$Fast\Scanner Nov 20"
