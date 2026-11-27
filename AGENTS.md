@@ -1,5 +1,11 @@
 # FM Rush — persistent engineering instructions and handoff
 
+## Mandatory word-for-word archival rule — 2026-11-27
+
+User's exact instruction: "always do word for word. always. update this to github instructions"
+
+For every project and every conversation, always archive the accessible user-visible project dialogue word for word, in chronological order, including both user messages and assistant responses, exact code/commands, corrections, failures and results. A structured summary is an additional index, never a substitute for the transcript. Preserve exact spelling and wording; do not silently paraphrase, truncate, or omit turns. Archive incrementally with each substantive update and before switching chats; do not claim automatic background synchronization. Read back and compare the actual stored text to the source. Label user-pasted transcripts as such, and explicitly identify unavailable earlier messages, attachments, rendering differences, or required redactions. Keep sensitive/private content out of public repositories; use an appropriate authorized private destination for such material. Preserve historical archives, do not overwrite them. Read this rule at every resume. The previously missing scanner discussion is now archived in [word-for-word transcript](market-data/transcripts/2026-11-27-scanner-count-movement-verbatim.md), verified readback at commit `6a6407f42f3e8bdf008d59dacbbfb78ded02390d`.
+
 ## 2026-11-27 — verified cross-project checkpoint and permanent continuity rules
 
 - Current entry point: [checkpoints/LATEST.md](checkpoints/LATEST.md). Current substantive market research commit `75ba889215c691603b4d5b58b49cb5307206e920`; read [scanner count/movement research](market-data/2026-11-27-scanner-research-LATEST.md) and [equipment latest](level-50-equipment-upgrades/LATEST.md) only when relevant. Current dialogue archive [checkpoint command exchange](checkpoints/2026-11-27-checkpoint-command-exchange.md), verified exact readback at commit `63e3caf095f0b16241e5015bce9d0a87475260cd`.
