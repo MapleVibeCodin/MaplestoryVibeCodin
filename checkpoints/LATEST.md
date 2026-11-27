@@ -297,3 +297,8 @@ Use exactly seven scanners and exclusively the 0,0,0,0 observation regime for mo
 
 ## Latest zero-filter-only seven-scanner continuation — 23:42 Taipei
 [Report](../market-data/2026-11-27-zero-filter-seven-2342.md):858 new raw/472 anchors; dense union3303/1651, seven refit1847 raw/929 anchors/904 supported visits. Frozen conditional exact FM189/472, within1 row438/472, route activity channel51/472. Peak7 strong envelopes; exact CC pattern unresolved. Latest23:42:13.544. No earlier filtered data used; seven fixed. No runtime changes. Full historical transcript and continuity audit incomplete.
+
+
+## Variable scanner count — supersedes fixed seven
+User verbatim: update the number of scanners to whateever you wANT
+[Flexible route and count research](../market-data/2026-11-27-variable-count-route-reconstruction.md). Zero-filter-only remains mandatory; seven no longer a hard constraint. Provisional research count11, seven challenger. Flexible schedules assign all3303 raw/1651 anchors, zero duplicates and no modeled anchor timing violations; 11 winner395 switches, validation46/363,test50/472 vs persistence51/472, no verified advantage or physical count. 60 count configurations, 48 path-cover and36 seven-track beam experiments archived with source. Existing circular route supported451 direct forward vs20 reverse within4–12s. No new data, no runtime edits/deletions. Historical full transcript/continuity audit incomplete.
