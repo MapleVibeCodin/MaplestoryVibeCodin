@@ -31,3 +31,6 @@ Completion reported 8:29pm.
 
 ## Tenth original export — past hour
 `Pasted text(20261127-143653).txt`: 820 lines including header,819 unique screenshot filenames,73830 bytes, blob `2dfdd2c02cab15cd068bc3d3e611883347dd26f1`; mounted and remote hashes match. 237 exact previous overlap,582 new. Last22:36:41.931, header22:36:39.537. Preserve original separately.
+
+## Eleventh original export — broader zero filter
+`Pasted text(20261127-144552).txt`:1788 lines incl header,1787 unique filenames,161205 bytes, blob `9abca1d2a6c960b1b1b037d5479971bdc87e51c5`; mounted and remote hashes match. All819 prior overlap,968 new (966 after cutoff,2 backfill), latest22:45:41.002. Preserve exact original separately.
