@@ -17,6 +17,8 @@ Once the FM shop is visible, identify the unique exact item name and draw an amb
 - Scroll targets keep the previous strict OCR/contrast verification path.
 - Telemetry now records `shop_gate_ms`, `name_ocr_ms`, `queue_to_target_ms`, `shop_open_to_target_ms`, `target_to_overlay_ms`, `shop_open_to_overlay_ms`, `queue_to_overlay_ms`, cache hits/misses, and p95 distributions.
 
+Historical geometry check: inspected the name-band crops across 16 archived shop screenshots; the 20px crop contains the item-name glyphs and excludes the price line. Raw images remain private and are not committed.
+
 ## 50ms qualification
 Target: **P95 shop-open-to-visible-overlay ≤ 50ms**. Also require P95 `queue_to_overlay_ms` ≤ 40ms to reserve up to 10ms for the UI polling phase. These are target thresholds, not achieved results.
 
