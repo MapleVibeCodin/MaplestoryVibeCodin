@@ -13,3 +13,7 @@ Update this record with each recurrence, actual check results, and the new commi
 
 ## Spatial iteration — partial mitigation, open
 Runtime 4b1635d4b85dfc183fc6f0ac2f3d2e61380a436c. Explicit pointer controller retained; each observed locked handler invocation adds correlated request/outcome, including unavailable preview, duplicate, superseded, window/focus/error/cancellation and success; old event protocol preserved. Readiness message on completed move advises verifying sign before clicking; report summarizes unmatched IDs and movement durations. No G HUB modification or actual click observation, no guaranteed macro timing fix. Provisional first-click delay 100ms after J/M/C down if user elects to adjust, or manual click after visible pointer arrival; evaluate real delivery separately. Pre-dispatch expired events remain legacy telemetry. No full live test.
+
+
+## Spatial live trial evidence
+Spatial session: 217/217 correlated request/outcome IDs matched exactly, 100 shop/117 channel. Shop 25 successful movement events, median 43.2ms (16.8–64.7), 23/25 >20ms; channel 76 successes, median 55.35ms (0.4–81.2), 41 expired. No actual click delivery recorded; timing remains open. 42 passive action batches all build Spatial; no new input changes.
