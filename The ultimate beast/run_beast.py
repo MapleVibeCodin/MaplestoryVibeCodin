@@ -1,8 +1,28 @@
 """R3 RuneScape trial wrapper. No new game input or recognition path."""
 import os
 import sys
+import socket
+import importlib.util
 from pathlib import Path
 from beast_feedback import writer_loop, NoScreenshots, finish_report
+
+
+def check_bridge_available(host='127.0.0.1',port=18773):
+    # Check only once before starting the GUI. Do not stop an existing process.
+    with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as probe:
+        if hasattr(socket,'SO_EXCLUSIVEADDRUSE'):
+            probe.setsockopt(socket.SOL_SOCKET,socket.SO_EXCLUSIVEADDRUSE,1)
+        try:probe.bind((host,port))
+        except OSError as exc:
+            raise SystemExit('HeneFM bridge port 18773 is occupied or unavailable. Close other FM Rush/Sprint/Beast instances and retry.') from exc
+
+
+def check_source(scanner):
+    for name in ('fm_rush','game_window','shop_inventory','henefm_bridge','performance_recorder','route_logic'):
+        spec=importlib.util.find_spec(name)
+        expected=(scanner/(name+'.py')).resolve()
+        if spec is None or not spec.origin or Path(spec.origin).resolve()!=expected:
+            raise SystemExit('Unexpected source for '+name+'; extract into a clean folder and verify the pinned scanner.')
 
 
 def main():
@@ -10,6 +30,8 @@ def main():
         raise SystemExit('Windows required for the live trial.')
     scanner = Path(os.environ['BEAST_PINNED_SCANNER'])
     sys.path.insert(1,str(scanner))
+    check_source(scanner)
+    check_bridge_available()
     import fm_rush as base
     import fm_sprint as sprint
     from performance_recorder import PerformanceRecorder, RotatingLog
