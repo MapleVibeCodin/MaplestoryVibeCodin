@@ -79,3 +79,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Method 1/5 — marked point process
 [Executed comparison](2026-11-27-method01-marked-point-process.md), 106 policies, selected validation +2s, retrospective test -3.31s, 7 speculative switches, 0 gains>=1s/3 losses. Not deployable; next Hawkes, then renewal, HSMM, decision-focused ensemble. Freeze identical splits and costs; fresh prospective final validation needed. No runtime edits.
+
+## Method 2/5 — exponential Hawkes
+[Method 2 test](2026-11-27-method02-hawkes.md). 25 fits,106 policies, best validation/test 0s (abstention), best active validation1 switch net0; test none. Fitted self20s cross1s, not scanner movement proof. Method1 -3.31s test. Same simulator baseline reproduced exactly. Next renewal, then HSMM and ensemble. No deployment.
