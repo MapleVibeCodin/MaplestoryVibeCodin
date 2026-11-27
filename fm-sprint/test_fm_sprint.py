@@ -77,6 +77,46 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(fresh_inventory(result,key,key[:5]+(200,),1.,1.1),(False,False))
         self.assertEqual(fresh_inventory({'hits':[('SOLD',(1,2,3,4))]},key,key[:6],1.,1.1),(True,False))
         self.assertEqual(fresh_inventory(result,key,key[:6],None,1.1),(False,False))
+    def test_f9_channel_only_and_release(self):
+        f=Lifecycle();f.step('a',Scene(entrance=True),channel_request=True)
+        f.step('a',Scene(black=True),channel_request=True)
+        self.assertEqual(f.step('a',Scene(black=True),channel_request=True),['park_channel'])
+        f.step('a',Scene(room=True),channel_request=True)
+        self.assertEqual(f.step('a',Scene(room=True,menu=True),channel_request=True),['select_channel'])
+        self.assertEqual(f.step('a',Scene(room=True,menu=True,selected=True,confirm=True)),[])
+        self.assertEqual(f.step('a',Scene(room=True,menu=True,selected=True,confirm=True),channel_request=True),['confirm_channel'])
+        self.assertEqual(f.step('a',Scene(room=True,menu=True,selected=True,confirm=True),channel_request=True),[])
+        f.step('a',Scene(black=True,pin=True),channel_request=True)
+        self.assertEqual(f.step('a',Scene(black=True,pin=True),channel_request=True),['park_shop_cc'])
+        self.assertEqual(f.step('a',Scene(room=True,pin=True),channel_request=True),[])
+    def test_failed_channel_rearms_only_after_release(self):
+        f=Lifecycle();f.step('a',Scene(entrance=True));f.step('a',Scene(room=True))
+        m=Scene(room=True,menu=True)
+        self.assertEqual(f.step('a',m,channel_request=True),['select_channel']);f.channel_failed('select_channel')
+        self.assertEqual(f.step('a',m,channel_request=True),[])
+        self.assertEqual(f.step('a',m),[])
+        self.assertEqual(f.step('a',m,channel_request=True),['select_channel'])
+    def test_route_map_all_rooms(self):
+        for room in range(1,21):
+            nodes,path,cue=mini_route(room)
+            self.assertEqual(set(nodes),set(range(1,21)));self.assertEqual(path[-1],nodes[room]);self.assertEqual(path[0],(80,77))
+            self.assertTrue(all(0<x<160 and 0<y<185 for x,y in path));self.assertEqual(len(cue),2)
+        self.assertIn('WARP',mini_route(1)[2][0]);self.assertIn('CLIMB',mini_route(20)[2][0])
+    def test_f9_explicit_release_recovers_unregistered_click(self):
+        f=Lifecycle();f.step('a',Scene(entrance=True));f.step('a',Scene(room=True))
+        m=Scene(room=True,menu=True)
+        self.assertEqual(f.step('a',m,channel_request=True),['select_channel'])
+        self.assertEqual(f.step('a',m,channel_request=True),[])
+        self.assertEqual(f.step('a',m),[])
+        self.assertEqual(f.step('a',m,channel_request=True),['select_channel'])
+    def test_f9_never_clicks_on_focus_loss(self):
+        f=Lifecycle();f.step('a',Scene(entrance=True));f.step('a',Scene(room=True))
+        self.assertEqual(f.step('a',Scene(room=True,menu=True,focus=False),channel_request=True),[])
+    def test_auto_mode_failure_does_not_loop(self):
+        f=Lifecycle();f.step('a',Scene(entrance=True));f.step('a',Scene(room=True))
+        m=Scene(room=True,menu=True)
+        self.assertEqual(f.step('a',m,navigate=True),['select_channel']);f.channel_failed('select_channel')
+        self.assertEqual(f.step('a',m,navigate=True),[])
     def test_grid_points(self):
         self.assertEqual(channel_points(1),((437,353),(837,473)))
         self.assertEqual(channel_points(40),((927,441),(837,473)))
