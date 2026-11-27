@@ -85,3 +85,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Method 3/5 — renewal and recurrence modulation
 [Method3 test](2026-11-27-method03-renewal.md). Four variants,141 policies, no validation proactive switches, selected net0s validation/test. 720–960s pooled hazard 2.91x480–720s;54/125 long observed episode gaps within120s of multiples855s; not verified scanner cycles. Best recurrence60s test logloss3.3122 but net0. Next HSMM and ensemble; no deployment.
+
+## Method 4/5 — phase-expanded HSMM
+[Method4 test](2026-11-27-method04-hsmm.md). 12 fits,106 policies, validation+3.076s/3 speculative switches/2 gains>=1s/0 losses; test0s/no speculative switches. Best nominal855s; model-implied5.44 active channels, not verified workers. Conditional floor slightly worse than fixed2. Next decision-focused ensemble, fresh prospective validation required. No runtime edits.
