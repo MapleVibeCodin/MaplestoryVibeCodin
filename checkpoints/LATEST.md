@@ -1,5 +1,12 @@
 # Latest verified cross-project resume index
 
+## 2026-11-27 — current cross-project entry and checkpoint command
+
+- Last substantive market research commit: `75ba889215c691603b4d5b58b49cb5307206e920`. [Current scanner count and movement research](../market-data/2026-11-27-scanner-research-LATEST.md): retain all observations, deduplicate only overlapping screenshot identifiers for analysis, exact worker count and routes unverified; 4–6 is a hypothesis, filename times are delivery/export times. Earlier forecast failed; do not restart forecasting as substitute for evidence.
+- [Current equipment/arbitrage handoff](../level-50-equipment-upgrades/LATEST.md) remains unchanged. [Root engineering instructions](../AGENTS.md) and actual FM Rush source confirm desktop 24.63.6 and extension 24.56.1; older version claims below and in READ_ME_FIRST.txt are historical/stale. Local Windows install and full regression execution unverified. Do not conflate different scanner implementations.
+- [Verbatim checkpoint command exchange](2026-11-27-checkpoint-command-exchange.md), verified readback at `63e3caf095f0b16241e5015bce9d0a87475260cd`. User requires ten continuity areas, permanent project-specific failure records and regression tests, no historical deletion, and exact remote verification. All ten documented FM Rush continuity areas reviewed in source/handoff; no runtime changes or new resolved failures in this chat. See AGENTS.md for audit and limitations.
+- Root LATEST.md is absent; this existing index is canonical. Read this entry first, then the relevant handoff and recent commits. Earlier sections retained as history. Do not claim all prior chats were exported. No automatic sync configured.
+
 Updated 2026-11-26 (Taipei). Repository MapleVibeCodin/MaplestoryVibeCodin, main. This is the shared entry point for ChatGPT and Codex. Fetch this file live, then read the relevant project handoff and recent commits; this index is not a replacement for those sources. The latest user request controls which project to resume. Do not mix project constraints or overwrite unrelated work.
 
 ## Most recent substantive work: Shoes Speed crafting test
