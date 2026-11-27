@@ -1,0 +1,78 @@
+{
+  "frozen": {
+    "dataBlob": "68f456d30f5887421107fda32ffe29ad09ab5aca",
+    "sourceBlobs": [
+      "7617e75dba1f34742bbbb37acabb9f1332299ebb",
+      "d288ad03d87ef4d2d83149ec99b72ac9f01e1ee1"
+    ],
+    "cutoff": "2026-11-27T21:19:37.057+08:00",
+    "models": [
+      {
+        "name": "A HSMM",
+        "h": 0,
+        "hawkes": 0,
+        "margin": 0.04
+      },
+      {
+        "name": "B density HSMM",
+        "h": 3,
+        "hawkes": 0,
+        "margin": 0.04
+      },
+      {
+        "name": "C hybrid",
+        "h": 1,
+        "hawkes": 0.25,
+        "margin": 0
+      }
+    ],
+    "cooldown": 0,
+    "channelChange": 2
+  },
+  "checks": {
+    "status": "historical regression",
+    "n": 86,
+    "baseline": {
+      "lat": 196.87800192832947,
+      "early": 1,
+      "reactive": 70
+    },
+    "results": [
+      {
+        "name": "A HSMM",
+        "net": 0,
+        "switches": 0,
+        "early": 1,
+        "gain": 0,
+        "loss": 0
+      },
+      {
+        "name": "B density HSMM",
+        "net": 0,
+        "switches": 0,
+        "early": 1,
+        "gain": 0,
+        "loss": 0
+      },
+      {
+        "name": "C hybrid",
+        "net": 0,
+        "switches": 0,
+        "early": 1,
+        "gain": 0,
+        "loss": 0
+      }
+    ],
+    "empty": {
+      "status": "awaiting new records",
+      "newRaw": 0,
+      "cutoff": "2026-11-27T21:19:37.057+08:00"
+    },
+    "synthetic": {
+      "newRaw": 1,
+      "n": 1,
+      "syntheticOnly": true
+    },
+    "prefixRejection": true
+  }
+}
