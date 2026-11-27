@@ -32,6 +32,7 @@ def main():
     sys.path.insert(1,str(scanner))
     check_source(scanner)
     check_bridge_available()
+    os.environ.pop('FM_RUSH_WEB_ONLY',None)  # this is the game-facing trial
     import fm_rush as base
     import fm_sprint as sprint
     from performance_recorder import PerformanceRecorder, RotatingLog
@@ -84,6 +85,7 @@ def main():
                 print('TRIAL FEEDBACK:',finish_report(rec),flush=True)
             except Exception as exc:
                 print('Feedback export failed; raw logs preserved at',rec.folder,type(exc).__name__,flush=True)
+                raise
 
 
 if __name__ == '__main__':
