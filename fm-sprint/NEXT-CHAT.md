@@ -103,3 +103,20 @@ Provided single PowerShell script block creating unique LOCALAPPDATA Beast_SoftL
 
 ## Mandatory delivery rule — direct GitHub launch on every iteration
 User: "do this every time moving forward. update github and memory and lets move to new chat". From now on provide one directly executable Windows PowerShell 5.1 block that obtains the exact latest verified scanner runtime from an immutable GitHub commit using existing Git authentication, checks the checked-out commit, creates a unique isolated LOCALAPPDATA installation, and launches START.ps1. No manual ZIP download prerequisite; sparse-checkout only the six runtime files (unless future runtime manifest changes), no research/test/video downloads. Never delete previous installations or historical GitHub files. This is in addition to the mandatory pre-implementation request checkpoint, post-implementation verified checkpoint, regression gate, and explicit outstanding limitations. Current runtime SoftLock at 11931bde19b10ed680bcd5a106efa10d64b6edea, 70/70 offline tests; direct launch correction recorded in preceding entry. FINAL Windows launch and normal shutdown observed; SoftLock direct GitHub launch and actual game/macro compatibility not yet confirmed. User is moving to new chat. No runtime change or new tests for this handoff. Next: retrieve current checkpoint and actual user trial logs/results, continue rather than repeating completed work. Account memory cannot be directly written via this tool; repository instructions are durable.
+
+## New-chat resume — 2026-11-27
+Exact user request:
+> Resume The ultimate beast from checkpoint b96bd53ca8a8a239678ca90b14f9455c00c7cef1.
+>
+> Read the complete continuation file:
+> [https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/fm-sprint/hybrid/fm-sprint/NEXT-CHAT.md](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/fm-sprint/hybrid/fm-sprint/NEXT-CHAT.md)
+>
+> Current version: SoftLock, 70/70 offline regression tests passed.
+>
+> Follow all mandatory continuity checks and delivery requirements. Save every iteration request before implementation. Automatically checkpoint and verify every iteration. Preserve all historical files and versions.
+>
+> Always provide one directly executable PowerShell 5.1 command that retrieves and launches the latest verified scanner from GitHub. No manual downloads.
+>
+> Continue from my latest testing results. Do not repeat completed work. Never suggest Work or Codex.
+
+Resume verification: branch initially identical to b96bd53ca8a8a239678ca90b14f9455c00c7cef1; complete continuation retrieved; all six SoftLock runtime blob hashes fetched at immutable 11931bde19b10ed680bcd5a106efa10d64b6edea and match recorded manifest. Comparison from runtime to resume checkpoint shows only NEXT-CHAT.md modified (three documentation commits). Underlying performance-lab/step-11-50ms-target remains identical to a80a9ffbcc2a4a1616b5cfdc8c91b35c430df8fb. Read final release and focus regression gates, confirmed ten SoftLock test methods present; root AGENTS continuity requirements recovered. No new runtime changes, test execution, historical replay or full inherited camera/geometry source audit in this resume-only turn. Recorded 70/70 remains prior evidence, not new execution. Latest observed test: FINAL Windows startup and normal close; SoftLock missing-ZIP failure occurred before runtime, and direct GitHub launch is still unconfirmed. No new live trial JSON supplied in this turn. Preserve existing files and feedback. Deliver one isolated, immutable Git sparse checkout launch command, verify commit and runtime manifest before START.ps1. Next: analyze actual SoftLock trial feedback when available, checkpoint specific requests before implementation, maintain 70-test release gate and focus/macro qualification. No source or historical files deleted.
