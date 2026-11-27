@@ -112,3 +112,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Dense route replication — 22:55 Taipei
 [Latest results](2026-11-27-zero-filter-next-holdout.md). 440 new/242 consolidated. Frozen6.721s conditional route exact117,near230,dist80 vs200 fixed. Recency36/242 vs persistence19. Older frozen policies net0. Peak7 overlaps again;57 candidate handoffs/56 pairs, strict7/7 with zero repeats. Exact worker count/channel assignment unverified. No runtime edits.
+
+## Dense scanner track reconstruction
+[Tracking analysis](2026-11-27-dense-scanner-tracking.md). 815 dense events,314 direct route transitions median7.006s, sum edge medians141.641s.35 wraps including16 FM2->1; no mandatory exit at FM2.44 strong envelopes peak7, min path cover7 for120s gaps,8 for90s; seven feasible fixed-group coloring but assignment unstable. Working7–8 conditional, no exact count or repeatable CC order. No runtime edits.
