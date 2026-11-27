@@ -1,0 +1,298 @@
+{
+  "raw": 1909,
+  "consolidated": 1237,
+  "train": 889,
+  "trainEnd": 3545,
+  "models": [
+    {
+      "period": 855,
+      "dwell": 7,
+      "active": 0.04,
+      "bg": 0.001,
+      "interrupt": 0,
+      "ll": -6973.042784420046,
+      "meanActive": 0.1359201958745983
+    },
+    {
+      "period": 855,
+      "dwell": 7,
+      "active": 0.04,
+      "bg": 0.001,
+      "interrupt": 0.06,
+      "ll": -6982.081009532943,
+      "meanActive": 0.10180145155489202
+    },
+    {
+      "period": 1200,
+      "dwell": 7,
+      "active": 0.04,
+      "bg": 0.001,
+      "interrupt": 0,
+      "ll": -6994.91507396356,
+      "meanActive": 0.11391005225603242
+    },
+    {
+      "period": 600,
+      "dwell": 7,
+      "active": 0.04,
+      "bg": 0.001,
+      "interrupt": 0.06,
+      "ll": -7000.294969813678,
+      "meanActive": 0.12758468974523884
+    },
+    {
+      "period": 1200,
+      "dwell": 7,
+      "active": 0.04,
+      "bg": 0.001,
+      "interrupt": 0.06,
+      "ll": -7020.636917031342,
+      "meanActive": 0.08589611449381881
+    },
+    {
+      "period": 600,
+      "dwell": 7,
+      "active": 0.04,
+      "bg": 0.001,
+      "interrupt": 0,
+      "ll": -7033.167856064816,
+      "meanActive": 0.17308208572493922
+    },
+    {
+      "period": 855,
+      "dwell": 7,
+      "active": 0.08,
+      "bg": 0.001,
+      "interrupt": 0.06,
+      "ll": -7053.2521486332535,
+      "meanActive": 0.08030992207646645
+    },
+    {
+      "period": 1200,
+      "dwell": 7,
+      "active": 0.08,
+      "bg": 0.001,
+      "interrupt": 0.06,
+      "ll": -7070.733303463971,
+      "meanActive": 0.0689366120765912
+    },
+    {
+      "period": 600,
+      "dwell": 7,
+      "active": 0.08,
+      "bg": 0.001,
+      "interrupt": 0.06,
+      "ll": -7108.6671627589385,
+      "meanActive": 0.09860571689124893
+    },
+    {
+      "period": 1200,
+      "dwell": 7,
+      "active": 0.08,
+      "bg": 0.001,
+      "interrupt": 0,
+      "ll": -7139.024405313021,
+      "meanActive": 0.09561845050706065
+    },
+    {
+      "period": 855,
+      "dwell": 7,
+      "active": 0.08,
+      "bg": 0.001,
+      "interrupt": 0,
+      "ll": -7146.746416910733,
+      "meanActive": 0.11114503876917599
+    },
+    {
+      "period": 600,
+      "dwell": 7,
+      "active": 0.08,
+      "bg": 0.001,
+      "interrupt": 0,
+      "ll": -7250.44689584672,
+      "meanActive": 0.13606870377903738
+    }
+  ],
+  "policyCount": 106,
+  "activeCount": 90,
+  "selected": {
+    "p": {
+      "model": 0,
+      "margin": 0.04,
+      "cool": 0
+    },
+    "val": {
+      "n": 261,
+      "baseline": 560.4429993629456,
+      "policy": 557.3669996261597,
+      "net": 3.0759997367858887,
+      "earlyBase": 17,
+      "early": 18,
+      "switches": 3,
+      "reactive": 232,
+      "baselineReactive": 232,
+      "gain": 2,
+      "loss": 0
+    }
+  },
+  "test": {
+    "n": 86,
+    "baseline": 196.87800192832947,
+    "policy": 196.87800192832947,
+    "net": 0,
+    "earlyBase": 1,
+    "early": 1,
+    "switches": 0,
+    "reactive": 70,
+    "baselineReactive": 70,
+    "gain": 0,
+    "loss": 0
+  },
+  "bestActive": {
+    "p": {
+      "model": 0,
+      "margin": 0.04,
+      "cool": 0
+    },
+    "val": {
+      "n": 261,
+      "baseline": 560.4429993629456,
+      "policy": 557.3669996261597,
+      "net": 3.0759997367858887,
+      "earlyBase": 17,
+      "early": 18,
+      "switches": 3,
+      "reactive": 232,
+      "baselineReactive": 232,
+      "gain": 2,
+      "loss": 0
+    },
+    "test": {
+      "n": 86,
+      "baseline": 196.87800192832947,
+      "policy": 196.87800192832947,
+      "net": 0,
+      "earlyBase": 1,
+      "early": 1,
+      "switches": 0,
+      "reactive": 70,
+      "baselineReactive": 70,
+      "gain": 0,
+      "loss": 0
+    }
+  },
+  "scores": [
+    {
+      "p": {
+        "period": 855,
+        "dwell": 7,
+        "active": 0.04,
+        "bg": 0.001,
+        "interrupt": 0,
+        "ll": -6973.042784420046,
+        "meanActive": 0.1359201958745983
+      },
+      "validation": {
+        "n": 1624,
+        "hit": 112,
+        "baseHit": 36,
+        "logLoss": 3.2013442157883474,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 80
+      },
+      "test": {
+        "n": 688,
+        "hit": 58,
+        "baseHit": 4,
+        "logLoss": 3.4993680401583918,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 50
+      },
+      "conditionalFloor": {
+        "n": 86,
+        "dist": 79,
+        "base": 77,
+        "exact": 29
+      }
+    },
+    {
+      "p": {
+        "period": 855,
+        "dwell": 7,
+        "active": 0.04,
+        "bg": 0.001,
+        "interrupt": 0.06,
+        "ll": -6982.081009532943,
+        "meanActive": 0.10180145155489202
+      },
+      "validation": {
+        "n": 1624,
+        "hit": 154,
+        "baseHit": 36,
+        "logLoss": 3.209980295330653,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 113
+      },
+      "test": {
+        "n": 688,
+        "hit": 56,
+        "baseHit": 4,
+        "logLoss": 3.4743939131055135,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 46
+      },
+      "conditionalFloor": {
+        "n": 86,
+        "dist": 79,
+        "base": 77,
+        "exact": 29
+      }
+    },
+    {
+      "p": {
+        "period": 1200,
+        "dwell": 7,
+        "active": 0.04,
+        "bg": 0.001,
+        "interrupt": 0,
+        "ll": -6994.91507396356,
+        "meanActive": 0.11391005225603242
+      },
+      "validation": {
+        "n": 1624,
+        "hit": 109,
+        "baseHit": 36,
+        "logLoss": 3.2981439048561794,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 76
+      },
+      "test": {
+        "n": 688,
+        "hit": 60,
+        "baseHit": 4,
+        "logLoss": 3.580161729729463,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 52
+      },
+      "conditionalFloor": {
+        "n": 86,
+        "dist": 79,
+        "base": 77,
+        "exact": 29
+      }
+    }
+  ],
+  "checks": {
+    "baselineMatch": true,
+    "probabilityMass": true,
+    "transitionNormalization": true,
+    "emissionNormalization": true
+  },
+  "notes": "Factorized per-channel explicit-duration phase-expanded HSMM, no worker count/assignment constraint; negative binomial dwell durations; 1s Poisson marked bins, filter uses only completed bins. 12 grid fits selected by training likelihood; first-event channel allocation within one-second bins via proportional log survival decrement approximation. Training ends at full second (one half-second difference vs earlier methods). Same retrospective simulator and decision grid; no actual alert timing, eligibility, movement seconds. Conditional floor uses known target channel and instant mark distribution, not joint reach."
+}
