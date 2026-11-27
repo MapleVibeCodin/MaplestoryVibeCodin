@@ -115,7 +115,7 @@ def main():
             self._f9_inhibit=False;self._park_serial=0
             super().__init__();self.conf['start_channel']=args.start_channel
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
-            self.root.title('The ultimate beast FINAL — '+args.engine.title()+' — '+('Experimental navigation' if args.navigate else 'Pointer assist'))
+            self.root.title('The ultimate beast FINAL — Soft lock — '+args.engine.title()+' — '+('Experimental navigation' if args.navigate else 'Pointer assist'))
         def sync_archive(self):
             # Do not pop the separate old map window on every new alert.
             self._syncing_archive=True
@@ -235,6 +235,11 @@ def main():
             if r-l<12 or bb-t<10:return None
             return (l+r)//2,(t+bb)//2
         def refresh_overlays(self,current):
+            # An explicit replacement invalidates old deferred work even if the
+            # new listing is sold, incomplete, or the game is not focused.
+            if self.flow.key is not None and (not current or current[0]!=self.flow.key):
+                self.cancel_pending_pointers()
+                self.flow.reset(None);self._identity=None
             super().refresh_overlays(current)
             if not hasattr(self,'flow') or not getattr(self,'archive',None):return
             stop=bool(user.GetAsyncKeyState(0x7B)&0x8000)
