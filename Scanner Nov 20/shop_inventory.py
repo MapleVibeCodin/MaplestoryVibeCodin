@@ -652,7 +652,8 @@ class ShopInventoryTracker:
         # Two native 1366x768 screenshots share the same shop anchor.
         # Still verify pixels and fall back if the window/layout differs.
         self._anchors={(1366,768):(568,214)};self._gate_next={};self._cache=InventoryCache()
-        self._row_cache=RowOCRCache();self._sold_retry=SoldRetryCache();self._scroll_checks=OrderedDict();self._ocr_failures=0
+        self._row_cache=RowOCRCache();self._name_cache=NameOCRCache();self._sold_retry=SoldRetryCache();self._scroll_checks=OrderedDict();self._ocr_failures=0
+        self._request_at=None
         self._jobs=queue.Queue()
         self._worker=threading.Thread(target=self._work,daemon=True,name='FM inventory capture')
         self._worker.start()
@@ -660,8 +661,13 @@ class ShopInventoryTracker:
         enable_capture_cache()
         try:
             if os.name=='nt' and not self._closed:
-                try:self._ocr.start()
-                except (OSError,RuntimeError):pass
+                try:
+                    self._ocr.start()
+                    # Warm WinRT recognition in the background before the first shop.
+                    blank=b'\\xff'*(158*SCALE)
+                    warm=encode_gray_png(158*SCALE,NAME_ROW_HEIGHT*SCALE,[blank]*(NAME_ROW_HEIGHT*SCALE))
+                    self._ocr.recognize(warm)
+                except (OSError,RuntimeError,ValueError):pass
             while True:
                 key=self._jobs.get()
                 if key is None or self._closed:return
@@ -691,6 +697,7 @@ class ShopInventoryTracker:
                 self._digest=None;self._observed_at=None
             if not self._closed and not self._busy and now>=self._next:
                 self._busy=True;self._next=now+ACTIVE_SCAN_INTERVAL
+                self._request_at=time.perf_counter()
                 self._jobs.put_nowait(self._key)
             return self._latest
     def _publish(self,key,result,digest=None):
