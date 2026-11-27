@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $Base = 'a80a9ffbcc2a4a1616b5cfdc8c91b35c430df8fb'
 $Repo = 'https://github.com/MapleVibeCodin/MaplestoryVibeCodin.git'
-$Dest = Join-Path $env:LOCALAPPDATA 'FM_Sprint_Prototype_20261127_R2'
+$Dest = Join-Path $env:LOCALAPPDATA 'FM_Sprint_Prototype_20261127_R3'
 $Source = Join-Path $env:LOCALAPPDATA 'FM_Rush_Lab_20261126_154536'
 $Branch = 'performance-lab/step-11-50ms-target'
 if (!(Get-Command git.exe -ErrorAction SilentlyContinue)) { throw 'Git is required.' }
@@ -56,6 +56,6 @@ try {
   if ($SetupOnly) { return }
   $LaunchArgs = @('fm_sprint.py','--engine',$Engine,'--start-channel',"$StartChannel")
   if ($Navigate) { $LaunchArgs += '--navigate' }
-  Write-Host "Starting FM Sprint ($Engine); F12 aborts, Shift+2 unlocks. Close any other FM Rush instance before starting. No live autobuy." -ForegroundColor Cyan
+  Write-Host "Starting FM Sprint ($Engine); Hold F9 for channel selection; F12 aborts, Shift+2 unlocks. Close any other FM Rush instance before starting. No live autobuy." -ForegroundColor Cyan
   & $Python @LaunchArgs
 } finally { Pop-Location }
