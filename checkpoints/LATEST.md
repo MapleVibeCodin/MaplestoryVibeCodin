@@ -197,3 +197,6 @@ Read [renewal model](../market-data/2026-11-27-method03-renewal.md). Four varian
 
 ## HeneFM model comparison — method 4 of 5
 Read [HSMM](../market-data/2026-11-27-method04-hsmm.md). 12 fitted configurations,106 policies, validation+3.076s/test0s (no proactive switching). Methods1/2/3 test-3.31/0/0s. Next decision-focused ensemble. Same original2558 records/cutoff21:19:37.057, identical stateful benchmark; fresh unseen validation needed. No runtime changes.
+
+## HeneFM shop density update — before Method 5
+Read [shop population prior](../market-data/2026-11-27-shop-density-prior.md), including user verbatim correction and executed four-variant challenger. Keep scanner occupancy distinct from expected shop/deal density; retain qualitative row/channel prior, do not invent shop counts. Same dataset, no test time savings, exploratory conditional floor improvement. Next decision-focused ensemble; preserve all frozen models. No runtime changes.
