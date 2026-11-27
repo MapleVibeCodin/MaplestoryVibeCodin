@@ -206,3 +206,6 @@ Read [final ensemble comparison](../market-data/2026-11-27-method05-ensemble.md)
 
 ## HeneFM frozen three-contender replay — ready for unseen data
 Read [frozen protocol](../market-data/2026-11-27-frozen-prospective-protocol.md). Fixed model definitions, hashes, replay and regression checks archived. Original2558 cutoff21:19:37.057 Taipei. Need next cumulative export preserving prefix; do not optimize using new test observations. No new real data supplied yet. No runtime changes; incomplete historical continuity audit and dialogue archive.
+
+## HeneFM frozen holdout — 22:13 Taipei
+Read [288-record deep dive](../market-data/2026-11-27-frozen-holdout-288-deep-dive.md). Nine originals,2846 unique,232 new consolidated, cutoff22:12:57.929. All three frozen contenders net0 vs479.91s reactive, fixed lead accuracy below persistence. Density conditional floor improvement only, missing capture coverage and true alert/travel timing. Preserve frozen parameters and all original exports; no runtime changes. Historical continuity audit and full dialogue archive incomplete.
