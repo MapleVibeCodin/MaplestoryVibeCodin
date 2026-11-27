@@ -62,9 +62,11 @@ def spatial_mixin(old):
         def get_scoped(self,hwnd,client,scope):
             now=time.monotonic()
             with self._lock:
-                key=(hwnd,tuple(client),scope,self._generation)
-                if key!=self._requested:
-                    self._requested=key;self._latest=None;self._next=0.
+                identity=(hwnd,tuple(client),scope)
+                if self._requested is None or self._requested[:3]!=identity:
+                    self._generation+=1
+                    self._requested=identity+(self._generation,);self._latest=None;self._next=0.
+                key=self._requested
                 if not self._closed and not self._busy and now>=self._next:
                     self._busy=True;self._next=now+self.interval;self._jobs.put_nowait(key)
                 if self._latest is not None:
