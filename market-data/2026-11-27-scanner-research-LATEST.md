@@ -70,3 +70,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Next-chat checkpoint — latest
 [Authoritative handoff](2026-11-27-next-chat-handoff.md), [byte-exact original exports](raw/2026-11-27/README.md), [dialogue part 1](transcripts/2026-11-27-scanner-validation-accessible-dialogue-part-1.md), [dialogue part 2](transcripts/2026-11-27-scanner-validation-accessible-dialogue-part-2.md). Six exports verified against original git hashes; latest2052 records/81 unscored. Primary metric exact channel before alert and net time saved. Screenshot binary and complete dialogue not archived; no runtime modifications. Preserve all prior findings and files.
+
+## Latest frozen holdout — 21:03 Taipei
+[404 observation test](2026-11-27-404-holdout.md). Seven original exports, latest2456 raw/404 new/261 consolidated. Reproduced prior49-event reconstruction scores exactly. New 2s CC net -24.801s, 11 gains>=1s vs25 losses, conditional floor190/261 vs242/261. No confidence threshold positive. Original logistic weights unavailable; reconstructed model not deployable. Prior [81-event code](models/2026-11-27-positioning-frozen-reconstruction.cjs) and [results](results/2026-11-27-positioning-frozen-81-holdout.json) preserved. Next cutoff21:02:59.731. No runtime changes.
