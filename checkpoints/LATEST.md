@@ -230,3 +230,6 @@ Read [tracking report](../market-data/2026-11-27-dense-scanner-tracking.md). 44 
 
 ## Scanner count correction — individual timestamp audit
 Read [exact-count audit](../market-data/2026-11-27-scanner-count-identifiability.md). Eight channels in2s, conditional minimum9 tracks if exact times and CC>=2s/step>=2s. Exclude early burst => min6. Seven simultaneous inferred tracks still plausible, no exact worker count established. Seven anonymous initial tracks with overflow, not a hard cap. No deployment. Historical audit/dialogue incomplete.
+
+## New-chat handoff — dense-feed scanner tracking
+Read [dense-feed handoff](../market-data/2026-11-27-dense-feed-new-chat-handoff.md) before continuing. All12 original exports re-fetched and matched expected blob hashes;11208 unique filenames. Latest cutoff22:55:03.028 Taipei. Full prior results and models intact. Latest exact-count exchange and live-filter messages/commands archived; full verbatim archive blocked and incomplete, explicit gaps in handoff. No runtime changes/deletions. Seven anonymous tracks with overflow only; exact physical count and CC assignment unresolved. Retain6.721s route model, do not repeat completed work. Full historical continuity audit incomplete.
