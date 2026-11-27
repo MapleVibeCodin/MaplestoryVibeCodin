@@ -212,3 +212,6 @@ Read [288-record deep dive](../market-data/2026-11-27-frozen-holdout-288-deep-di
 
 ## HeneFM final finite-data positioning analysis
 Read [final full-history report](../market-data/2026-11-27-final-full-history-positioning-analysis.md). User states this is all the data; do not request more. All nine exports verified union9218 distinct filenames,7296 consolidated. Fixed FM9–10 central second row supported by geometric proxy; correct channel OR within1 row1414/1639 on Nov27 and211/232 latest, conditional on position transfer. Reactive channel switching remains best robust chase-all benchmark. Optional no-pursuit standby recent15 decay margin.25 improves hit rate vs fixed channel but costs speculative changes. No independently validated live edge, no runtime changes. Historical ten-check audit and complete verbatim dialogue archive incomplete. Preserve all files.
+
+## Live scanner tracking implications
+[Live tracking note](../market-data/2026-11-27-live-tracking-implications.md). Same observation stream live does not itself add predictive information; fuller/timelier feed or independent scanner state could improve estimates. Lead route within channel only with sufficient confidence; otherwise FM9–10. No additional dataset requested, no measured uplift or runtime edits.
