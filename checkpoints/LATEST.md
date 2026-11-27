@@ -175,3 +175,7 @@ Apply the continuity workflow across topics, not just MapleStory: consult existi
 
 ## Current equipment and market-arbitrage handoff — 2026-11-27
 Resume from [level-50-equipment-upgrades/LATEST.md](../level-50-equipment-upgrades/LATEST.md) before older equipment or arbitrage summaries. It indexes latest completed catalyst research, non-scroll arbitrage, seven-item low-tail screening, Black Crystal and Glass Shoe deep dives, personal-use equipment rules, API fixes, and the mandatory 24 distinct qualifying opportunities/day threshold. Read its audit and limitations. No prior files deleted.
+
+## HeneFM next-deal predictive positioning — latest handoff, 2026-11-27
+
+Read [next-chat handoff](../market-data/2026-11-27-next-chat-handoff.md) and [scanner research index](../market-data/2026-11-27-scanner-research-LATEST.md). Exact channel before announcement is the primary requirement; approximate FM location and expected seconds saved are secondary. [Six byte-exact original exports](../market-data/raw/2026-11-27/README.md) now reside in GitHub at the user's explicit request; latest export 2052 records, 81 not scored. Previous cutoff20:29:52.486; latest20:35:05.774 Taipei. Do not request duplicate data. Archive limitations explicitly recorded, including incomplete screenshot binary transfer and partial conversation transcript. No runtime changes or new model fitting.
