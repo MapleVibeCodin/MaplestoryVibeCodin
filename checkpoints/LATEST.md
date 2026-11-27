@@ -215,3 +215,6 @@ Read [final full-history report](../market-data/2026-11-27-final-full-history-po
 
 ## Live scanner tracking implications
 [Live tracking note](../market-data/2026-11-27-live-tracking-implications.md). Same observation stream live does not itself add predictive information; fuller/timelier feed or independent scanner state could improve estimates. Lead route within channel only with sufficient confidence; otherwise FM9–10. No additional dataset requested, no measured uplift or runtime edits.
+
+## HeneFM extended frozen holdout — 22:36 Taipei
+Read [past-hour research](../market-data/2026-11-27-hour-live-tracking-holdout.md). Tenth original819 records,237 overlap,582 new,296 consolidated; all three frozen contenders positive due to one common CH19 FM5 event, A+1.407s/B+2s/C+.407s. No refitting. Last22:36:41.931. Preserve all originals and models. Real gameplay advantage and exact worker count unverified. No runtime edits or additional data request. Full historical continuity audit and dialogue archive incomplete.
