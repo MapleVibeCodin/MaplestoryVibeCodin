@@ -1,5 +1,9 @@
 # Scanner research checkpoint — 2026-11-27
 
+## Word-for-word dialogue archive
+
+Read the [user-supplied verbatim conversation](transcripts/2026-11-27-scanner-count-movement-verbatim.md), verified exact readback at commit `6a6407f42f3e8bdf008d59dacbbfb78ded02390d`. Historical three-hour export and exclusion plan were explicitly superseded by the full-history export and scanner-count/movement objectives below. Always archive accessible dialogue word for word alongside separate research summaries. No new scanner evidence or raw screenshot files added.
+
 ## Current user-defined goals (supersedes speculative deal forecasting)
 1. Establish exactly how many independent HeneFM scanners exist, if available evidence permits.
 2. Establish their actual movement pattern: room order, direction, channel assignments, transition delays, and repeat-cycle duration.
