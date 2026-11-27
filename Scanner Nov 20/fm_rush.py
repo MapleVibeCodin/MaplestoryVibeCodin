@@ -497,7 +497,14 @@ class FMApp:
         if item_preview!=self._item_preview:
             self._item_preview=item_preview
             if item_preview is None:self.item_pin.hide()
-            else:self.item_pin.show_many(*item_preview)
+            else:
+                self.item_pin.show_many(*item_preview)
+                timing=inventory.get('timing') if inventory else None
+                if timing and timing.get('target_found_at') is not None:
+                    overlay_at=time.perf_counter()
+                    timing['overlay_ms']=round((overlay_at-timing['target_found_at'])*1000,2)
+                    timing['shop_open_to_overlay_ms']=round((overlay_at-timing['shop_detected_at'])*1000,2)
+                    timing['queue_to_overlay_ms']=round((overlay_at-timing['queued_at'])*1000,2)
         scene = self._entrance_camera.get(hwnd, client) if supported and not room_confirmed else None
         if not supported or room_confirmed:self._entrance_camera.reset()
         in_entrance = bool(scene and scene[0])
@@ -831,7 +838,7 @@ class FMApp:
             try:current=self.archive.current()
             finally:self.archive.lock.release()
             self.refresh_overlays(current)
-        self.schedule(20 if getattr(self,'_inventory_fast_poll',False) else 50, self.follow_overlays)
+        self.schedule(10 if getattr(self,'_inventory_fast_poll',False) else 50, self.follow_overlays)
 
     def toggle_chase(self):
         self.set_chase_locked(not self.archive.chase_locked)
