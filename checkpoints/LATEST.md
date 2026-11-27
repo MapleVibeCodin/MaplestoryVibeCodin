@@ -188,3 +188,6 @@ Read [decision-focused research](../market-data/2026-11-27-decision-focused-meth
 
 ## HeneFM model comparison — method 1 of 5
 Read [marked point process](../market-data/2026-11-27-method01-marked-point-process.md). Executed 106 policies, validation +2s/test -3.31s, no deployment. Next Hawkes, then renewal, HSMM and decision-focused ensemble. Same source/splits/stateful objective; fresh holdout after model selection. Eight original datasets retained, latest2558 cutoff21:19:37.057. No runtime changes.
+
+## HeneFM model comparison — method 2 of 5
+Read [Hawkes model](../market-data/2026-11-27-method02-hawkes.md). 25 trained fits,106 policies, best policy abstains, 0s validation/test. Method1 test -3.31s. No positive proactive advantage. Next renewal, then HSMM and ensemble. Preserve identical splits and stateful benchmark; fresh unseen data required for final comparison. Latest original2558 cutoff21:19:37.057. No runtime changes.
