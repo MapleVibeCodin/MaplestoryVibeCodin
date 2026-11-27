@@ -98,7 +98,7 @@ def build_report(events, *, writer_error=None, dropped=0, writer_alive=False):
     handoffs = [e for e in events if e.get('event')=='beast_pointer_handoff']
     health = [e for e in events if e.get('event')=='recorder_health']
     final = bool(health and health[-1].get('final'))
-    return {'schema': 'ultimate-beast-trial-2', 'engine': 'runescape', 'extra_capture': False,
+    return {'schema': 'ultimate-beast-trial-2', 'engine': 'runescape', 'build': 'Passive Stability', 'extra_capture': False,
         'writer_error': writer_error, 'dropped': dropped, 'writer_alive': writer_alive,
         'final_health': final, 'events': len(events), 'locked_attempts': len(runs),
         'session_observed_seconds': round(max(e['t'] for e in events)-min(e['t'] for e in events),2) if events else 0,
