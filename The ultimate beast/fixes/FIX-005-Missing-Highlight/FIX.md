@@ -21,3 +21,7 @@ Spatial session: 478 inventory scans, 267 OCR, median total 31.63ms, 467 fallbac
 
 ## Exact candidate — wrong-price recurrence
 User reported Stable highlighting correct item but wrong price immediately. Source confirms name-only fast path and advisory price fallback bypassed exact price. Runtime 4c938a5816bf87542603840587e33d69b1c9ba76 removes these bypasses, requires exact target price precision and two matching full-row OCR decisions (buy_step=0), rejects sold/blocked/ambiguous rows and revalidates text, geometry and stock fingerprint before publishing. Geometry fallback remains advisory only after two exact item/price matches; strict-scroll geometry protection retained. Positive matches preserved. 17 static checks passed; synthetic real-matcher test staged in test_spatial.py, Windows/native live OCR not run here. Exact HeneFM metadata required; rounded-only alerts abstain. User's hard requirement is correct item AND correct price, no compromise. No screenshots supplied for specific incident.
+
+
+## Exact full regression evidence
+Windows QA 45969348478: 12/12 actual Exact _scan integration tests using synthetic captures and mocked OCR, 9/9 current guard tests, 82/82 current-contract Beast research, 190/190 requalified pinned historical checks, 1/1 popup; total 282/282. Positive exact item/price retained and wrong prices, duplicate, sold, tooltip and stale evidence rejected. Native OCR accuracy/live highlighting still open; archived originals unchanged. See research/CURRENT-REGRESSION-20261127.md.
