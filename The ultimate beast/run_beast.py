@@ -82,7 +82,7 @@ def main():
                     self._beast_phase = marker
                     rec.marker('beast_phase',stage=self.stage,previous=prior)
                 if actions:
-                    rec.marker('beast_actions',actions=list(actions),dispatched=False,build='Passive Stability')
+                    rec.marker('beast_actions',actions=list(actions),dispatched=False,build='Smooth Shortcuts')
             return actions
         def channel_failed(self, action):
             super().channel_failed(action)
