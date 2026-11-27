@@ -74,11 +74,13 @@ if (!(Test-Python $Python)) {
     }
 }
 # Compile the exact package before opening the game-facing application.
-& $Python -c "import pathlib,sys; root=pathlib.Path(sys.argv[1]); [compile((root/f).read_bytes(),str(root/f),'exec') for f in ('run_beast.py','beast_feedback.py','fm_sprint.py','fm_sprint_core.py')]" $PSScriptRoot
+& $Python -c "import pathlib,sys; root=pathlib.Path(sys.argv[1]); [compile((root/f).read_bytes(),str(root/f),'exec') for f in ('run_beast.py','beast_feedback.py','fm_sprint.py','fm_sprint_core.py','beast_spatial.py','test_spatial.py')]" $PSScriptRoot
 if ($LASTEXITCODE) { throw 'Runtime compile preflight failed. Existing installations are unchanged.' }
+& $Python (Join-Path $PSScriptRoot 'test_spatial.py')
+if ($LASTEXITCODE) { throw 'Spatial regression gate failed; scanner not started.' }
 $env:BEAST_PINNED_SCANNER=$Scanner
 $env:BEAST_START_CHANNEL="$StartChannel"
-Write-Host 'The ultimate beast Smooth Shortcuts Centered | RuneScape R3 | Logitech pointer shortcuts | no automatic cursor moves | passive feedback | close other FM Rush/Sprint instances first.' -ForegroundColor Cyan
+Write-Host 'The ultimate beast Smooth Shortcuts Spatial | RuneScape R3 | Logitech pointer shortcuts | no automatic cursor moves | passive feedback | close other FM Rush/Sprint instances first.' -ForegroundColor Cyan
 & $Python (Join-Path $PSScriptRoot 'run_beast.py')
 $RunCode=$LASTEXITCODE
 $Feedback=Join-Path $HomeDir 'runescape\feedback'
