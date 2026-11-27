@@ -1,0 +1,549 @@
+{
+  "raw": 2052,
+  "old": 1971,
+  "fresh": 81,
+  "allUnique": 2052,
+  "oldContained": true,
+  "newIds": 81,
+  "evening": 1403,
+  "consolidated": 890,
+  "pre": 841,
+  "newConsolidated": 49,
+  "horizons": [
+    {
+      "h": 0,
+      "n": 48,
+      "hit": 3,
+      "base": 4,
+      "top5": 21
+    },
+    {
+      "h": 5,
+      "n": 47,
+      "hit": 6,
+      "base": 5,
+      "top5": 30
+    },
+    {
+      "h": 10,
+      "n": 45,
+      "hit": 3,
+      "base": 3,
+      "top5": 23
+    },
+    {
+      "h": 15,
+      "n": 44,
+      "hit": 7,
+      "base": 5,
+      "top5": 19
+    },
+    {
+      "h": 30,
+      "n": 41,
+      "hit": 3,
+      "base": 3,
+      "top5": 24
+    }
+  ],
+  "conditionalFloor": {
+    "n": 49,
+    "fsum": 42,
+    "central": 40,
+    "exact": 16,
+    "within": 40
+  },
+  "sim": [
+    {
+      "cc": 1.5,
+      "n": 49,
+      "reactive": 67.5,
+      "predict": 86.97599983215332,
+      "net": -19.47599983215332,
+      "meanNet": -0.3974693843296596,
+      "gain": 2,
+      "loss": 15,
+      "early": 2,
+      "baseEarly": 3,
+      "attempts": 28
+    },
+    {
+      "cc": 2,
+      "n": 49,
+      "reactive": 90,
+      "predict": 119.09299993515015,
+      "net": -29.092999935150146,
+      "meanNet": -0.5937346925540846,
+      "gain": 2,
+      "loss": 16,
+      "early": 2,
+      "baseEarly": 3,
+      "attempts": 28
+    },
+    {
+      "cc": 3,
+      "n": 49,
+      "reactive": 135,
+      "predict": 184.09299993515015,
+      "net": -49.09299993515015,
+      "meanNet": -1.001897957860207,
+      "gain": 2,
+      "loss": 20,
+      "early": 2,
+      "baseEarly": 3,
+      "attempts": 28
+    }
+  ],
+  "cases": [
+    {
+      "gap": 133.7149999141693,
+      "actual": 40,
+      "prev": 31,
+      "pred": 31,
+      "confidence": 0.2458801583776441,
+      "predFloor": 1,
+      "actualFloor": 3
+    },
+    {
+      "gap": 0.28999996185302734,
+      "actual": 6,
+      "prev": 40,
+      "pred": 40,
+      "confidence": 0.7926908130595887,
+      "predFloor": 3,
+      "actualFloor": 4
+    },
+    {
+      "gap": 0.753000020980835,
+      "actual": 17,
+      "prev": 6,
+      "pred": 6,
+      "confidence": 0.42649663909600827,
+      "predFloor": 3,
+      "actualFloor": 1
+    },
+    {
+      "gap": 0.31599998474121094,
+      "actual": 28,
+      "prev": 17,
+      "pred": 17,
+      "confidence": 0.30932541088031656,
+      "predFloor": 1,
+      "actualFloor": 2
+    },
+    {
+      "gap": 24.324000120162964,
+      "actual": 28,
+      "prev": 28,
+      "pred": 28,
+      "confidence": 0.2402088791319346,
+      "predFloor": 2,
+      "actualFloor": 2
+    },
+    {
+      "gap": 0.5149998664855957,
+      "actual": 25,
+      "prev": 28,
+      "pred": 28,
+      "confidence": 0.6101146407435253,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 0.46700000762939453,
+      "actual": 6,
+      "prev": 25,
+      "pred": 28,
+      "confidence": 0.4710898034367547,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 0.24399995803833008,
+      "actual": 8,
+      "prev": 6,
+      "pred": 28,
+      "confidence": 0.37603284404526205,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 0.24900007247924805,
+      "actual": 40,
+      "prev": 8,
+      "pred": 28,
+      "confidence": 0.312499207055948,
+      "predFloor": 2,
+      "actualFloor": 2
+    },
+    {
+      "gap": 1.0699999332427979,
+      "actual": 35,
+      "prev": 40,
+      "pred": 28,
+      "confidence": 0.26706159223161163,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 1.0370001792907715,
+      "actual": 40,
+      "prev": 35,
+      "pred": 40,
+      "confidence": 0.2995433748823577,
+      "predFloor": 2,
+      "actualFloor": 2
+    },
+    {
+      "gap": 0.560999870300293,
+      "actual": 25,
+      "prev": 40,
+      "pred": 40,
+      "confidence": 0.37080653464584223,
+      "predFloor": 2,
+      "actualFloor": 2
+    },
+    {
+      "gap": 0.2330000400543213,
+      "actual": 11,
+      "prev": 25,
+      "pred": 40,
+      "confidence": 0.3488330621995505,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 0.24699997901916504,
+      "actual": 3,
+      "prev": 11,
+      "pred": 40,
+      "confidence": 0.3174678016098617,
+      "predFloor": 2,
+      "actualFloor": 2
+    },
+    {
+      "gap": 0.25,
+      "actual": 6,
+      "prev": 3,
+      "pred": 40,
+      "confidence": 0.28926619556862665,
+      "predFloor": 2,
+      "actualFloor": 2
+    },
+    {
+      "gap": 0.24600005149841309,
+      "actual": 25,
+      "prev": 6,
+      "pred": 40,
+      "confidence": 0.27879955298347275,
+      "predFloor": 2,
+      "actualFloor": 3
+    },
+    {
+      "gap": 0.29200005531311035,
+      "actual": 25,
+      "prev": 25,
+      "pred": 40,
+      "confidence": 0.277429886906032,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 0.24899983406066895,
+      "actual": 22,
+      "prev": 25,
+      "pred": 40,
+      "confidence": 0.26335494097145157,
+      "predFloor": 2,
+      "actualFloor": 4
+    },
+    {
+      "gap": 0.5060000419616699,
+      "actual": 17,
+      "prev": 22,
+      "pred": 40,
+      "confidence": 0.2410433547536026,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 0.4479999542236328,
+      "actual": 5,
+      "prev": 17,
+      "pred": 40,
+      "confidence": 0.21304500101932106,
+      "predFloor": 2,
+      "actualFloor": 2
+    },
+    {
+      "gap": 0.23000001907348633,
+      "actual": 28,
+      "prev": 5,
+      "pred": 40,
+      "confidence": 0.1938776013101777,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 8.962000131607056,
+      "actual": 35,
+      "prev": 28,
+      "pred": 40,
+      "confidence": 0.1826041343719232,
+      "predFloor": 2,
+      "actualFloor": 3
+    },
+    {
+      "gap": 5.859999895095825,
+      "actual": 8,
+      "prev": 35,
+      "pred": 35,
+      "confidence": 0.18429099589611048,
+      "predFloor": 3,
+      "actualFloor": 2
+    },
+    {
+      "gap": 6.96399998664856,
+      "actual": 8,
+      "prev": 8,
+      "pred": 40,
+      "confidence": 0.15552485039560404,
+      "predFloor": 1,
+      "actualFloor": 2
+    },
+    {
+      "gap": 12.342000007629395,
+      "actual": 35,
+      "prev": 8,
+      "pred": 8,
+      "confidence": 0.2785837112643087,
+      "predFloor": 2,
+      "actualFloor": 2
+    },
+    {
+      "gap": 12.90499997138977,
+      "actual": 28,
+      "prev": 35,
+      "pred": 35,
+      "confidence": 0.2940981220428207,
+      "predFloor": 2,
+      "actualFloor": 3
+    },
+    {
+      "gap": 0.2330000400543213,
+      "actual": 17,
+      "prev": 28,
+      "pred": 28,
+      "confidence": 0.34201309396775126,
+      "predFloor": 3,
+      "actualFloor": 3
+    },
+    {
+      "gap": 1.5810000896453857,
+      "actual": 5,
+      "prev": 17,
+      "pred": 17,
+      "confidence": 0.2619174063406467,
+      "predFloor": 3,
+      "actualFloor": 4
+    },
+    {
+      "gap": 4.545000076293945,
+      "actual": 20,
+      "prev": 5,
+      "pred": 5,
+      "confidence": 0.2182437232527708,
+      "predFloor": 3,
+      "actualFloor": 3
+    },
+    {
+      "gap": 3.7109999656677246,
+      "actual": 17,
+      "prev": 20,
+      "pred": 5,
+      "confidence": 0.23596218087461357,
+      "predFloor": 3,
+      "actualFloor": 3
+    },
+    {
+      "gap": 0.2799999713897705,
+      "actual": 39,
+      "prev": 17,
+      "pred": 20,
+      "confidence": 0.43869294837856126,
+      "predFloor": 3,
+      "actualFloor": 3
+    },
+    {
+      "gap": 10.644000053405762,
+      "actual": 16,
+      "prev": 39,
+      "pred": 20,
+      "confidence": 0.398322909307846,
+      "predFloor": 3,
+      "actualFloor": 1
+    },
+    {
+      "gap": 7.882999897003174,
+      "actual": 16,
+      "prev": 16,
+      "pred": 20,
+      "confidence": 0.2768440218666335,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 5.553999900817871,
+      "actual": 22,
+      "prev": 16,
+      "pred": 16,
+      "confidence": 0.31805156360336395,
+      "predFloor": 1,
+      "actualFloor": 1
+    },
+    {
+      "gap": 4.2840001583099365,
+      "actual": 20,
+      "prev": 22,
+      "pred": 16,
+      "confidence": 0.2185192470399961,
+      "predFloor": 1,
+      "actualFloor": 3
+    },
+    {
+      "gap": 1.6989998817443848,
+      "actual": 33,
+      "prev": 20,
+      "pred": 20,
+      "confidence": 0.32587669868618363,
+      "predFloor": 3,
+      "actualFloor": 1
+    },
+    {
+      "gap": 0.46700000762939453,
+      "actual": 16,
+      "prev": 33,
+      "pred": 20,
+      "confidence": 0.3115375704129901,
+      "predFloor": 3,
+      "actualFloor": 2
+    },
+    {
+      "gap": 1.0450000762939453,
+      "actual": 14,
+      "prev": 16,
+      "pred": 20,
+      "confidence": 0.2697246157520079,
+      "predFloor": 3,
+      "actualFloor": 1
+    },
+    {
+      "gap": 4.618000030517578,
+      "actual": 20,
+      "prev": 14,
+      "pred": 16,
+      "confidence": 0.3090572665223565,
+      "predFloor": 2,
+      "actualFloor": 3
+    },
+    {
+      "gap": 9.355000019073486,
+      "actual": 39,
+      "prev": 20,
+      "pred": 20,
+      "confidence": 0.3007172368314271,
+      "predFloor": 3,
+      "actualFloor": 1
+    },
+    {
+      "gap": 4.066999912261963,
+      "actual": 33,
+      "prev": 39,
+      "pred": 20,
+      "confidence": 0.30372545729025135,
+      "predFloor": 3,
+      "actualFloor": 2
+    },
+    {
+      "gap": 16.566999912261963,
+      "actual": 20,
+      "prev": 33,
+      "pred": 20,
+      "confidence": 0.2584690188438487,
+      "predFloor": 3,
+      "actualFloor": 2
+    },
+    {
+      "gap": 2.427000045776367,
+      "actual": 5,
+      "prev": 20,
+      "pred": 20,
+      "confidence": 0.47179637638430694,
+      "predFloor": 2,
+      "actualFloor": 1
+    },
+    {
+      "gap": 1.4639999866485596,
+      "actual": 33,
+      "prev": 5,
+      "pred": 20,
+      "confidence": 0.3089222895281312,
+      "predFloor": 2,
+      "actualFloor": 4
+    },
+    {
+      "gap": 5.0980000495910645,
+      "actual": 16,
+      "prev": 33,
+      "pred": 33,
+      "confidence": 0.3185373413473654,
+      "predFloor": 3,
+      "actualFloor": 3
+    },
+    {
+      "gap": 5.135999917984009,
+      "actual": 5,
+      "prev": 16,
+      "pred": 16,
+      "confidence": 0.28422098690815606,
+      "predFloor": 3,
+      "actualFloor": 1
+    },
+    {
+      "gap": 2.683000087738037,
+      "actual": 4,
+      "prev": 5,
+      "pred": 5,
+      "confidence": 0.3325266492062366,
+      "predFloor": 1,
+      "actualFloor": 1
+    },
+    {
+      "gap": 5.052000045776367,
+      "actual": 33,
+      "prev": 4,
+      "pred": 4,
+      "confidence": 0.23208366605551778,
+      "predFloor": 1,
+      "actualFloor": 3
+    },
+    {
+      "gap": 1.8829998970031738,
+      "actual": 13,
+      "prev": 33,
+      "pred": 4,
+      "confidence": 0.3020901203515047,
+      "predFloor": 1,
+      "actualFloor": 4
+    }
+  ],
+  "lastPrediction": {
+    "t": "2026-11-27T12:35:05.774Z",
+    "c": 33,
+    "confidence": 0.2452316153038401,
+    "floor": 3
+  },
+  "sourceBlob": "4cfe057474c1bd341c384fb93ddb434d962c69b6",
+  "previousBlob": "1400521e890837fd5c4ebbfd83ae8a0e2fabe71f",
+  "notes": "No retuning. 75/25 rule reconstructed from exact-channel-approximate-position.md; raw decayed counts, Laplace-smoothed raw transitions, consolidation <2s; floor distribution from all evening observations through decision. Independent interval simulation resets position to previous observed channel; assumes fixed CC cost, cannot cancel in-flight switch. No walking seconds, true announcement times, or actual profitable-deal labels. Not exact replay of original logistic or prior simulation."
+}
