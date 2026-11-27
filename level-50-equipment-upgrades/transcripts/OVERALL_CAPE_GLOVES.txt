@@ -1,0 +1,688 @@
+# Overall, cape, and glove dialogue archive — 2026-11-27
+
+Exact copies of retrieved GitHub transcript files (not necessarily full original conversations). Original files remain unchanged.
+
+
+----- BEGIN female-overall-research | 0158f453669ad1857b5720175f8747e0daad2c9a -----
+# Female overall initial research exchange
+
+Accessible dialogue copied with rendered images/cards and citation markers flattened or omitted. Source links and exact numerical methodology in ../OVERALL_RESEARCH.md. No private data.
+
+## User
+
+awesome! Now do the same starting methodology with female overall, for general or thief. Do everything we did with the scroll
+
+## Assistant
+
+# Female overall scrolling optimization
+
+I'll use the same **1 million meso hard budget**, level-50 thief damage objective, and no 100% scroll applications as our starting model. The overall-specific advantage is ten scroll slots instead of five.
+
+## 1. Best clean bases
+
+**Dark Avenger — level 35**
+
+Natural +6 LUK, 10 slots. Requires 25 DEX and 60 LUK. HeneFM observations at 12–15k for standard-stat clean bases.
+
+**Blue Avenger — level 35**
+
+Natural +6 DEX, 10 slots. Equivalent to Dark Avenger for displayed range if all six DEX points can be converted into LUK through AP reassignment.
+
+**Purple Avenger — level 35**
+
+Natural +3 DEX and +3 LUK, 10 slots. Another viable alternative under the same AP-conversion assumption.
+
+**Red Sauna Robe — level 30**
+
+General-class female overall. +1 to each of the four main stats, 10 slots, no secondary-stat requirements.
+
+The Avenger family offers a substantial natural-stat advantage over Sauna Robes, provided you meet the equipment requirements. Red Avenger has +6 STR instead, making it less attractive for the ordinary Assassin range objective.
+
+## 2. Important market discovery
+
+Overall scroll economics are dramatically different from earrings.
+
+| Scroll | Added stat | Success | Observed price |
+|---|---:|---:|---:|
+| Overall DEX Greater | +3 | 10% | 15,000 lowest; 18,800 average sold |
+| Overall LUK Greater | +3 | 10% | 25,000 recent asking price |
+| Overall LUK Intermediate | +2 | 60% | **845,000 lowest** |
+
+HeneFM's accessible DEX Greater snapshot also reported approximately 1,600 scrolls in stock. The LUK Intermediate price is particularly unfavorable at almost the entire budget for one scroll.
+
+This makes cheap Greater scrolls much more interesting for overalls than the earring strategy.
+
+## 3. Complete starting inputs
+
+DEX Intermediate: 370k lowest, 380.2k 24-hour sold average. For the model I used 19k Greater and 370k Intermediate, rather than assuming dozens of Greater scrolls can be bought at the single cheapest price. Avenger NPC recovery is 9k; Sauna Robe 5.4k. I extended your failed-opener rule to nine-slot overalls: NPC immediately after the first failed scroll.
+
+## 4. Hard-budget optimization results
+
+| Clean base | Modeled price | Expected scroll stat | Expected total effective stat | Expected net spend | Cost per added scroll stat |
+|---|---:|---:|---:|---:|---:|
+| Blue Avenger | 12k | 7.58 | 13.58 | 957,869 | 126,397 |
+| Dark Avenger | 15k | 7.36 | 13.36 | 954,419 | 129,726 |
+| Red Sauna Robe | 40k | 5.57 | 7.97 | 945,421 | 169,583 |
+
+Blue wins at these modeled prices only if DEX is fully convertible. Purple is also viable at the observed 13.5k ask. If DEX cannot be converted, Dark is preferred; LUK-only scrolling at 25k Greater and 845k Intermediate yields +6.37 expected scroll LUK.
+
+At illustrative 53 WATK, Dark adds +9.75 maximum range from scrolling, or +17.70 including natural stats compared with no armor. Blue adds +10.04 from scrolling, +17.99 including natural stats. Subtract your replaced armor's effective stats to determine actual upgrade.
+
+## 5. Dark Avenger target optimization
+
+| Added scroll stat | Total effective stat | Chance to reach target | Maximum range from scrolls | Cost per expected retained scroll stat |
+|---|---:|---:|---:|---:|
+| +8 | 14 | 55.94% | +10.60 | 146,500 |
+| +9 | 15 | 41.40% | +11.93 | 164,217 |
+| +10 | 16 | 23.77% | +13.25 | 186,285 |
+| +12 | 18 | 12.21% | +15.90 | 236,211 |
+
+Each row is its own target-optimized policy, not the probability distribution of the mean-optimal policy.
+
+## 6. How to scroll
+
+1. Buy a clean six-stat Avenger.
+2. Open with a Greater DEX scroll if convertible, otherwise Greater LUK.
+3. NPC failed openers immediately.
+4. After a successful Greater, apply another Greater. At the starting budget this beats Intermediate, unlike earrings.
+5. Adapt to remaining slots, stat and cash; park a better item as fallback if restarting.
+
+A failed 19k Greater attempt on a 15k Dark Avenger costs 25k net after NPC recovery.
+
+## 7. Benchmark and Chaos sensitivity
+
+100% benchmark only: at the citizenship-gated 40k DEX Lesser price, ten guaranteed scrolls plus a 15k base cost 415k, or 41.5k per added stat. Not a verified freely purchasable market quote.
+
+| Hypothetical Chaos price | Expected added scroll stat |
+|---|---:|
+| No Chaos | 7.36 |
+| 10k | 8.82 |
+| 20k | 8.01 |
+| 30k | 7.47 |
+| 50k | 7.37 |
+
+Chaos has +4, 10% success and 45% unconditional destruction under the documented mechanics. These are sensitivity tests, not market quotes. No confirmed HeneFM Chaos listing was retrieved. STR gives only 40% of a convertible DEX/LUK point; INT and DEF do not directly increase range. The full joint STR/DEX/Chaos model remains outstanding.
+
+The public Arcforge recipe catalogue does not show a stat-overall scroll recipe. No verified catalyst route; do not assume our earring crafting cost applies to overalls. If eligibility is confirmed, use our fixed 75/20/5 production convention.
+
+## 8. 100-base triple Greater comparison
+
+Reusing the previous seeded simulation for a fair comparison: 92 failed openers, six +3, two +6, zero +9, with seven slots remaining on each survivor. Net batch cost 2,876,000; expected cost 2,970,000. This is a simulation above the 1m budget, not actual crafts.
+
+## 9. Next price refresh
+
+```powershell
+(2040508,2040509,2040510,2040511,2040517,2040518,2040519 | ForEach-Object { powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\Get-HeneFMPrice.ps1" -ItemId $_ -Json }) -join "`n" | Set-Clipboard
+```
+
+Paste the results here. The two Chaos prices are the biggest unresolved variables. All calculations above use accessible HeneFM snapshots and modeled repeatable prices, not synchronized authenticated quotes. The DP is exact within a restricted 1k-grid, one-active-item and parked-fallback model; it does not establish a global inventory optimum. No actual purchases or production engine modifications.
+
+[Post-save metadata omitted.]
+
+----- END female-overall-research -----
+
+
+----- BEGIN overall-authenticated-rerun | eff45457e9a9d8ae3af412e8000a7d25fe1a18eb -----
+# Authenticated overall rerun exchange — 2026-11-25
+
+## User
+
+[Seven HeneFM API responses pasted, all asOf 2026-11-25T15:15:00Z. Raw provider payload omitted under the standing archival rule; derived quotes and counts in ../OVERALL_RESEARCH.md.]
+
+## Assistant
+
+# Updated female overall optimization — authenticated HeneFM prices
+
+Your API results confirm the following prices as of **November 25, 11:15 PM Taipei time**.
+
+| Scroll | Lowest ask | Usual price | 24h average sold | 24h sold |
+|---|---:|---:|---:|---:|
+| DEX Intermediate 60% | 370k | 395k | 378,367 | 160 |
+| **DEX Greater 10%** | **10k** | **20k** | **18,840** | **925** |
+| LUK Intermediate 60% | 845k | 929,999 | 884,892 | 60 |
+| LUK Greater 10% | 27k | 32,999 | 30,058 | 1,060 |
+| DEX Chaos | No listings | — | — | 0 |
+| LUK Chaos | No listings | — | — | 0 |
+
+DEX Lesser also has no listings.
+
+**DEX Greater is the clear starting choice if DEX is fully convertible to LUK.** It has 491 distinct sellers and costs considerably less than its LUK equivalent. Both Chaos scrolls are excluded from the executable strategy because none are currently listed.
+
+The 10k listing is particularly interesting, but we cannot assume the entire batch is available at that price.
+
+## 1. Updated 1m budget simulation
+
+I reran the finite-state budget optimizer and reproduced the previous 19k-scroll results as a regression check.
+
+Using a 12k clean Blue Avenger, 9k assumed NPC recovery, ten slots and mandatory NPC disposal of failed openers:
+
+| DEX Greater purchase price | Expected added stat | Total effective stat | Average net spend | Cost per added stat |
+|---|---:|---:|---:|---:|
+| **10k — lowest ask** | **8.96** | **14.96** | 964,076 | 107,646 |
+| 15k — discounted bulk scenario | 8.08 | 14.08 | 957,409 | 118,516 |
+| 19k — rounded sold average | 7.58 | 13.58 | 957,869 | 126,397 |
+| 20k — usual price | 7.38 | 13.38 | 956,473 | 129,678 |
+
+The 20k scenario also uses the usual Intermediate price of 395k rather than 370k.
+
+[Rendered chart omitted; all values appear in the table.]
+
+Buying Greater scrolls at 10k rather than 19k improves expected added stats by approximately **18.2%**.
+
+## 2. Best targets for the Blue Avenger
+
+| Added scroll stat | Total effective stat | Success at 10k Greater | Success at 19k Greater | Added max range |
+|---|---:|---:|---:|---:|
+| +8 | 14 | 76.45% | 58.93% | +10.60 |
+| **+9** | **15** | **65.89%** | **44.11%** | **+11.93** |
+| +10 | 16 | 39.76% | 25.63% | +13.25 |
+| +12 | 18 | 23.17% | 13.29% | +15.90 |
+
+Each target has its own optimized policy. Range uses the illustrative 53 WATK, not measured character stats.
+
+At 10k Greater, targeting +9 costs 859,328 on average, produces 7.67 expected retained scroll stats and costs 111,974 per retained stat across all runs. At 19k, the corresponding figures are 910,331, 6.02 and 151,151.
+
+## 3. Actual starting strategy
+
+- Buy clean six-stat Blue Avengers around 12k, if DEX converts fully; otherwise prefer Dark Avenger and use LUK.
+- Use Greater DEX as the first scroll. NPC every failed opener.
+- After success, apply another Greater DEX. This is optimal at the starting budget in all tested scenarios.
+- Keep Intermediate available as a later conditional option, rather than spending 370k immediately.
+
+At 10k Greater, a failed Blue opener loses 13k net. At 19k, it loses 22k. The mean cost of obtaining the first successful opener through unlimited retries is 139k or 229k, respectively.
+
+Greater-only mean added stats are 8.61 at 10k and 7.23 at 19k; allowing Intermediate increases these to 8.96 and 7.58. Intermediate is useful, but not the opening scroll.
+
+If DEX cannot convert to LUK, a 15k Dark Avenger with the actual 27k LUK Greater and 845k Intermediate prices produces +6.18 expected LUK, costing 151,511 per retained point.
+
+**My practical target is +9 scroll stats, for 15 total effective stats on the Avenger, if Greater scrolls can be acquired near 10k.** At 19k, target +8 for a better chance of success or follow the unrestricted mean-optimal policy for highest average range.
+
+The 10k scenario assumes repeatable stock; base prices and NPC recovery are still prior assumptions. The rerun uses the restricted one-active-base plus parked fallback, 1k cash-grid model, not a global inventory optimum. No new catalyst eligibility, actual purchase or production engine edit.
+
+[Post-save verification metadata omitted.]
+
+----- END overall-authenticated-rerun -----
+
+
+----- BEGIN overall-lesser-allowed | 76f1c873244a525209473f588db93d3f3b897637 -----
+# Overall-only Lesser rule
+
+## User
+
+feel free to use 100%  for overalls too
+
+## Assistant
+
+**100% Lesser scrolls are now allowed for overalls.** The no-100% restriction still applies to earrings.
+
+This potentially changes the optimal overall strategy considerably. Assuming we can obtain DEX Lesser scrolls for 40k each, a successful 10% opener followed by nine guaranteed scrolls produces **+12 added DEX**, or +18 total DEX on a standard Blue Avenger.
+
+## Revised 1m-budget strategy (conditional on Lesser availability)
+
+| Greater price | Chance of +12 | Expected added stat | Average net spend | Cost per stat |
+|---|---:|---:|---:|---:|
+| 10k | 99.13% | 11.98 | 498,241 | 41,581 |
+| 19k | 93.54% | 11.87 | 577,564 | 48,654 |
+
+This strategy reserves 412k for a guaranteed +10 fallback if every opener fails. NPC failed openers, then finish the first successful opener with nine Lesser scrolls. At illustrative 53 WATK, +12 adds 15.90 maximum range.
+
+The catch: the authenticated DEX Lesser quote has zero listings. The 40k price is a previously researched citizenship-gated source, not confirmed accessible to you. This is a conditional strategy calculation, not a full adaptive rerun or executable market quote. I'll include Lesser in the full overall optimization once acquisition is established.
+
+[Post-save metadata omitted.]
+
+----- END overall-lesser-allowed -----
+
+
+----- BEGIN overall-free-market-rerun | 49e84a6fd1babe088db5954fa5e093f65a39030e -----
+# Free Market-only overall rerun
+
+## User
+
+ok now run new, you can use 100% only if available in free market
+
+## Assistant
+
+## 1. Free Market-only scroll selection
+
+I checked the alternate DEX and LUK Lesser item IDs as well. The databases document citizenship-gated versions, but I found no verified active HeneFM listing for an unrestricted DEX or LUK Lesser. I could not retrieve the alternate IDs' live market pages.
+
+| Scroll | Price used | Status |
+|---|---:|---|
+| DEX Greater 10% | 19k | Included |
+| DEX Intermediate 60% | 370k | Included |
+| LUK Greater 10% | 27k | Included for comparison |
+| LUK Intermediate 60% | 845k | Included for comparison |
+| DEX/LUK Lesser 100% | Unverified | Excluded |
+| DEX/LUK Chaos | No listings in supplied snapshot | Excluded |
+
+No citizenship benefits, hypothetical 40k Lesser purchases or unavailable Chaos scrolls will enter this calculation.
+
+## 2. Fresh optimization results
+
+I found clean Dark Avengers listed at 12–15k, and Blue Avengers around 15–17k in accessible HeneFM snapshots. I'll use **15k per clean Avenger** as the working price, with 9k assumed NPC recovery.
+
+| Strategy | Expected added stat | Expected net cost | Cost per added stat |
+|---|---:|---:|---:|
+| DEX Greater at 10k + Intermediate | **8.61** | 963,510 | 111,866 |
+| DEX Greater at 15k + Intermediate | 7.84 | 958,085 | 122,249 |
+| DEX Greater at 19k + Intermediate | 7.36 | 954,441 | 129,729 |
+| DEX Greater only at 19k | 7.01 | 947,791 | 135,137 |
+| LUK Greater + Intermediate | 6.18 | 936,664 | 151,518 |
+
+All use the 1m hard budget, ten slots, immediate NPC disposal of failed openers and adaptive scrolling.
+
+### One available 100% scroll
+
+I also found Overall STR Lesser at approximately 170–175k in indexed Free Market listings. It adds only 0.4 effective LUK per successful application for the displayed claw range objective.
+
+Including it as an optional guaranteed finisher improves expected effective stats from **7.3572 to 7.3638** at the 19k Greater price. Practically negligible. I would not stockpile it.
+
+## 3. Top three targets
+
+Using 19k Greater, 370k Intermediate and optional 170k STR Lesser finishers:
+
+| Added effective stat | Total effective stat | Target success chance | Added max range | Cost per retained stat |
+|---|---:|---:|---:|---:|
+| +8 | 14 | 56.92% | +10.60 | 154,172 |
+| +9 | 15 | 42.36% | +11.93 | 169,924 |
+| +10 | 16 | 25.76% | +13.25 | 186,516 |
+
+Each row optimizes its own target probability, and cost per stat includes failed runs. Range assumes illustrative 53 WATK and fully convertible DEX.
+
+## 4. What I'd buy
+
+Dark Avenger with natural +6 LUK, ten slots, at 15k or less. Buy DEX Greater as cheaply as possible, preferably 10–15k. NPC every failed opener, and after the first successful 10%, use another Greater rather than immediately spending 370k on Intermediate. Adapt subsequent applications to your remaining cash and slots.
+
+The maximum-average strategy including the optional STR finisher yields +7.36 effective scroll stats and +9.76 expected displayed maximum range, or +17.71 including the natural base stats compared with no armor.
+
+These are fresh numerical results with previously supplied authenticated scroll prices and newly checked indexed base/STR observations, not a new authenticated market snapshot. The one-active-base DP permits a parked fallback; STR Lesser is tested only as a finishing block, not fully interleaved with other scrolls. No repeatable stock at 10k, NPC payout, or direct AP conversion is newly verified. No citizenship sources included.
+
+[Post-save verification metadata omitted; citation markers flattened, sources in research file.]
+
+----- END overall-free-market-rerun -----
+
+
+----- BEGIN overall-2m-budget | 650dc1cd14c513d785c74684ca24b78a6cc48125 -----
+# Overall 2m budget comparison
+
+## User
+
+what if i up the budget to 2m? whats the improvement
+
+## Assistant
+
+Doubling your overall budget from **1m to 2m increases expected added stats by 38.7%**, but dramatically improves your chances of obtaining a strong finished overall.
+
+I reran the optimizer using the same 15k Dark Avenger, 9k assumed NPC recovery, 19k Greater, 370k Intermediate and optional market-sourced 170k STR Lesser. No citizenship sources.
+
+## 1. Expected improvement
+
+[Rendered cards: 1m budget +7.36 expected added stat; 2m budget +10.21 expected added stat.]
+
+| Metric | 1m budget | 2m budget |
+|---|---:|---:|
+| Expected added stat | 7.36 | **10.21** |
+| Total effective stat | 13.36 | **16.21** |
+| Added maximum range | +9.76 | **+13.53** |
+| Expected net expenditure | 953,750 | 1,944,452 |
+| Cost per added stat | 129,519 | 190,382 |
+
+The extra million buys approximately **2.85 additional effective stats and 3.78 maximum damage range**, assuming 53 total weapon attack and fully convertible DEX.
+
+## 2. Chances of achieving stronger overalls
+
+[Rendered chart flattened: target +8, 1m 56.92%, 2m 91.37%; +9, 42.36%, 79.83%; +10, 25.76%, 69.22%; +12, 12.34%, 42.47%; +15, 2.13%, 11.52%; +18, 0.24%, 1.58%. Each target uses its own probability-maximizing policy.]
+
+The biggest practical difference is **+10 added stats**: your chance increases from 25.76% to 69.22%.
+
+## 3. If you buy cheaper Greater scrolls
+
+| Greater price | Expected added stat at 2m | Added max range | Cost per stat |
+|---|---:|---:|---:|
+| 10k | 11.18 | +14.82 | 174,589 |
+| 15k | 10.60 | +14.05 | 183,595 |
+| 19k | 10.21 | +13.53 | 190,382 |
+
+**At 2m, I'd target +10 added stats (16 total effective stats).** Target +12 if you're comfortable with a 42.47% success chance. If your goal is the highest average range rather than hitting a specific target, use the mean-optimal adaptive policy instead.
+
+The trade-off is diminishing returns: the incremental cost is roughly 348k per extra expected stat. The 2m budget is much better for reliability, not cost efficiency.
+
+Same recorded prices, no new live quote or stock-depth verification. STR Lesser is optional and adds only 0.0235 expected effective stats at 2m; without it, expected added stats are 10.19. The restricted optimizer still assumes one active overall and one parked fallback. I have treated 2m as a comparison, not a permanent change to your default budget.
+
+[Post-save verification metadata omitted.]
+
+----- END overall-2m-budget -----
+
+
+----- BEGIN overall-budget-sweep | f05538fc962a30e1c2743416d046d5ee4fa39e38 -----
+# Overall budget sweet spot
+
+## User
+
+ok what should the spending be? if 1m could add so much
+
+## Assistant
+
+**I'd spend 750k–1m on the overall, rather than 2m.** That is where I see the best balance between a strong finished item and diminishing returns.
+
+I reran the optimizer across smaller budgets using our existing Free Market-only constraints and 19k Greater scrolls.
+
+## Optimal budget comparison
+
+| Budget | Expected added stat | Added max range | Cost per added stat |
+|---|---:|---:|---:|
+| 250k | +2.96 | +3.93 | 79,556 |
+| 300k | +3.49 | +4.62 | 79,479 |
+| 500k | +5.01 | +6.64 | 91,994 |
+| **750k** | **+6.37** | **+8.43** | **111,067** |
+| **1m** | **+7.36** | **+9.76** | **129,519** |
+| 1.25m | +8.14 | +10.79 | 147,447 |
+| 1.5m | +8.89 | +11.78 | 162,911 |
+| 2m | +10.21 | +13.53 | 190,382 |
+
+[Rendered chart omitted; data in research file.]
+
+At 750k, you're getting approximately **86% of the expected scrolling benefit of a 1m budget**, while preserving another 250k for other equipment.
+
+## Where to spend the extra money
+
+| Additional budget | Cost per extra expected stat |
+|---|---:|
+| 500k → 750k | 182k |
+| 750k → 1m | 247k |
+| 1m → 1.5m | 324k |
+| 1.5m → 2m | 376k |
+
+If both your earring and overall are still clean, splitting 2m is much better:
+
+| Allocation | Combined expected added stat | Added max range |
+|---|---:|---:|
+| 2m overall only | 10.21 | +13.53 |
+| 1m overall + 1m earring | **15.07** | **+19.96** |
+
+That is approximately 48% more added damage range for the same budget, assuming the previous independent earring model and fully convertible DEX.
+
+**My spending plan: 750k initially on the overall, with permission to go up to 1m.** Spend the remainder on other clean or weak equipment before pushing the overall to 2m.
+
+These are expected values, not guaranteed outcomes. Prices are carried forward, range uses illustrative 53 WATK, and the model assumes one active overall plus one parked fallback. The split comparison is not a joint equipment optimization.
+
+[Post-save verification metadata omitted.]
+
+----- END overall-budget-sweep -----
+
+
+----- BEGIN cape-budget-research | a43adfe8962c2b39448224bf483a27c3a3d2eab6 -----
+# Cape budget research exchange
+
+## User
+
+awesome. can you do that for cape too?
+
+## Assistant
+
+# Cape scrolling — optimal spending
+
+The cape market is different from overalls: **100% DEX and LUK scrolls have observable Free Market offers**, so we can include them without relying on citizenship.
+
+## 1. Best cape bases
+
+| Cape | Level | Natural stat | Slots | Observed market price |
+|---|---:|---:|---:|---:|
+| **Green Napoleon** | 50 | +3 DEX | 5 | 17.5–50k |
+| Black Napoleon | 50 | +3 LUK | 5 | 85–150k |
+| Green Icarus Cape | 46 | +2 DEX | 5 | 15k |
+| Black Justice Cape | 35 | +1 LUK | 5 | 43–49k |
+
+Green Napoleon is the strongest value candidate if DEX can be converted into LUK. Its documented NPC sell-back is 13,200 mesos.
+
+## 2. Scroll prices
+
+| Scroll | DEX | LUK |
+|---|---:|---:|
+| Lesser 100%, +1 | 70–85k | 101–105k |
+| Intermediate 60%, +2 | 360–400k | 380–400k |
+| Greater 10%, +3 | 45–55k | 50–60k |
+| Chaos 10%, +4 | 170–180k | 350k |
+
+These are observed HeneFM listings or recent sales, not synchronized live API quotes.
+
+Self-crafting the main-stat cape scrolls requires Arcforge level 10, above the documented current cap of 9. I am excluding it, including catalyst crafting, rather than assuming access.
+
+## 3. Optimal spending by budget
+
+Fresh finite-state optimization using Green Napoleon at 30k, NPC recovery conservatively rounded to 13k, and DEX scroll prices of 75k / 380k / 50k / 180k for Lesser / Intermediate / Greater / Chaos.
+
+| Budget | Expected added stat | Total effective stat | Added max range | Cost per added stat |
+|---|---:|---:|---:|---:|
+| 250k | +2.30 | 5.30 | +3.05 | 100,000 |
+| 300k | +3.00 | 6.00 | +3.98 | 85,000 |
+| 400k | +4.30 | 7.30 | +5.70 | 88,372 |
+| **500k** | **+5.20** | **8.20** | **+6.89** | **89,000** |
+| 750k | +5.84 | 8.84 | +7.74 | 118,522 |
+| 1m | +6.24 | 9.24 | +8.27 | 147,520 |
+| 1.5m | +6.98 | 9.98 | +9.25 | 202,517 |
+| 2m | +7.50 | 10.50 | +9.94 | 251,184 |
+
+[Rendered chart omitted; data in research file.]
+
+**500k is the sweet spot for capes.** You obtain 83% of the expected scrolling benefit of spending 1m, for half the budget.
+
+## 4. Exact 500k scrolling strategy
+
+1. Buy a clean +3 DEX Green Napoleon for 30k.
+2. Apply one 50k Greater scroll.
+3. If it succeeds, finish with four 75k Lesser scrolls: +7 added DEX, +10 total DEX, 380k net cost.
+4. If it fails, NPC the cape for approximately 13k, buy a fresh one and apply five Lesser scrolls: +5 added DEX, +8 total DEX, 472k net cost.
+
+This gives 90% chance of +5 and 10% chance of +7, with an expected cost of 462,800 and 89,000 per added stat. Alternatively, skip the gamble: five Lesser scrolls plus the cape cost 405k and guarantee +5.
+
+## 5. Higher target probabilities
+
+| Added stat target | 500k | 750k | 1m |
+|---|---:|---:|---:|
+| +5 | 100% | 100% | 100% |
+| +6 | 35.05% | 66.14% | 77.62% |
+| +7 | 23.35% | 49.67% | 66.96% |
+| +8 | 7.20% | 21.35% | 36.77% |
+| +9 | 4.66% | 9.69% | 17.85% |
+
+Each row is a separate target-maximizing policy; not the distribution of the recommended 500k plan.
+
+## 6. Spending priority across gear
+
+| Equipment | Recommended budget | Expected added stat | Cost per added stat |
+|---|---:|---:|---:|
+| Cape | 500k | 5.20 | 89,000 |
+| Overall | 750k | 6.37 | 111,067 |
+| Earring | 1m | 7.70 | 122,524 |
+
+I'd start with the cape. The three independent budgets total 2.25m and give approximately +19.27 effective scroll stats, or +25.53 displayed maximum range at illustrative 53 WATK, if all DEX is convertible. Not a joint equipment optimization.
+
+The model assumes repeatable listed prices, NPC recovery on failed capes, one active cape and one parked fallback. STR is not jointly optimized; no live bulk-stock verification. If DEX cannot convert to LUK, Black Napoleon with LUK scrolls is the alternative, but at 500k yields only +3.30 expected scroll stats at modeled prices. No citizenship sources, no self-crafting assumption and no actual purchases.
+
+[Post-save metadata omitted; citation markers flattened, sources in research file.]
+
+----- END cape-budget-research -----
+
+
+----- BEGIN cape-200k-chaos-crafting | 41190eea79e0630234c45492ebcd1b46b1a7627d -----
+# Cape 200k efficiency ceiling, Chaos and crafting
+
+## User
+
+im willing to pay 200k per added stat. reverse engineer that. also i have a preference for playing with the new chaos scrolls, and also preference for making my own equips using crafting. run the calculation again for cape
+
+## Assistant
+
+# Cape optimization — 200k per added stat
+
+Using your new efficiency ceiling, there is room to spend significantly more than 500k while including Chaos scrolls.
+
+I rechecked HeneFM and found DEX Chaos offers at 170k, 180k and 200k. I retained 180k as the working price for comparison with our previous model.
+
+## 1. Reverse-engineered spending limit
+
+Using the previous 30k Green Napoleon base and scroll prices of 75k Lesser, 380k Intermediate, 50k Greater and 180k Chaos:
+
+| Budget | Expected added stat | Expected net cost | Cost per stat |
+|---|---:|---:|---:|
+| 500k | 5.20 | 462,800 | 89,000 |
+| 1m | 6.24 | 920,970 | 147,520 |
+| 1.25m | 6.64 | 1,149,067 | 173,130 |
+| **1.484m** | **6.97** | **1,391,325** | **199,619** |
+| 1.5m | 6.98 | 1,414,545 | 202,517 |
+| 2m | 7.50 | 1,883,426 | 251,184 |
+
+For the maximum-stat policy at each budget, **approximately 1.48m is the spending cap that best uses your 200k-per-stat tolerance** in the tested 1k budget grid through 2m.
+
+However, this mathematical optimum almost never uses Chaos. Since you enjoy using Chaos, I tested a separate policy that guarantees a Chaos opening attempt.
+
+## 2. Best cost-aware strategy
+
+A second optimization allows early stopping instead of trying to maximize stats regardless of spending. This gives a better result with 2m available:
+
+| Policy | Expected added stat | Expected spend | Cost per stat |
+|---|---:|---:|---:|
+| Best tested unrestricted | 7.21 | 1,388,176 | 192,492 |
+| **Chaos-first adaptive** | **7.19** | **1,436,181** | **199,698** |
+
+The Chaos-first policy sacrifices only 0.02 expected stat compared with the best tested unrestricted policy. Begin with one Chaos on a clean cape. If it succeeds, the next action is Lesser; if it fails without destruction, NPC immediately; if destroyed, buy a fresh cape. After either failure, begin the next cape with Greater. Subsequent decisions depend on remaining cash, slots and retained stats.
+
+## 3. Simpler Chaos-heavy plan
+
+At 180k per Chaos, attempt up to five clean Green Napoleons, one Chaos per cape. Stop immediately at the first success and finish with four Lesser scrolls. If all five fail, buy a fresh cape and finish with five Lesser.
+
+| Maximum Chaos attempts | Chance of +8 scroll stats | Expected added stat | Average cost/stat | Worst-case cash required |
+|---|---:|---:|---:|---:|
+| 2 | 19.00% | 5.57 | 138,768 | 825k |
+| 3 | 27.10% | 5.81 | 159,950 | 1.035m |
+| 4 | 34.39% | 6.03 | 177,556 | 1.245m |
+| 5 | 40.95% | 6.23 | 192,343 | 1.455m |
+| 6 | 46.86% | 6.41 | 204,875 | 1.665m |
+
+Five attempts average 1,198,016 net spend. Final cape has 11 total DEX on success or 8 total DEX on fallback. For a strict realized cost/stat ceiling in every outcome, use only two attempts; five failed attempts can exceed 200k/stat. The adaptive policy is stronger in expected stats; this is an easy, deliberately Chaos-heavy alternative.
+
+## 4. Self-crafted cape
+
+White Justice Cape (Tailoring 7, natural +1 DEX, five slots) is craftable; Green Napoleon has no verified recipe. Craft inputs: 9 Processed Cloth at350 each, 1 Moon Rock18k, 3 Diamond2k each, 21 Spool of Thread10 each, 6k fee. Total33,360, rounded to34k in the model; NPC6k.
+
+The five-Chaos plan on crafted White Justice costs 1,229,658 expected net, gives 6.23 expected added stat, costs 197,423 per point and needs at most 1.479m. It finishes at 9 or 6 total DEX, versus 11 or 8 on Napoleon. The tested cost-aware crafted Chaos-first policy at 1.904m cap yields 6.98 added points, 1,387,385 average spend, 198,680 per point, and 7.98 total stat.
+
+Armor Crafting Catalyst costs about55–65k in observed market listings but its stat-roll distribution is unverified, so no assumed positive boost. Scroll catalysts cannot solve the Arcforge10 gate while the cap is9.
+
+## Recommendation
+
+Keep 2m available but target about1.44m expected spend on the adaptive Chaos-first Green Napoleon strategy. If you want a fully self-crafted base, use White Justice at Tailoring7 and accept the lower natural stat. The 200k/stat constraint is a ratio of expectations including all failed attempts and NPC salvage, not a guarantee for an individual run. All results depend on repeatable market inputs, independent rolls, full DEX conversion, and assumed scrolled NPC payout. No citizenship, no actual purchases, no global proof or production engine update.
+
+[Post-save verification metadata omitted; citations flattened, sources in research file.]
+
+----- END cape-200k-chaos-crafting -----
+
+
+----- BEGIN 5m-capital-allocation | f5a25e2faff7015fcc2ea2e0ed54c487601a7ea9 -----
+# Five million capital allocation
+
+## User
+
+i have 5m capital, what about now?
+
+## Assistant
+
+With **5m total capital**, I would not spend it all on the cape. Your 200k-per-added-stat ceiling is more useful than the size of your bankroll.
+
+The larger reserve lets you attempt riskier Chaos strategies and absorb bad luck, while keeping enough money to upgrade your overall and earrings. From our previous results, spending across those three equipment slots produces substantially more damage than concentrating everything on one item.
+
+## 1. Cape results with more capital
+
+I reran the cost-aware optimizer across cash reserves up to 5m, retaining your preference for a Chaos opening attempt.
+
+| Available cape budget | Expected added stat | Expected spend | Cost per stat |
+|---|---:|---:|---:|
+| 1.5m | +6.91 | 1.380m | 199,680 |
+| **2m** | **+7.19** | **1.434m** | **199,484** |
+| 3m | +7.44 | 1.484m | 199,446 |
+| 5m | +7.52 | 1.503m | 199,768 |
+
+Increasing your cape reserve from 2m to 5m buys only **0.33 additional expected stats** under your efficiency ceiling.
+
+If we abandon the ceiling and try to maximize stats using the entire 5m, the unrestricted model produces +9.19 expected added stats at approximately **527k per stat**. That's not worth it under your stated preference.
+
+## 2. How I'd allocate your 5m
+
+| Equipment | Allocated budget | Expected net spend | Expected added stat |
+|---|---:|---:|---:|
+| Cape — Chaos-first | 2m | 1.434m | +7.19 |
+| Overall | 1.5m | 1.449m | +8.89 |
+| Earring | 1m | 944k | +7.70 |
+| Untouched reserve | 500k | — | — |
+| **Total** | **5m** | **3.827m** | **+23.79** |
+
+[Rendered card flattened: expected added effective stats +23.79; added maximum range +31.52; average cost per stat 160,890; expected remaining capital 1.17m. Allocations 40% cape, 30% overall, 20% earring, 10% reserve.]
+
+If you prefer to allocate every meso, increase the overall budget to 2m instead. That raises combined expected added stats to **25.11** and illustrative maximum range gain to **33.26**, but leaves no guaranteed unallocated reserve.
+
+## 3. If you prefer crafting your cape
+
+At a 2m liquidity cap, a self-crafted White Justice Cape with a Chaos opener yields +6.98 expected added stats, costs about 1.385m on average and stays under your ceiling at 198,346 per stat. Green Napoleon still wins on natural stats: about 10.19 total effective stats versus 7.98 on White Justice.
+
+**My recommendation: reserve 2m for a Chaos-first Green Napoleon, then spend on overall and earring.** Choose the crafted White Justice instead if the enjoyment of making the base is worth approximately 2.21 effective stats to you.
+
+The new cape calculation uses a restricted adaptive policy and a grid of cost-penalty values, not a proof of global optimality. The combined allocation reuses the prior independent gear models, assumes all bases are clean and DEX is fully convertible, and uses illustrative 53 WATK. No new live prices, no citizenship sources, no actual purchases. Expected cost per stat is not guaranteed on every run.
+
+[Post-save verification metadata omitted.]
+
+----- END 5m-capital-allocation -----
+
+
+----- BEGIN glove-research | 5b57bd754e61c729b3e1a129b3e6cddc73d65332 -----
+# Glove research exchange — 2026-11-25
+Accessible dialogue excerpt, citations and rendered components flattened. Numerical tables, sources, full methodology and limitations preserved separately in ../GLOVE_RESEARCH.md. This is not a complete verbatim archive; intermediate prose/tables omitted where explicitly marked.
+
+## User
+
+okay now do the same whole calculation for gloves. every stat available and cost and increase in damage range
+
+## Assistant
+
+# Gloves — damage and cost optimization
+
+The major difference from earrings, overalls and capes is that **gloves can directly increase weapon attack**. One point of weapon attack is considerably more valuable than one point of LUK for our illustrative level-50 Assassin.
+
+There are four glove scroll families, with four tiers each: weapon attack, magic attack, accuracy and critical rate. No DEX or LUK glove scroll family exists in the current catalogue.
+
+## 1. Every available glove scroll type
+
+| Scroll family | Lesser 100% | Intermediate 60% | Greater 10% | Chaos 10% |
+|---|---:|---:|---:|---:|
+| Weapon attack | +1 | +2 | +3 | +4 |
+| Magic attack | +2 | +4 | +6 | +8 |
+| Critical rate | +1% | +2% | +3% | +4% |
+| Accuracy | +1 | +2 | +3 | +4 |
+
+Chaos scrolls have a 45% unconditional probability of destroying the equipment: 50% destruction conditional on a failed 90% roll.
+
+For your Assassin, weapon attack increases the displayed damage range, crit rate increases actual average damage without increasing displayed range, and accuracy improves effective damage only when you would otherwise miss. Magic attack provides no direct benefit to claw attacks.
+
+[Sections 2–7 omitted from this excerpt; exact model inputs, market observations, budget results, Chaos plan and crafting calculation recorded in GLOVE_RESEARCH.md. Rendered card omitted.]
+
+## 8. My recommendation for your 5m capital
+
+| Equipment | Spending cap | Expected added max range |
+|---|---:|---:|
+| Gloves — Chaos-first, 3 WATK | 2.570m | +23.52 |
+| Overall | 750k | +8.43 |
+| Cape | 500k | +6.89 |
+| Earring | 1m | +10.20 |
+| **Total** | **4.820m** | **+49.04** |
+
+Expected net spending is about 4.53m. This leaves 180k unallocated even if each strategy uses its full modeled cap. You also get the natural glove stats and the additional crit rate, which are not included in the scrolling-only range total.
+
+If pure damage range matters more than Chaos, save 645k of the glove cap and use three guaranteed Attack Lesser scrolls for 1.925m instead.
+
+For pure crit, five guaranteed Crit Lesser cost 350k including the base, or 70k per point. The best tested cost-aware crit-only policy under 200k per crit point gives +8.36% expected added crit at 1.672m expected spend and a 2.235m cap, but zero displayed-range increase.
+
+Remaining limitations: clean Moon Glove prices and Accuracy Lesser/Chaos quotes remain unverified; all other prices are indexed HeneFM observations, not synchronized authenticated quotes. The numerical optimizer used a 5k cash grid, one active glove and one parked fallback; mixed Chaos/attack results are exact for the specified simple policy, not a globally optimized mixed inventory policy. All range calculations are illustrative, and the gear allocation assumes full DEX conversion and no existing scrolled gear. No citizenship access, actual purchases, or production engine updates.
+
+[Post-save verification metadata omitted.]
+
+----- END glove-research -----
