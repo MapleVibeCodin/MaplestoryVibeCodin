@@ -435,7 +435,7 @@ def prepare_name_ocr(frame,rows=None):
                     if ink:canvas[slot*NAME_ROW_SLOT+dy][dx]=0
         scaled=[]
         for line in canvas:
-            row_bytes=b''.join(b'\\x00'*SCALE if v==0 else b'\\xff'*SCALE for v in line)
+            row_bytes=b''.join(b'\x00'*SCALE if v==0 else b'\xff'*SCALE for v in line)
             scaled.extend([row_bytes]*SCALE)
         png=encode_gray_png(out_w*SCALE,out_h*SCALE,scaled)
     return png,{slot:row for slot,row in enumerate(rows)}
@@ -445,6 +445,12 @@ def exact_name_rows(names,item,blocked=()):
     target=normalized(item)
     if not target:return []
     matches=[row for row,name in names.items() if row not in blocked and normalized(name)==target]
+    # A second ellipsized row could be the same target; do not guess.
+    for name in names.values():
+        value=normalized(name)
+        if value.endswith(('...','…')):
+            prefix=value.rstrip('.…').strip()
+            if len(prefix)>=12 and target.startswith(prefix):return []
     return matches if len(matches)==1 else []
 
 class NameOCRCache:
@@ -472,8 +478,10 @@ class NameOCRCache:
             for row in missing:
                 value=' '.join(grouped[row])
                 names[row]=value
-                self.entries[keys[row]]=value
-                self.entries.move_to_end(keys[row])
+                # A blank OCR read is not evidence of an empty name. Retry it.
+                if value:
+                    self.entries[keys[row]]=value
+                    self.entries.move_to_end(keys[row])
             while len(self.entries)>self.limit:self.entries.popitem(last=False)
         return names,len(rows)-len(missing),len(missing),bool(missing)
 
@@ -664,7 +672,7 @@ class ShopInventoryTracker:
                 try:
                     self._ocr.start()
                     # Warm WinRT recognition in the background before the first shop.
-                    blank=b'\\xff'*(158*SCALE)
+                    blank=b'\xff'*(158*SCALE)
                     warm=encode_gray_png(158*SCALE,NAME_ROW_HEIGHT*SCALE,[blank]*(NAME_ROW_HEIGHT*SCALE))
                     self._ocr.recognize(warm)
                 except Exception:pass
@@ -806,7 +814,8 @@ class ShopInventoryTracker:
                 queued_at=self._request_at or started
                 shop_open_at=started
                 name_start=time.perf_counter()
-                name_rows=tuple(i for i,_ in sections if i>=0 and i not in blocked)
+                # Name-only highlights must not target visibly sold stock.
+                name_rows=tuple(i for i,_ in sections if i>=0 and i not in blocked and not sold_row_mask(frame,i))
                 names,cache_hits,cache_misses,used_name_ocr=self._name_cache.recognize(frame,name_rows,self._ocr)
                 name_end=time.perf_counter()
                 target_rows=exact_name_rows(names,item,blocked)
