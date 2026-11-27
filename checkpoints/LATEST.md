@@ -284,3 +284,7 @@ Read [one-scanner reconstruction](../market-data/2026-11-27-one-scanner-hour-rec
 
 ## Fixed seven-scanner assumption (supersedes count search)
 [Seven-scanner model](../market-data/2026-11-27-fixed-seven-scanner-model.md). User verbatim: use 7 scanners. assume that is real. Fix exactly seven as a modeling constraint, not verified physical count. Joint coordinate refit 1474→1476 raw,736/1299 anchors unchanged,713 supported visits; two passes, no added workers. Preserve all older tracks. Next vary movement and observation assumptions under fixed seven, evaluate held-out exact channel predictions. No new data/runtime changes. Historical transcript and full continuity audit incomplete.
+
+
+## Zero-filter-only seven-scanner reconstruction
+[Report](../market-data/2026-11-27-zero-filter-fixed-seven-refit.md): fixed seven, dense proxy22:34–23:13:51.434,2445 raw/1178 consolidated. Dense-only1363 raw/643 anchors/623 visits vs old full-hour model1354/646/624 on same window. 64 strong sweeps, first three endpoints unchanged; no substantive improvement in movement coverage or validated prediction. Exact filter activation unknown. No new data/runtime changes. Preserve all history; next variable dwell/skip/interrupt/delay models with time-ordered validation.
