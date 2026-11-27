@@ -182,11 +182,15 @@ class PerformanceRecorder:
             timing=inventory.get('timing')
             if timing and timing.get('scan_id')!=self.last_scan_id:
                 self.last_scan_id=timing['scan_id']
+                extra={k:timing[k] for k in (
+                    'fast_path','name_cache_hits','name_cache_misses','queue_to_target_ms',
+                    'shop_open_to_target_ms','overlay_ms','shop_open_to_overlay_ms',
+                    'queue_to_overlay_ms') if k in timing}
                 self._emit('inventory_timing',total_ms=timing['total_ms'],
                            row_recognition_ms=timing['row_recognition_ms'],
                            used_ocr=timing['used_ocr'],visible_rows=timing['visible_rows'],
                            geometry_fallback=bool(timing.get('geometry_fallback',False)),
-                           sold_retry=bool(timing.get('sold_retry',False)))
+                           sold_retry=bool(timing.get('sold_retry',False)),**extra)
             if state!=self.inventory:
                 self.inventory=state
                 self._emit('inventory_observed',state=state,confidence='detector')
@@ -676,6 +680,13 @@ def summarize(rows):
                 metrics['inventory_scan_ms'].append(e['total_ms'])
                 metrics['inventory_scan_ms:'+('geometry' if e.get('geometry_fallback') else 'exact')].append(e['total_ms'])
                 metrics['inventory_row_recognition_ms:'+('ocr' if e.get('used_ocr') else 'cache')].append(e['row_recognition_ms'])
+                for field,label in (
+                    ('queue_to_target_ms','queue_to_target_ms'),
+                    ('shop_open_to_target_ms','shop_open_to_target_ms'),
+                    ('overlay_ms','target_to_overlay_ms'),
+                    ('shop_open_to_overlay_ms','shop_open_to_overlay_ms'),
+                    ('queue_to_overlay_ms','queue_to_overlay_ms')):
+                    if _finite_number(e.get(field)):metrics[label].append(e[field])
             if event=='black_end':
                 metrics['black_ms:'+e.get('association','unclassified')].append(e['duration_ms'])
             elif event=='pointer_result' and e.get('ok'):
