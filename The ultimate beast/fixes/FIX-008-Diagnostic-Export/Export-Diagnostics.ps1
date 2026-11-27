@@ -9,7 +9,10 @@ if ($id -notmatch '^[0-9a-fA-F]{32}$') { throw 'Unexpected session filename; ori
 $files = @($raw | Where-Object { ($_.BaseName -replace '\.part\d+$','') -eq $id })
 $files += @($reports | Where-Object { $_.BaseName -eq "Trial-$id" })
 $out = Join-Path ([Environment]::GetFolderPath('Desktop')) ("Beast_Diagnostics_" + $id + "_" + [guid]::NewGuid().ToString('N').Substring(0,8) + '.zip')
-Compress-Archive -LiteralPath $files.FullName -DestinationPath $out
+$paths = @($files.FullName)
+$visual = Join-Path $base ('visual_evidence\'+$id)
+if (Test-Path -LiteralPath $visual) { $paths += $visual }
+Compress-Archive -LiteralPath $paths -DestinationPath $out
 Write-Host "Session: $id"
 Write-Host "Export: $out"
 explorer.exe ('/select,"' + $out + '"')
