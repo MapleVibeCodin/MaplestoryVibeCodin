@@ -185,3 +185,6 @@ Read [latest 404-observation validation](../market-data/2026-11-27-404-holdout.m
 
 ## HeneFM methodology reset — 21:19 Taipei
 Read [decision-focused research](../market-data/2026-11-27-decision-focused-methodology-reset.md) and [raw archive](../market-data/raw/2026-11-27/README.md). Eight originals, latest2558 unique, cutoff21:19:37.057. Continuous-state evaluation 225 policies, best no-switch; net0s on86 retrospective test events. Exact channel before desirable alert and actual seconds saved remain primary. Need true event timestamps and movement data. No runtime changes or deletions; historical transcript and full ten-check audit remain incomplete.
+
+## HeneFM model comparison — method 1 of 5
+Read [marked point process](../market-data/2026-11-27-method01-marked-point-process.md). Executed 106 policies, validation +2s/test -3.31s, no deployment. Next Hawkes, then renewal, HSMM and decision-focused ensemble. Same source/splits/stateful objective; fresh holdout after model selection. Eight original datasets retained, latest2558 cutoff21:19:37.057. No runtime changes.
