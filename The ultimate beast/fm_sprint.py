@@ -33,6 +33,18 @@ def focus_release_pointer(*, schedule, now, valid, game_focused, scanner_focused
         done(False,'focus_request_failed');return
     schedule(5,finish)
 
+def target_context(deal,hwnd,client):
+    """Include the listing metadata that can change without a new archive key."""
+    if not hwnd or not client:return None
+    return (deal.cc,deal.fm,deal.item,deal.buy_mesos,hwnd,tuple(client),
+            deal.listing_id,deal.ign,repr(deal.shop_position))
+
+
+def live_target_matches(current,locked,key,context,hwnd,client):
+    return bool(locked and current and current[0]==key and not current[1].sold
+                and context is not None and target_context(current[1],hwnd,client)==context)
+
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('--engine',choices=['runescape','maplestory'],required=True)
     p.add_argument('--navigate',action='store_true',help='EXPERIMENTAL live channel and projected-shop clicks; no buying')
@@ -103,7 +115,7 @@ def main():
             self._f9_inhibit=False;self._park_serial=0
             super().__init__();self.conf['start_channel']=args.start_channel
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
-            self.root.title('The ultimate beast — '+args.engine.title()+' — '+('Experimental navigation' if args.navigate else 'Pointer assist'))
+            self.root.title('The ultimate beast R4 — '+args.engine.title()+' — '+('Experimental navigation' if args.navigate else 'Pointer assist'))
         def sync_archive(self):
             # Do not pop the separate old map window on every new alert.
             self._syncing_archive=True
@@ -123,26 +135,48 @@ def main():
                     pin.show_many(hwnd,window[2:],hit);self._route_mini_key=key
             elif self._route_mini_key is not None:
                 pin.hide();self._route_mini_key=None
+        def cancel_pending_pointers(self):
+            self._park_serial+=1
+            self._pointer_serial+=1
+            self._pointer_pending=None
+        def set_chase_locked(self,locked):
+            if not locked:
+                self.cancel_pending_pointers()
+                self.flow.reset(None)
+            super().set_chase_locked(locked)
+        def complete_deal(self):
+            self.cancel_pending_pointers()
+            self.flow.reset(None)
+            super().complete_deal()
+        def move_pointer_to_target(self,kind,*,received=None):
+            if self.flow.stage=='stopped' or user.GetAsyncKeyState(0x7B)&0x8000:
+                self.cancel_pending_pointers()
+                self.status.set('F12 stopped this run — unlock to reset');return
+            self._park_serial+=1
+            super().move_pointer_to_target(kind,received=received)
         def close(self):
+            self.cancel_pending_pointers()
             if self._route_mini is not None:self._route_mini.close()
             super().close()
         def f9_down(self):return bool(user.GetAsyncKeyState(0x78)&0x8000)
         def safe(self,hwnd,client):
             return hwnd and window_has_focus(hwnd) and window_client_rect(hwnd)==client and not (user.GetAsyncKeyState(0x7B)&0x8000)
+        def current_target_valid(self,hwnd,client,key,context):
+            if not self.archive.lock.acquire(blocking=False):return False
+            try:
+                return live_target_matches(self.archive.current(),self.archive.chase_locked,
+                                           key,context,hwnd,client)
+            finally:self.archive.lock.release()
         def release_and_park(self,hwnd,client,sx,sy,serial):
-            key,stage=self.flow.key,self.flow.stage
+            key,stage,context=self.flow.key,self.flow.stage,self.flow.context
             rec=getattr(self,'performance',None)
             attempt=getattr(rec,'active',None)
             started=time.perf_counter()
             def valid():
                 if self._closing or serial!=self._park_serial or self.flow.key!=key or self.flow.stage!=stage:return False
                 if user.GetAsyncKeyState(0x7B)&0x8000:return False
-                if not self.archive.lock.acquire(blocking=False):return False
-                try:
-                    current=self.archive.current()
-                    locked=self.archive.chase_locked and current and current[0]==key and not current[1].sold
-                finally:self.archive.lock.release()
-                return bool(locked and self.shop.selected_hwnd()==hwnd and window_client_rect(hwnd)==client and window_at_point(sx,sy)==hwnd)
+                return bool(self.flow.context==context and self.current_target_valid(hwnd,client,key,context)
+                    and self.shop.selected_hwnd()==hwnd and window_client_rect(hwnd)==client and window_at_point(sx,sy)==hwnd)
             def focus_scanner():
                 if self.root.state() in ('iconic','withdrawn'):self.root.deiconify()
                 self.root.focus_force()
@@ -160,7 +194,9 @@ def main():
                 game_focused=lambda:window_has_focus(hwnd),scanner_focused=scanner_focused,
                 focus_scanner=focus_scanner,move=move,done=done)
         def at(self,hwnd,client,point,click=False,require_f9=False,release_focus=True):
-            if point is None or not self.safe(hwnd,client) or (require_f9 and not self.f9_down()):return False
+            if point is None or self.flow.stage=='stopped' or not self.safe(hwnd,client) or (require_f9 and not self.f9_down()):return False
+            key,context=self.flow.key,self.flow.context
+            if not self.current_target_valid(hwnd,client,key,context):return False
             x,y=point;w,h=client[2:]
             if not (2<x<w-2 and 2<y<h-2):return False
             sx,sy=client[0]+x,client[1]+y
@@ -176,7 +212,7 @@ def main():
                     if release_focus:self.release_and_park(hwnd,client,sx,sy,serial)
                     return False
             if click:
-                if not self.safe(hwnd,client) or window_at_point(sx,sy)!=hwnd or cursor_screen_position()!=(sx,sy) or (require_f9 and not self.f9_down()):return False
+                if not self.current_target_valid(hwnd,client,key,context) or not self.safe(hwnd,client) or window_at_point(sx,sy)!=hwnd or cursor_screen_position()!=(sx,sy) or (require_f9 and not self.f9_down()):return False
                 user.mouse_event(0x0002,0,0,0,0);user.mouse_event(0x0004,0,0,0,0)
             return True
         def menu(self,client,cc):
@@ -201,12 +237,14 @@ def main():
         def refresh_overlays(self,current):
             super().refresh_overlays(current)
             if not hasattr(self,'flow') or not getattr(self,'archive',None):return
-            now=time.perf_counter()
-            if now-self._last_tick<.008:return
-            self._last_tick=now
             stop=bool(user.GetAsyncKeyState(0x7B)&0x8000)
-            if stop and not self._f12:self.flow.stop();self.status.set('F12 stopped this run — unlock to reset')
+            if stop and not self._f12:
+                self.cancel_pending_pointers()
+                self.flow.stop();self.status.set('F12 stopped this run — unlock to reset')
             self._f12=stop
+            now=time.perf_counter()
+            if not stop and now-self._last_tick<.008:return
+            self._last_tick=now
             if not current or not self.archive.chase_locked:
                 self.flow.reset(None);self._identity=None;self.show_route_mini();return
             key,deal=current
@@ -214,11 +252,13 @@ def main():
                 self.flow.stop();self.show_route_mini();return
             hwnd=self.shop.selected_hwnd();client=window_client_rect(hwnd) if hwnd else None
             identity=key
-            context=(deal.cc,deal.fm,deal.item,deal.buy_mesos,hwnd,client) if hwnd and client else None
+            context=target_context(deal,hwnd,client)
             binding=self.flow.bind(identity,context,deal.cc==args.start_channel)
             if binding=='context_changed':
+                self.cancel_pending_pointers()
                 self.show_route_mini();self.status.set('Target/window changed · unlock before restarting');return
             if binding=='new':
+                self.cancel_pending_pointers()
                 self._identity=identity;self._f9_inhibit=self.f9_down()
                 self._message=plan(deal.cc,deal.fm,args.start_channel).route_text
                 self.status.set('LOCKED · Shift+2 to unlock')
