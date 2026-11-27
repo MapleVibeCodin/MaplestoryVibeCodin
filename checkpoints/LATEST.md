@@ -227,3 +227,6 @@ Read [twelfth export analysis](../market-data/2026-11-27-zero-filter-next-holdou
 
 ## Dense scanner tracking — count and movement
 Read [tracking report](../market-data/2026-11-27-dense-scanner-tracking.md). 44 strong envelopes, peak7, minimum seven tracks feasible with120s unobserved gaps, eight with90s. Circular route supported by314 direct forward vs10 reverse within4–12s; median7.006s,35 wraps. Seven-worker fixed grouping feasible but ambiguous, no actual worker identity or next-channel sequence verified. Working7–8 conditional; retain frozen6.721s route model. No runtime changes. Historical audit/dialogue incomplete.
+
+## Scanner count correction — individual timestamp audit
+Read [exact-count audit](../market-data/2026-11-27-scanner-count-identifiability.md). Eight channels in2s, conditional minimum9 tracks if exact times and CC>=2s/step>=2s. Exclude early burst => min6. Seven simultaneous inferred tracks still plausible, no exact worker count established. Seven anonymous initial tracks with overflow, not a hard cap. No deployment. Historical audit/dialogue incomplete.
