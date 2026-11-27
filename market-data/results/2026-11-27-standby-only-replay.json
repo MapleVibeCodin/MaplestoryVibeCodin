@@ -1,0 +1,465 @@
+{
+  "policies": 122,
+  "selected": {
+    "p": {
+      "m": 3,
+      "margin": 0.25,
+      "cool": 0
+    },
+    "val": {
+      "n": 3035,
+      "hits": 273,
+      "early": 272,
+      "lat": 5563.128999471664,
+      "sw": 520,
+      "near": 2544,
+      "joint": 228,
+      "either": 2589
+    },
+    "name": "recent15",
+    "test": {
+      "n": 1639,
+      "hits": 147,
+      "early": 147,
+      "lat": 3042.860000371933,
+      "sw": 226,
+      "near": 1405,
+      "joint": 134,
+      "either": 1418
+    },
+    "latest": {
+      "n": 232,
+      "hits": 20,
+      "early": 20,
+      "lat": 428.5339996814728,
+      "sw": 45,
+      "near": 210,
+      "joint": 18,
+      "either": 212
+    }
+  },
+  "bestEarly": {
+    "p": {
+      "m": 3,
+      "margin": 0.1,
+      "cool": 0
+    },
+    "val": {
+      "n": 3035,
+      "hits": 285,
+      "early": 282,
+      "lat": 5593.281999349594,
+      "sw": 643,
+      "near": 2544,
+      "joint": 239,
+      "either": 2590
+    },
+    "name": "recent15",
+    "test": {
+      "n": 1639,
+      "hits": 158,
+      "early": 151,
+      "lat": 3042.8790006637573,
+      "sw": 360,
+      "near": 1405,
+      "joint": 141,
+      "either": 1422
+    },
+    "latest": {
+      "n": 232,
+      "hits": 28,
+      "early": 27,
+      "lat": 420.2300000190735,
+      "sw": 65,
+      "near": 210,
+      "joint": 25,
+      "either": 213
+    }
+  },
+  "byModel": [
+    {
+      "p": {
+        "m": 0,
+        "margin": -0.25,
+        "cool": 0
+      },
+      "val": {
+        "n": 3035,
+        "hits": 110,
+        "early": 110,
+        "lat": 5848.395999908447,
+        "sw": 2,
+        "near": 2544,
+        "joint": 83,
+        "either": 2571
+      },
+      "name": "frequency",
+      "test": {
+        "n": 1639,
+        "hits": 49,
+        "early": 49,
+        "lat": 3180,
+        "sw": 1,
+        "near": 1405,
+        "joint": 39,
+        "either": 1415
+      },
+      "latest": {
+        "n": 232,
+        "hits": 9,
+        "early": 9,
+        "lat": 446,
+        "sw": 1,
+        "near": 210,
+        "joint": 7,
+        "either": 212
+      }
+    },
+    {
+      "p": {
+        "m": 1,
+        "margin": -0.25,
+        "cool": 15
+      },
+      "val": {
+        "n": 3035,
+        "hits": 221,
+        "early": 207,
+        "lat": 6197.997002840042,
+        "sw": 846,
+        "near": 2544,
+        "joint": 185,
+        "either": 2580
+      },
+      "name": "persistence",
+      "test": {
+        "n": 1639,
+        "hits": 142,
+        "early": 137,
+        "lat": 3173.98300075531,
+        "sw": 479,
+        "near": 1405,
+        "joint": 121,
+        "either": 1426
+      },
+      "latest": {
+        "n": 232,
+        "hits": 16,
+        "early": 15,
+        "lat": 454.9709997177124,
+        "sw": 91,
+        "near": 210,
+        "joint": 14,
+        "either": 212
+      }
+    },
+    {
+      "p": {
+        "m": 2,
+        "margin": 0.1,
+        "cool": 15
+      },
+      "val": {
+        "n": 3035,
+        "hits": 250,
+        "early": 248,
+        "lat": 5596.279000043869,
+        "sw": 416,
+        "near": 2544,
+        "joint": 217,
+        "either": 2577
+      },
+      "name": "transition",
+      "test": {
+        "n": 1639,
+        "hits": 157,
+        "early": 152,
+        "lat": 3016.2410004138947,
+        "sw": 221,
+        "near": 1405,
+        "joint": 131,
+        "either": 1431
+      },
+      "latest": {
+        "n": 232,
+        "hits": 18,
+        "early": 18,
+        "lat": 431.02500009536743,
+        "sw": 29,
+        "near": 210,
+        "joint": 17,
+        "either": 211
+      }
+    },
+    {
+      "p": {
+        "m": 3,
+        "margin": 0.25,
+        "cool": 0
+      },
+      "val": {
+        "n": 3035,
+        "hits": 273,
+        "early": 272,
+        "lat": 5563.128999471664,
+        "sw": 520,
+        "near": 2544,
+        "joint": 228,
+        "either": 2589
+      },
+      "name": "recent15",
+      "test": {
+        "n": 1639,
+        "hits": 147,
+        "early": 147,
+        "lat": 3042.860000371933,
+        "sw": 226,
+        "near": 1405,
+        "joint": 134,
+        "either": 1418
+      },
+      "latest": {
+        "n": 232,
+        "hits": 20,
+        "early": 20,
+        "lat": 428.5339996814728,
+        "sw": 45,
+        "near": 210,
+        "joint": 18,
+        "either": 212
+      }
+    },
+    {
+      "p": {
+        "m": 4,
+        "margin": 0,
+        "cool": 0
+      },
+      "val": {
+        "n": 3035,
+        "hits": 247,
+        "early": 246,
+        "lat": 5658.957000255585,
+        "sw": 530,
+        "near": 2544,
+        "joint": 217,
+        "either": 2574
+      },
+      "name": "recent60",
+      "test": {
+        "n": 1639,
+        "hits": 132,
+        "early": 129,
+        "lat": 3056.540999650955,
+        "sw": 230,
+        "near": 1405,
+        "joint": 121,
+        "either": 1416
+      },
+      "latest": {
+        "n": 232,
+        "hits": 15,
+        "early": 15,
+        "lat": 444.13599967956543,
+        "sw": 40,
+        "near": 210,
+        "joint": 13,
+        "either": 212
+      }
+    },
+    {
+      "p": {
+        "m": 5,
+        "margin": 0.25,
+        "cool": 0
+      },
+      "val": {
+        "n": 3035,
+        "hits": 111,
+        "early": 111,
+        "lat": 5857.616999864578,
+        "sw": 54,
+        "near": 2544,
+        "joint": 100,
+        "either": 2555
+      },
+      "name": "recent300",
+      "test": {
+        "n": 1639,
+        "hits": 36,
+        "early": 36,
+        "lat": 3206,
+        "sw": 14,
+        "near": 1405,
+        "joint": 31,
+        "either": 1410
+      },
+      "latest": {
+        "n": 232,
+        "hits": 3,
+        "early": 3,
+        "lat": 458,
+        "sw": 0,
+        "near": 210,
+        "joint": 3,
+        "either": 210
+      }
+    },
+    {
+      "p": {
+        "m": 6,
+        "margin": 0.1,
+        "cool": 15
+      },
+      "val": {
+        "n": 3035,
+        "hits": 272,
+        "early": 269,
+        "lat": 5573.217999696732,
+        "sw": 587,
+        "near": 2544,
+        "joint": 229,
+        "either": 2587
+      },
+      "name": "route-recurrence",
+      "test": {
+        "n": 1639,
+        "hits": 154,
+        "early": 151,
+        "lat": 3029.6479997634888,
+        "sw": 290,
+        "near": 1405,
+        "joint": 126,
+        "either": 1433
+      },
+      "latest": {
+        "n": 232,
+        "hits": 17,
+        "early": 17,
+        "lat": 440.1729998588562,
+        "sw": 57,
+        "near": 210,
+        "joint": 15,
+        "either": 212
+      }
+    },
+    {
+      "p": {
+        "m": 7,
+        "margin": 0,
+        "cool": 15
+      },
+      "val": {
+        "n": 3035,
+        "hits": 277,
+        "early": 274,
+        "lat": 5577.486999034882,
+        "sw": 666,
+        "near": 2544,
+        "joint": 233,
+        "either": 2588
+      },
+      "name": "blend",
+      "test": {
+        "n": 1639,
+        "hits": 157,
+        "early": 153,
+        "lat": 3053.0789997577667,
+        "sw": 336,
+        "near": 1405,
+        "joint": 137,
+        "either": 1425
+      },
+      "latest": {
+        "n": 232,
+        "hits": 21,
+        "early": 21,
+        "lat": 432.2630000114441,
+        "sw": 59,
+        "near": 210,
+        "joint": 19,
+        "either": 212
+      }
+    }
+  ],
+  "fixed": [
+    {
+      "p": {
+        "fixed": "historical"
+      },
+      "val": {
+        "n": 3035,
+        "hits": 94,
+        "early": 94,
+        "lat": 5882,
+        "sw": 0,
+        "near": 2544,
+        "joint": 75,
+        "either": 2563
+      },
+      "name": "historical",
+      "test": {
+        "n": 1639,
+        "hits": 49,
+        "early": 49,
+        "lat": 3180,
+        "sw": 0,
+        "near": 1405,
+        "joint": 39,
+        "either": 1415
+      },
+      "latest": {
+        "n": 232,
+        "hits": 9,
+        "early": 9,
+        "lat": 446,
+        "sw": 0,
+        "near": 210,
+        "joint": 7,
+        "either": 212
+      }
+    },
+    {
+      "p": {
+        "fixed": "last"
+      },
+      "val": {
+        "n": 3035,
+        "hits": 73,
+        "early": 73,
+        "lat": 5924,
+        "sw": 0,
+        "near": 2544,
+        "joint": 62,
+        "either": 2555
+      },
+      "name": "last",
+      "test": {
+        "n": 1639,
+        "hits": 50,
+        "early": 50,
+        "lat": 3178,
+        "sw": 0,
+        "near": 1405,
+        "joint": 39,
+        "either": 1416
+      },
+      "latest": {
+        "n": 232,
+        "hits": 3,
+        "early": 3,
+        "lat": 458,
+        "sw": 0,
+        "near": 210,
+        "joint": 3,
+        "either": 210
+      }
+    }
+  ],
+  "notes": "Standby-only counterfactual: no forced chase on observation. Estimates hypothetical response time per event if pursued, but actual waiting trajectory assumes no events pursued. Cannot compare summed cost as actual game time. Action ticks from observed events only. Initial historical favorite uses only pre-split counts. Validation Nov24/26, Nov27 retrospective. Fixed floor2, same 2s switch.",
+  "sourceBlobs": [
+    "2ff98b00bd844273d82c3e3ff103e95b71e56717",
+    "579e4b4f61a3431dbaceb3a0ba3e64f902557761",
+    "fc4d66b2ace7e9ad3be1eee99db9b287bd50bf2e"
+  ]
+}
