@@ -34,3 +34,6 @@ No time limit. User pastes export in chat. Preserve raw files locally; archive d
 - [Partial live test](2026-11-27-live-forecast-test-01-partial.md)
 
 No scanner runtime changes. No historical files deleted. Next step: analyze the next complete manual export with all prior observations, separating source observation timing from local exporter timing. Report evidence and uncertainty; exact worker count and route are not yet verified.
+
+## Latest full-history audit — 20:10 Taipei
+Read [full historical export audit](2026-11-27-full-history-export-audit.md), verified at commit e4ff1e1fbe7889e152967eaecc04ca93ed9b2679. 7970 files,7535 IDs,786/800 room pairs,40 channels, Nov14–27; 208 additional evening observations beyond prior741. Variable-length hex parser corrected, zero unmatched. 24 channels in4.475s download window establishes local batching confound; within-channel adjacent-room proportions 92/202 at5.5–8.5s and78/175 at8.5–12s support broad cadence only. Exact worker count/route unverified; 4–6 remains working hypothesis. Locked forecast completed0/100 exact ordered pair. No new forecast. Next evidence needed: time-anchored displayed Seen ages and room observations including no-deal rooms, or authorized anonymous worker event records. Retain full history; raw names/listing data not public. Research only, no runtime tests or changes.
