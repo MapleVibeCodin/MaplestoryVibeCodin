@@ -106,3 +106,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Extended frozen holdout — 582 new screenshots
 [Past-hour deep dive](2026-11-27-hour-live-tracking-holdout.md). 296 new consolidated, shared CH12->19 FM5 prediction gives A+1.407/B+2/C+.407s, no tuning. One shared opportunity only. Hybrid40/296 fixed lead hits vs persistence29; original HSMM conditional floor170 vs267 fixed. Latest cutoff22:36:41.931. Large late batch, five new strong route episodes. No deployment.
+
+## Zero-filter route analysis — 22:45 Taipei
+[Broader-feed results](2026-11-27-zero-filter-route-analysis.md). 968 new filenames,401 consolidated after cutoff,257/342 route compatible, peak7 overlapping strong episodes (not proven worker count). Train dwell6.721s; dense test229 conditional route exact room126, row176, within1 214, distance71 vs205 fixed; channel top25/229 vs persistence21. Frozen models no additional savings. No runtime changes.
