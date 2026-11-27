@@ -1,0 +1,1275 @@
+# Related catalyst and scrolling dialogue — 2026-11-27
+
+Exact copies of already archived related conversations, some partial. Historical results and assumptions are not current recommendations.
+
+
+----- BEGIN 2026-11-25-shoes-speed-12-catalysts.md | 27e9c33a53a06f13b9b62cc196e4ad740f9b4f0e -----
+# Shoes Speed test — revised to 12 catalysts (2026-11-25)
+
+## User (verbatim)
+lets continue with this one. i have 12 scroll catalysts and want to make shoe speed. give me all ingredients
+
+## Assistant (visible text; interactive checklist flattened)
+## Shopping list — 12 Shoes Speed crafts
+
+Shopping progress
+
+Scroll Crafting Catalyst — 12
+Refined Amethyst — 36
+Fragment of Magic — 120
+Processed Parchment — 12
+Mesos for crafting fees — 120,000
+
+**Arcforge level required:** 6.
+
+Craft Shoes Speed: Lesser with one catalyst per craft. If buying unrefined Amethyst Ore instead, buy 36 ores and budget an additional 36,000 mesos for refining.
+
+## Scope
+The checklist interaction is not serialized. The subsequent GitHub verification confirmation is post-save metadata. The recipe is scaled from the existing documented test; no fresh material prices or crafting results were obtained.
+
+----- END 2026-11-25-shoes-speed-12-catalysts.md -----
+
+
+----- BEGIN 2026-11-25-shoes-speed-test.md | 82a8e7efc4246c1a95097b49410d068b59e20759 -----
+# First Shoes Speed empirical test
+
+## User
+
+ok lets do the test with shoe speed first then
+
+## Assistant
+
+Let's do **10 Shoes Speed crafts** as our first controlled test. No inter-character transfers and no constant repricing.
+
+## Shopping checklist
+
+- 10 Scroll Crafting Catalysts
+- 30 refined Amethysts
+- 100 Fragments of Magic
+- 10 Processed Parchments
+- 100,000 mesos for crafting fees
+
+Use the Shoes Speed Lesser recipe with one catalyst per craft.
+
+## Test benchmark
+
+| Metric | Expected |
+|---|---:|
+| Total cost | 838,203 |
+| Intermediate | 7.5 |
+| Greater | 2 |
+| Chaos | 0.5 |
+| Revenue after 3% tax | 911,315 |
+| Net profit | 73,112 |
+| ROI | 8.72% |
+
+## Fixed shop prices
+
+| Scroll | List at |
+|---|---:|
+| Intermediate | **122,000** |
+| Greater | **5,500** |
+| Chaos | **27,000** |
+
+Keep the prices unchanged for the initial test.
+
+Send me your **actual total material cost and the resulting scroll counts** once you've crafted them. I'll calculate your actual production cost, projected profit and, once they sell, realized profit and mesos/hour. We'll also add the observed results to our catalyst probability dataset.
+
+The benchmark uses previous material prices and provisional crafting odds; actual results are not yet known.
+
+[Test plan saved and verified on GitHub](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md).
+
+----- END 2026-11-25-shoes-speed-test.md -----
+
+
+----- BEGIN 2026-11-25-shoes-speed-first-eight-results.md | abff6bdfd5f1b064e62d552ac253cecc10477cf1 -----
+# Shoes Speed first results — 2026-11-25
+
+## User
+
+what scrolls to craft again? i have 12 catalysts
+
+## Assistant
+
+**Craft 12 Shoes Speed Scrolls using one catalyst each.** That was our original empirical test, and you've already purchased the ingredients.
+
+| Ingredient | Quantity | Your cost |
+|---|---:|---:|
+| Scroll Crafting Catalyst | 12 | 840,000 |
+| Refined Amethyst | 36 | 36,000 |
+| Fragment of Magic | 120 | 20,400 |
+| Processed Parchment | 12 | 6,000 |
+| Crafting fees | 12 | 120,000 |
+| **Total** | | **1,022,400** |
+
+**Arcforge level 6 required.**
+
+## Comparison
+
+| | Shoes Speed | Gloves Crit |
+|---|---:|---:|
+| Total investment | 1,022,400 | 1,491,542 |
+| Expected profit | 71,178 | 123,607 |
+| Expected ROI | 6.96% | 8.29% |
+| Arcforge level | 6 | 9 |
+
+Gloves Crit has higher modeled profit, including transfer fees, but Shoes Speed requires less capital and you've already sourced its materials.
+
+These estimates use our previous price assumptions and unverified catalyst probabilities, not fresh market quotes.
+
+**Finish Shoes Speed first.** Record how many Lesser, Intermediate, Greater and Chaos scrolls you receive so we can refine our probability model.
+
+## User
+
+cost for crafting fee?
+
+## Assistant
+
+**Shoes Speed: 10,000 mesos per craft.**
+
+- 12 crafts: **120,000 mesos**
+- Gloves Crit: 30,000 per craft, or **360,000 mesos** for 12.
+
+These fees exclude catalysts and ingredients.
+
+## User
+
+[Three screenshot attachments only; not duplicated publicly. Timestamps 214418, 214428, 214424.]
+
+## Assistant
+
+## Shoes Speed crafting results — first 8 crafts
+
+| Result | Quantity | Observed rate | Estimated sale price each |
+|---|---:|---:|---:|
+| Intermediate | 6 | 75% | 122,000 |
+| Greater | 1 | 12.5% | 5,500 |
+| Chaos | 1 | 12.5% | 27,000 |
+| Lesser | 0 | 0% | — |
+
+6 Intermediate · 1 Greater · 1 Chaos
+
+## Profit so far
+
+| | |
+|---|---:|
+| Cost of 8 crafts | 681,600 |
+| Estimated net sale value | 741,565 |
+| Projected profit | +59,965 |
+| Projected ROI | 8.80% |
+
+Using our original fixed resale prices and 3% selling tax. No actual sales confirmed yet.
+
+**You appear to have 4 catalysts remaining.** Your last screenshot shows an inventory-space error. Free up four Use inventory slots and finish the batch. The eight-craft count assumes the three screenshots cover consecutive portions of the chat log.
+
+## Archival note
+
+Reconstructed visible wording; rendered chart and cards flattened, attachments omitted. Research commit 489acffc55e4e0a95d08e0760cfb7b0f1eb27c1b. Verification notice added to user response after this save is not included.
+
+----- END 2026-11-25-shoes-speed-first-eight-results.md -----
+
+
+----- BEGIN 2026-11-25-shoes-speed-followup-results.md | ece8adf90841b77c173ad0e80ae8e3ee8d410730 -----
+# Shoes Speed follow-up screenshots and correction — 2026-11-25
+
+## User
+
+[Two screenshot attachments only; omitted from public archive. Timestamps 215156 and 215201.]
+
+## Assistant (interrupted response; provisional counts superseded)
+
+The two new screenshots show **4 Intermediate and 1 Greater** scrolls.
+
+## Cumulative crafting results
+
+| Scroll | Previous count | Newly visible | Combined |
+|---|---:|---:|---:|
+| Intermediate | 6 | 4 | **10** |
+| Greater | 1 | 1 | **2** |
+| Chaos | 1 | 0 | **1** |
+| Lesser | 0 | 0 | **0** |
+| **Total** | **8** | **5** | **13** |
+
+There is a discrepancy: we planned 12 crafts, but the screenshots appear to show 13 completed crafts. One result may have been counted twice due to overlapping chat history.
+
+## Profit scenarios
+
+Using our original resale prices, actual ingredient costs and 3% selling tax:
+
+| Final outcome (I/G/C) | Total cost | Projected profit | ROI |
+|---|---:|---:|---:|
+| 9 / 2 / 1 | 1,022,400 | +79,520 | 7.78% |
+| 10 / 1 / 1 | 1,022,400 | +192,525 | 18.83% |
+| 10 / 2 / 1 (13 crafts) | 1,107,600 | +112,660 | 10.17% |
+
+All three scenarios are profitable at our assumed selling prices.
+
+## User
+
+no double check, its been only 12 crafts
+
+## Assistant
+
+You're right. I double-checked the screenshots. There are **two distinct Greater scrolls and one Chaos scroll**. With 12 confirmed crafts and no Lesser scrolls, the correct result is:
+
+| Scroll | Quantity | Observed rate |
+|---|---:|---:|
+| Intermediate | **9** | 75.00% |
+| Greater | **2** | 16.67% |
+| Chaos | **1** | 8.33% |
+| Lesser | **0** | 0% |
+| **Total** | **12** | **100%** |
+
+One Intermediate result was counted twice in the overlapping screenshots.
+
+## Final batch profitability
+
+| | |
+|---|---:|
+| Total crafting cost | 1,022,400 |
+| Projected gross sales | 1,136,000 |
+| Projected net profit | +79,520 |
+| Projected ROI | 7.78% |
+
+After the 3% selling fee, using our original resale prices. Actual realized profit will depend on your sales.
+
+## Archive note
+
+Rendered cards flattened; images omitted. Outcome inferred from distinct non-Intermediate lines and user-confirmed total; no independent inventory reconciliation. Research commit e09c90f1ce0925f1acd86ca167bebc287650b54a. Post-save verification note not included.
+
+----- END 2026-11-25-shoes-speed-followup-results.md -----
+
+
+----- BEGIN 2026-11-25-partial-verbatim.md | df14c49c8ddf9689b2419ec101946cf92349cdf2 -----
+# Conversation archive — 2026-11-25 — partial verbatim copy
+
+Archive metadata (not conversation text): this is a manual copy of accessible user-visible conversation text, not an export or complete transcript. Speaker labels and omission notices are added by the archivist. Earlier compressed messages, lengthy pasted market pages, some assistant replies, interactive controls, citations and tool messages are not included. Text excerpts are not rewritten. The existing research files retain the derived market data and calculations. No claim of complete coverage.
+
+## Earlier visible project requests (verbatim user messages, chronological)
+
+**User**
+
+now save all of this (and every conversation moving forward) into memory and github)
+
+**User**
+
+awesome. now do the calculation for best earrings self scrolled (but can buy everything from FM). calculate damage range for 3 different variations (top 3)
+
+**User**
+
+no need to account for AP reset
+
+**User**
+
+**Redo all the clean stats using henefm. Only use henefm, cozy is inaccurate. redo ALL clean stats and price**
+
+**User**
+
+where are the chaos scrolls?
+
+**User**
+
+hmmm now im thinking, what about creating the scrolls my self?
+
+**User**
+
+deep dive into everything scroll catalyst related on the internet
+
+**User**
+
+dive even deeper, i want as many scroll catalyst discussions possible. include korean and chinese and any other sites too. add this to memory and github and use this methodology moving forward for every request
+
+**User**
+
+its not possible to have no chaos
+
+**Assistant**
+
+Correct. **Chaos is a possible catalyst output. Zero observed Chaos results does not mean the actual probability is zero.**
+
+With only 30 reported crafts, rare outcomes are easily missed.
+
+## More realistic probability distributions
+
+| Scenario | Intermediate | Greater | Chaos | Chance of observing zero Chaos in 30 crafts |
+|---|---:|---:|---:|---:|
+| A | 80% | 19% | 1% | 74.0% |
+| B | 80% | 17% | 3% | 40.1% |
+| C | 75% | 20% | 5% | 21.5% |
+| D | 75% | 17.5% | 7.5% | 9.6% |
+| E | 75% | 15% | 10% | 4.2% |
+
+## Catalyst crafting EV under each scenario
+
+Using our previous HeneFM prices, including a 3% selling fee:
+
+| Scenario | Earring DEX profit | Earring LUK profit | Gloves Crit Rate profit |
+|---|---:|---:|---:|
+| A | −19.88k | +1.35k | +36.76k |
+| B | −13.27k | +6.98k | +37.17k |
+| **C** | **−10.39k** | **+8.24k** | **+29.82k** |
+| D | −2.12k | +15.27k | +30.33k |
+| E | +6.15k | +22.31k | +30.84k |
+
+These are expected profits per catalyst craft, not guaranteed returns.
+
+**I would continue using 75% Intermediate / 20% Greater / 5% Chaos as our provisional working distribution**, while running sensitivity analyses from 1–10% Chaos.
+
+The actual probabilities remain unconfirmed. We should never exclude a possible outcome simply because it hasn't appeared in a small sample.
+
+**User**
+
+ok lets keep doing that moving forward
+
+**Assistant**
+
+Agreed. **Our default catalyst production model moving forward:**
+
+| Output | Probability |
+|---|---:|
+| Intermediate | 75% |
+| Greater | 20% |
+| Chaos | 5% |
+
+For every catalyst EV calculation, I'll also run sensitivity analyses with Chaos probabilities of 1%, 3%, 5%, 7.5% and 10%.
+
+We'll continue using:
+- HeneFM exclusively for market prices.
+- Multilingual research, including Korean and Chinese communities.
+- Full material costs, crafting fees and applicable selling fees.
+- Updated probability estimates whenever credible new evidence emerges.
+- Actual scrolling optimization rather than simplistic stat EV.
+
+**Saved to [our GitHub catalyst research](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md).** Commit: `c1f44cc`.
+
+These remain provisional probabilities, not confirmed Nexon rates. Direct memory updates are unavailable in this session, but the standard is preserved in GitHub.
+
+**User**
+
+im curious, run the whole calculation for creatable scrolls, which are profitable? Always use henefm and the average of their median/average/lowest listed price for the most normal.
+
+[Assistant reply omitted in this partial copy; calculations preserved in CATALYST_RESEARCH.md.]
+
+**User**
+
+ok how to reproduce the glove crit? i can make 50
+
+[Assistant reply omitted in this partial copy.]
+
+**User**
+
+do the 50 craft calculation for all the other profitable items.
+
+[Assistant reply omitted in this partial copy.]
+
+**User**
+
+ok get rid of shoe jump in this calculation
+
+**Assistant (text excerpt; interactive allocation planner omitted)**
+
+## Updated 50-craft comparison — Shoes Jump excluded
+
+Using the same HeneFM representative prices, 67.93k per catalyst, 75/20/5 production probabilities and 3% selling fees.
+
+| Metric | Gloves Crit Rate | Shoes Speed | Earring LUK |
+|---|---:|---:|---:|
+| Investment | 5.915m | 4.191m | 5.144m |
+| Net revenue | 7.440m | 4.872m | 5.726m |
+| **Expected profit** | **1.526m** | **681k** | **582k** |
+| ROI | **25.8%** | 16.2% | 11.3% |
+| Profit per catalyst | **30.52k** | 13.61k | 11.65k |
+| Modeled loss probability | **0.10%** | 3.03% | 6.43% |
+| Daily Intermediate sales* | 99 | 301 | 592 |
+
+[Chart omitted.]
+
+## Profit at different catalyst prices
+
+| Catalyst price | Gloves Crit | Shoes Speed | Earring LUK |
+|---|---:|---:|---:|
+| 65k | **1.672m** | 827k | 729k |
+| 70k | **1.422m** | 577k | 479k |
+| 75k | **1.172m** | 327k | 229k |
+| 80k | **922k** | 77k | −21k |
+| 85k | **672k** | −173k | −271k |
+| 90k | **422k** | −423k | −521k |
+| Break-even | **98.45k** | 81.54k | 79.58k |
+
+[Interactive allocation planner omitted.]
+
+**I'd allocate all 50 catalysts to Gloves Crit Rate.** It offers the highest expected profit, lowest modeled crafting risk and greatest tolerance for rising catalyst prices among the remaining three.
+
+*Prices and sales volumes are carried forward from our previous HeneFM snapshots, not a fresh market scan. Catalyst probabilities remain provisional.*
+
+**User**
+
+what's the daily sales?
+
+**Assistant (text excerpt; chart and citation display omitted)**
+
+## Daily sales volume — HeneFM
+
+Latest accessible 24-hour sales snapshots, excluding Shoes Jump.
+
+| Scroll | Intermediate | Greater | Chaos | Total daily |
+|---|---:|---:|---:|---:|
+| Gloves Crit Rate | 88 | 97 | 554 | **739** |
+| Shoes Speed | 301 | 996 | 395 | **1,692** |
+| Earring LUK | 592 | 361 | 13* | **966** |
+
+## Impact of crafting 50 scrolls
+
+Assuming 37.5 Intermediate scrolls produced:
+
+| Recipe | Share of daily Intermediate demand | Expected profit |
+|---|---:|---:|
+| Gloves Crit Rate | **42.6%** | 1.526m |
+| Shoes Speed | 12.5% | 681k |
+| Earring LUK | **6.3%** | 582k |
+
+This changes my preferred allocation considerably. Selling 38 Gloves Crit Rate scrolls means competing for almost half the observed daily demand.
+
+I'd diversify the 50 catalysts:
+
+| Recipe | Crafts | Expected profit |
+|---|---:|---:|
+| Gloves Crit Rate | 25 | 763k |
+| Shoes Speed | 15 | 204k |
+| Earring LUK | 10 | 116k |
+| **Total** | **50** | **1.083m** |
+
+You sacrifice some theoretical profit for better liquidity and reduced exposure to one market.
+
+*LUK Chaos volume is from two days ago. Profit estimates use our previous pricing calculations. HeneFM sales are detected market sales, not guaranteed buyers for your inventory.*
+
+**User**
+
+find out average time to offload those scrolls if listed at fm lowest
+
+[Assistant reply and three long pasted HeneFM datasets with associated replies omitted in this partial archive; derived data saved in CATALYST_RESEARCH.md. These omissions mean this is not a full transcript.]
+
+## Latest continuation and archive exchange
+
+**User**
+
+is all of this updated onto github? If so, lets say this chat has future messages and then runs out of messages and i have to use new chat. What would i have to say in the new chat for smooth actual continuation?
+
+**Assistant (verbatim prose; interactive display flattened/omitted)**
+
+**Yes. I've just reopened the GitHub files and verified that our latest research is there.** All three of your newly supplied HeneFM datasets, crafting EV calculations, probability models, liquidation estimates and research preferences are documented.
+
+The repository is on the `main` branch, so you won't need to remember individual commit numbers.
+
+[Verification table omitted.]
+
+The substantive research is saved, rather than every conversation message verbatim.
+
+## 1. Copy this into any new ChatGPT or Codex chat
+
+I've now created a single-entry continuation protocol in our README.
+
+Resume MapleStory research from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/tree/main/scrolling-ev.
+
+Read the latest README, RESEARCH_HANDOFF.md and CATALYST_RESEARCH.md in full. Restore our research methodology, established constraints, calculations, latest findings and unresolved tasks. Continue from the latest checkpoint without restarting the research. Update GitHub after substantive work and verify each commit.
+
+**Save this prompt somewhere permanent.** It always points to the latest version, so you won't need to change it as we conduct more research.
+
+## 2. Before leaving an old chat
+
+To ensure the most recent messages and decisions are captured, use this short command:
+
+Checkpoint everything to GitHub for seamless continuation.
+
+## 3. How our system now works
+
+[Workflow diagram omitted.]
+
+## 4. Permanent project files
+
+| File | Purpose |
+|---|---|
+| [README](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/README.md) | Entry point and latest checkpoint |
+| [Research Handoff](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/RESEARCH_HANDOFF.md) | Research standards and scrolling methodology |
+| [Catalyst Research](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md) | Detailed datasets, market research, EV and liquidity |
+| [Scrolling Engine](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/scrolling_ev_engine.js) | Existing mathematical implementation |
+
+**Latest verified checkpoint:** `c48073a`
+
+The only limitation is that GitHub synchronization is not automatic between messages. I need to actively commit new findings, and the next chat needs access to the repository. The existing scrolling engine also remains v1.0; our newer catalyst calculations are preserved in the research documentation.
+
+This setup gives us a durable project memory without depending entirely on ChatGPT's conversational memory or context limits.
+
+**User**
+
+save everything verbatim
+
+**Assistant (verbatim prose; interactive display flattened and citation omitted)**
+
+I've updated our GitHub protocol to require **verbatim conversation archives in addition to structured research summaries.**
+
+The intended system preserves:
+- Every user message and assistant response, word for word.
+- All raw market data you paste.
+- Calculations, corrections and intermediate findings.
+- Chronological conversation history.
+- Separate research summaries for fast continuation.
+
+**One limitation:** I cannot directly export the complete original chat transcript, including earlier messages that have been compressed out of my context.
+
+### To preserve absolutely everything
+
+1. Open ChatGPT → Settings → Data controls → Export data.
+2. Download the export and upload the relevant conversation JSON here.
+3. I can then archive the original transcript without summarizing or rewriting it.
+
+I recommend using a private repository for verbatim transcripts because our current GitHub repository is public.
+
+### Updated continuation prompt
+
+Resume from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/tree/main/scrolling-ev.
+
+Read all relevant research, checkpoints and available verbatim conversation archives. Restore our established methodology, constraints, calculations and latest progress. Preserve original conversation transcripts alongside structured research updates whenever available. Commit and verify new findings before concluding substantive work.
+
+**GitHub archival requirement:** Saved and verified.
+
+**Complete verbatim transcript:** Not yet archived; requires the original export.
+
+[Updated GitHub protocol](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/README.md) — commit `12732da`.
+
+**User**
+
+no need to explort. just copy paste the words
+
+[End of manual partial copy.]
+
+----- END 2026-11-25-partial-verbatim.md -----
+
+
+----- BEGIN 2026-11-25-continuation.md | e531b0403f360ac120a611bb767cc7c0cd488d3e -----
+# Continuation exchange — 2026-11-25
+
+Archive metadata: exact user text and prepared final assistant text for this turn; speaker headings added. Earlier archives are partial. Tool interactions and commentary excluded.
+
+## User
+
+awesome. now how do you do this every single time? Same is all of this updated onto github? If so, lets say this chat has future messages and then runs out of messages and i have to use new chat. What would i have to say in the new chat for smooth actual continuation?
+
+## Assistant
+
+**Yes. I've verified the existing research files, transcript excerpts and raw HeneFM sales archive on GitHub. I've also changed our standing workflow from saving only major research to saving every project turn.**
+
+## How it works every time
+
+For each MapleStory research request, the intended workflow is:
+
+1. Complete the research, calculation or implementation.
+2. Copy your message and my prepared response verbatim into the dated transcript archive.
+3. Update the research files and latest checkpoint with any new findings or decisions.
+4. Commit to GitHub and verify the saved files before finishing the response.
+
+You should not have to request a save every time. This is now documented in our [master README](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/README.md).
+
+## When you start a new chat
+
+Copy and paste this same prompt every time:
+
+```text
+Resume from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/tree/main/scrolling-ev. Read the latest README, RESEARCH_HANDOFF.md, CATALYST_RESEARCH.md and transcript archives on main. Restore our project context and continue from the latest checkpoint. Follow the per-turn verbatim archive and GitHub verification protocol. Do not restart completed research. Apply my next instruction.
+```
+
+You can put your next research request immediately underneath it.
+
+## Before switching chats
+
+As an extra safeguard, send:
+
+```text
+Checkpoint this chat to GitHub, including all accessible unsaved messages verbatim and the latest project state. Verify the files before I switch.
+```
+
+This is especially useful if a chat is getting close to its context limit.
+
+**Current status:** the per-turn protocol and this exchange are saved. Existing archives are partial, not a complete word-for-word record of the entire earlier chat. I cannot guarantee automatic synchronization of future messages or access in every new session. If a save fails or text is unavailable, I should explicitly report it. Because the repository is public, private or unrelated information should not be included.
+
+[Open our GitHub project](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/tree/main/scrolling-ev)
+
+----- END 2026-11-25-continuation.md -----
+
+
+----- BEGIN 2026-11-25-checkpoint-backfill.md | 710fc26b96cfa0d2a78f00a74bf09e4d4b79a0ed -----
+# 2026-11-25 checkpoint backfill
+
+Archive metadata: manually copied accessible user-visible text. Speaker/section labels and omission notices are editorial. This supplements, rather than replaces, the earlier partial transcript and sales excerpt archives. Rendered interactive controls, internal tool messages, and citation widgets are omitted. Not a complete exported transcript.
+
+## Assistant response to "no need to explort. just copy paste the words"
+
+I've directly copied the original conversation text and market data into GitHub. **No export required.**
+
+Both archive files have been committed and verified.
+
+| Archive | Contents |
+|---|---|
+| [Verbatim conversation excerpts](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/transcripts/2026-11-25-partial-verbatim.md) | Original requests, selected responses and decisions |
+| [Raw HeneFM sales data](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/transcripts/2026-11-25-henefm-sales-excerpts.txt) | Original recent-sale records across all 12 scroll tiers |
+| [Research documentation](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md) | Calculations, findings and methodology |
+| [Master README](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/README.md) | Continuation instructions and archive index |
+
+**28,384 characters of original text archived.** These are partial verbatim archives: some earlier messages, responses and full market listing tables remain omitted.
+
+Moving forward, the documented workflow is to preserve original conversation text alongside research summaries, not replace the original with summaries.
+
+## Your permanent continuation prompt
+
+Resume everything from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/tree/main/scrolling-ev. Read the latest README, research documents and verbatim conversation archives. Continue from our latest checkpoint. Preserve new conversation text verbatim alongside research findings, and commit updates to GitHub.
+
+Latest verified commit: `ef60fc6`.
+
+## Earlier assistant reply backfill: "ok how to reproduce the glove crit? i can make 50"
+
+To make **50 Gloves Crit Rate scrolls using catalysts**, you need **Arcforge level 9** and a character of at least level 45.
+
+## 1. Exact shopping list for 50 crafts
+
+| Material | Per craft | Buy |
+|---|---:|---:|
+| [Black Crystal](https://henefm.com/items/4020108) | 3 | **150** |
+| [Fragment of Magic](https://henefm.com/items/4000063) | 45 | **2,250** |
+| [Processed Parchment](https://henefm.com/items/4003009) | 1 | **50** |
+| [Scroll Crafting Catalyst](https://henefm.com/items/4130003) | 1 | **50** |
+| Crafting fee | 30,000 | **1.5m mesos** |
+
+The current recipe is confirmed by several crafting databases. Older guides incorrectly list ten magic fragments and a 20k fee.
+
+You can buy 150 Black Crystal **Ore** instead of refined crystals and refine them yourself if that works out cheaper.
+
+## 2. Total investment
+
+Using our HeneFM three-price valuation methodology:
+
+| Material | Quantity | Target unit price | Total |
+|---|---:|---:|---:|
+| Black Crystal Ore | 150 | 3.1k | 465k |
+| Refining fee | 150 | 1.2k | 180k |
+| Fragment of Magic | 2,250 | 155 | 348.75k |
+| Processed Parchment | 50 | 500 | 25k |
+| Catalyst | 50 | 67.93k | 3,396.65k |
+| Crafting fee | 50 | 30k | 1,500k |
+| **Total** | | | **5.915m** |
+
+## 3. Where to buy materials in bulk
+
+These sellers appeared in the latest accessible HeneFM snapshots.
+
+| Material | Seller | Location | Price | Stock |
+|---|---|---|---:|---:|
+| Black Crystal Ore | [Likefire](https://henefm.com/shops/Likefire) | CC25 FM14 | 3,199 | 102 |
+| Black Crystal Ore | [Murchmellow](https://henefm.com/shops/Murchmellow) | CC29 FM7 | 3,200 | 106 |
+| Parchment | [ixcherries](https://henefm.com/shops/ixcherries) | CC8 FM6 | 480 | 100 |
+| Magic Fragment | [AcalaK](https://henefm.com/shops/AcalaK) | CC39 FM2 | 168 | 200 |
+| Magic Fragment | [DAmimi38e](https://henefm.com/shops/DAmimi38e) | CC40 FM2 | 165 | 153 |
+
+**Catalysts are the bottleneck.** There were 187 listed, but many shops only had one each. I'd target an average acquisition price of **75k or less**.
+
+[All catalyst listings sorted by price](https://henefm.com/items/4130003)
+
+## 4. How to craft them
+
+1. Open your Arcforge crafting interface.
+2. Refine 150 Black Crystal Ore into 150 Black Crystals.
+3. Select **Gloves Crit. Rate Scroll: Lesser**.
+4. Add a Scroll Crafting Catalyst in the optional catalyst slot.
+5. Craft, ensuring a catalyst is included in every attempt.
+
+Do not select Gloves Attack or Gloves Accuracy. The Lesser Crit Rate recipe is the one that generates higher-tier Crit Rate scrolls with catalysts.
+
+## 5. Expected results from 50 crafts
+
+[Rendered outcome chart and summary cards omitted.]
+
+## 6. Realistic profit depending on your catalyst buying price
+
+I calculated the exact multinomial distribution for all possible outcomes across 50 crafts.
+
+| Average catalyst cost | Total investment | Expected profit | Modeled loss probability |
+|---:|---:|---:|---:|
+| 67.93k | 5.915m | **1.526m** | 0.10% |
+| 75k | 6.268m | **1.172m** | 0.78% |
+| 80k | 6.518m | **922k** | 2.77% |
+| 90k | 7.018m | 422k | 16.61% |
+| 98.45k | 7.440m | Break-even EV | — |
+
+These loss probabilities assume our provisional 75/20/5 distribution is correct, outcomes are independent, and selling prices remain unchanged. Actual risk is higher if those assumptions are wrong.
+
+## 7. Track your actual 50-craft results
+
+[Interactive tracker omitted.]
+
+Your 50 crafts would increase our existing community dataset from 30 to 80 observations. That would be extremely useful for improving our probability estimates.
+
+**Before buying all 50 catalysts, check the [Intermediate selling price](https://henefm.com/items/2040813?back=/shops/cooperm).** The accessible Intermediate snapshot was stale, unlike the more recent Greater and Chaos snapshots. I'd want Intermediate selling around 190k and catalysts averaging no more than 75k.
+
+[50-craft calculations saved to GitHub](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md).
+
+## Earlier assistant reply backfill: "do the 50 craft calculation for all the other profitable items."
+
+# 50-craft profitability comparison
+
+**Shoes Jump remains the most profitable per catalyst, but Gloves Crit Rate and Shoes Speed are easier to sell in bulk.**
+
+I refreshed the accessible HeneFM prices. Shoes Jump Intermediate has dropped from 186.35k to approximately 169.47k using our three-price valuation method.
+
+## 1. Expected profit for 50 crafts each
+
+[Rendered chart omitted.]
+
+| 50 crafts | Investment | Net revenue | Net profit |
+|---|---:|---:|---:|
+| **Shoes Jump** | 4.042m | 6.208m | **2.166m** |
+| Gloves Crit Rate | 5.915m | 7.440m | **1.526m** |
+| Shoes Speed | 4.191m | 4.872m | **681k** |
+| Earring LUK | 5.144m | 5.726m | **582k** |
+
+Assumptions: 67.93k average catalyst cost, 3% selling fee, 75% Intermediate / 20% Greater / 5% Chaos production. The catalyst's current HeneFM snapshot shows a 64k lowest listing, 69.8k average sale and 70k sample median.
+
+## 2. Exact shopping lists
+
+All three recipes are significantly less material-intensive than Gloves Crit Rate, which requires 2,250 magic fragments per 50 crafts.
+
+| Material | Shoes Jump | Shoes Speed | Earring LUK |
+|---|---:|---:|---:|
+| Arcforge required | Lv. 6 | Lv. 6 | Lv. 8 |
+| Aquamarine | 150 | — | — |
+| Amethyst | — | 150 | — |
+| Black Crystal | — | — | 150 |
+| Fragment of Magic | 500 | 500 | 500 |
+| Processed Parchment | 50 | 50 | 50 |
+| Scroll Crafting Catalyst | 50 | 50 | 50 |
+| Crafting fees | 500k | 500k | 1m |
+
+Recipes verified against current crafting data.
+
+### Total material cost breakdown
+
+| Expense | Jump | Speed | LUK |
+|---|---:|---:|---:|
+| Raw ores | 12.6k | 42k | 465k |
+| Refining fees | 30k | 150k | 180k |
+| Magic Fragments | 77.35k | 77.35k | 77.35k |
+| Parchment | 25k | 25k | 25k |
+| Catalysts | 3.397m | 3.397m | 3.397m |
+| Crafting fees | 500k | 500k | 1m |
+| **Total** | **4.042m** | **4.191m** | **5.144m** |
+
+Material costs use our previous HeneFM estimates; catalyst and major output prices were rechecked.
+
+## 3. Expected scroll production
+
+Each batch of 50 produces the following expected distribution:
+
+| Output | Expected quantity | Jump price | Speed price | LUK price |
+|---|---:|---:|---:|---:|
+| Intermediate | 37.5 | 169.47k | 130.17k | 127.30k |
+| Greater | 10 | 4.5k | 6.7k | 33.63k |
+| Chaos | 2.5 | Unverified | 29.6k | 317.33k |
+
+Shoes Jump Chaos contributes zero revenue in this conservative model because its price remains unverified. Its production probability remains 5%.
+
+## 4. Profit depending on catalyst acquisition price
+
+| Catalyst cost | Shoes Jump | Shoes Speed | Earring LUK |
+|---|---:|---:|---:|
+| **67.93k** | **+2.166m** | +681k | +582k |
+| 75k | **+1.813m** | +327k | +229k |
+| 80k | **+1.563m** | +77k | −21k |
+| 90k | **+1.063m** | −423k | −521k |
+| Break-even catalyst price | **111.26k** | 81.54k | 79.58k |
+
+Shoes Jump is much more resilient to rising catalyst prices.
+
+## 5. Probability of losing money on 50 crafts
+
+Calculated using the exact multinomial distribution.
+
+| Average catalyst cost | Shoes Jump | Shoes Speed | Earring LUK |
+|---|---:|---:|---:|
+| 67.93k | 0.003% | 3.03% | 6.43% |
+| 75k | 0.037% | 17.62% | 29.16% |
+| 80k | 0.102% | 39.21% | 55.77% |
+| 90k | 1.43% | 88.95% | 89.16% |
+
+These are modeled crafting-outcome risks, not total business risks. They exclude changing prices, unsold inventory and uncertainty in the actual catalyst probabilities.
+
+## 6. The biggest problem: liquidity
+
+[Rendered chart omitted.]
+
+Producing 38 Intermediate Shoes Jump scrolls would introduce nearly **four days of currently observed market demand**.
+
+That's why I wouldn't put all 50 catalysts into Shoes Jump, despite its outstanding theoretical ROI.
+
+## 7. My recommended allocation of 50 catalysts
+
+| Recipe | Crafts | Investment | Expected profit |
+|---|---:|---:|---:|
+| Shoes Jump | 15 | 1.212m | 650k |
+| Gloves Crit Rate | 35 | 4.140m | 1.068m |
+| **Total** | **50** | **5.352m** | **1.718m** |
+
+**Expected ROI: 32.1%.**
+
+This balances high profit per catalyst with better market liquidity. It assumes you have unlocked Arcforge level 9.
+
+## 8. Interactive batch planner
+
+[Interactive planner omitted.]
+
+## 9. Direct market links
+
+| Item | HeneFM |
+|---|---|
+| Catalysts | [Buy](https://henefm.com/items/4130003) |
+| Magic Fragments | [Buy](https://henefm.com/items/4000063) |
+| Processed Parchment | [Buy](https://henefm.com/items/4003009) |
+| Shoes Jump Intermediate | [Check price](https://henefm.com/items/2040701) |
+| Shoes Speed Intermediate | [Check price](https://henefm.com/items/2040705) |
+| Earring LUK Intermediate | [Check price](https://henefm.com/items/2040313) |
+| Gloves Crit Rate Intermediate | [Check price](https://henefm.com/items/2040813) |
+
+All calculations have been saved to [our GitHub catalyst research](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md), commit `2470242`.
+
+## Earlier assistant reply backfill: "find out average time to offload those scrolls if listed at fm lowest"
+
+# Estimated time to sell 50 crafted scrolls at FM lowest
+
+I checked HeneFM's individual shop histories, including how long listings were open before selling, rather than relying solely on daily sales volume.
+
+**Shoes Speed offers the fastest modeled full-batch liquidation. Gloves Crit Rate offers the highest profit, but takes longer to unload in bulk.**
+
+## 1. Estimated batch clearance time
+
+Assuming 50 crafts per recipe, producing an expected 37.5 Intermediate, 10 Greater and 2.5 Chaos scrolls.
+
+| Recipe | 50% of market demand captured | 25% captured |
+|---|---:|---:|
+| Shoes Speed | **5.9 hours** | 11.9 hours |
+| Earring LUK | 13.3 hours | 26.7 hours |
+| Gloves Crit Rate | 20 hours | 40 hours |
+
+These are conditional sell-through estimates, not measured averages. Matching the lowest FM price does not guarantee that your shop captures 25% or 50% of buyers.
+
+## 2. Latest HeneFM market data
+
+| Scroll | FM lowest | Daily sales | Current stock |
+|---|---:|---:|---:|
+| Gloves Crit Intermediate | 185k | 90 | 73 |
+| Gloves Crit Greater | 30k | 97 | 76 |
+| Gloves Crit Chaos | 50k | 553 | 187 |
+| Shoes Speed Intermediate | 125k | 303 | 107 |
+| Shoes Speed Greater | 4.8k | 1,005 | 687 |
+| Shoes Speed Chaos | 27.8k | 390 | 128 |
+| Earring LUK Intermediate | 120k | 591 | 550 |
+| Earring LUK Greater | 30k | 291 | 135 |
+| Earring LUK Chaos | 310k | **9** | 2 |
+
+## 3. Actual observed time to sell
+
+These are real examples from HeneFM shop histories, at or near the lowest observed price.
+
+| Scroll | Sale price | Time listed |
+|---|---:|---:|
+| Gloves Crit Intermediate | 185k | 18 min |
+| Gloves Crit Intermediate | 181k | 50 min |
+| Shoes Speed Intermediate | 125k | 0 min* |
+| Shoes Speed Intermediate | 125k | 68 min |
+| Shoes Speed Intermediate | 120k | 38 min |
+| Earring LUK Intermediate | 120k | 22 min |
+| Earring LUK Intermediate | 124k | 37 min |
+| Earring LUK Chaos | 300k | 21 min |
+| Earring LUK Chaos | 315k | 0 min* |
+| Earring LUK Chaos | 320k | 19h 44m |
+
+*Zero minutes means HeneFM recorded no elapsed time between observations, not necessarily an instantaneous sale.
+
+The small sample of successfully sold Intermediate listings averages approximately 34 minutes for Gloves Crit, 35 minutes for Shoes Speed and 30 minutes for Earring LUK. This is not a representative market-wide mean because it excludes unsold listings.
+
+A particularly relevant example is [Pangio's shop](https://henefm.com/shops/Pangio): it still had 22 Gloves Crit Intermediate scrolls at 188.9k after nearly four hours of listing.
+
+Bulk selling clearly requires more time than selling individual scrolls.
+
+## 4. Profit when selling at FM lowest
+
+Our earlier EV used representative market prices. Selling at the absolute lowest reduces profit but should improve liquidity.
+
+| 50 crafts | Normal EV profit | FM lowest profit | ROI at lowest |
+|---|---:|---:|---:|
+| **Gloves Crit Rate** | 1.526m | **1.227m** | **20.7%** |
+| Shoes Speed | 681k | **470k** | 11.2% |
+| Earring LUK | 582k | **264k** | 5.1% |
+
+Includes all previous crafting expenses and the 3% selling fee.
+
+## 5. Best recipe for repeatedly reinvesting capital
+
+[Interactive calculator omitted.]
+
+**My recommendation:**
+- Highest total profit: Gloves Crit Rate.
+- Fastest capital turnover: Shoes Speed.
+- Least attractive at FM lowest: Earring LUK, especially because Chaos has relatively few buyers.
+
+[Research and liquidation methodology saved to GitHub](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md).
+
+----- END 2026-11-25-checkpoint-backfill.md -----
+
+
+----- BEGIN 2026-11-25-market-analysis-backfill.md | 263de339af546a01bd61b859867d639449d7217c -----
+# Fresh market analysis responses — 2026-11-25
+
+Archive metadata: manually copied original assistant response prose and Markdown tables following the three user-pasted HeneFM market snapshots, in order. User-provided recent-sale rows are in 2026-11-25-henefm-sales-excerpts.txt. Interactive UI, citation widgets and tool records excluded; omissions are labeled. This is not a full conversation export.
+
+## Assistant response to Gloves Crit Rate market snapshot
+
+This fresh HeneFM data is particularly useful because **Pangio is already selling the exact scrolls we intend to manufacture in bulk.** We can use his actual sales as a benchmark rather than relying entirely on market-wide demand.
+
+## 1. Updated Gloves Crit prices
+
+I calculated the quantity-weighted median of the 25 visible sold units for each tier.
+
+| Scroll | Lowest | 24h average | Sample median | Our representative price |
+|---|---:|---:|---:|---:|
+| Lesser | 50k | 59k | 56.8k | **55.27k** |
+| Intermediate | 185k | 191.7k | 190k | **188.90k** |
+| Greater | 20k | 32.9k | 32.2k | **28.37k** |
+| Chaos | 50k | 55.4k | 55k | **53.47k** |
+
+The 20k Greater listing is a single scroll. The next four cheapest listings are all 30k, making 29.9–30k a more reasonable bulk selling price.
+
+## 2. Updated 50-craft EV
+
+Using our established 75/20/5 production model, 67.93k catalyst price, 50.36k base crafting cost and 3% selling fee.
+
+[Rendered summary cards omitted.]
+
+| Selling strategy | Intermediate | Greater | Chaos | Expected profit |
+|---|---:|---:|---:|---:|
+| Representative prices | 188.9k | 28.37k | 53.47k | **1.361m** |
+| Strict FM lowest | 185k | 20k | 50k | 1.130m |
+| Competitive bulk prices | 185k | 30k | 50k | **1.227m** |
+| Pangio-style pricing | 188.9k | 30k | 55k | **1.381m** |
+
+There is little reason to price all ten expected Greater scrolls at 20k because of one unusually cheap competitor.
+
+## 3. Pangio's actual selling speed
+
+Pangio has 13 Intermediate scrolls remaining at 188.9k.
+
+His recorded sales:
+
+| Time before your snapshot | Price |
+|---|---:|
+| 2h 21m | 188.9k |
+| 1h 43m | 188.9k |
+| 1h 22m | 188.9k |
+| 1m | 188.9k |
+
+That's approximately **one sale every 47 minutes** between observed transactions, without being the cheapest seller.
+
+Extrapolating his observed sales pace, it would take approximately **22–29 hours** to sell 38 Intermediate scrolls.
+
+## 4. Expected liquidation time at FM lowest
+
+| Demand captured | Intermediate | Greater | Chaos | Entire batch |
+|---|---:|---:|---:|---:|
+| 25% | 39.6h | 9.9h | 26 min | 39.6h |
+| 50% | 19.8h | 4.9h | 13 min | 19.8h |
+| 75% | 13.2h | 3.3h | 9 min | 13.2h |
+| 100% | 9.9h | 2.5h | 7 min | 9.9h |
+
+These are modeled scenarios, not guaranteed selling times.
+
+**I would budget approximately 20–30 hours for the entire batch**, based on Pangio's observed selling pace. Maintaining the lowest price could improve that.
+
+## 5. What about crafting without catalysts?
+
+Your fresh Lesser price data also shows a small guaranteed-output arbitrage.
+
+| 50 Lesser crafts | Amount |
+|---|---:|
+| Production cost | 2.518m |
+| Representative selling price | 55.27k |
+| Revenue after fees | 2.680m |
+| **Expected profit** | **162k** |
+| ROI | 6.45% |
+
+However, at the current FM lowest of 50k, normal crafting is unprofitable.
+
+## 6. Updated maximum catalyst purchase price
+
+| Target | Maximum catalyst price |
+|---|---:|
+| Break-even at representative prices | 95.16k |
+| Break-even at strict FM lowest | 90.53k |
+| Earn 1m per 50 crafts at competitive bulk prices | **72.47k** |
+| Earn 500k per 50 crafts at competitive bulk prices | 82.47k |
+
+**My preferred execution prices:**
+
+- Buy catalysts: 70k or below.
+- Sell Intermediate: 184.9k.
+- Sell Greater: 29.9k.
+- Sell Chaos: 49.9k.
+
+At these prices, 50 crafts generate approximately **1.119m expected profit**, using our provisional probability distribution.
+
+The freshest output prices are now incorporated, but material and catalyst acquisition costs still use our earlier HeneFM estimates.
+
+[Updated calculations saved to GitHub](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md). Commit `44be81d`.
+
+## Assistant response to Earring LUK market snapshot
+
+# Updated Earring LUK crafting analysis
+
+Your fresh HeneFM data confirms that **Earring LUK is significantly more liquid than Gloves Crit Rate for Intermediate scrolls, but much less profitable when selling at FM lowest.**
+
+## 1. Updated representative prices
+
+Using our established formula: (lowest + 24h average + sample median) ÷ 3.
+
+| Scroll | Lowest | Average | Median | Representative |
+|---|---:|---:|---:|---:|
+| Lesser | 38k | 39.3k | 39k | **38.77k** |
+| Intermediate | 120k | 131.7k | 129k | **126.90k** |
+| Greater | 30k | 35.9k | 35k | **33.63k** |
+| Chaos | 310k | 322k | 320k | **317.33k** |
+
+The sample medians use 25 recent sold units for Lesser, Intermediate and Greater, and all nine sales within 24 hours for Chaos.
+
+## 2. Updated 50-craft profitability
+
+Using 67.93k per catalyst, 34.95k regular recipe cost, 75/20/5 probabilities and a 3% selling fee.
+
+[Rendered summary cards omitted.]
+
+| Selling strategy | Intermediate | Greater | Chaos | Expected profit | Modeled loss risk |
+|---|---:|---:|---:|---:|---:|
+| Representative | 126.9k | 33.63k | 317.33k | **568k** | 6.43% |
+| Competitive bulk | 124.9k | 32.9k | 309.9k | **470k** | 10.16% |
+| FM lowest | 120k | 30k | 310k | 264k | 27.95% |
+| Undercut lowest | 119.9k | 29.9k | 309.9k | 259k | 27.95% |
+
+I prefer the competitive bulk prices. There are only two Intermediate scrolls at 120k before the price jumps to 125k, so pricing all 38 expected Intermediate scrolls at 120k unnecessarily sacrifices revenue.
+
+## 3. How quickly can you sell 50 crafted scrolls?
+
+| Scroll | Daily sales | FM stock | Expected production |
+|---|---:|---:|---:|
+| Intermediate | **593** | 541 | 37.5 |
+| Greater | **293** | 134 | 10 |
+| Chaos | 9 | **2** | 2.5 |
+| Lesser | 96 | 503 | — |
+
+The Intermediate market is extremely active: your snapshot shows 25 sales within just 33 minutes.
+
+### Estimated liquidation time at FM lowest
+
+| Scroll | Capturing 25% of demand | Capturing 50% |
+|---|---:|---:|
+| Intermediate | 6h 4m | **3h 2m** |
+| Greater | 3h 17m | **1h 38m** |
+| Chaos | 26h 40m | 13h 20m |
+
+Chaos is the bottleneck, but Intermediate and Greater sales should recover most of your capital considerably earlier.
+
+At FM lowest, expected revenue from Intermediate and Greater alone is **4.656m after fees**, leaving approximately 488k of your initial investment to recover from Chaos sales.
+
+## 4. Direct comparison with Gloves Crit Rate
+
+Both calculations now use your freshly pasted HeneFM data.
+
+| Metric | Gloves Crit Rate | Earring LUK |
+|---|---:|---:|
+| Investment | 5.915m | **5.144m** |
+| Representative EV profit | **1.361m** | 568k |
+| FM lowest profit | **1.130m** | 264k |
+| Representative ROI | **23.0%** | 11.0% |
+| Loss risk at FM lowest | **1.11%** | 27.95% |
+| Intermediate daily sales | 91 | **593** |
+| Intermediate clearance at 50% demand | 19.8h | **3.0h** |
+| Break-even catalyst price at lowest | **90.53k** | 73.21k |
+
+## 5. Sensitivity to Chaos production probability
+
+Expected profit from 50 crafts at representative prices:
+
+[Rendered chart omitted.]
+
+Earring LUK becomes significantly more attractive if the actual Chaos production rate exceeds our 5% assumption. There is still a **7.69% probability of producing zero Chaos scrolls in 50 crafts** under that model.
+
+## 6. Maximum catalyst purchase price
+
+| Catalyst price | Representative profit | FM lowest profit |
+|---|---:|---:|
+| 60k | 964k | 660k |
+| 65k | 714k | 410k |
+| 70k | 464k | 160k |
+| 75k | 214k | −90k |
+| 80k | −36k | −340k |
+
+**I would only craft Earring LUK with catalysts purchased at 65k or below** if rapid liquidation is the objective.
+
+Gloves Crit Rate remains the stronger profit opportunity. Earring LUK is better for quickly recovering most of your capital, but its dependence on Chaos production adds risk.
+
+All calculations use your new output prices and our previously established material costs. Liquidation times are conditional estimates, not measured average selling times.
+
+[Updated research saved to GitHub](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md) — commit `93598c7`.
+
+## Assistant response to Shoes Speed market snapshot
+
+# Updated Shoes Speed crafting analysis
+
+With your latest HeneFM data, we now have comparable fresh snapshots for all three recipes.
+
+**Shoes Speed is the strongest candidate for rapid capital turnover.** Its Intermediate scrolls have relatively low inventory, strong daily demand, and both secondary outputs are easy to liquidate.
+
+## 1. Updated representative prices
+
+| Scroll | Lowest | 24h average | Sample median | Representative |
+|---|---:|---:|---:|---:|
+| Lesser | 14.4k | 15.6k | 16.5k | **15.50k** |
+| Intermediate | 125k | 130.4k | 130k | **128.47k** |
+| Greater | 4.8k | 7.5k | 7k | **6.43k** |
+| Chaos | 27.8k | 31k | 30k | **29.60k** |
+
+Calculated using the 25 most recent sold units for each tier, with duplicate pasted pages excluded.
+
+## 2. Expected profit from 50 crafts
+
+Using our existing material costs, 67.93k per catalyst, 75/20/5 production probabilities and 3% selling fees.
+
+[Rendered summary cards omitted.]
+
+| Selling strategy | Intermediate | Greater | Chaos | Profit | Modeled loss risk |
+|---|---:|---:|---:|---:|---:|
+| Representative | 128.47k | 6.43k | 29.6k | **616k** | 4.76% |
+| Competitive bulk | 127.9k | 6.9k | 28.9k | **598k** | 4.76% |
+| FM lowest | 125k | 4.8k | 27.8k | 470k | 8.79% |
+| Undercut lowest | 124.9k | 4.7k | 27.7k | 465k | 9.37% |
+
+Competitive bulk pricing is particularly attractive here. There is only one Intermediate at 125k and one at 128k before most sellers begin at 130k.
+
+## 3. Estimated time to offload 50 crafts
+
+| Scroll | Daily sales | Current stock | Expected production |
+|---|---:|---:|---:|
+| Intermediate | 307 | 105 | 37.5 |
+| Greater | **1,007** | 633 | 10 |
+| Chaos | 388 | 129 | 2.5 |
+
+| Scroll | Capturing 25% of demand | Capturing 50% |
+|---|---:|---:|
+| Intermediate | 11h 44m | **5h 52m** |
+| Greater | 57 min | 29 min |
+| Chaos | 37 min | 19 min |
+
+The Intermediate tier determines how quickly you can reinvest your capital.
+
+SinZilla recorded three Intermediate sales at 130k within 67 minutes, with nine remaining. This demonstrates demand even above FM lowest, although it does not establish the average selling time for an entire batch.
+
+## 4. Final comparison — all three updated
+
+Using your freshly pasted HeneFM data for every output.
+
+| Metric | Gloves Crit | Shoes Speed | Earring LUK |
+|---|---:|---:|---:|
+| Investment | 5.915m | **4.191m** | 5.144m |
+| Representative profit | **1.361m** | 616k | 568k |
+| FM lowest profit | **1.130m** | 470k | 264k |
+| Representative ROI | **23.0%** | 14.7% | 11.0% |
+| FM lowest ROI | **19.1%** | 11.2% | 5.1% |
+| FM lowest loss risk | **1.11%** | 8.79% | 27.95% |
+| Intermediate daily sales | 91 | 307 | **593** |
+| Intermediate stock | 62 | 105 | 541 |
+| Full batch clearance* | 19.8h | **5.9h** | 13.3h |
+
+*Assuming 50% market demand capture.
+
+## 5. Expected profit per liquidation hour
+
+[Rendered chart omitted.]
+
+## 6. Catalyst price sensitivity
+
+Profit per 50 crafts when selling at representative prices:
+
+| Catalyst cost | Gloves Crit | Shoes Speed | Earring LUK |
+|---|---:|---:|---:|
+| 60k | **1.758m** | 1.013m | 964k |
+| 65k | **1.508m** | 763k | 714k |
+| 70k | **1.258m** | 513k | 464k |
+| 75k | **1.008m** | 263k | 214k |
+| 80k | **758k** | 13k | −36k |
+| Break-even | **95.16k** | 80.26k | 79.29k |
+
+## 7. Optimal allocation calculator
+
+[Interactive calculator omitted.]
+
+## My preferred strategy
+
+For your first 50 catalysts, I'd split them evenly:
+
+| Recipe | Crafts | Profit at FM lowest |
+|---|---:|---:|
+| Gloves Crit Rate | 25 | 565k |
+| Shoes Speed | 25 | 235k |
+| **Total** | **50** | **800k** |
+
+Investment: **5.053m**. Modeled clearance: approximately **9.9 hours** at 50% demand capture.
+
+This balances profitability and capital turnover without relying heavily on rare Chaos outcomes.
+
+All three updated datasets are now [saved to GitHub](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/CATALYST_RESEARCH.md). Input material costs remain from earlier snapshots, and the actual catalyst probabilities and market capture rates remain unverified.
+
+----- END 2026-11-25-market-analysis-backfill.md -----
+
+
+----- BEGIN 2026-11-25-final-checkpoint.md | 50fadc071476460b11f97632b49e9b3b8d290725 -----
+# Final checkpoint exchange — 2026-11-25
+
+Archive metadata: user message and prepared final assistant response; speaker headings added. Commentary and tool messages excluded.
+
+## User
+
+```
+Checkpoint this chat to GitHub, including all accessible unsaved messages verbatim and the latest project state. Verify the files before I switch.
+```
+
+## Assistant
+
+**Checkpoint saved and verified. You can switch to a new chat now.**
+
+I've updated the master README, verified the research and optimizer files, and expanded the original-text archives.
+
+| Saved material | Status |
+|---|---|
+| Research methodology and constraints | Verified |
+| Latest crafting EV, risk and liquidation calculations | Verified |
+| HeneFM recent-sale rows across all 12 scroll tiers | Archived |
+| HeneFM listing tables for Gloves Crit, Shoes Speed and Earring LUK | Archived |
+| Earlier crafting and market-analysis responses | Backfilled |
+| Scrolling optimizer and engine | Verified |
+| Per-turn save and continuation protocol | Verified |
+| This checkpoint exchange | Archived |
+
+## Paste this into your new chat
+
+```text
+Resume from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/tree/main/scrolling-ev. Read the latest README, RESEARCH_HANDOFF.md, CATALYST_RESEARCH.md and transcript archives on main. Restore our project context and continue from the latest checkpoint. Follow the per-turn verbatim archive and GitHub verification protocol. Do not restart completed research. Apply my next instruction.
+```
+
+[Master checkpoint](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/README.md) · [Transcript archives](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/tree/main/scrolling-ev/transcripts)
+
+**Important:** The project state is preserved, but the original-text archives remain partial manual copies, not a complete chat export. Some earlier messages, duplicate page text and interactive displays remain omitted, and manual transcription errors are possible. GitHub read-back verification confirms that the files were saved, not that every original character was captured. No new market prices or crafting outcomes were assumed.
+
+----- END 2026-11-25-final-checkpoint.md -----
