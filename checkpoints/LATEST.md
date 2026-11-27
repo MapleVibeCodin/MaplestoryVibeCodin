@@ -310,3 +310,7 @@ User verbatim: update the number of scanners to whateever you wANT
 
 ## Seven scanner role simulation
 [Report](../market-data/2026-11-27-seven-scanner-role-reconstruction.md): 12 retrospective seven-worker beam variants, winner315 switches, 3303/3303 unique raw and1651/1651 anchors, zero modeled timing violations/duplicates. Exact remote model reproduction confirmed. All channel sequences and room timestamps archived. Future-aware heuristic, not a live predictive model or verified physical identity. No new data/runtime changes/deletions; full historical continuity audit/archive incomplete.
+
+
+## All-original-export seven-role audit
+[Report](../market-data/2026-11-27-seven-role-all-archive-audit.md):14 originals,12708 unique,9405 pre-dense excluded,3303 eligible exactly prior input. Zero wrong assignments/duplicates/modeled anchor violations.450/451 direct forward links retained;119/154 episodes unsplit;279 distinct CC pairs/315 switches, no stable channel cycle. Retrospective consistency only, not independent validation. No new data/runtime edits/deletions; historical audit/archive incomplete.
