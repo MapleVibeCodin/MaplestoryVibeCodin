@@ -1,0 +1,1104 @@
+{
+  "input": [
+    7970,
+    2846
+  ],
+  "union": 9218,
+  "uniqueIds": 8783,
+  "consolidated": 7296,
+  "rowCounts": [
+    2511,
+    2182,
+    1482,
+    1121
+  ],
+  "roomCounts": [
+    384,
+    400,
+    454,
+    421,
+    430,
+    422,
+    415,
+    450,
+    394,
+    394,
+    305,
+    224,
+    463,
+    382,
+    381,
+    256,
+    399,
+    338,
+    212,
+    172
+  ],
+  "channelCounts": [
+    172,
+    181,
+    227,
+    221,
+    244,
+    248,
+    193,
+    232,
+    219,
+    232,
+    213,
+    197,
+    171,
+    200,
+    178,
+    171,
+    173,
+    176,
+    169,
+    190,
+    186,
+    131,
+    184,
+    150,
+    142,
+    145,
+    162,
+    176,
+    157,
+    194,
+    144,
+    125,
+    149,
+    124,
+    161,
+    179,
+    162,
+    179,
+    180,
+    259
+  ],
+  "recStats": {
+    "compatible": 929,
+    "total": 3040,
+    "perDay": {
+      "2026-11-16": [
+        53,
+        7
+      ],
+      "2026-11-17": [
+        185,
+        30
+      ],
+      "2026-11-18": [
+        17,
+        2
+      ],
+      "2026-11-19": [
+        75,
+        21
+      ],
+      "2026-11-20": [
+        16,
+        4
+      ],
+      "2026-11-21": [
+        98,
+        16
+      ],
+      "2026-11-22": [
+        126,
+        52
+      ],
+      "2026-11-23": [
+        41,
+        12
+      ],
+      "2026-11-24": [
+        1388,
+        289
+      ],
+      "2026-11-26": [
+        80,
+        8
+      ],
+      "2026-11-27": [
+        961,
+        488
+      ]
+    },
+    "median": 7.575000047683716
+  },
+  "ticks": 13930,
+  "scores": {
+    "validation": [
+      {
+        "name": "frequency",
+        "n": 3035,
+        "hit": 111,
+        "top5": 487,
+        "loss": 11178.618716412046,
+        "roomHit": 18,
+        "floorDist": 2629,
+        "conditionalDist": 2507,
+        "conditionalExact": 1019,
+        "jointNear": 84
+      },
+      {
+        "name": "persistence",
+        "n": 3035,
+        "hit": 306,
+        "top5": 645,
+        "loss": 15280.594132073866,
+        "roomHit": 58,
+        "floorDist": 2852,
+        "conditionalDist": 2507,
+        "conditionalExact": 1019,
+        "jointNear": 265
+      },
+      {
+        "name": "transition",
+        "n": 3035,
+        "hit": 283,
+        "top5": 667,
+        "loss": 11360.2485835332,
+        "roomHit": 51,
+        "floorDist": 2629,
+        "conditionalDist": 2507,
+        "conditionalExact": 1019,
+        "jointNear": 239
+      },
+      {
+        "name": "recent15",
+        "n": 3035,
+        "hit": 261,
+        "top5": 891,
+        "loss": 11454.899835288039,
+        "roomHit": 59,
+        "floorDist": 2638,
+        "conditionalDist": 2507,
+        "conditionalExact": 1019,
+        "jointNear": 218
+      },
+      {
+        "name": "recent60",
+        "n": 3035,
+        "hit": 252,
+        "top5": 917,
+        "loss": 11528.556075881696,
+        "roomHit": 44,
+        "floorDist": 2626,
+        "conditionalDist": 2507,
+        "conditionalExact": 1019,
+        "jointNear": 219
+      },
+      {
+        "name": "recent300",
+        "n": 3035,
+        "hit": 156,
+        "top5": 701,
+        "loss": 12285.466539039191,
+        "roomHit": 23,
+        "floorDist": 2621,
+        "conditionalDist": 2507,
+        "conditionalExact": 1019,
+        "jointNear": 149
+      },
+      {
+        "name": "route-recurrence",
+        "n": 3035,
+        "hit": 220,
+        "top5": 769,
+        "loss": 11448.625488719359,
+        "roomHit": 52,
+        "floorDist": 2632,
+        "conditionalDist": 2507,
+        "conditionalExact": 1019,
+        "jointNear": 174
+      },
+      {
+        "name": "blend",
+        "n": 3035,
+        "hit": 281,
+        "top5": 920,
+        "loss": 10843.663498199867,
+        "roomHit": 57,
+        "floorDist": 2630,
+        "conditionalDist": 2507,
+        "conditionalExact": 1019,
+        "jointNear": 238
+      }
+    ],
+    "day27": [
+      {
+        "name": "frequency",
+        "n": 1639,
+        "hit": 49,
+        "top5": 250,
+        "loss": 6036.24715889336,
+        "roomHit": 8,
+        "floorDist": 1390,
+        "conditionalDist": 1110,
+        "conditionalExact": 715,
+        "jointNear": 39
+      },
+      {
+        "name": "persistence",
+        "n": 1639,
+        "hit": 157,
+        "top5": 344,
+        "loss": 8294.964775942653,
+        "roomHit": 37,
+        "floorDist": 1536,
+        "conditionalDist": 1110,
+        "conditionalExact": 715,
+        "jointNear": 147
+      },
+      {
+        "name": "transition",
+        "n": 1639,
+        "hit": 145,
+        "top5": 328,
+        "loss": 6105.5007217995635,
+        "roomHit": 34,
+        "floorDist": 1390,
+        "conditionalDist": 1110,
+        "conditionalExact": 715,
+        "jointNear": 129
+      },
+      {
+        "name": "recent15",
+        "n": 1639,
+        "hit": 153,
+        "top5": 751,
+        "loss": 5390.965736166415,
+        "roomHit": 38,
+        "floorDist": 1382,
+        "conditionalDist": 1110,
+        "conditionalExact": 715,
+        "jointNear": 135
+      },
+      {
+        "name": "recent60",
+        "n": 1639,
+        "hit": 152,
+        "top5": 622,
+        "loss": 5692.201840075245,
+        "roomHit": 40,
+        "floorDist": 1390,
+        "conditionalDist": 1110,
+        "conditionalExact": 715,
+        "jointNear": 136
+      },
+      {
+        "name": "recent300",
+        "n": 1639,
+        "hit": 89,
+        "top5": 338,
+        "loss": 6327.387037498646,
+        "roomHit": 20,
+        "floorDist": 1390,
+        "conditionalDist": 1110,
+        "conditionalExact": 715,
+        "jointNear": 85
+      },
+      {
+        "name": "route-recurrence",
+        "n": 1639,
+        "hit": 154,
+        "top5": 724,
+        "loss": 5299.914729583267,
+        "roomHit": 40,
+        "floorDist": 1385,
+        "conditionalDist": 1110,
+        "conditionalExact": 715,
+        "jointNear": 129
+      },
+      {
+        "name": "blend",
+        "n": 1639,
+        "hit": 157,
+        "top5": 728,
+        "loss": 5317.068004532983,
+        "roomHit": 39,
+        "floorDist": 1390,
+        "conditionalDist": 1110,
+        "conditionalExact": 715,
+        "jointNear": 138
+      }
+    ],
+    "latest": [
+      {
+        "name": "frequency",
+        "n": 232,
+        "hit": 9,
+        "top5": 41,
+        "loss": 851.973797997328,
+        "roomHit": 1,
+        "floorDist": 178,
+        "conditionalDist": 163,
+        "conditionalExact": 95,
+        "jointNear": 7
+      },
+      {
+        "name": "persistence",
+        "n": 232,
+        "hit": 29,
+        "top5": 57,
+        "loss": 1135.5700924887383,
+        "roomHit": 10,
+        "floorDist": 198,
+        "conditionalDist": 163,
+        "conditionalExact": 95,
+        "jointNear": 26
+      },
+      {
+        "name": "transition",
+        "n": 232,
+        "hit": 29,
+        "top5": 57,
+        "loss": 844.4529377616977,
+        "roomHit": 10,
+        "floorDist": 178,
+        "conditionalDist": 163,
+        "conditionalExact": 95,
+        "jointNear": 28
+      },
+      {
+        "name": "recent15",
+        "n": 232,
+        "hit": 27,
+        "top5": 100,
+        "loss": 811.8522023121589,
+        "roomHit": 9,
+        "floorDist": 178,
+        "conditionalDist": 163,
+        "conditionalExact": 95,
+        "jointNear": 25
+      },
+      {
+        "name": "recent60",
+        "n": 232,
+        "hit": 20,
+        "top5": 88,
+        "loss": 864.2599030072421,
+        "roomHit": 5,
+        "floorDist": 178,
+        "conditionalDist": 163,
+        "conditionalExact": 95,
+        "jointNear": 18
+      },
+      {
+        "name": "recent300",
+        "n": 232,
+        "hit": 10,
+        "top5": 51,
+        "loss": 948.0157325039419,
+        "roomHit": 1,
+        "floorDist": 178,
+        "conditionalDist": 163,
+        "conditionalExact": 95,
+        "jointNear": 8
+      },
+      {
+        "name": "route-recurrence",
+        "n": 232,
+        "hit": 26,
+        "top5": 90,
+        "loss": 776.9770303250834,
+        "roomHit": 10,
+        "floorDist": 178,
+        "conditionalDist": 163,
+        "conditionalExact": 95,
+        "jointNear": 24
+      },
+      {
+        "name": "blend",
+        "n": 232,
+        "hit": 28,
+        "top5": 99,
+        "loss": 773.5544952627225,
+        "roomHit": 9,
+        "floorDist": 178,
+        "conditionalDist": 163,
+        "conditionalExact": 95,
+        "jointNear": 26
+      }
+    ]
+  },
+  "floors": {
+    "validation": [
+      {
+        "name": "fixed FM row1",
+        "n": 3035,
+        "dist": 3608,
+        "exact": 1028,
+        "within1": 1925
+      },
+      {
+        "name": "fixed FM row2",
+        "n": 3035,
+        "dist": 2629,
+        "exact": 897,
+        "within1": 2544
+      },
+      {
+        "name": "fixed FM row3",
+        "n": 3035,
+        "dist": 3444,
+        "exact": 619,
+        "within1": 2007
+      },
+      {
+        "name": "fixed FM row4",
+        "n": 3035,
+        "dist": 5497,
+        "exact": 491,
+        "within1": 1110
+      },
+      {
+        "name": "historical marginal median",
+        "n": 3035,
+        "dist": 2629,
+        "exact": 897,
+        "within1": 2544
+      },
+      {
+        "name": "forecast marginal median",
+        "n": 3035,
+        "dist": 2630,
+        "exact": 897,
+        "within1": 2543
+      },
+      {
+        "name": "channel-conditioned median",
+        "n": 3035,
+        "dist": 2632,
+        "exact": 896,
+        "within1": 2542
+      },
+      {
+        "name": "route-conditioned median",
+        "n": 3035,
+        "dist": 2507,
+        "exact": 1019,
+        "within1": 2551
+      }
+    ],
+    "day27": [
+      {
+        "name": "fixed FM row1",
+        "n": 1639,
+        "dist": 1897,
+        "exact": 566,
+        "within1": 1049
+      },
+      {
+        "name": "fixed FM row2",
+        "n": 1639,
+        "dist": 1390,
+        "exact": 483,
+        "within1": 1405
+      },
+      {
+        "name": "fixed FM row3",
+        "n": 1639,
+        "dist": 1849,
+        "exact": 356,
+        "within1": 1073
+      },
+      {
+        "name": "fixed FM row4",
+        "n": 1639,
+        "dist": 3020,
+        "exact": 234,
+        "within1": 590
+      },
+      {
+        "name": "historical marginal median",
+        "n": 1639,
+        "dist": 1390,
+        "exact": 483,
+        "within1": 1405
+      },
+      {
+        "name": "forecast marginal median",
+        "n": 1639,
+        "dist": 1390,
+        "exact": 483,
+        "within1": 1405
+      },
+      {
+        "name": "channel-conditioned median",
+        "n": 1639,
+        "dist": 1390,
+        "exact": 483,
+        "within1": 1405
+      },
+      {
+        "name": "route-conditioned median",
+        "n": 1639,
+        "dist": 1110,
+        "exact": 715,
+        "within1": 1460
+      }
+    ],
+    "latest": [
+      {
+        "name": "fixed FM row1",
+        "n": 232,
+        "dist": 238,
+        "exact": 86,
+        "within1": 162
+      },
+      {
+        "name": "fixed FM row2",
+        "n": 232,
+        "dist": 178,
+        "exact": 76,
+        "within1": 210
+      },
+      {
+        "name": "fixed FM row3",
+        "n": 232,
+        "dist": 270,
+        "exact": 48,
+        "within1": 146
+      },
+      {
+        "name": "fixed FM row4",
+        "n": 232,
+        "dist": 458,
+        "exact": 22,
+        "within1": 70
+      },
+      {
+        "name": "historical marginal median",
+        "n": 232,
+        "dist": 178,
+        "exact": 76,
+        "within1": 210
+      },
+      {
+        "name": "forecast marginal median",
+        "n": 232,
+        "dist": 178,
+        "exact": 76,
+        "within1": 210
+      },
+      {
+        "name": "channel-conditioned median",
+        "n": 232,
+        "dist": 178,
+        "exact": 76,
+        "within1": 210
+      },
+      {
+        "name": "route-conditioned median",
+        "n": 232,
+        "dist": 163,
+        "exact": 95,
+        "within1": 208
+      }
+    ]
+  },
+  "policyCount": 41,
+  "selected": {
+    "p": {
+      "m": 3,
+      "margin": 0.15,
+      "floor": "fixed"
+    },
+    "val": {
+      "n": 3035,
+      "lat": 7522.461978673935,
+      "net": 0.16100025177001953,
+      "early": 158,
+      "hits": 163,
+      "spec": 30,
+      "roomDist": 2629,
+      "near": 2544,
+      "joint": 136,
+      "floorChanges": 0,
+      "gain": 9,
+      "loss": 14
+    },
+    "test": {
+      "n": 1639,
+      "lat": 3811.4830050468445,
+      "net": -7.284001111984253,
+      "early": 83,
+      "hits": 87,
+      "spec": 9,
+      "roomDist": 1390,
+      "near": 1405,
+      "joint": 78,
+      "floorChanges": 0,
+      "gain": 2,
+      "loss": 6
+    },
+    "latest": {
+      "n": 232,
+      "lat": 483.64499950408936,
+      "net": -3.7350001335144043,
+      "early": 17,
+      "hits": 18,
+      "spec": 1,
+      "roomDist": 178,
+      "near": 210,
+      "joint": 17,
+      "floorChanges": 0,
+      "gain": 0,
+      "loss": 2
+    }
+  },
+  "perModel": [
+    {
+      "name": "frequency",
+      "p": {
+        "m": 0,
+        "margin": 0.05,
+        "floor": "fixed"
+      },
+      "val": {
+        "n": 3035,
+        "lat": 7522.622978925705,
+        "net": 0,
+        "early": 156,
+        "hits": 161,
+        "spec": 0,
+        "roomDist": 2629,
+        "near": 2544,
+        "joint": 134,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "test": {
+        "n": 1639,
+        "lat": 3804.1990039348602,
+        "net": 0,
+        "early": 84,
+        "hits": 88,
+        "spec": 0,
+        "roomDist": 1390,
+        "near": 1405,
+        "joint": 79,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "latest": {
+        "n": 232,
+        "lat": 479.90999937057495,
+        "net": 0,
+        "early": 18,
+        "hits": 19,
+        "spec": 0,
+        "roomDist": 178,
+        "near": 210,
+        "joint": 18,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      }
+    },
+    {
+      "name": "persistence",
+      "p": {
+        "m": 1,
+        "margin": 0,
+        "floor": "fixed"
+      },
+      "val": {
+        "n": 3035,
+        "lat": 7522.622978925705,
+        "net": 0,
+        "early": 156,
+        "hits": 161,
+        "spec": 0,
+        "roomDist": 2629,
+        "near": 2544,
+        "joint": 134,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "test": {
+        "n": 1639,
+        "lat": 3804.1990039348602,
+        "net": 0,
+        "early": 84,
+        "hits": 88,
+        "spec": 0,
+        "roomDist": 1390,
+        "near": 1405,
+        "joint": 79,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "latest": {
+        "n": 232,
+        "lat": 479.90999937057495,
+        "net": 0,
+        "early": 18,
+        "hits": 19,
+        "spec": 0,
+        "roomDist": 178,
+        "near": 210,
+        "joint": 18,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      }
+    },
+    {
+      "name": "transition",
+      "p": {
+        "m": 2,
+        "margin": 0.15,
+        "floor": "fixed"
+      },
+      "val": {
+        "n": 3035,
+        "lat": 7522.622978925705,
+        "net": 0,
+        "early": 156,
+        "hits": 161,
+        "spec": 0,
+        "roomDist": 2629,
+        "near": 2544,
+        "joint": 134,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "test": {
+        "n": 1639,
+        "lat": 3804.1990039348602,
+        "net": 0,
+        "early": 84,
+        "hits": 88,
+        "spec": 0,
+        "roomDist": 1390,
+        "near": 1405,
+        "joint": 79,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "latest": {
+        "n": 232,
+        "lat": 479.90999937057495,
+        "net": 0,
+        "early": 18,
+        "hits": 19,
+        "spec": 0,
+        "roomDist": 178,
+        "near": 210,
+        "joint": 18,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      }
+    },
+    {
+      "name": "recent15",
+      "p": {
+        "m": 3,
+        "margin": 0.15,
+        "floor": "fixed"
+      },
+      "val": {
+        "n": 3035,
+        "lat": 7522.461978673935,
+        "net": 0.16100025177001953,
+        "early": 158,
+        "hits": 163,
+        "spec": 30,
+        "roomDist": 2629,
+        "near": 2544,
+        "joint": 136,
+        "floorChanges": 0,
+        "gain": 9,
+        "loss": 14
+      },
+      "test": {
+        "n": 1639,
+        "lat": 3811.4830050468445,
+        "net": -7.284001111984253,
+        "early": 83,
+        "hits": 87,
+        "spec": 9,
+        "roomDist": 1390,
+        "near": 1405,
+        "joint": 78,
+        "floorChanges": 0,
+        "gain": 2,
+        "loss": 6
+      },
+      "latest": {
+        "n": 232,
+        "lat": 483.64499950408936,
+        "net": -3.7350001335144043,
+        "early": 17,
+        "hits": 18,
+        "spec": 1,
+        "roomDist": 178,
+        "near": 210,
+        "joint": 17,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 2
+      }
+    },
+    {
+      "name": "recent60",
+      "p": {
+        "m": 4,
+        "margin": 0.5,
+        "floor": "fixed"
+      },
+      "val": {
+        "n": 3035,
+        "lat": 7522.622978925705,
+        "net": 0,
+        "early": 156,
+        "hits": 161,
+        "spec": 2,
+        "roomDist": 2629,
+        "near": 2544,
+        "joint": 134,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "test": {
+        "n": 1639,
+        "lat": 3804.1990039348602,
+        "net": 0,
+        "early": 84,
+        "hits": 88,
+        "spec": 0,
+        "roomDist": 1390,
+        "near": 1405,
+        "joint": 79,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "latest": {
+        "n": 232,
+        "lat": 479.90999937057495,
+        "net": 0,
+        "early": 18,
+        "hits": 19,
+        "spec": 0,
+        "roomDist": 178,
+        "near": 210,
+        "joint": 18,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      }
+    },
+    {
+      "name": "recent300",
+      "p": {
+        "m": 5,
+        "margin": 0.5,
+        "floor": "fixed"
+      },
+      "val": {
+        "n": 3035,
+        "lat": 7522.622978925705,
+        "net": 0,
+        "early": 156,
+        "hits": 161,
+        "spec": 0,
+        "roomDist": 2629,
+        "near": 2544,
+        "joint": 134,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "test": {
+        "n": 1639,
+        "lat": 3804.1990039348602,
+        "net": 0,
+        "early": 84,
+        "hits": 88,
+        "spec": 0,
+        "roomDist": 1390,
+        "near": 1405,
+        "joint": 79,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "latest": {
+        "n": 232,
+        "lat": 479.90999937057495,
+        "net": 0,
+        "early": 18,
+        "hits": 19,
+        "spec": 0,
+        "roomDist": 178,
+        "near": 210,
+        "joint": 18,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      }
+    },
+    {
+      "name": "route-recurrence",
+      "p": {
+        "m": 6,
+        "margin": 0.3,
+        "floor": "fixed"
+      },
+      "val": {
+        "n": 3035,
+        "lat": 7522.622978925705,
+        "net": 0,
+        "early": 156,
+        "hits": 161,
+        "spec": 0,
+        "roomDist": 2629,
+        "near": 2544,
+        "joint": 134,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "test": {
+        "n": 1639,
+        "lat": 3804.1990039348602,
+        "net": 0,
+        "early": 84,
+        "hits": 88,
+        "spec": 0,
+        "roomDist": 1390,
+        "near": 1405,
+        "joint": 79,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "latest": {
+        "n": 232,
+        "lat": 479.90999937057495,
+        "net": 0,
+        "early": 18,
+        "hits": 19,
+        "spec": 0,
+        "roomDist": 178,
+        "near": 210,
+        "joint": 18,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      }
+    },
+    {
+      "name": "blend",
+      "p": {
+        "m": 7,
+        "margin": 0.15,
+        "floor": "fixed"
+      },
+      "val": {
+        "n": 3035,
+        "lat": 7522.622978925705,
+        "net": 0,
+        "early": 156,
+        "hits": 161,
+        "spec": 0,
+        "roomDist": 2629,
+        "near": 2544,
+        "joint": 134,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "test": {
+        "n": 1639,
+        "lat": 3804.1990039348602,
+        "net": 0,
+        "early": 84,
+        "hits": 88,
+        "spec": 0,
+        "roomDist": 1390,
+        "near": 1405,
+        "joint": 79,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      },
+      "latest": {
+        "n": 232,
+        "lat": 479.90999937057495,
+        "net": 0,
+        "early": 18,
+        "hits": 19,
+        "spec": 0,
+        "roomDist": 178,
+        "near": 210,
+        "joint": 18,
+        "floorChanges": 0,
+        "gain": 0,
+        "loss": 0
+      }
+    }
+  ],
+  "baseline": {
+    "validation": {
+      "n": 3035,
+      "lat": 7522.622978925705,
+      "net": 0,
+      "early": 156,
+      "hits": 161,
+      "spec": 0,
+      "roomDist": 2629,
+      "near": 2544,
+      "joint": 134,
+      "floorChanges": 0,
+      "gain": 0,
+      "loss": 0
+    },
+    "day27": {
+      "n": 1639,
+      "lat": 3804.1990039348602,
+      "net": 0,
+      "early": 84,
+      "hits": 88,
+      "spec": 0,
+      "roomDist": 1390,
+      "near": 1405,
+      "joint": 79,
+      "floorChanges": 0,
+      "gain": 0,
+      "loss": 0
+    },
+    "latest": {
+      "n": 232,
+      "lat": 479.90999937057495,
+      "net": 0,
+      "early": 18,
+      "hits": 19,
+      "spec": 0,
+      "roomDist": 178,
+      "near": 210,
+      "joint": 18,
+      "floorChanges": 0,
+      "gain": 0,
+      "loss": 0
+    }
+  },
+  "notes": "Union dedup filenames, 2s channel-room consolidation; retained distinct repeated listing IDs. Validation Nov24/26; Nov27 retrospective comparison previously used in other research, not independent. All features updated strictly before integer decision time. Sparse causal decisions after prior observed event at ceil(t)+0,2,5,10,20,40s; extra fixed lead diagnostic times are outcome-aligned and MUST NOT enter movement simulation.",
+  "sourceBlobs": [
+    "2ff98b00bd844273d82c3e3ff103e95b71e56717",
+    "579e4b4f61a3431dbaceb3a0ba3e64f902557761"
+  ]
+}
