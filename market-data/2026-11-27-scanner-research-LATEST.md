@@ -64,3 +64,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Objective corrected: next deal channel
 [Advance channel prediction tests](2026-11-27-next-deal-channel-objective.md), commit 995f6e28fab97128d898aad81a385ef956eafb2e. Primary objective be on correct channel before announcement; prioritize top1 at practical lead time. Raw next event 58/187 exact equals persistence; consolidated next event17/135; 5s16/131,10s21/131,15s21/131,30s14/128; 10/15s persistence19/131. No reliable high-accuracy advance channel predictor yet; no further room speed tuning as primary goal. Filename timestamps proxy, no profit labels. No runtime changes.
+
+## Exact channel, approximate FM positioning — latest objective
+[Positioning test](2026-11-27-exact-channel-approximate-position.md), commit 8a0abb11d717455705c06e9d3ad32be79e1309dd. User requires exact channel; approximate FM physical location reduces travel versus central waiting. Conditional known-channel floor model on135 held-out observations mean distance.541 floors vs better fixed middle.844 (36% reduction), exact floor74/135, within1 123/135. No horizontal geometry/travel time measurement; separate channel prediction remains weak. Primary success exact channel before alert, secondary physical travel time. No runtime change.
