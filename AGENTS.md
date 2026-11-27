@@ -2,6 +2,8 @@
 
 ## Mandatory first-read rule — failure prevention on EVERY project message
 
+**Mandatory exact highlight:** The user requires correct complete item name AND correct exact listing price. Never publish a name-only, rounded-price, unknown-price, sold, blocked, duplicate or stale candidate as an item highlight. Preserve working navigation, shortcuts, camera and screenshot functionality. An ambiguous row must not be marked; retain positive exact matches.
+
 **Execute on diagnosis:** User requests updates automatically on every debugging iteration, not a separate analysis/approval turn. Apply evidence-supported changes, run relevant regressions, verify and checkpoint before delivery. Reply minimally with one executable PowerShell 5.1 update command, verification and material blockers; do not claim unresolved issues are fixed.
 
 Before any project-related response, investigation, command, or implementation (not just at new-chat resume), retrieve the live `AGENTS.md` and `fm-sprint/NEXT-CHAT.md` on the active branch. Read the permanent failure-prevention rule and latest checkpoint, inspect relevant prior failures and current source, and honor the latest user requirements. Do not rely on stale chat memory. If retrieval fails, disclose it and do not claim continuity was checked.
