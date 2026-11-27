@@ -27,6 +27,9 @@ class InventoryFallbackMixin:
             anchor_detected_at=time.perf_counter()
             if anchor is None:
                 self._publish(key,None);return
+            # A rounded alert cannot establish the exact intended listing price.
+            if price is None or buy_step>1:
+                self._publish(key,{'status':'Shop open · exact listing price unavailable','hits':[]});return
             strict='scroll' in normalized(item)
             if geometry and strict:
                 self._publish(key,{'status':'Shop geometry detected · waiting for exact scroll gate','hits':[]});return
