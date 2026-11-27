@@ -95,15 +95,19 @@ def build_report(events, *, writer_error=None, dropped=0, writer_alive=False):
             'inventory_states': dict(Counter(e.get('state','unknown') for e in rows if e.get('event')=='inventory_observed')),
             'channel_failures': sum(e.get('event')=='beast_channel_failed' for e in rows),
             'ended': end is not None, 'purchase_outcome': 'unknown'})
+    handoffs = [e for e in events if e.get('event')=='beast_pointer_handoff']
     health = [e for e in events if e.get('event')=='recorder_health']
     final = bool(health and health[-1].get('final'))
-    return {'schema': 'ultimate-beast-trial-1', 'engine': 'runescape', 'extra_capture': False,
+    return {'schema': 'ultimate-beast-trial-2', 'engine': 'runescape', 'extra_capture': False,
         'writer_error': writer_error, 'dropped': dropped, 'writer_alive': writer_alive,
         'final_health': final, 'events': len(events), 'locked_attempts': len(runs),
         'session_observed_seconds': round(max(e['t'] for e in events)-min(e['t'] for e in events),2) if events else 0,
         'phase_metrics_ms': {k: stats([r['phase_ms'].get(k) for r in runs]) for k in sorted({k for r in runs for k in r['phase_ms']})},
         'gate_state_changes': dict(Counter(e.get('state','unknown') for e in events if e.get('event')=='scanner_gate')),
         'inventory_state_changes': dict(Counter(e.get('state','unknown') for e in events if e.get('event')=='inventory_observed')),
+        'pointer_handoffs': {'count':len(handoffs),'succeeded':sum(e.get('ok') is True for e in handoffs),
+                             'reasons':dict(Counter(e.get('reason','unknown') for e in handoffs)),
+                             'total_ms':stats([e.get('total_ms') for e in handoffs])},
         'candidate_attempts': sum(r['first_candidate_ms'] is not None for r in runs),
         'first_candidate_ms': stats([r['first_candidate_ms'] for r in runs]),
         'inventory_metrics': metrics, 'ocr_scans': sum(bool(e.get('used_ocr')) for e in timing),
