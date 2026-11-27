@@ -1,0 +1,223 @@
+{
+  "episodes": 42,
+  "newEpisodes": 14,
+  "all": {
+    "edges": 57,
+    "distinctPairs": 56,
+    "repeated": [
+      [
+        "14→7",
+        2
+      ]
+    ],
+    "ambiguousDepartures": 15,
+    "departures": 30,
+    "arrivals": 28
+  },
+  "strict": {
+    "edges": 7,
+    "distinctPairs": 7,
+    "repeated": [],
+    "ambiguousDepartures": 1,
+    "departures": 5,
+    "arrivals": 5
+  },
+  "train": {
+    "edges": 37,
+    "distinctPairs": 37,
+    "repeated": [],
+    "ambiguousDepartures": 11,
+    "departures": 18,
+    "arrivals": 20
+  },
+  "test": {
+    "edges": 20,
+    "distinctPairs": 20,
+    "repeated": [],
+    "ambiguousDepartures": 4,
+    "departures": 12,
+    "arrivals": 8
+  },
+  "testRepeatedFromTrain": [
+    {
+      "a": 17,
+      "b": 9,
+      "from": 14,
+      "to": 7,
+      "gap": 9.91100001335144,
+      "strict": false,
+      "t": 1028.7330000400543,
+      "fromRoom": 10,
+      "toRoom": 19
+    }
+  ],
+  "strictTestRepeated": [],
+  "strictEdges": [
+    {
+      "a": 0,
+      "b": 15,
+      "from": 1,
+      "to": 13,
+      "gap": 25.630000114440918,
+      "strict": true,
+      "t": 765.1310000419617,
+      "fromRoom": 6,
+      "toRoom": 7,
+      "time": "22:46:45.131"
+    },
+    {
+      "a": 10,
+      "b": 33,
+      "from": 8,
+      "to": 32,
+      "gap": 4.229000091552734,
+      "strict": true,
+      "t": 530.2630000114441,
+      "fromRoom": 5,
+      "toRoom": 7,
+      "time": "22:42:50.263"
+    },
+    {
+      "a": 22,
+      "b": 8,
+      "from": 17,
+      "to": 7,
+      "gap": 12.41700005531311,
+      "strict": true,
+      "t": 627.9000000953674,
+      "fromRoom": 2,
+      "toRoom": 17,
+      "time": "22:44:27.900"
+    },
+    {
+      "a": 22,
+      "b": 13,
+      "from": 17,
+      "to": 11,
+      "gap": 14.83899998664856,
+      "strict": true,
+      "t": 630.3220000267029,
+      "fromRoom": 2,
+      "toRoom": 1,
+      "time": "22:44:30.322"
+    },
+    {
+      "a": 22,
+      "b": 24,
+      "from": 17,
+      "to": 20,
+      "gap": 26.006999969482422,
+      "strict": true,
+      "t": 641.4900000095367,
+      "fromRoom": 2,
+      "toRoom": 17,
+      "time": "22:44:41.490"
+    },
+    {
+      "a": 30,
+      "b": 15,
+      "from": 29,
+      "to": 13,
+      "gap": 4.446000099182129,
+      "strict": true,
+      "t": 765.1310000419617,
+      "fromRoom": 3,
+      "toRoom": 7,
+      "time": "22:46:45.131"
+    },
+    {
+      "a": 41,
+      "b": 24,
+      "from": 40,
+      "to": 20,
+      "gap": 4.661999940872192,
+      "strict": true,
+      "t": 641.4900000095367,
+      "fromRoom": 2,
+      "toRoom": 17,
+      "time": "22:44:41.490"
+    }
+  ],
+  "recurrence": [
+    {
+      "c": 3,
+      "gap": 849.8369998931885,
+      "residual": 5.163000106811523,
+      "t": 937.6119999885559
+    },
+    {
+      "c": 5,
+      "gap": 610.5309998989105,
+      "residual": 244.46900010108948,
+      "t": 839.7409999370575
+    },
+    {
+      "c": 7,
+      "gap": 335.98200011253357,
+      "residual": 519.0179998874664,
+      "t": 627.9000000953674
+    },
+    {
+      "c": 7,
+      "gap": 400.8329999446869,
+      "residual": 454.1670000553131,
+      "t": 1028.7330000400543
+    },
+    {
+      "c": 14,
+      "gap": 796.8970000743866,
+      "residual": 58.1029999256134,
+      "t": 936.4730000495911
+    },
+    {
+      "c": 15,
+      "gap": 826.3100001811981,
+      "residual": 28.68999981880188,
+      "t": 1122.8210000991821
+    },
+    {
+      "c": 16,
+      "gap": 831.795000076294,
+      "residual": 23.204999923706055,
+      "t": 1011.4340000152588
+    },
+    {
+      "c": 35,
+      "gap": 925.7389998435974,
+      "residual": 70.73899984359741,
+      "t": 1193.619999885559
+    }
+  ],
+  "tracks": [
+    {
+      "c": 33,
+      "rooms": [
+        4,
+        3,
+        2
+      ],
+      "last": "22:54:34.352",
+      "age": 27.749000072479248,
+      "compatible": 2,
+      "total": 2
+    },
+    {
+      "c": 37,
+      "rooms": [
+        4,
+        2,
+        1,
+        7
+      ],
+      "last": "22:54:30.413",
+      "age": 31.687999963760376,
+      "compatible": 3,
+      "total": 3
+    }
+  ],
+  "notes": "Candidate associations only: different channels, strong episode end before next start within30s. Strict additionally last observed route index>=15 and first<=4. No worker identities. Endpoint gaps and episodes retrospectively defined; not live predictions. Train/test split at previous cutoff, repeated pair evidence only.",
+  "sourceBlobs": [
+    "9abca1d2a6c960b1b1b037d5479971bdc87e51c5",
+    "c5c67a1b52d39bf27797086b6204ac58afb5b4b7"
+  ]
+}
