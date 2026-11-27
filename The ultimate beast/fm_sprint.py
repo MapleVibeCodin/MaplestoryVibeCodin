@@ -119,7 +119,7 @@ def main():
             super().__init__();self.conf['start_channel']=args.start_channel
             self.beast_spatial_init()
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
-            self.root.title('The ultimate beast — Smooth Shortcuts Stable — '+args.engine.title())
+            self.root.title('The ultimate beast — Smooth Shortcuts Exact — '+args.engine.title())
         def sync_archive(self):
             # Do not pop the separate old map window on every new alert.
             self._syncing_archive=True
