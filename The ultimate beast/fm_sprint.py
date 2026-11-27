@@ -59,6 +59,7 @@ def main():
     import ctypes
     import fm_rush as old
     from beast_spatial import spatial_mixin
+    from beast_inventory import InventoryFallbackMixin
     from game_window import window_rect,window_client_rect,window_has_focus,window_at_point,move_cursor_on_screen,cursor_screen_position
     from camera_alignment import capture_client
     from shop_position import entry_shop_point,shop_marker
@@ -101,7 +102,7 @@ def main():
                 text(80,152,cue[0],11,'#ffdf72',True)
                 text(80,168,cue[1],11,'#ffffff',True)
     ref=header(); user=ctypes.windll.user32
-    class Tracker(shop_inventory.ShopInventoryTracker):
+    class Tracker(InventoryFallbackMixin,shop_inventory.ShopInventoryTracker):
         def __init__(self):
             super().__init__()
             if args.engine=='runescape':self._name_cache=RuneCache(self._name_cache)
@@ -118,7 +119,7 @@ def main():
             super().__init__();self.conf['start_channel']=args.start_channel
             self.beast_spatial_init()
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
-            self.root.title('The ultimate beast — Smooth Shortcuts Spatial — '+args.engine.title())
+            self.root.title('The ultimate beast — Smooth Shortcuts Stable — '+args.engine.title())
         def sync_archive(self):
             # Do not pop the separate old map window on every new alert.
             self._syncing_archive=True
