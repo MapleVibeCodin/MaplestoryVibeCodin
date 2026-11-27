@@ -50,6 +50,7 @@ def main():
     p.add_argument('--navigate',action='store_true',help='EXPERIMENTAL live channel and projected-shop clicks; no buying')
     p.add_argument('--start-channel',type=int,default=20);p.add_argument('--route',type=int)
     args=p.parse_args()
+    if args.navigate:p.error('Passive stability build: navigation is manual')
     from route_logic import plan
     if not 1<=args.start_channel<=40:p.error('start channel must be 1–40')
     if args.route is not None:
@@ -115,7 +116,7 @@ def main():
             self._f9_inhibit=False;self._park_serial=0
             super().__init__();self.conf['start_channel']=args.start_channel
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
-            self.root.title('The ultimate beast FINAL — Soft lock — '+args.engine.title()+' — '+('Experimental navigation' if args.navigate else 'Pointer assist'))
+            self.root.title('The ultimate beast — Passive Stability — '+args.engine.title())
         def sync_archive(self):
             # Do not pop the separate old map window on every new alert.
             self._syncing_archive=True
@@ -149,11 +150,9 @@ def main():
             self.flow.reset(None)
             super().complete_deal()
         def move_pointer_to_target(self,kind,*,received=None):
-            if self.flow.stage=='stopped' or user.GetAsyncKeyState(0x7B)&0x8000:
-                self.cancel_pending_pointers()
-                self.status.set('F12 stopped this run — unlock to reset');return
-            self._park_serial+=1
-            super().move_pointer_to_target(kind,received=received)
+            # Global pointer shortcuts must not steal focus or warp the cursor.
+            self.cancel_pending_pointers()
+            self.status.set('Passive mode · move and click manually')
         def close(self):
             self.cancel_pending_pointers()
             if self._route_mini is not None:self._route_mini.close()
@@ -168,53 +167,11 @@ def main():
                                            key,context,hwnd,client)
             finally:self.archive.lock.release()
         def release_and_park(self,hwnd,client,sx,sy,serial):
-            key,stage,context=self.flow.key,self.flow.stage,self.flow.context
-            rec=getattr(self,'performance',None)
-            attempt=getattr(rec,'active',None)
-            started=time.perf_counter()
-            def valid():
-                if self._closing or serial!=self._park_serial or self.flow.key!=key or self.flow.stage!=stage:return False
-                if user.GetAsyncKeyState(0x7B)&0x8000:return False
-                return bool(self.flow.context==context and self.current_target_valid(hwnd,client,key,context)
-                    and self.shop.selected_hwnd()==hwnd and window_client_rect(hwnd)==client and window_at_point(sx,sy)==hwnd)
-            def focus_scanner():
-                if self.root.state() in ('iconic','withdrawn'):self.root.deiconify()
-                self.root.focus_force()
-            def scanner_focused():
-                owner=user.GetAncestor(self.root.winfo_id(),2)
-                return bool(owner and window_has_focus(owner))
-            def move():
-                return bool(valid() and not window_has_focus(hwnd) and scanner_focused()
-                    and move_cursor_on_screen(hwnd,sx,sy) is None and cursor_screen_position()==(sx,sy))
-            def done(ok,reason):
-                if rec is not None and rec.active==attempt:rec.marker('beast_pointer_handoff',ok=ok,reason=reason,total_ms=round((time.perf_counter()-started)*1000,1))
-                if not self._closing and serial==self._park_serial and self.flow.key==key:
-                    self.status.set('Pointer ready · click manually' if ok else 'Pointer not moved · '+reason.replace('_',' '))
-            focus_release_pointer(schedule=self.schedule,now=time.perf_counter,valid=valid,
-                game_focused=lambda:window_has_focus(hwnd),scanner_focused=scanner_focused,
-                focus_scanner=focus_scanner,move=move,done=done)
+            # Retain the interface, but never request focus or move a pointer.
+            return False
         def at(self,hwnd,client,point,click=False,require_f9=False,release_focus=True):
-            if point is None or self.flow.stage=='stopped' or not self.safe(hwnd,client) or (require_f9 and not self.f9_down()):return False
-            key,context=self.flow.key,self.flow.context
-            if not self.current_target_valid(hwnd,client,key,context):return False
-            x,y=point;w,h=client[2:]
-            if not (2<x<w-2 and 2<y<h-2):return False
-            sx,sy=client[0]+x,client[1]+y
-            if window_at_point(sx,sy)!=hwnd:return False
-            self._park_serial+=1
-            serial=self._park_serial
-            if cursor_screen_position()!=(sx,sy):
-                # Parking uses the proven focus-release path before moving. The
-                # shop-open tooltip-clear park must not interrupt recognition.
-                if not click and release_focus:
-                    self.release_and_park(hwnd,client,sx,sy,serial);return True
-                if move_cursor_on_screen(hwnd,sx,sy) is not None or cursor_screen_position()!=(sx,sy):
-                    if release_focus:self.release_and_park(hwnd,client,sx,sy,serial)
-                    return False
-            if click:
-                if not self.current_target_valid(hwnd,client,key,context) or not self.safe(hwnd,client) or window_at_point(sx,sy)!=hwnd or cursor_screen_position()!=(sx,sy) or (require_f9 and not self.f9_down()):return False
-                user.mouse_event(0x0002,0,0,0,0);user.mouse_event(0x0004,0,0,0,0)
-            return True
+            # Fail closed even if a future caller accidentally requests input.
+            return False
         def menu(self,client,cc):
             if client[2:]!=(1366,768):return False,False,False,0.
             x,y,_,_=client;f=capture_client((x+403,y+282,565,200),allow_crop=True)
@@ -296,30 +253,14 @@ def main():
             pin=self.pin(deal,client,not self.flow.same)
             f9=self.f9_down()
             if not f9:self._f9_inhibit=False
-            channel_request=f9 and not self._f9_inhibit
+            channel_request=False
             previous_stage=self.flow.stage
-            actions=self.flow.step(identity,Scene(focus=True,entrance=entrance,room=room,black=black,menu=menu,selected=selected,shop=shop,hit=bool(shop and hit),pin=pin is not None,confirm=confirm),same_channel=deal.cc==args.start_channel,navigate=args.navigate,channel_request=channel_request)
+            actions=self.flow.step(identity,Scene(focus=True,entrance=entrance,room=room,black=black,menu=menu,selected=selected,shop=shop,hit=bool(shop and hit),pin=pin is not None,confirm=confirm),same_channel=deal.cc==args.start_channel,navigate=False,channel_request=channel_request)
             if self.flow.stage=='route' and not (black or room or menu):self.show_route_mini(hwnd,client,deal)
             else:self.show_route_mini()
-            points=channel_points(deal.cc,client[2:]);cell,button=points
-            for a in actions:
-                if a=='park_channel':self.at(hwnd,client,cell)
-                elif a=='park_shop_normal':self.at(hwnd,client,self.pin(deal,client,False))
-                elif a=='park_shop_cc':self.at(hwnd,client,self.pin(deal,client,True))
-                elif a=='park_clear':self.at(hwnd,client,(client[2]-30,100),release_focus=False)
-                elif a=='select_channel':
-                    # Refresh the header immediately before an experimental click.
-                    m,s,c,_=self.menu(client,deal.cc)
-                    if not (m and (s or self.at(hwnd,client,cell,click=True,require_f9=not args.navigate))):self.flow.channel_failed(a)
-                elif a=='confirm_channel':
-                    m,s,c,_=self.menu(client,deal.cc)
-                    if not (m and s and c and self.at(hwnd,client,button,click=True,require_f9=not args.navigate)):self.flow.channel_failed(a)
-                elif a=='open_projected_shop':
-                    # Projection is not proof of seller identity. One bounded click.
-                    self.at(hwnd,client,pin,click=True)
-            if self.flow.channel_blocked:self.status.set('Channel action interrupted · release F9, then hold again (manual mode)')
-            elif actions:self.status.set(self.flow.stage.upper()+' · '+', '.join(actions))
-            elif self.flow.stage=='channel' and previous_stage!='channel':self.status.set('Open channel menu · hold F9 to select + confirm')
+            # Lifecycle actions are observations only; never dispatch game input.
+            if self.flow.stage=='channel' and previous_stage!='channel':
+                self.status.set('Choose channel manually')
             if self.flow.stage=='item_ready':self.status.set('ITEM LOCATED · verify price/quantity; purchase remains manual')
             elif previous_stage=='item_ready':self.status.set('Item evidence changed · waiting for fresh recognition')
         def follow_overlays(self):
@@ -327,6 +268,6 @@ def main():
                 try:current=self.archive.current()
                 finally:self.archive.lock.release()
                 self.refresh_overlays(current)
-            self.schedule(10 if self.archive.chase_locked else 50,self.follow_overlays)
+            self.schedule(10 if getattr(self,'_inventory_fast_poll',False) else 50,self.follow_overlays)
     App().root.mainloop()
 if __name__=='__main__':main()
