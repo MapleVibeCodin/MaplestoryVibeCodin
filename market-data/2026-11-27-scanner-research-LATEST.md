@@ -67,3 +67,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Exact channel, approximate FM positioning — latest objective
 [Positioning test](2026-11-27-exact-channel-approximate-position.md), commit 8a0abb11d717455705c06e9d3ad32be79e1309dd. User requires exact channel; approximate FM physical location reduces travel versus central waiting. Conditional known-channel floor model on135 held-out observations mean distance.541 floors vs better fixed middle.844 (36% reduction), exact floor74/135, within1 123/135. No horizontal geometry/travel time measurement; separate channel prediction remains weak. Primary success exact channel before alert, secondary physical travel time. No runtime change.
+
+## Next-chat checkpoint — latest
+[Authoritative handoff](2026-11-27-next-chat-handoff.md), [byte-exact original exports](raw/2026-11-27/README.md), [dialogue part 1](transcripts/2026-11-27-scanner-validation-accessible-dialogue-part-1.md), [dialogue part 2](transcripts/2026-11-27-scanner-validation-accessible-dialogue-part-2.md). Six exports verified against original git hashes; latest2052 records/81 unscored. Primary metric exact channel before alert and net time saved. Screenshot binary and complete dialogue not archived; no runtime modifications. Preserve all prior findings and files.
