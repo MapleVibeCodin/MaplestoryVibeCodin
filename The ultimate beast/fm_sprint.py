@@ -115,7 +115,7 @@ def main():
             self._f9_inhibit=False;self._park_serial=0
             super().__init__();self.conf['start_channel']=args.start_channel
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
-            self.root.title('The ultimate beast R4 — '+args.engine.title()+' — '+('Experimental navigation' if args.navigate else 'Pointer assist'))
+            self.root.title('The ultimate beast FINAL — '+args.engine.title()+' — '+('Experimental navigation' if args.navigate else 'Pointer assist'))
         def sync_archive(self):
             # Do not pop the separate old map window on every new alert.
             self._syncing_archive=True
@@ -242,10 +242,10 @@ def main():
                 self.cancel_pending_pointers()
                 self.flow.stop();self.status.set('F12 stopped this run — unlock to reset')
             self._f12=stop
-            now=time.perf_counter()
-            if not stop and now-self._last_tick<.008:return
-            self._last_tick=now
+            # Browser Unlock bypasses set_chase_locked(). Never throttle cancellation.
             if not current or not self.archive.chase_locked:
+                if self.flow.key is not None or self._pointer_pending is not None:
+                    self.cancel_pending_pointers()
                 self.flow.reset(None);self._identity=None;self.show_route_mini();return
             key,deal=current
             if not deal.cc or not deal.fm or deal.sold:
@@ -270,6 +270,9 @@ def main():
             if not client or not self.safe(hwnd,client):
                 self.flow.black_count=0;self._f9_inhibit=self.f9_down();self.show_route_mini();return
             if self.flow.stage=='stopped':self.show_route_mini();return
+            now=time.perf_counter()
+            if binding!='new' and now-self._last_tick<.008:return
+            self._last_tick=now
             if client[2:]!=(1366,768):
                 if self.flow.stage=='route' and not getattr(self,'_inventory_fast_poll',False):self.show_route_mini(hwnd,client,deal)
                 else:self.show_route_mini()
