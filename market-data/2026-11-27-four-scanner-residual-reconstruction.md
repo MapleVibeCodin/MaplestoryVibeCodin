@@ -1,0 +1,14 @@
+# Four-scanner residual reconstruction
+
+User verbatim: ok now 4
+
+Same exact original rolling hour22:13:51.434–23:13:51.434 Taipei, no new data. Preserve primary scanner1, scanner2, scanner3 hypotheses unmodified. Original2s consolidation on full input first; exclude prior CH/FM room-window matching marks afterward,407 of1299 removed,892 residual. All824 previous unique original matching filenames excluded from raw attribution of scanner4. Run same one-worker DP with same7s room window,20-room full sweep,arbitrary phase at each CC,2–12s transitions,score1 per supported visit and .035 per second of excess CC. Historical source unchanged; separate residual source. Not joint global optimization.
+
+Scanner4: 503 room visits,97 supported,406 silent,101 exact consolidated anchors,185 raw matched filenames,25 CC,3520s scanning,80s CC,score95.95000000000006,cutoff CH29 FM15. Continuous full3600s timeline validated; no gaps/overlaps within track. Same-channel occupancy overlap186s with scanner1,265s with scanner2,194s with scanner3; same-room overlap0s/20s/0s respectively. Zero shared raw filenames. Separate-channel constraint for scanner4 yields93 supported,97 anchors,182 raw,score92.195,ends CH24 FM17. Prior scanner3 overlap with earlier tracks remains unchanged. Combined1009 unique raw matches of2625,508 disjoint consolidated anchors of1299,489 supported visits,2015 total room windows,1526 silent,100 CC. Original filename timestamps, not verified actual scan timing. Silent rooms not necessarily empty.
+
+Scanner4 channel sequence 2 -> 5 -> 29 -> 2 -> 4 -> 25 -> 15 -> 3 -> 7 -> 36 -> 3 -> 35 -> 9 -> 17 -> 10 -> 13 -> 16 -> 37 -> 6 -> 4 -> 3 -> 5 -> 16 -> 3 -> 17 -> 29.
+Alternate end excluding CH29 at3599.99s:96 supported,99 anchors,177 raw,score95.685,ends CH24 FM17 with actual matching mark23:13:50.086. Only .265 objective below primary. Primary cutoff FM15 unobserved. Primary's last supporting mark23:13:02.704, nearly49s before cutoff, no matching alert for remaining visits. No physical identity or exact live location verified. Actual listed item/price strings from original filenames, no profitability/purchase verification.
+
+Source blobs 37b2575441265e7b2fb3c6bff2de09836eeff5ca, 070f8855a5a5a560658acff86f00b623f3782958, 4c59dd31094b106798d51f8cca4086e3b9b21cf0, 039821d1a99e030005731b17ece7a826b068375c, 780eebaa97444f5983724de07ba93d5a38f6611b. All101 anchors matched exact original filenames. No changes to earlier tracks or cutoff. No complete platform transcript; exact user request archived here, report and output preserve numerical evidence. Final response not included before verification.
+
+Files: market-data/results/2026-11-27-four-scanner-room-visits.csv, market-data/results/2026-11-27-four-scanner-minute-positions.csv, market-data/results/2026-11-27-four-scanner-scanner4-deals.csv, market-data/results/2026-11-27-four-scanner-scanner4-anchors.csv, market-data/results/2026-11-27-four-scanner-result.json.

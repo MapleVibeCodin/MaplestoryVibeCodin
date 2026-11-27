@@ -260,3 +260,7 @@ Read [one-scanner reconstruction](../market-data/2026-11-27-one-scanner-hour-rec
 
 ## Third scanner residual fit
 [Three-scanner report](../market-data/2026-11-27-three-scanner-residual-reconstruction.md): scanner1 and scanner2 frozen; scanner3 240 raw/113 consolidated/110 supported,393 silent,503 rooms/25 CC,ends CH38 FM12. Combined824 unique raw/407 consolidated, no duplicate attribution or same-room overlap. Same-channel overlap33s/109s; forcing separation costs1 supported visit, retains end. Alternate ends CH29 FM8 with109 supported. Sequential fit only; identities unverified, no new data or changed cutoff. Full minute/room/deal CSVs and model archived. No prior deletions.
+
+
+## Fourth scanner residual fit
+[Four-scanner report](../market-data/2026-11-27-four-scanner-residual-reconstruction.md): scanners1–3 frozen; scanner4 185 raw/101 consolidated/97 supported,406 silent,503 rooms/25 CC,ends CH29 FM15. Combined1009 unique raw/508 consolidated, no duplicate attribution. Same-channel overlap186s/265s/194s and same-room overlap20s with scanner2. Separate-channel constraint costs4 supported visits and ends CH24 FM17; alternative excluding CH29 ends CH24 FM17 with96 supported, objective gap .265. Sequential fit only; identities unverified, no new data or changed cutoff. Full minute/room/deal CSVs and model archived. No prior deletions.
