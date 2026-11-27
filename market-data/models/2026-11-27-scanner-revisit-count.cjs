@@ -1,0 +1,14 @@
+
+function analyze(raw){
+const route=[1,7,17,18,19,20,16,15,14,13,8,9,10,11,12,6,5,4,3,2],ix=Object.fromEntries(route.map((f,i)=>[f,i])),base=Date.parse("2026-11-27T22:34:00+08:00");let seen=new Map(),ev=[];
+for(const l of raw){let m=l.match(/^(\d{4}-\d\d-\d\d)_(\d\d)-(\d\d)-(\d\d)-(\d{3})_CH(\d+)-FM(\d+)_/);let t=(Date.parse(m[1]+"T"+m[2]+":"+m[3]+":"+m[4]+"."+m[5]+"+08:00")-base)/1000,c=+m[6],f=+m[7],k=c*100+f;if(t-(seen.get(k)??-Infinity)<2)continue;seen.set(k,t);ev.push({t,c,f,i:ix[f]})}
+const med=a=>{a=a.slice().sort((a,b)=>a-b);return a.length?a[Math.floor(a.length/2)]:null};let results=[],chosen;
+for(const gap of [25,40,60,90])for(const min of [3,4,5]){let ep=[];for(let c=1;c<=40;c++){let e=ev.filter(x=>x.c===c),g=[];for(let x of e){if(g.length&&x.t-g.at(-1).t>gap){ep.push(g);g=[]}g.push(x)}if(g.length)ep.push(g)}let strong=ep.filter(g=>new Set(g.map(x=>x.f)).size>=min);let count=strong.length,total=strong.reduce((s,g)=>s+g.length,0);let times=strong.map(g=>[g[0].t,g.at(-1).t]);let peak=Math.max(...times.map(([a])=>times.filter(([x,y])=>x<=a&&y>=a).length));let dur=times.map(([a,b])=>b-a);let repeat=[];for(let c=1;c<=40;c++){let e=strong.filter(g=>g[0].c===c);for(let i=1;i<e.length;i++)repeat.push({c,from:e[i-1][0].t,to:e[i][0].t,gap:e[i][0].t-e[i-1][0].t})}let ret=med(repeat.map(x=>x.gap));results.push({gap,min,count,covered:total,peak,meanConcurrent:dur.reduce((s,d)=>s+d,0)/4093.544,medianDuration:med(dur),medianReturn:ret,impliedWorkers:40*140/ret,repeatCount:repeat.length});if(gap===40&&min===4)chosen={strong,repeat}}
+const ret=chosen.repeat.map(r=>r.gap).sort((a,b)=>a-b), quantile=p=>ret[Math.floor((ret.length-1)*p)],byChannel=[];for(let c=1;c<=40;c++){let a=chosen.repeat.filter(r=>r.c===c).map(r=>r.gap);byChannel.push({c,n:a.length,median:med(a)})}
+let prev={},forward=0,reverse=0,other=0,stepTimes=[];for(let e of ev){let a=prev[e.c];if(a&&e.f!==a.f&&e.t-a.t>=4&&e.t-a.t<=12){let k=(e.i-a.i+20)%20;if(k===1){forward++;stepTimes.push(e.t-a.t)}else if(k===19)reverse++;else other++;}prev[e.c]=e}
+let pairs=new Map();for(let a of chosen.strong)for(let b of chosen.strong){if(a[0].c===b[0].c)continue;let g=b[0].t-a.at(-1).t;if(g>=0&&g<=15){let k=a[0].c+"->"+b[0].c;pairs.set(k,(pairs.get(k)??0)+1)}}
+let selected={repeatCount:ret.length,quartiles:[quantile(.25),quantile(.5),quantile(.75)],perChannel:byChannel,firstHalfReturn:med(chosen.repeat.filter(x=>x.to<=2046.772).map(x=>x.gap)),secondHalfReturn:med(chosen.repeat.filter(x=>x.to>2046.772).map(x=>x.gap)),topLinks:[...pairs.entries()].sort((a,b)=>b[1]-a[1]).slice(0,15),episodes:chosen.strong.map(g=>({c:g[0].c,start:g[0].t,end:g.at(-1).t,rooms:g.map(x=>x.f),times:g.map(x=>x.t)}))};
+return{raw:raw.length,anchors:ev.length,results,medianImpliedWorkers:med(results.map(x=>x.impliedWorkers)),medianReturnAcrossDefinitions:med(results.map(x=>x.medianReturn)),direct:{forward,reverse,other,medianForward:med(stepTimes)},selected};
+}
+
+module.exports=analyze;
