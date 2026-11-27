@@ -17,3 +17,7 @@ Spatial session: 478 inventory scans, 267 OCR, median total 31.63ms, 467 fallbac
 
 ## Stable candidate
 2a6a083553dcdd4f0e1f9e95729a2c87c7bff052: retained name-only fast hit path; a name-only miss now falls through to the pinned full-row recognition, exact price checks, alternate sold contrast and post-capture revalidation. Strict scroll/fallback geometry guards retained; no seller OCR or automatic inputs. Structural checks only, actual OCR accuracy and performance still open. Session shop captures restored to permit independent verification.
+
+
+## Exact candidate — wrong-price recurrence
+User reported Stable highlighting correct item but wrong price immediately. Source confirms name-only fast path and advisory price fallback bypassed exact price. Runtime 4c938a5816bf87542603840587e33d69b1c9ba76 removes these bypasses, requires exact target price precision and two matching full-row OCR decisions (buy_step=0), rejects sold/blocked/ambiguous rows and revalidates text, geometry and stock fingerprint before publishing. Geometry fallback remains advisory only after two exact item/price matches; strict-scroll geometry protection retained. Positive matches preserved. 17 static checks passed; synthetic real-matcher test staged in test_spatial.py, Windows/native live OCR not run here. Exact HeneFM metadata required; rounded-only alerts abstain. User's hard requirement is correct item AND correct price, no compromise. No screenshots supplied for specific incident.
