@@ -18,11 +18,33 @@ def check_bridge_available(host='127.0.0.1',port=18773):
 
 
 def check_source(scanner):
-    for name in ('fm_rush','game_window','shop_inventory','henefm_bridge','performance_recorder','route_logic'):
+    for name in ('fm_rush','game_window','shop_inventory','henefm_bridge','performance_recorder','route_logic','deal_archive'):
         spec=importlib.util.find_spec(name)
         expected=(scanner/(name+'.py')).resolve()
         if spec is None or not spec.origin or Path(spec.origin).resolve()!=expected:
             raise SystemExit('Unexpected source for '+name+'; extract into a clean folder and verify the pinned scanner.')
+
+
+def soft_lock_archive_type(base_archive):
+    """Permit explicit choose() to replace a lock without publishing an unlock.
+
+    The pinned passive feed only calls choose() when chase_locked is false.
+    Keep the original validation, reopen rules and durable select transaction.
+    """
+    class SoftLockArchive(base_archive):
+        def choose(self, key):
+            with self.lock:
+                if not self.chase_locked or key == self.focus:
+                    return super().choose(key)
+                # RLock keeps this temporary flag private from feed threads.
+                # Never call unlock(): it would preview a different listing.
+                self.chase_locked = False
+                try:
+                    return super().choose(key)
+                finally:
+                    # Invalid, completed or failed choices retain the old lock.
+                    self.chase_locked = True
+    return SoftLockArchive
 
 
 def main():
@@ -45,6 +67,7 @@ def main():
         def _run(self):
             writer_loop(self, RotatingLog)
 
+    base.DealArchive = soft_lock_archive_type(base.DealArchive)
     base.PerformanceRecorder = CaptureFreeRecorder
     base.ShopScreenshotRecorder = NoScreenshots
 
