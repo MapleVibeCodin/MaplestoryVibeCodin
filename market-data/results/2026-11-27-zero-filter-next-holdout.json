@@ -1,0 +1,607 @@
+{
+  "result": {
+    "raw": 2227,
+    "afterCutoffRaw": 440,
+    "new": {
+      "events": 242,
+      "raw": 440,
+      "transitions": 196,
+      "compatible": 145,
+      "median": 7.233999967575073
+    },
+    "channels": 36,
+    "cells": 228,
+    "rows": [
+      88,
+      74,
+      48,
+      32
+    ],
+    "earlier": {
+      "events": 109,
+      "raw": 154,
+      "transitions": 41,
+      "compatible": 26,
+      "median": 6.937466677029928
+    },
+    "denseTrain": {
+      "events": 344,
+      "raw": 825,
+      "transitions": 291,
+      "compatible": 165,
+      "median": 6.686500012874603
+    },
+    "denseTest": {
+      "events": 242,
+      "raw": 440,
+      "transitions": 196,
+      "compatible": 145,
+      "median": 7.233999967575073
+    },
+    "dwell": 6.7209999561309814,
+    "roomScores": {
+      "fixed row2": {
+        "exactRoom": 14,
+        "dist": 200,
+        "near": 210,
+        "exactRow": 74
+      },
+      "last room": {
+        "exactRoom": 6,
+        "dist": 148,
+        "near": 216,
+        "exactRow": 128
+      },
+      "route step extrapolation": {
+        "exactRoom": 117,
+        "dist": 80,
+        "near": 230,
+        "exactRow": 175
+      },
+      "empirical route age": {
+        "exactRoom": 117,
+        "dist": 92,
+        "near": 229,
+        "exactRow": 164
+      }
+    },
+    "channelScores": {
+      "persistence": 19,
+      "recent15": 36,
+      "routeActive": 32,
+      "trainFrequency": 3
+    },
+    "strong": 47,
+    "overlap": {
+      "n": 7,
+      "time": "22:45:12.605",
+      "tracks": [
+        {
+          "c": 1,
+          "start": "22:43:08.132",
+          "end": "22:46:19.501",
+          "rooms": [
+            5,
+            1,
+            20,
+            8,
+            9,
+            11,
+            6
+          ],
+          "ok": 6,
+          "total": 6
+        },
+        {
+          "c": 7,
+          "start": "22:44:27.900",
+          "end": "22:45:54.065",
+          "rooms": [
+            17,
+            7,
+            9,
+            11,
+            6,
+            5,
+            4,
+            3,
+            1
+          ],
+          "ok": 6,
+          "total": 8
+        },
+        {
+          "c": 10,
+          "start": "22:44:53.503",
+          "end": "22:46:57.831",
+          "rooms": [
+            6,
+            3,
+            2,
+            1,
+            17,
+            18,
+            15,
+            14,
+            13,
+            8,
+            9,
+            11,
+            12
+          ],
+          "ok": 12,
+          "total": 12
+        },
+        {
+          "c": 11,
+          "start": "22:44:30.322",
+          "end": "22:46:52.662",
+          "rooms": [
+            1,
+            7,
+            17,
+            18,
+            19,
+            20,
+            15,
+            14,
+            13,
+            8,
+            9,
+            10,
+            11,
+            12,
+            6,
+            5,
+            3
+          ],
+          "ok": 15,
+          "total": 16
+        },
+        {
+          "c": 20,
+          "start": "22:44:41.490",
+          "end": "22:46:36.478",
+          "rooms": [
+            17,
+            18,
+            20,
+            16,
+            10,
+            5,
+            4,
+            3,
+            2,
+            1
+          ],
+          "ok": 8,
+          "total": 9
+        },
+        {
+          "c": 24,
+          "start": "22:45:12.605",
+          "end": "22:47:24.468",
+          "rooms": [
+            1,
+            17,
+            15,
+            14,
+            13,
+            9,
+            10,
+            6,
+            5,
+            4,
+            3,
+            2
+          ],
+          "ok": 10,
+          "total": 11
+        },
+        {
+          "c": 29,
+          "start": "22:44:39.493",
+          "end": "22:46:40.685",
+          "rooms": [
+            2,
+            1,
+            7,
+            17,
+            19,
+            14,
+            13,
+            8,
+            9,
+            10,
+            6,
+            4,
+            3
+          ],
+          "ok": 10,
+          "total": 12
+        }
+      ]
+    },
+    "newStrong": [
+      {
+        "c": 1,
+        "start": "22:43:08.132",
+        "end": "22:46:19.501",
+        "rooms": [
+          5,
+          1,
+          20,
+          8,
+          9,
+          11,
+          6
+        ],
+        "ok": 6,
+        "total": 6
+      },
+      {
+        "c": 3,
+        "start": "22:49:37.612",
+        "end": "22:51:41.147",
+        "rooms": [
+          1,
+          17,
+          19,
+          20,
+          16,
+          15,
+          13,
+          12,
+          5
+        ],
+        "ok": 7,
+        "total": 8
+      },
+      {
+        "c": 5,
+        "start": "22:47:59.741",
+        "end": "22:49:56.933",
+        "rooms": [
+          7,
+          16,
+          14,
+          13,
+          10,
+          11,
+          3
+        ],
+        "ok": 6,
+        "total": 6
+      },
+      {
+        "c": 7,
+        "start": "22:44:27.900",
+        "end": "22:45:54.065",
+        "rooms": [
+          17,
+          7,
+          9,
+          11,
+          6,
+          5,
+          4,
+          3,
+          1
+        ],
+        "ok": 6,
+        "total": 8
+      },
+      {
+        "c": 7,
+        "start": "22:51:08.733",
+        "end": "22:52:01.058",
+        "rooms": [
+          19,
+          20,
+          15,
+          8
+        ],
+        "ok": 3,
+        "total": 3
+      },
+      {
+        "c": 10,
+        "start": "22:44:53.503",
+        "end": "22:46:57.831",
+        "rooms": [
+          6,
+          3,
+          2,
+          1,
+          17,
+          18,
+          15,
+          14,
+          13,
+          8,
+          9,
+          11,
+          12
+        ],
+        "ok": 12,
+        "total": 12
+      },
+      {
+        "c": 11,
+        "start": "22:44:30.322",
+        "end": "22:46:52.662",
+        "rooms": [
+          1,
+          7,
+          17,
+          18,
+          19,
+          20,
+          15,
+          14,
+          13,
+          8,
+          9,
+          10,
+          11,
+          12,
+          6,
+          5,
+          3
+        ],
+        "ok": 15,
+        "total": 16
+      },
+      {
+        "c": 12,
+        "start": "22:47:00.087",
+        "end": "22:48:51.997",
+        "rooms": [
+          12,
+          6,
+          4,
+          3,
+          2,
+          1,
+          7,
+          3,
+          15,
+          14,
+          13,
+          10
+        ],
+        "ok": 9,
+        "total": 11
+      },
+      {
+        "c": 13,
+        "start": "22:46:45.131",
+        "end": "22:48:22.846",
+        "rooms": [
+          7,
+          13,
+          8,
+          6,
+          5,
+          4,
+          3,
+          2,
+          9
+        ],
+        "ok": 6,
+        "total": 8
+      },
+      {
+        "c": 14,
+        "start": "22:49:36.473",
+        "end": "22:50:58.822",
+        "rooms": [
+          7,
+          15,
+          8,
+          9,
+          10
+        ],
+        "ok": 3,
+        "total": 4
+      },
+      {
+        "c": 15,
+        "start": "22:52:42.821",
+        "end": "22:54:35.182",
+        "rooms": [
+          12,
+          4,
+          7,
+          1,
+          15,
+          10
+        ],
+        "ok": 3,
+        "total": 5
+      },
+      {
+        "c": 16,
+        "start": "22:50:51.434",
+        "end": "22:53:03.470",
+        "rooms": [
+          4,
+          3,
+          2,
+          7,
+          17,
+          18,
+          19,
+          16,
+          15,
+          13,
+          9,
+          8
+        ],
+        "ok": 9,
+        "total": 11
+      },
+      {
+        "c": 20,
+        "start": "22:44:41.490",
+        "end": "22:46:36.478",
+        "rooms": [
+          17,
+          18,
+          20,
+          16,
+          10,
+          5,
+          4,
+          3,
+          2,
+          1
+        ],
+        "ok": 8,
+        "total": 9
+      },
+      {
+        "c": 24,
+        "start": "22:45:12.605",
+        "end": "22:47:24.468",
+        "rooms": [
+          1,
+          17,
+          15,
+          14,
+          13,
+          9,
+          10,
+          6,
+          5,
+          4,
+          3,
+          2
+        ],
+        "ok": 10,
+        "total": 11
+      },
+      {
+        "c": 25,
+        "start": "22:51:58.538",
+        "end": "22:53:52.734",
+        "rooms": [
+          4,
+          3,
+          2,
+          18,
+          13,
+          9,
+          10,
+          6
+        ],
+        "ok": 5,
+        "total": 7
+      },
+      {
+        "c": 26,
+        "start": "22:48:31.539",
+        "end": "22:50:07.404",
+        "rooms": [
+          6,
+          3,
+          2,
+          13,
+          8
+        ],
+        "ok": 3,
+        "total": 4
+      },
+      {
+        "c": 27,
+        "start": "22:46:46.254",
+        "end": "22:48:12.676",
+        "rooms": [
+          3,
+          2,
+          7,
+          16,
+          14,
+          8,
+          4
+        ],
+        "ok": 5,
+        "total": 6
+      },
+      {
+        "c": 29,
+        "start": "22:44:39.493",
+        "end": "22:46:40.685",
+        "rooms": [
+          2,
+          1,
+          7,
+          17,
+          19,
+          14,
+          13,
+          8,
+          9,
+          10,
+          6,
+          4,
+          3
+        ],
+        "ok": 10,
+        "total": 12
+      },
+      {
+        "c": 34,
+        "start": "22:48:04.235",
+        "end": "22:48:26.965",
+        "rooms": [
+          14,
+          13,
+          8,
+          9,
+          10
+        ],
+        "ok": 4,
+        "total": 4
+      },
+      {
+        "c": 35,
+        "start": "22:53:53.620",
+        "end": "22:54:28.119",
+        "rooms": [
+          6,
+          5,
+          4,
+          1
+        ],
+        "ok": 3,
+        "total": 3
+      },
+      {
+        "c": 36,
+        "start": "22:46:56.882",
+        "end": "22:48:24.539",
+        "rooms": [
+          3,
+          2,
+          1,
+          7,
+          17,
+          20,
+          8,
+          9
+        ],
+        "ok": 7,
+        "total": 7
+      }
+    ],
+    "notes": "2s consolidation by channel-room; dense regime chosen descriptively at22:34; training22:34–22:40, retrospective test thereafter. Route fixed from prior study; train median adjacent step within2–20s. Room predictions conditional on known actual channel, not real occupancy. Event-aligned origin floor(event time-2s), may not be immediate next event. No claimed actual scanner identity/count or channel assignments. No new policy fitted."
+  },
+  "sourceBlob": "c5c67a1b52d39bf27797086b6204ac58afb5b4b7",
+  "oldBlob": "9abca1d2a6c960b1b1b037d5479971bdc87e51c5",
+  "modelBlob": "2e5a459a290cf1df6faef9b5c92c2ed76e280ad7",
+  "newRaw": 440,
+  "overlap": 1699,
+  "missing": 88,
+  "notes": "Reused fixed 22:34–22:40 fit; only replaced test cutoff with 22:45:41.002. Exact code transformation archived in follow-up."
+}
