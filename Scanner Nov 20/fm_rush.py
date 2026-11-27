@@ -484,8 +484,8 @@ class FMApp:
             else:
                 room_confirmed=room_title_present(*title)
                 if room_confirmed:gate_state='room_confirmed'
-        # Poll at 10ms while the target/game is focused, so shop-open detection itself is not delayed by idle cadence.
-        self._inventory_fast_poll=inventory_supported
+        # Fast poll only after the FM room-title gate confirms the room.
+        self._inventory_fast_poll=room_confirmed
         inventory = self._inventory.get(hwnd,client,inventory_deal) if room_confirmed else None
         if not room_confirmed:self._inventory.reset()
         in_shop = inventory is not None
