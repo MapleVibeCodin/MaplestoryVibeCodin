@@ -247,6 +247,16 @@ def main():
             expected=(hwnd,tuple(client),deal.listing_id,deal.ign,deal.item,deal.buy_mesos)
             shop,hit=fresh_inventory(inv,inv_key,expected,observed_at,time.monotonic())
             shop=room and shop
+            # Report existing recognition outcomes only; no new captures or OCR.
+            rec=getattr(self,'performance',None)
+            if rec is not None and shop:
+                status=str(inv.get('status',''))[:200]
+                modes=tuple(sorted({mode for mode,_ in inv.get('hits',())}))
+                diagnostic=(rec.active,status,modes)
+                if diagnostic!=getattr(self,'_passive_diagnostic',None):
+                    self._passive_diagnostic=diagnostic
+                    rec.marker('beast_inventory_diagnostic',status=status,modes=list(modes))
+            else:self._passive_diagnostic=None
             menu,selected,confirm,_=self.menu(client,deal.cc) if self.flow.stage=='channel' else (False,False,False,0.)
             expect_fade=(self.flow.stage=='route' and self.flow.seen_entrance) or (self.flow.stage=='channel' and self.flow.menu_seen)
             black=expect_fade and not room and not entrance and not menu and self.black(client)
