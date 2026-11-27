@@ -22,9 +22,19 @@ class Lifecycle:
     def __init__(self):
         self.reset(None, False)
     def reset(self, key, same_channel=False):
-        self.key=key; self.same=same_channel; self.stage='route' if key else 'idle'
+        self.key=key; self.context=None; self.same=same_channel; self.stage='route' if key else 'idle'
         self.seen_entrance=False; self.menu_seen=False; self.black_count=0
         self.cell_sent=False; self.confirm_sent=False; self.shop_sent=False
+    def bind(self, key, context, same_channel=False):
+        """Do not rearm a locked run when its window/target changes."""
+        if key != self.key:
+            self.reset(key,same_channel);self.context=context
+            return 'new'
+        if self.context is None:
+            self.context=context
+        elif context != self.context:
+            self.stop();return 'context_changed'
+        return 'same'
     def step(self, key, scene, *, same_channel=False, navigate=False):
         if key != self.key: self.reset(key,same_channel)
         if not key or not scene.focus:
@@ -65,10 +75,18 @@ class Lifecycle:
         if self.stage=='scan':
             if not scene.shop and scene.room:self.stage='shop'
             elif scene.hit:self.stage='item_ready'
-        if self.stage=='item_ready' and not scene.shop:
-            self.stage='stopped'
+        if self.stage=='item_ready':
+            if not scene.shop:self.stage='stopped'
+            elif not scene.hit:self.stage='scan'
         return out
     def stop(self):self.stage='stopped';self.black_count=0
+
+def fresh_inventory(result, key, expected, observed_at, now, max_age=.35):
+    """Return (shop, active candidate), only for fresh matching capture identity."""
+    if (result is None or key is None or tuple(key[:6])!=tuple(expected)
+            or observed_at is None or not 0<=now-observed_at<=max_age):
+        return False,False
+    return True,any(mode in ('MATCH','ROW_CHECK','PRICE_CHECK') for mode,_ in result.get('hits',()))
 
 def channel_points(channel, size=(1366,768)):
     if size!=(1366,768) or not 1<=channel<=40:return None
