@@ -30,7 +30,11 @@ STEP = 40
 SCALE = 3
 CACHE_LIMIT = 64
 GATE_INTERVAL = .75
-ACTIVE_SCAN_INTERVAL = .020
+ACTIVE_SCAN_INTERVAL = .005
+NAME_ROW_TOP = 26
+NAME_ROW_HEIGHT = 20
+NAME_ROW_GAP = 8
+NAME_ROW_SLOT = NAME_ROW_HEIGHT + NAME_ROW_GAP
 OBSERVATION_WIDTH = 220
 OBSERVATION_HEIGHT = 334
 
@@ -139,6 +143,16 @@ def section_fingerprints(frame):
         return digest.digest()
     return ((-1,region(3,16,9,89)),)+tuple(
         (row,region(25+row*STEP,60+row*STEP,40,198)) for row in range(ROWS))
+
+def name_row_fingerprint(frame,row):
+    buf,w,h,stride=frame
+    y=NAME_ROW_TOP+row*STEP
+    if w<198 or h<y+NAME_ROW_HEIGHT or stride<w*3 or len(buf)!=stride*h:
+        raise ValueError('Invalid item-name row')
+    digest=hashlib.blake2b(digest_size=16)
+    for yy in range(y,y+NAME_ROW_HEIGHT):
+        digest.update(buf[yy*stride+40*3:yy*stride+198*3])
+    return digest.digest()
 
 def inventory_fingerprint(frame):
     return hashlib.blake2b(b''.join(digest for _,digest in section_fingerprints(frame)),digest_size=20).digest()
