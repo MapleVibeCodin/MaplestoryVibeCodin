@@ -293,3 +293,7 @@ Read [one-scanner reconstruction](../market-data/2026-11-27-one-scanner-hour-rec
 ## Mandatory zero-filter-only movement research
 User verbatim: only use the 0,0,0,0 filter now. its the most accurate for movement. ask for latest screenshots
 Use exactly seven scanners and exclusively the 0,0,0,0 observation regime for movement model fitting/evaluation. Exclude earlier observations (estimated boundary22:34 Taipei; exact change time unknown). Retain earlier archives without using them for movement fitting. Request latest rolling-hour filename export with existing PowerShell clipboard command; deduplicate and preserve overlap. No new observations received yet.
+
+
+## Latest zero-filter-only seven-scanner continuation — 23:42 Taipei
+[Report](../market-data/2026-11-27-zero-filter-seven-2342.md):858 new raw/472 anchors; dense union3303/1651, seven refit1847 raw/929 anchors/904 supported visits. Frozen conditional exact FM189/472, within1 row438/472, route activity channel51/472. Peak7 strong envelopes; exact CC pattern unresolved. Latest23:42:13.544. No earlier filtered data used; seven fixed. No runtime changes. Full historical transcript and continuity audit incomplete.
