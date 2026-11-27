@@ -1,0 +1,287 @@
+{
+  "raw": 1909,
+  "consolidated": 1237,
+  "train": {
+    "events": 889,
+    "exposure": 141820,
+    "base": 0.006268509378084896,
+    "channelCounts": [
+      20,
+      18,
+      25,
+      27,
+      30,
+      27,
+      23,
+      25,
+      24,
+      31,
+      27,
+      23,
+      17,
+      20,
+      28,
+      27,
+      21,
+      21,
+      21,
+      24,
+      30,
+      16,
+      19,
+      13,
+      20,
+      18,
+      17,
+      19,
+      18,
+      24,
+      22,
+      15,
+      25,
+      17,
+      21,
+      24,
+      18,
+      22,
+      24,
+      28
+    ]
+  },
+  "policyCount": 106,
+  "selected": {
+    "p": {
+      "shrink": 30,
+      "margin": 0,
+      "cool": 0
+    },
+    "val": {
+      "n": 261,
+      "baseline": 560.4429993629456,
+      "policy": 558.4429993629456,
+      "net": 2,
+      "earlyBase": 17,
+      "early": 18,
+      "switches": 2,
+      "reactive": 231,
+      "baselineReactive": 232,
+      "gain": 1,
+      "loss": 0
+    }
+  },
+  "test": {
+    "n": 86,
+    "baseline": 196.87800192832947,
+    "policy": 200.1880021095276,
+    "net": -3.31000018119812,
+    "earlyBase": 1,
+    "early": 1,
+    "switches": 7,
+    "reactive": 70,
+    "baselineReactive": 70,
+    "gain": 0,
+    "loss": 3
+  },
+  "bestActive": {
+    "p": {
+      "shrink": 30,
+      "margin": 0,
+      "cool": 0
+    },
+    "val": {
+      "n": 261,
+      "baseline": 560.4429993629456,
+      "policy": 558.4429993629456,
+      "net": 2,
+      "earlyBase": 17,
+      "early": 18,
+      "switches": 2,
+      "reactive": 231,
+      "baselineReactive": 232,
+      "gain": 1,
+      "loss": 0
+    },
+    "test": {
+      "n": 86,
+      "baseline": 196.87800192832947,
+      "policy": 200.1880021095276,
+      "net": -3.31000018119812,
+      "earlyBase": 1,
+      "early": 1,
+      "switches": 7,
+      "reactive": 70,
+      "baselineReactive": 70,
+      "gain": 0,
+      "loss": 3
+    }
+  },
+  "activeCount": 10,
+  "scoreByShrink": [
+    {
+      "shrink": 30,
+      "validation": {
+        "n": 1624,
+        "hit": 183,
+        "baseHit": 36,
+        "logLoss": 3.0276820354251615,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 133
+      },
+      "test": {
+        "n": 688,
+        "hit": 44,
+        "baseHit": 4,
+        "logLoss": 3.5765447497857097,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 39
+      }
+    },
+    {
+      "shrink": 120,
+      "validation": {
+        "n": 1624,
+        "hit": 171,
+        "baseHit": 36,
+        "logLoss": 3.0276930093043743,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 124
+      },
+      "test": {
+        "n": 688,
+        "hit": 43,
+        "baseHit": 4,
+        "logLoss": 3.5048434986792047,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 38
+      }
+    },
+    {
+      "shrink": 480,
+      "validation": {
+        "n": 1624,
+        "hit": 167,
+        "baseHit": 36,
+        "logLoss": 3.027632958323011,
+        "baselineLogLoss": 3.6932750761450213,
+        "leadN": 1188,
+        "leadHit": 119
+      },
+      "test": {
+        "n": 688,
+        "hit": 42,
+        "baseHit": 4,
+        "logLoss": 3.427597405655253,
+        "baselineLogLoss": 3.699620324530327,
+        "leadN": 552,
+        "leadHit": 37
+      }
+    }
+  ],
+  "top5": [
+    {
+      "p": {
+        "shrink": 30,
+        "margin": 0,
+        "cool": 0
+      },
+      "val": {
+        "n": 261,
+        "baseline": 560.4429993629456,
+        "policy": 558.4429993629456,
+        "net": 2,
+        "earlyBase": 17,
+        "early": 18,
+        "switches": 2,
+        "reactive": 231,
+        "baselineReactive": 232,
+        "gain": 1,
+        "loss": 0
+      }
+    },
+    {
+      "p": {
+        "shrink": 30,
+        "margin": 0,
+        "cool": 5
+      },
+      "val": {
+        "n": 261,
+        "baseline": 560.4429993629456,
+        "policy": 558.4429993629456,
+        "net": 2,
+        "earlyBase": 17,
+        "early": 18,
+        "switches": 2,
+        "reactive": 231,
+        "baselineReactive": 232,
+        "gain": 1,
+        "loss": 0
+      }
+    },
+    {
+      "p": {
+        "shrink": 30,
+        "margin": 0,
+        "cool": 15
+      },
+      "val": {
+        "n": 261,
+        "baseline": 560.4429993629456,
+        "policy": 558.4429993629456,
+        "net": 2,
+        "earlyBase": 17,
+        "early": 18,
+        "switches": 2,
+        "reactive": 231,
+        "baselineReactive": 232,
+        "gain": 1,
+        "loss": 0
+      }
+    },
+    {
+      "p": {
+        "shrink": 30,
+        "margin": 0,
+        "cool": 30
+      },
+      "val": {
+        "n": 261,
+        "baseline": 560.4429993629456,
+        "policy": 558.4429993629456,
+        "net": 2,
+        "earlyBase": 17,
+        "early": 18,
+        "switches": 2,
+        "reactive": 231,
+        "baselineReactive": 232,
+        "gain": 1,
+        "loss": 0
+      }
+    },
+    {
+      "p": {
+        "shrink": 30,
+        "margin": 0,
+        "cool": 60
+      },
+      "val": {
+        "n": 261,
+        "baseline": 560.4429993629456,
+        "policy": 558.4429993629456,
+        "net": 2,
+        "earlyBase": 17,
+        "early": 18,
+        "switches": 2,
+        "reactive": 231,
+        "baselineReactive": 232,
+        "gain": 1,
+        "loss": 0
+      }
+    }
+  ],
+  "notes": "Retrospective; conditional intensity histogram with empirical shrinkage, 0.5s integration, 30s horizon; counts conditioned on strict past at bin left edge; expected first-alert gain uses exact noncancelable 2s cost for any mark; scores per second correlated and conditional on event within 30s; lead subset descriptive, not live gating; stateful same earlier simulator, no room travel/profit/true timestamps; no prospective test."
+}
