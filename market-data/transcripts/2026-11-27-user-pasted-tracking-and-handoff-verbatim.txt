@@ -1,0 +1,298 @@
+ok now do the tracking. tell me how many scanners there are and how they move.
+Scanner tracking — reconstructed movement
+Seven concurrent scanning tracks is our strongest working estimate. I would use seven as the initial tracking-model configuration, but the exact number of physical scanners is not identifiable from the feed alone.
+
+The denser observations also reveal something important: scanners appear to follow a circular room route, rather than necessarily changing channels after reaching FM2.
+
+1. Room movement
+Across the dense observation period from 22:34 to 22:55, there were 815 consolidated events across all 40 channels.
+
+The data contains 314 directly observed, route-compatible adjacent-room transitions, with a median interval of 7.01 seconds.
+
+
+1 → 7 → 17 → 18 → 19 → 20 → 16 → 15 → 14 → 13 → 8 → 9 → 10 → 11 → 12 → 6 → 5 → 4 → 3 → 2 → 1
+
+Schematic arrangement, not an exact in-game movement map.
+A full circular sweep is estimated to take approximately 140 seconds, assuming seven seconds for each of the 20 transitions.
+
+2. Evidence that FM2 is not the end of a scanner's assignment
+I identified 35 compatible same-channel transitions that cross the FM2-to-FM1 boundary, including 16 direct FM2 → FM1 transitions.
+
+Examples:
+
+Channel
+
+FM2 observed
+
+FM1 observed
+
+Interval
+
+CH6
+
+22:35:03.763
+
+22:35:08.846
+
+5.08s
+
+CH31
+
+22:36:30.240
+
+22:36:38.330
+
+8.09s
+
+CH37
+
+22:39:27.053
+
+22:39:34.304
+
+7.25s
+
+CH10
+
+22:45:19.438
+
+22:45:27.839
+
+8.40s
+
+CH37
+
+22:54:17.662
+
+22:54:26.166
+
+8.50s
+
+This strongly suggests that the starting room can vary, and the route can wrap around in the same channel. We should no longer assume that FM2 automatically triggers a channel change.
+
+3. How many scanners are needed to explain the data?
+I reconstructed 44 strong scanning episodes and performed a minimum-path-cover analysis. This assigns non-overlapping episodes to hypothetical scanner tracks.
+
+Maximum permitted gap between observed channel visits
+
+Minimum tracks required
+
+30 seconds
+
+21
+
+60 seconds
+
+13
+
+90 seconds
+
+8
+
+120 seconds
+
+7
+
+180 seconds
+
+7
+
+300 seconds
+
+7
+
+These gaps include potentially unobserved scanning activity, not just channel-loading time.
+
+Seven tracks can explain all 44 strong episodes if we allow gaps of up to 120 seconds. A separate estimate also supports seven: a roughly 142-second sweep through each of 40 channels, with an approximately 855-second world recurrence, implies about 6.6 continuously scanning workers.
+
+My working estimate is 7–8 scanners, with seven as the primary hypothesis, assuming the inferred routes and recurrence are approximately correct.
+
+4. Reconstructed scanner assignments
+One feasible seven-track reconstruction is:
+
+Inferred scanner
+
+Possible channel sequence
+
+A
+
+36 → 19 → 35 → 28 → 10 → 12 → 14 → 7 → 15
+
+B
+
+18 → 3 → 39 → 40 → 29 → 13
+
+C
+
+6 → 5 → 2 → 1 → 34 → 26 → 16 → 35
+
+D
+
+31 → 37 → 8 → 32 → 24 → 5
+
+E
+
+14 → 7 → 30 → 11 → 36 → 3 → 25
+
+F
+
+16 → 15 → 9 → 20 → 27
+
+G
+
+33 → 17 → 7
+
+This reconstruction covers all strong episodes without requiring a scanner to occupy two channels simultaneously.
+
+However, it is not a verified assignment schedule. I tested 40 variations of the assignment costs, and only 9 of the 37 proposed handoffs appeared in at least 80% of the solutions. The scanner count is more stable than the individual channel assignments.
+
+5. Do scanners have permanently assigned channels?
+I tested this possibility separately using 153 channel-overlap constraints.
+
+A system with seven permanently assigned channel groups is mathematically feasible. However, alternative valid groupings exist, so we cannot yet distinguish permanent assignments from a shared scanning queue.
+
+Another interesting finding: among 175 same-channel, same-room revisit intervals longer than 15 seconds, none fell between 90 and 240 seconds. Meanwhile, 72 occurred within two minutes of our hypothesized 855-second recurrence.
+
+This supports the idea that scanners generally complete a sweep and eventually move elsewhere, rather than continuously looping around the same channel.
+
+6. Current scanner model
+Parameter
+
+Best working estimate
+
+Scanner count
+
+7–8
+
+Primary configuration
+
+7 scanners
+
+Room direction
+
+Circular, predominantly forward
+
+Seconds per room
+
+7.01s
+
+Full channel sweep
+
+Approximately 142s
+
+World recurrence
+
+Approximately 14 minutes, tentative
+
+Starting room
+
+Variable
+
+Channel assignment
+
+Unresolved
+
+For our predictive system, I would initialize seven anonymous scanner tracks and allow additional tracks when observations cannot be reconciled. Each track should maintain its estimated channel, room, direction, progress and confidence.
+
+Tracking analysis, source code and verified GitHub checkpoint.
+
+The reconstruction is complete, but exact scanner identities and channel sequences remain unverified. No live integration or runtime changes have been made.
+
+i mean we have second by second data now. tell me eact
+I went back to the individual timestamps rather than the longer scanning episodes. Exactly seven scanners is not confirmed. The finer-grained data actually challenges that estimate.
+
+Observation window
+
+Maximum distinct channels observed
+
+0.5 seconds
+
+3
+
+1 second
+
+5
+
+2 seconds
+
+8
+
+3 seconds
+
+9
+
+5 seconds
+
+10
+
+At 22:35:17.113, eight different channels generated records within two seconds:
+
+CH2, CH6, CH10, CH12, CH20, CH23, CH26 and CH36.
+
+If the scanners require at least two seconds to change channels and the timestamps represent actual scan times, seven scanners cannot explain those observations.
+
+Exact minimum under different movement assumptions
+I ran an individual-event track assignment across all 815 consolidated dense-feed events.
+
+Assumed minimum channel-change time
+
+Minimum scanners required*
+
+1 second
+
+6
+
+2 seconds
+
+9
+
+3 seconds
+
+12
+
+4 seconds
+
+14
+
+*Assuming at least two seconds per forward room step, accurate scan timestamps, and allowing unobserved route resets after 60 seconds.
+
+Why I cannot confirm exactly nine
+The higher count is driven primarily by the initial burst of observations. Excluding the first two minutes, the same two-second channel-change model requires only six tracks.
+
+Also, 79.4% of consecutive screenshot downloads are separated by less than 0.5 seconds. This could indicate queued or batched delivery rather than actual scanner movement timestamps.
+
+Final assessment
+Seven: strongest working hypothesis from sustained, overlapping room movements.
+
+Nine: minimum required if download timestamps are exact scan timestamps and our movement assumptions hold.
+
+Exact physical scanner count: not established.
+
+I would initialize seven tracks and permit additional tracks dynamically rather than hardcoding a fixed scanner count.
+
+Verified GitHub analysis. All results and code saved; no runtime changes. The historical transcript remains incomplete.
+
+copy everything verbatum and start new chat. save to github
+I’ll archive the accessible conversation verbatim, preserve the original exports and analysis, and verify the GitHub checkpoint for the next chat.
+
+Fetched repository guidelines, checkpoint status, scanner analysis, and research data; archived conversation
+
+The full transcript write was blocked. The research files and original exports are still intact. I’ll preserve the latest accessible text separately and record exactly what remains missing in the handoff.
+
+GitHub handoff
+All 12 original data exports verified against their archived hashes
+
+11,208 distinct screenshot filenames preserved
+
+Scanner tracking models, simulations and research preserved
+
+Latest exact-count exchange and export commands archived verbatim
+
+Complete verbatim transcript remains incomplete — the full transcript write was blocked
+
+
+
+
+
+50
+move this to github verbatum
