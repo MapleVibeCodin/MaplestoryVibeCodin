@@ -76,3 +76,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Decision-focused methodology reset — 21:19 Taipei
 [Research and executed test](2026-11-27-decision-focused-methodology-reset.md). Latest2558 raw,1237 evening consolidated,86 new consolidated. Continuous-state simulator supersedes independent interval-reset proxy; train/validation/test chronological, 225 candidate policies. Best validation policy abstains; retrospective test net0s, no speculative switches. No validated predictive advantage. True alert timing, eligibility and movement measurements missing; no runtime edits. Code/results saved; next cutoff21:19:37.057.
+
+## Method 1/5 — marked point process
+[Executed comparison](2026-11-27-method01-marked-point-process.md), 106 policies, selected validation +2s, retrospective test -3.31s, 7 speculative switches, 0 gains>=1s/3 losses. Not deployable; next Hawkes, then renewal, HSMM, decision-focused ensemble. Freeze identical splits and costs; fresh prospective final validation needed. No runtime edits.
