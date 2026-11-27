@@ -288,3 +288,8 @@ Read [one-scanner reconstruction](../market-data/2026-11-27-one-scanner-hour-rec
 
 ## Zero-filter-only seven-scanner reconstruction
 [Report](../market-data/2026-11-27-zero-filter-fixed-seven-refit.md): fixed seven, dense proxy22:34–23:13:51.434,2445 raw/1178 consolidated. Dense-only1363 raw/643 anchors/623 visits vs old full-hour model1354/646/624 on same window. 64 strong sweeps, first three endpoints unchanged; no substantive improvement in movement coverage or validated prediction. Exact filter activation unknown. No new data/runtime changes. Preserve all history; next variable dwell/skip/interrupt/delay models with time-ordered validation.
+
+
+## Mandatory zero-filter-only movement research
+User verbatim: only use the 0,0,0,0 filter now. its the most accurate for movement. ask for latest screenshots
+Use exactly seven scanners and exclusively the 0,0,0,0 observation regime for movement model fitting/evaluation. Exclude earlier observations (estimated boundary22:34 Taipei; exact change time unknown). Retain earlier archives without using them for movement fitting. Request latest rolling-hour filename export with existing PowerShell clipboard command; deduplicate and preserve overlap. No new observations received yet.
