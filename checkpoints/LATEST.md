@@ -314,3 +314,7 @@ User verbatim: update the number of scanners to whateever you wANT
 
 ## All-original-export seven-role audit
 [Report](../market-data/2026-11-27-seven-role-all-archive-audit.md):14 originals,12708 unique,9405 pre-dense excluded,3303 eligible exactly prior input. Zero wrong assignments/duplicates/modeled anchor violations.450/451 direct forward links retained;119/154 episodes unsplit;279 distinct CC pairs/315 switches, no stable channel cycle. Retrospective consistency only, not independent validation. No new data/runtime edits/deletions; historical audit/archive incomplete.
+
+
+## Prediction improvement priorities
+[Plan](../market-data/2026-11-27-prediction-improvement-plan.md): independent channel revisit hazards, episode-level links, latency uncertainty, probabilistic worker states, unseen chronological tests with net positioning benefit. Proposed only, no implementation or new data.
