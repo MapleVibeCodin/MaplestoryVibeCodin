@@ -11,7 +11,7 @@ Date: 2026-11-26. Continue the existing GitHub + Windows PowerShell workflow. Do
 - All raw private screenshots, recordings and logs remain private; do not push raw media/logs to GitHub. No full verbatim chat transcript or permanent memory write verified. Current notes preserve substantive decisions/results, not every message.
 
 ## Current checkpoint — Step 11 (50ms item target)
-- Branch: `performance-lab/step-11-50ms-target`; current candidate commit: `79511a4eacc755fc95c00e8ac819e589235edb90`.
+- Branch: `performance-lab/step-11-50ms-target`; current candidate commit: `522d001a8b638a0cc0ccfa53463ae64cdee12134`.
 - Step 11 changes: compact six-row name-only OCR (no seller, price or stats), background WinRT warmup, row text cache independent of price pixels, one-frame exact-name target, amber overlay, 5ms worker scan cadence and 10ms UI polling in confirmed FM room. Scroll targets retain legacy strict path.
 - Telemetry exports shop gate, name OCR, queue-to-target, scan-start-to-target, target-to-overlay, scan-start-to-overlay and queue-to-overlay timings, plus p95. Acceptance target is P95 `shop_open_to_overlay_ms` ≤ 50ms; `queue_to_overlay_ms` ≤ 40ms reserves approximately 10ms for polling. **Not yet measured.** Cold OCR can still exceed 50ms.
 - Historical screenshot geometry checked across 16 captures: name glyphs fit the 20px crop; seller, price and stats are excluded. Raw captures remain in Library/private archives.
@@ -27,7 +27,7 @@ $Fast = "$env:LOCALAPPDATA\FM_Rush_50MS"
 git -C $Lab fetch origin performance-lab/step-11-50ms-target
 if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
-git -C $Lab worktree add --detach $Fast 79511a4eacc755fc95c00e8ac819e589235edb90
+git -C $Lab worktree add --detach $Fast 522d001a8b638a0cc0ccfa53463ae64cdee12134
 if ($LASTEXITCODE -ne 0) { throw "Worktree failed" }
 
 $Scanner = "$Fast\Scanner Nov 20"
