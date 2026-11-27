@@ -78,7 +78,7 @@ if (!(Test-Python $Python)) {
 if ($LASTEXITCODE) { throw 'Runtime compile preflight failed. Existing installations are unchanged.' }
 $env:BEAST_PINNED_SCANNER=$Scanner
 $env:BEAST_START_CHANNEL="$StartChannel"
-Write-Host 'The ultimate beast Smooth Shortcuts | RuneScape R3 | Logitech pointer shortcuts | no automatic cursor moves | passive feedback | close other FM Rush/Sprint instances first.' -ForegroundColor Cyan
+Write-Host 'The ultimate beast Smooth Shortcuts Centered | RuneScape R3 | Logitech pointer shortcuts | no automatic cursor moves | passive feedback | close other FM Rush/Sprint instances first.' -ForegroundColor Cyan
 & $Python (Join-Path $PSScriptRoot 'run_beast.py')
 $RunCode=$LASTEXITCODE
 $Feedback=Join-Path $HomeDir 'runescape\feedback'
