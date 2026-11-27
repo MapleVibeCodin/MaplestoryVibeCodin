@@ -11,6 +11,28 @@ HEADER='eJztl/9r01oUwPtP+Wc0UAaFQdVsTHOtLzV2lmbfnNrgU58+M/UXzQ+KaNQfqtX9sllBxcoU
 
 def header():return np.frombuffer(zlib.decompress(base64.b64decode(HEADER)),np.uint8).reshape(51,164)
 
+def focus_release_pointer(*, schedule, now, valid, game_focused, scanner_focused, focus_scanner, move, done):
+    """Previous FM Rush focus-release strategy; bounded pointer move, never a click."""
+    deadline=now()+.075
+    def finish():
+        if now()>=deadline:
+            done(False,'focus_timeout');return
+        if not valid():
+            done(False,'target_changed');return
+        if game_focused():
+            schedule(5,finish);return
+        if not scanner_focused():
+            done(False,'other_window_focused');return
+        ok=move()
+        done(ok,'moved' if ok else 'move_failed')
+    if not valid():
+        done(False,'target_changed');return
+    try:
+        focus_scanner()
+    except Exception:
+        done(False,'focus_request_failed');return
+    schedule(5,finish)
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('--engine',choices=['runescape','maplestory'],required=True)
     p.add_argument('--navigate',action='store_true',help='EXPERIMENTAL live channel and projected-shop clicks; no buying')
@@ -78,7 +100,7 @@ def main():
             self.flow=Lifecycle();self._f12=False;self._f8=False;self._identity=None;self._message=''
             self._parked=False;self._last_tick=0.;self._last_menu=None
             self._route_mini=None;self._route_mini_key=None;self._syncing_archive=False
-            self._f9_inhibit=False
+            self._f9_inhibit=False;self._park_serial=0
             super().__init__();self.conf['start_channel']=args.start_channel
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
             self.root.title('The ultimate beast — '+args.engine.title()+' — '+('Experimental navigation' if args.navigate else 'Pointer assist'))
@@ -107,13 +129,52 @@ def main():
         def f9_down(self):return bool(user.GetAsyncKeyState(0x78)&0x8000)
         def safe(self,hwnd,client):
             return hwnd and window_has_focus(hwnd) and window_client_rect(hwnd)==client and not (user.GetAsyncKeyState(0x7B)&0x8000)
-        def at(self,hwnd,client,point,click=False,require_f9=False):
+        def release_and_park(self,hwnd,client,sx,sy,serial):
+            key,stage=self.flow.key,self.flow.stage
+            rec=getattr(self,'performance',None)
+            attempt=getattr(rec,'active',None)
+            started=time.perf_counter()
+            def valid():
+                if self._closing or serial!=self._park_serial or self.flow.key!=key or self.flow.stage!=stage:return False
+                if user.GetAsyncKeyState(0x7B)&0x8000:return False
+                if not self.archive.lock.acquire(blocking=False):return False
+                try:
+                    current=self.archive.current()
+                    locked=self.archive.chase_locked and current and current[0]==key and not current[1].sold
+                finally:self.archive.lock.release()
+                return bool(locked and self.shop.selected_hwnd()==hwnd and window_client_rect(hwnd)==client and window_at_point(sx,sy)==hwnd)
+            def focus_scanner():
+                if self.root.state() in ('iconic','withdrawn'):self.root.deiconify()
+                self.root.focus_force()
+            def scanner_focused():
+                owner=user.GetAncestor(self.root.winfo_id(),2)
+                return bool(owner and window_has_focus(owner))
+            def move():
+                return bool(valid() and not window_has_focus(hwnd) and scanner_focused()
+                    and move_cursor_on_screen(hwnd,sx,sy) is None and cursor_screen_position()==(sx,sy))
+            def done(ok,reason):
+                if rec is not None and rec.active==attempt:rec.marker('beast_pointer_handoff',ok=ok,reason=reason,total_ms=round((time.perf_counter()-started)*1000,1))
+                if not self._closing and serial==self._park_serial and self.flow.key==key:
+                    self.status.set('Pointer ready · click manually' if ok else 'Pointer not moved · '+reason.replace('_',' '))
+            focus_release_pointer(schedule=self.schedule,now=time.perf_counter,valid=valid,
+                game_focused=lambda:window_has_focus(hwnd),scanner_focused=scanner_focused,
+                focus_scanner=focus_scanner,move=move,done=done)
+        def at(self,hwnd,client,point,click=False,require_f9=False,release_focus=True):
             if point is None or not self.safe(hwnd,client) or (require_f9 and not self.f9_down()):return False
             x,y=point;w,h=client[2:]
             if not (2<x<w-2 and 2<y<h-2):return False
             sx,sy=client[0]+x,client[1]+y
             if window_at_point(sx,sy)!=hwnd:return False
-            if move_cursor_on_screen(hwnd,sx,sy) is not None:return False
+            self._park_serial+=1
+            serial=self._park_serial
+            if cursor_screen_position()!=(sx,sy):
+                # Parking uses the proven focus-release path before moving. The
+                # shop-open tooltip-clear park must not interrupt recognition.
+                if not click and release_focus:
+                    self.release_and_park(hwnd,client,sx,sy,serial);return True
+                if move_cursor_on_screen(hwnd,sx,sy) is not None or cursor_screen_position()!=(sx,sy):
+                    if release_focus:self.release_and_park(hwnd,client,sx,sy,serial)
+                    return False
             if click:
                 if not self.safe(hwnd,client) or window_at_point(sx,sy)!=hwnd or cursor_screen_position()!=(sx,sy) or (require_f9 and not self.f9_down()):return False
                 user.mouse_event(0x0002,0,0,0,0);user.mouse_event(0x0004,0,0,0,0)
@@ -197,7 +258,7 @@ def main():
                 if a=='park_channel':self.at(hwnd,client,cell)
                 elif a=='park_shop_normal':self.at(hwnd,client,self.pin(deal,client,False))
                 elif a=='park_shop_cc':self.at(hwnd,client,self.pin(deal,client,True))
-                elif a=='park_clear':self.at(hwnd,client,(client[2]-30,100))
+                elif a=='park_clear':self.at(hwnd,client,(client[2]-30,100),release_focus=False)
                 elif a=='select_channel':
                     # Refresh the header immediately before an experimental click.
                     m,s,c,_=self.menu(client,deal.cc)
