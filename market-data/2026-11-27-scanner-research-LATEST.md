@@ -103,3 +103,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Final finite-data analysis — all nine exports
 [Final positioning report](2026-11-27-final-full-history-positioning-analysis.md). Union9218 filenames/7296 consolidated across12 dates; all intermediate exports covered. No more data requests. Reactive chase plus fixed FM7–12 (approx FM9–10) best robust combined strategy; Nov27 either correct channel or within1 row1414/1639, latest211/232 conditional on position retention. 41 channel policies,68 spatial,122 standby. Standby-only recent15 margin.25 improves over fixed channel147 vs49/1639, latest20 vs9/232; 226/45 changes, not proven while pursuing selected deals. No proactive improvement under chase-all. No live deployment.
+
+## Extended frozen holdout — 582 new screenshots
+[Past-hour deep dive](2026-11-27-hour-live-tracking-holdout.md). 296 new consolidated, shared CH12->19 FM5 prediction gives A+1.407/B+2/C+.407s, no tuning. One shared opportunity only. Hybrid40/296 fixed lead hits vs persistence29; original HSMM conditional floor170 vs267 fixed. Latest cutoff22:36:41.931. Large late batch, five new strong route episodes. No deployment.
