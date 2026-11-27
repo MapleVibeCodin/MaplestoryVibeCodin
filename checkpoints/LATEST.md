@@ -244,3 +244,7 @@ Read [resume audit](../market-data/2026-11-27-resume-continuity-audit.md) and [a
 
 ## Dense-feed holdout — 23:13 Taipei
 Read [latest holdout report](../market-data/2026-11-27-dense-holdout-2313.md). Thirteenth original verified SHA4c59dd31094b106798d51f8cca4086e3b9b21cf0,642 new/363 consolidated, total11850 filenames/8599 consolidated, latest23:13:51.174. Frozen6.721s route160/363 exact room,334 near row; recent15 channel39/363. Frozen channel-switch policies net0 new. Peak7 strong envelopes,80 total,7 feasible tracks with300s gaps, no exact count; 3 repeated broad channel links,0 strict repeats. Keep seven anonymous tracks with overflow and FM9–10 standby. No runtime edits or prior file deletions. Transcript partial, prior missing evidence remains.
+
+
+## One-scanner rolling-hour trajectory
+Read [one-scanner reconstruction](../market-data/2026-11-27-one-scanner-hour-reconstruction.md). New retrospective synthetic one-worker model on exact rolling hour22:13:51.434–23:13:51.434, full timeline505 room intervals/25 CCs,151 supported/354 silent,160 matched marks of1299,15 distinct channels. 7s fixed room window,20-room full sweep, arbitrary entry phase,2–12s CC assumed. Primary CH11 FM6 at cutoff; equally supported alternative CH39 FM11 (objective difference .035 only). No exact physical worker recovered. No new data or change to frozen channel model. Complete room/minute CSV and reproducible model, alternate fits archived. Earlier sparse phase especially ambiguous. Next data cutoff unchanged23:13:51.174. Transcript partial; no historical deletions.
