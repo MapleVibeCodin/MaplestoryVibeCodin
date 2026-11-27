@@ -191,3 +191,6 @@ Read [marked point process](../market-data/2026-11-27-method01-marked-point-proc
 
 ## HeneFM model comparison — method 2 of 5
 Read [Hawkes model](../market-data/2026-11-27-method02-hawkes.md). 25 trained fits,106 policies, best policy abstains, 0s validation/test. Method1 test -3.31s. No positive proactive advantage. Next renewal, then HSMM and ensemble. Preserve identical splits and stateful benchmark; fresh unseen data required for final comparison. Latest original2558 cutoff21:19:37.057. No runtime changes.
+
+## HeneFM model comparison — method 3 of 5
+Read [renewal model](../market-data/2026-11-27-method03-renewal.md). Four variants,141 policies, net0s validation/test selected abstention; no active validation policy. Methods1/2 test -3.31/0s. Next HSMM, then decision-focused ensemble. Same source2558 original/cutoff21:19:37.057 and persistent benchmark; fresh unseen final validation needed. No runtime changes.
