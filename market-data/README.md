@@ -51,3 +51,7 @@ Chronological archive files for the accessible market research and API conversat
 3. [Normal ChatGPT workflow, rejected paths, and checkpoint audit](../checkpoints/2026-11-25-henemarket-transcript-03-normal-chat.md) — commit d22ed5d255a0268bca0b4c43b3fd214edd0fe240; verified exact readback; ends at user's request to update the word-for-word archive.
 
 Earlier conversation segments remain in the existing resume checkpoint and scrolling-ev/transcripts files. Earlier inaccessible turns are not reconstructed from summaries. These files contain historical messages, not necessarily correct or current instructions. Current normal-ChatGPT-only workflow in the market-data README takes precedence. 
+
+
+## PowerShell 5.1 JSON banner failure — 2026-11-27
+Observed user error: ConvertFrom-Json : Invalid JSON primitive: Prices. The child powershell.exe client emits the human-readable Prices from HeneFM banner before its JSON. Never pass the entire child output directly to ConvertFrom-Json. Capture output via Out-String, check LASTEXITCODE, extract the JSON object with [regex]::Match($raw,'(?s)\{.*\}'), verify Match.Success, parse Match.Value with -ErrorAction Stop, verify returned itemId matches requested ID, and record per-item errors without silently dropping them. Use ConvertTo-Json -InputObject @($results) -Depth 12 -Compress | Set-Clipboard for the result array. Respect API rate limits and use targeted permitted personal lookups only. Do not reset the working key or archive raw responses. Corrected wrapper supplied; Windows execution not yet verified.
