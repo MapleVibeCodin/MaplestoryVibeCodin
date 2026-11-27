@@ -162,3 +162,7 @@ Read [one-scanner reconstruction](2026-11-27-one-scanner-hour-reconstruction.md)
 
 ## Zero-filter-only seven-scanner reconstruction
 [Report](2026-11-27-zero-filter-fixed-seven-refit.md): fixed seven, dense proxy22:34–23:13:51.434,2445 raw/1178 consolidated. Dense-only1363 raw/643 anchors/623 visits vs old full-hour model1354/646/624 on same window. 64 strong sweeps, first three endpoints unchanged; no substantive improvement in movement coverage or validated prediction. Exact filter activation unknown. No new data/runtime changes. Preserve all history; next variable dwell/skip/interrupt/delay models with time-ordered validation.
+
+
+## Latest zero-filter-only seven-scanner continuation — 23:42 Taipei
+[Report](2026-11-27-zero-filter-seven-2342.md):858 new raw/472 anchors; dense union3303/1651, seven refit1847 raw/929 anchors/904 supported visits. Frozen conditional exact FM189/472, within1 row438/472, route activity channel51/472. Peak7 strong envelopes; exact CC pattern unresolved. Latest23:42:13.544. No earlier filtered data used; seven fixed. No runtime changes. Full historical transcript and continuity audit incomplete.
