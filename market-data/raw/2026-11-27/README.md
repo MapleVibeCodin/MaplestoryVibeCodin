@@ -34,3 +34,6 @@ Completion reported 8:29pm.
 
 ## Eleventh original export — broader zero filter
 `Pasted text(20261127-144552).txt`:1788 lines incl header,1787 unique filenames,161205 bytes, blob `9abca1d2a6c960b1b1b037d5479971bdc87e51c5`; mounted and remote hashes match. All819 prior overlap,968 new (966 after cutoff,2 backfill), latest22:45:41.002. Preserve exact original separately.
+
+## Twelfth original export — 22:55 Taipei
+`Pasted text(20261127-145516).txt`:2140 lines incl header,2139 filenames,193072 bytes, blob `c5c67a1b52d39bf27797086b6204ac58afb5b4b7`; mounted and remote hash match. 1699 overlap,440 new,88 earlier omitted naturally by rolling window but archived. Latest22:55:03.028.
