@@ -67,3 +67,7 @@ User: "no ask me to scrape the api for hene fm cause your prices are wrong". For
 
 ## Crafting shortlist exclusion — 2026-11-27
 User: "glove accuraccy is kinda useless, get rid of". Exclude Gloves Accuracy from actionable catalyst crafting recommendations and rankings regardless of apparent profit. Preserve historical research; no deletion. Remaining current comparison: Shoes Jump (liquidity caveat), Gloves Crit Rate, Shoes Speed, Earring LUK. No new prices in this turn.
+
+
+## Shoes Jump exclusion — 2026-11-27
+User: "same with shoe jump". Exclude Shoes Jump as well as Gloves Accuracy from actionable catalyst crafting recommendations, regardless of theoretical profitability. Current shortlist: Gloves Crit Rate, Shoes Speed, Earring LUK. Preserve historical research and all prior files. No new prices or calculations in this turn.
