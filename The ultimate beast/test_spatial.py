@@ -2,7 +2,7 @@
 import ast
 import unittest
 from pathlib import Path
-from beast_spatial import edge_directions, clipped_directions, PointerAudit
+from beast_spatial import edge_directions, clipped_directions, PointerAudit, CameraModeLatch
 
 class Recorder:
     scope='locked'
@@ -41,6 +41,26 @@ class SpatialTests(unittest.TestCase):
         rec=Recorder();rec.scope='unlocked';PointerAudit(rec,'shop',1).done('unlocked')
         self.assertEqual(rec.rows,[])
         PointerAudit(None,'shop',1).done('unavailable')
+    def test_camera_latch(self):
+        latch=CameraModeLatch()
+        self.assertEqual(latch.choose('a',None),('none',None))
+        self.assertEqual(latch.choose('a',(252,128)),('landmark_estimate',(252,128)))
+        for _ in range(50):
+            self.assertEqual(latch.choose('a',None),('waiting_landmark',None))
+            self.assertEqual(latch.choose('a',(252,128)),('landmark_estimate',(252,128)))
+        self.assertEqual(latch.choose('b',None),('none',None))
+    def test_inventory_fallback_structure(self):
+        root=Path(__file__).resolve().parent
+        source=(root/'beast_inventory.py').read_text(encoding='utf-8')
+        tree=ast.parse(source)
+        self.assertIn("'fast_path':'strict_scroll' if strict else 'full_fallback'",source)
+        self.assertIn("if geometry and strict:",source)
+        self.assertIn("frame_after=self._inventory_frame(client,anchor)",source)
+        scan=next(n for n in ast.walk(tree) if isinstance(n,ast.FunctionDef) and n.name=='_scan')
+        fast=next(n for n in ast.walk(scan) if isinstance(n,ast.If) and ast.unparse(n.test)=='not strict')
+        self.assertFalse(isinstance(fast.body[-1],ast.Return))
+        wrapper=(root/'fm_sprint.py').read_text(encoding='utf-8')
+        self.assertIn("class Tracker(InventoryFallbackMixin,shop_inventory.ShopInventoryTracker)",wrapper)
     def test_compile_and_structural_guard(self):
         root=Path(__file__).resolve().parent
         spatial=(root/'beast_spatial.py').read_text(encoding='utf-8')
