@@ -21,3 +21,7 @@ Spatial live session 2026-11-27: 100 shop shortcut outcomes, 58 preview unavaila
 
 ## Stable candidate
 2a6a083553dcdd4f0e1f9e95729a2c87c7bff052: camera mode latches to fresh landmark evidence after first success for the same scoped listing/view; on loss, hides marker rather than switching back to entry estimate. Initial estimated mode and cave behavior unchanged. 103 assertions on copied CameraModeLatch passed, staged regression gate added; no live qualification. Title gate unchanged pending native visual evidence; now save up to 24 existing minimap crops per session locally with bounded worker, and restore independent shop screenshot recorder, no upload. No verified cave or room gate fix.
+
+
+## Full historical regression
+Windows QA 45969348478: 282/282 after explicit current-contract fixture adapters, including 190/190 pinned scanner checks. Original baseline run 45968901695 documented failures rather than counting them as passes. Runtime unchanged; current exact _scan replaces obsolete name-only behavior in historical inventory fixture tests. No native image/video accuracy claim. Full details research/CURRENT-REGRESSION-20261127.md.
