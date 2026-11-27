@@ -25,3 +25,6 @@ Completion reported 8:29pm.
 
 ## Eighth original export — 21:19 Taipei
 `Pasted text(20261127-131959).txt`: 2559 lines incl header, 2558 unique records, blob `68f456d30f5887421107fda32ffe29ad09ab5aca`, byte-exact hash verified against mounted attachment; 102 new, last21:19:37.057. All eight exports preserved.
+
+## Ninth original export — 22:13 Taipei
+`Pasted text(20261127-141325).txt`: 2847 lines incl header,2846 distinct records,257362 bytes, blob `579e4b4f61a3431dbaceb3a0ba3e64f902557761`, mounted bytes and remote exact verified. 288 new, last22:12:57.929. All nine originals preserved.
