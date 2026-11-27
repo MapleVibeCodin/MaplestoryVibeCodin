@@ -73,3 +73,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Latest frozen holdout — 21:03 Taipei
 [404 observation test](2026-11-27-404-holdout.md). Seven original exports, latest2456 raw/404 new/261 consolidated. Reproduced prior49-event reconstruction scores exactly. New 2s CC net -24.801s, 11 gains>=1s vs25 losses, conditional floor190/261 vs242/261. No confidence threshold positive. Original logistic weights unavailable; reconstructed model not deployable. Prior [81-event code](models/2026-11-27-positioning-frozen-reconstruction.cjs) and [results](results/2026-11-27-positioning-frozen-81-holdout.json) preserved. Next cutoff21:02:59.731. No runtime changes.
+
+## Decision-focused methodology reset — 21:19 Taipei
+[Research and executed test](2026-11-27-decision-focused-methodology-reset.md). Latest2558 raw,1237 evening consolidated,86 new consolidated. Continuous-state simulator supersedes independent interval-reset proxy; train/validation/test chronological, 225 candidate policies. Best validation policy abstains; retrospective test net0s, no speculative switches. No validated predictive advantage. True alert timing, eligibility and movement measurements missing; no runtime edits. Code/results saved; next cutoff21:19:37.057.
