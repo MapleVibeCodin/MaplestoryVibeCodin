@@ -1,0 +1,969 @@
+# Earring dialogue archive — 2026-11-27
+
+Exact copies of retrieved GitHub transcript files (not necessarily full original conversations). Original files remain unchanged.
+
+
+----- BEGIN earring-research-resume | 8d79aea6c5be8d0d12360123716896363ab6491a -----
+# Earring research resumed — 2026-11-25
+
+## User
+
+ok now lets get back to our original question of making earrings the best for my level 50 character. pull up all the data from github on previous comversation
+
+## Assistant
+
+I've recovered our original earring optimization research from GitHub. We were solving a very specific problem: **maximize your level 50 Assassin's damage through self-made earrings with a hard budget of 1 million mesos.**
+
+## 1. Original constraints
+
+- All other equipment remains clean.
+- Only the earring slot receives upgrades.
+- No buying partially scrolled or finished earrings.
+- DEX and LUK are equivalent when DEX replaces base AP that can be reassigned to LUK.
+- No AP reset expense.
+- Compare self-crafted scrolls against purchased scrolls.
+- Use HeneFM exclusively for market prices.
+- Optimize the actual outcome within the 1m budget, not just an unlimited-budget expected cost.
+
+[Original research handoff](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/scrolling-ev/RESEARCH_HANDOFF.md)
+
+## 2. Previously researched scroll prices
+
+These are the saved November 25 price observations, not newly refreshed quotes.
+
+| Scroll tier | Success | Stat gain | DEX | LUK |
+|---|---:|---:|---:|---:|
+| Lesser | 100% | +1 | 38.5k | 38k |
+| Intermediate | 60% | +2 | 95k | 120k |
+| Greater | 10% | +3 | 18k | 30k |
+| Chaos | 10% | +4 | Unavailable | 310k |
+
+The Chaos model also includes a 45% unconditional destruction probability.
+
+Our previous approach was to buy the cheapest equivalent DEX or LUK scroll at each tier, rather than restrict ourselves to LUK scrolls.
+
+## 3. Top three clean earrings
+
+**Pansy Earrings**
+
+Best modeled combat damage
+
+3% natural crit damage · 5 slots
+
+15,000 mesos
+
+**Star Earrings**
+
+Best expected raw stat gain
+
+2% natural crit damage · 5 slots
+
+4,000 mesos
+
+**Emerald Earrings**
+
+Alternative inexpensive base
+
+2% natural crit damage · 5 slots
+
+5,000 mesos
+
+We also investigated higher natural crit damage variants, but the historical prices were significantly more expensive: 165k for 3% Emerald and 250k for 4% Pansy.
+
+## 4. Best self-scrolling results under 1m
+
+Our last hard-budget optimization included all four scroll tiers, fresh-base retries, retaining the best earring, and crafting cheaper Lesser scrolls.
+
+| Base | Expected added effective LUK | Modeled average Lucky Seven cast damage |
+|---|---:|---:|
+| Pansy 3% CD | 8.004 | **1,199.063** |
+| Star 2% CD | **8.427** | 1,198.487 |
+| Emerald 2% CD | 8.384 | 1,198.326 |
+
+The difference in expected damage is extremely small. Pansy won in the historical model because its additional natural crit damage compensated for its slightly lower expected LUK gain.
+
+These are previously calculated expectations, not guaranteed outcomes or independently verified in-game damage measurements.
+
+## 5. Making our own scrolls
+
+The saved Arcforge level 8 recipe for Earring DEX/LUK Lesser is:
+
+| Ingredient | Quantity | Previous cost |
+|---|---:|---:|
+| Black Crystal Ore | 3 | 9,000 |
+| Refining fees | 3 | 3,600 |
+| Fragment of Magic | 10 | 1,690 |
+| Processed Parchment | 1 | 488 |
+| Crafting fee | — | 20,000 |
+| **Total** | | **34,778** |
+
+Using five self-crafted Lesser scrolls on a 15k Pansy gives a guaranteed +5 stat earring for **188,890 mesos**.
+
+## 6. What our new catalyst experiment adds
+
+We now have more empirical evidence than when we originally calculated the earring strategy.
+
+[Chart flattened: Intermediate community 80%, our batch 75%; Greater community 20%, our batch 16.67%; Chaos community 0%, our batch 8.33%.]
+
+Community sample: 30 reported crafts. Our Shoes Speed sample: 12 crafts.
+
+Combining both samples descriptively gives 33 Intermediate, 8 Greater and 1 Chaos across 42 crafts. However, these are different recipes and small samples, so I would retain our provisional 75/20/5 probability model for now.
+
+## 7. Where we left off
+
+The next optimization should compare three routes: buying scrolls directly, crafting guaranteed Lesser scrolls, and catalyst-assisted production with random outputs.
+
+My starting choice remains **clean 3% crit damage Pansy Earrings**, assuming the earlier price is still available. The 1m cap remains a hard constraint.
+
+The existing JavaScript optimizer is v1.0 and implements expected renewal cost, not the full hard-budget AP-aware model. Our previous hard-budget results are documented separately; the original standalone step-by-step earring HTML guide was not located in the repository. I have not rerun the optimizer or refreshed the market prices in this retrieval turn.
+
+[Post-save verification notice omitted.]
+
+----- END earring-research-resume -----
+
+
+----- BEGIN earring-price-rerun | 365708a778134f2a042e7af537e1e2dff3449371 -----
+# Earring price rerun — 2026-11-25
+
+## User
+
+great now do the live pricing using our previous model to find out top 3 best earrings i can self scroll
+
+## Assistant
+
+## Updated result — 1m earring budget
+
+**My preferred choice is still 3% critical damage Pansy Earrings.** However, Red Cross Earrings have emerged as another worthwhile cheap base.
+
+I reran our hard-budget optimization, including failed scrolls, replacement bases, mixed scroll tiers and retaining the best completed item. The calculations also reproduce our previous saved Pansy result when supplied with the old prices.
+
+### Top 3 candidates
+
+**1. Pansy Earrings — level 45**
+
+3% natural CD · 5 unused slots
+
++8.01 expected effective LUK
+
+Clean base: 14k · 55.5% chance of +8 or better
+
+[HeneFM shop](https://henefm.com/shops/Breathe)
+
+**2. Emerald Earrings — level 30**
+
+2% natural CD · 5 unused slots
+
++8.34 expected effective LUK
+
+Clean base: 5k · 64.7% chance of +8 or better
+
+[HeneFM shop](https://henefm.com/shops/Tisms)
+
+**3. Red Cross Earrings — level 25**
+
+2% natural CD · 5 unused slots
+
++8.30 expected effective LUK
+
+Clean base: 5.9k · 63.0% chance of +8 or better
+
+[HeneFM shop](https://henefm.com/shops/Fireball95)
+
+**Pricing limitation:** These are the best suitable base-price observations I could retrieve from HeneFM, not guaranteed live stock. The Emerald listing is from yesterday's indexed data. The model assumes replacement bases are available at similar prices, so verify the actual five-slot listings before purchasing in quantity.
+
+## Updated scroll and ingredient prices
+
+| Material | Purchase price used |
+|---|---:|
+| Earring DEX Lesser, 100% | 38,500 |
+| Earring DEX Intermediate, 60% | 90,000 |
+| Earring DEX Greater, 10% | 20,000 |
+| Earring LUK Intermediate, 60% | 110,000 |
+| Earring LUK Chaos | 310,000 |
+| Black Crystal Ore | 3,000 |
+| Refined Black Crystal | 4,500 |
+| Fragment of Magic | 170 |
+| Processed Parchment | 480 |
+
+The 60% DEX scroll is now cheaper than in our previous model, which used 95k.
+
+### Self-crafting Lesser is still cheaper
+
+Using raw Black Crystal Ore and refining it yourself:
+
+20,000+3(3,000+1,200)+10(170)+480 = 34,780
+
+That saves **3,720 mesos per Lesser scroll** compared with buying DEX Lesser at 38.5k, provided you have Arcforge level 8.
+
+## Which strategy wins?
+
+| Earring | Buy all scrolls | Craft Lesser scrolls | Damage-equivalent score | Chance of +10 or better |
+|---|---:|---:|---:|---:|
+| Pansy 3% CD | 7.986 | 8.006 | **9.686** | 16.3% |
+| Emerald 2% CD | 8.324 | 8.343 | 9.463 | 19.7% |
+| Red Cross 2% CD | 8.271 | 8.297 | 9.417 | 19.3% |
+
+The first two numerical columns are expected added effective LUK, not actual rolled stats. Damage-equivalent score includes the previous model's approximate 0.56 LUK value per percentage point of natural crit damage. The expensive 4% CD Pansy (250k) scored only 8.718, so it is not worth the premium for this budget.
+
+## What I would do
+
+Buy a clean 3% CD Pansy at 14–15k, open with a 20k DEX Greater, and if the first scroll succeeds, the optimal next action at the initial budget is a 90k DEX Intermediate. If it fails, the model initially restarts on another cheap clean base. Subsequent actions depend on remaining mesos, slots and best retained earring; don't blindly repeat this opener until the budget is exhausted.
+
+A guaranteed +5 option costs 187,900 with five crafted Lesser scrolls. The optimal adaptive strategy has about a 0.68% modeled chance of finishing below +5, so reserve the guaranteed route if that downside is unacceptable.
+
+Catalyst-assisted crafting is not compelling for this self-use objective at the previous 65k catalyst price. Allowing random crafted scrolls to be immediately applied barely changes the expected result (8.006245 to 8.006268 for Pansy). A full inventory-aware crafting optimizer has not been run.
+
+## Get the missing genuinely live quotes
+
+Run this PowerShell block using the existing encrypted HeneFM key, then paste its clipboard output into this chat:
+
+~~~powershell
+& {
+    $s = Get-Content "$env:LOCALAPPDATA\HeneFM Personal Research\key.dpapi" | ConvertTo-SecureString
+    $k = [System.Net.NetworkCredential]::new("",$s).Password
+    $q = [ordered]@{
+        Pansy = "items/1032012/price?min.crit_damage=3&min.upgrade_slots=5"
+        Emerald = "items/1032007/price?min.crit_damage=2&min.upgrade_slots=5"
+        RedCross = "items/1032005/price?min.crit_damage=2&min.upgrade_slots=5"
+        Star = "items/1032008/price?min.crit_damage=2&min.upgrade_slots=5"
+        DEXGreater = "items/2040306/price"
+        Catalyst = "items/4130003/price"
+    }
+    $out = foreach ($name in $q.Keys) {
+        try {
+            $v = Invoke-RestMethod -Uri ("https://henefm.com/api/v2/" + $q[$name]) -Headers @{Authorization="Bearer $k"} -UserAgent "PersonalPriceResearch/1.0" -MaximumRedirection 0 -ErrorAction Stop
+            [pscustomobject]@{Name=$name;Data=$v}
+        } catch {
+            [pscustomobject]@{Name=$name;Error="Request failed"}
+        }
+    }
+    $out | ConvertTo-Json -Depth 12 | Set-Clipboard
+    Write-Host "Price results copied. Paste into ChatGPT."
+}
+~~~
+
+This requests six on-demand price summaries, not a bulk archive. The filtered equipment calls are new and have not been tested on your PC; the API may suppress prices for thinly traded variants. It does not establish seller-level stock.
+
+[Post-save verification notice omitted.]
+
+## Archive note
+Reconstructed visible wording and commands; cards and math flattened, citations omitted from archive. Source URLs and model limitations recorded separately in RESEARCH_HANDOFF.md. No live private API calls executed by ChatGPT.
+
+----- END earring-price-rerun -----
+
+
+----- BEGIN pansy-fixed-base | c26ab99a2d7f94b04cf1818191feeb9c52cab18d -----
+# Fixed Pansy base assumption and updated status — 2026-11-25
+
+## User
+
+ok until otherwise speificed, always use base pansy earrings costing 30k. easy to save. update memory and update github and give me summary of where we're at
+
+## Assistant
+
+**New permanent assumption: clean Pansy Earrings cost 30,000 mesos each**, until you specify otherwise. We'll use the 3% natural crit damage, five-unused-slot variant as our standard base and stop refreshing its price for every calculation.
+
+## 1. Current earring optimization inputs
+
+| Item | Cost | Success | Stat gain |
+|---|---:|---:|---:|
+| Pansy Earrings | **30,000** | — | 3% CD |
+| Self-crafted Lesser | 34,780 | 100% | +1 |
+| Purchased Lesser | 38,500 | 100% | +1 |
+| DEX Intermediate | 90,000 | 60% | +2 |
+| DEX Greater | 20,000 | 10% | +3 |
+| LUK Chaos | 310,000 | 10% | +4 |
+
+Scroll and ingredient prices are carried forward from our last HeneFM research, not freshly retrieved.
+
+## 2. Updated optimization — 1 million mesos
+
+I've rerun our hard-budget model using the new 30k base price.
+
+| | |
+|---|---:|
+| Expected added effective LUK | +7.67 |
+| Chance of +8 or better | 63.69% |
+| Chance of +10 or better | 19.25% |
+| Expected expenditure | 963,986 |
+
+| Method | Expected added stat |
+|---|---:|
+| Buy all scrolls | +7.655 |
+| Craft cheaper Lesser scrolls | **+7.673** |
+| Guaranteed five Lesser scrolls | +5 |
+
+The guaranteed +5 route costs **203,900 mesos**.
+
+## 3. Important strategy change
+
+With the base price increased to 30k, the optimal opening scroll changes from Greater to Intermediate.
+
+Clean Pansy — 30k
+
+Apply Intermediate — 90k
+
+Success (60%): +2 stat, 4 slots left. Apply another Intermediate.
+
+Failure (40%): +0 stat, 4 slots left. Apply Greater.
+
+Don't automatically discard the first failed base anymore. Further actions depend on remaining budget, slots and your best retained earring.
+
+## 4. Where we stand
+
+- Earrings: fixed 30k Pansy base, 1m hard budget, self-scroll only, all other equipment clean.
+- Scroll sourcing: buy Intermediate/Greater, craft Lesser when cheaper. DEX and LUK are equivalent only when DEX can replace base AP.
+- Catalyst experiment: 12 Shoes Speed crafts yielded 9 Intermediate, 2 Greater, 1 Chaos; projected profit 79,520, not realized. Retain provisional 75/20/5 model.
+- Pricing: HeneFM only. The normal-ChatGPT clipboard workflow works; direct automatic retrieval remains unresolved.
+
+The latest model assumes repeatable prices, rounds costs up to the nearest 1k for the budget calculation, and predicts added stats rather than verified character damage. The modeled chance of finishing below +5 is 2.05%.
+
+[Post-save verification notice omitted.]
+
+## Archive note
+
+Visible wording reconstructed with cards/diagram flattened; no secrets or raw market payloads. Research commit eb40d6118b54de1821c1f92ce3aa24af44e216b1.
+
+----- END pansy-fixed-base -----
+
+
+----- BEGIN earring-api-results | 32fdc0d3f09661f8279b606c79fb9d936a44d72b -----
+# Authenticated earring quote follow-up — 2026-11-25
+
+## User
+
+[Generated pasted-text attachment containing six HeneFM API responses; no separately typed message. Raw provider payload omitted from public repository.]
+
+## Assistant
+
+Your live HeneFM API results confirm that **30,000 mesos is a sensible standard price for clean 3% CD Pansy Earrings**. The current lowest ask is 29,999.
+
+## Updated market data
+
+HeneFM snapshot: November 25, 10:25 PM Taiwan time.
+
+| Item | Lowest ask | 24h average sold | Listings |
+|---|---:|---:|---:|
+| Pansy ≥3% CD | 29,999 | 33,003 | 68 |
+| Emerald ≥2% CD | 4,990 | 9,856 | 690 |
+| Red Cross ≥2% CD | 3,888 | 7,902 | 14 |
+| Star ≥2% CD | 5,000 | 9,767 | 58 |
+| DEX Greater | **18,888** | 19,883 | 96 |
+| Scroll Catalyst | 64,999 | 70,271 | 130 |
+
+The equipment listing counts include all variants matching the requested minimum stats, not necessarily listings at the lowest price.
+
+## Revised 1m Pansy strategy
+
+| Metric | Result |
+|---|---:|
+| Expected added effective LUK | +7.675 |
+| Chance of +8 or better | 63.75% |
+| Chance of +10 or better | 19.28% |
+| Chance of below +5 | 2.05% |
+| Expected expenditure | 963,002 |
+
+**Start with Intermediate (90k).** If it succeeds, use another Intermediate. If it fails, use Greater (18,888) on the same base.
+
+The newly verified Greater price changes the expected outcome only slightly. Lesser, Intermediate and Chaos prices are carried forward, not refreshed in this paste.
+
+## Alternate bases
+
+At repeatable lowest asks, Red Cross and Emerald/Star have slightly higher modeled damage-equivalent scores than Pansy. At a 10k replacement-base price, the 2% CD alternatives fall below Pansy. Keep the fixed 30k Pansy assumption as requested; the API does not verify quantity at the lowest ask.
+
+[Post-save verification omitted.]
+
+## Archive note
+
+Rendered formatting flattened, raw attachment excluded; research commit 4513b266c0c0ecdd3d2b35979efaabad1191c695.
+
+----- END earring-api-results -----
+
+
+----- BEGIN npc-recovery-methodology | 03782f2107d25762e3cd745adf0933ab6d0073fd -----
+# NPC recovery and methodology audit — 2026-11-25
+
+## User
+
+is it possible to get better outcome with starting with 10% then NPCing the failed?
+
+## Assistant
+
+**Yes. Factoring in NPC resale actually changes our optimal opening scroll from 60% to 10%.**
+
+Pansy Earrings have a documented NPC sell value of **13,500 mesos**, which significantly reduces the cost of restarting after a failed scroll.
+
+## 1. Actual cost of a failed 10% opener
+
+| Item | Cost |
+|---|---:|
+| Clean Pansy | 30,000 |
+| DEX Greater (10%) | 18,888 |
+| NPC recovery | −13,500 |
+| **Net cost per failed attempt** | **35,388** |
+
+On average, obtaining a Pansy with +3 stat and four remaining slots through repeated 10% openers costs **367,380 mesos**.
+
+## 2. Rerun of the 1m budget model
+
+| Strategy | Expected stat | Chance of +8 or better | Chance of below +5 |
+|---|---:|---:|---:|
+| Previous optimal, no NPC recovery | 7.675 | 63.75% | 2.05% |
+| Always open 10%, NPC failures | 7.602 | 53.69% | 7.40% |
+| **Adaptive with NPC recovery** | **7.925** | 55.71% | **1.36%** |
+
+The adaptive strategy produces the highest expected stat, although the old strategy has a higher probability of reaching +8 specifically. Strictly forcing every replacement base to start with a 10% scroll is less efficient than adapting as the budget decreases.
+
+## 3. New recommended opening strategy
+
+**30k Pansy + 18,888 Greater**
+
+**10% success**
+
++3 stat · 4 slots
+
+Apply 60% Intermediate
+
+**90% failure**
+
+Recover 13,500
+
+NPC and restart
+
+As your remaining budget decreases, switch to the optimal affordable scroll rather than repeatedly gambling on 10%.
+
+**NPC recovery is worth incorporating into all future scrolling calculations.** The model assumes failed earrings retain their documented NPC sell value of 13,500, which we haven't independently confirmed in-game.
+
+[Updated mathematical model and findings saved and verified on GitHub](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/commit/f7e2fd822869be8c0877d4ac9b458486ae160905). The research update is saved; the separate verbatim transcript has not yet been updated.
+
+## User
+
+great discovery. bhow come this wasnt part of the methology and is there any other untested methods?
+
+## Assistant
+
+**NPC recovery should have been included from the beginning.** Our original optimizer actually supported a salvage-value input, but we left it at zero when developing the hard-budget earring model. I failed to investigate the actual NPC resale value of each clean base.
+
+That was a methodological oversight. On a 30k Pansy, recovering 13.5k means getting back **45% of the base cost** after a failed scroll. That's too significant to ignore.
+
+Going forward, every equipment-scrolling calculation should account for the full lifecycle: acquisition, scrolling, failed-item recovery, destruction, successful-item retention and potential resale—not just scroll costs and success rates.
+
+## 1. Another improvement: optimize for your desired outcome, not just average stats
+
+I reran the model with NPC recovery and several different objectives.
+
+| Strategy | Expected added stat | Chance of +8 or better | Chance of +10 or better | Chance of below +5 |
+|---|---:|---:|---:|---:|
+| Maximize average stats | **7.93** | 55.71% | 16.11% | 1.36% |
+| Target +8 specifically | 7.15 | **78.46%** | 5.40% | 16.75% |
+| Target +10 specifically | 5.39 | 34.00% | **33.29%** | 52.18% |
+| Make guaranteed +5 fallback first | 7.56 | 49.44% | 12.70% | **0%** |
+
+[Chart omitted; values in table.]
+
+All four strategies respect the 1m hard budget under our current assumptions.
+
+This is a meaningful distinction: maximizing the chance of a godly earring is not the same as maximizing expected damage. We should retain both objectives in our optimizer.
+
+## 2. Sell failed earrings in FM instead of NPCing them
+
+I found a HeneFM record of a 3% CD Pansy with four remaining slots and no added stats selling for 20,000 mesos. Another identical damage variant was still listed after more than six hours.
+
+| Recovery method | Net recovery | Net failed 10% attempt cost |
+|---|---:|---:|
+| NPC | 13,500 | 35,388 |
+| FM at 20k, after 3% fee | 19,400 | 29,488 |
+
+That saves another 5,900 per failed attempt if you can actually sell it. The drawback is delayed capital recovery.
+
+## 3. Other methods we still need to investigate
+
+| Method | Status |
+|---|---|
+| State-dependent resale of successful but inferior earrings | High priority; not modeled |
+| Keeping several partially scrolled candidates | Not modeled |
+| Mixing DEX, LUK and crit damage scrolls using actual combat damage | Not fully modeled |
+| Crafting a pool of scrolls before selecting which to apply | Not modeled |
+| Quest rewards, drops and alternate acquisition routes | Not fully costed |
+| Slot restoration and protection | Not verified for Classic; exclude for now |
+
+Crit damage scrolls exist, but the observed Lesser and Greater prices are higher than their DEX equivalents while our earlier damage model values each CD point at only about 0.56 effective LUK. They look inferior when DEX is fully convertible, but this must be revisited with actual AP limits and combat formulas.
+
+**My next priority would be state-dependent FM resale.** We have only treated every discarded surviving earring as worth 13.5k. A partially successful earring may recover significantly more, which could fund additional attempts without increasing the original 1m budget.
+
+[Post-save verification notice omitted.]
+
+## Archive note
+Visible wording reconstructed; citations and rendered chart/diagram omitted; no raw provider payloads. Methodology and calculations recorded in RESEARCH_HANDOFF.md commit 0c3731438ef4d6affdc7ce93582113809a3dd8c0. Target optimization uses a small expected-stat tie-break, not proven exact lexicographic optimization.
+
+----- END npc-recovery-methodology -----
+
+
+----- BEGIN earring-range-objective | a7e7571e5217d5611b714f5a8f46825a5380a57d -----
+# Earring scroll family audit and range objective — 2026-11-25
+
+## User
+
+also check all earrings scrolls for damage increase. remember the end goal is highest range increase
+
+## Assistant
+
+## All 24 earring scrolls checked
+
+There are six earring scroll families, each with four tiers. There are **no weapon attack, magic attack or critical rate earring scrolls** in the currently documented Classic World catalogue.
+
+| Scroll family | Lesser 100% | Intermediate 60% | Greater 10% | Chaos 10% |
+|---|---:|---:|---:|---:|
+| LUK | +1 | +2 | +3 | +4 |
+| DEX | +1 | +2 | +3 | +4 |
+| STR | +1 | +2 | +3 | +4 |
+| INT | +1 | +2 | +3 | +4 |
+| Crit damage | +1% | +2% | +3% | +4% |
+| Evasion | +1 | +2 | +3 | +4 |
+
+Chaos also carries a 45% unconditional destruction probability under the documented 50%-on-failure mechanic.
+
+## Important distinction: damage range versus actual damage
+
+I checked the current MeowDB combat formulas. **Critical damage does not increase your displayed character-window damage range.** It increases the damage of critical hits, but those are excluded from the stat window.
+
+Since your end goal is the highest range increase, we'll prioritize that metric and report actual Lucky Seven combat damage separately. This also means we should no longer rank earrings using natural crit damage as a bonus to displayed range.
+
+## Damage contribution of every scroll family
+
+Using our previous illustrative level-50 Assassin model (53 total weapon attack, including throwing stars):
+
+| Added stat | Maximum displayed range gain per point | Average Lucky Seven damage gain per cast |
+|---|---:|---:|
+| LUK | +1.325 | +3.726 |
+| DEX converted to LUK AP | +1.325 | +3.726 |
+| DEX without AP conversion | +0.530 | +1.656 |
+| STR | +0.530 | +1.656 |
+| Critical damage (1 percentage point) | 0 | +2.095 |
+| INT | 0 | 0 |
+| Evasion | 0 | 0 |
+
+These are pre-rounding, pre-defense estimates under the previous build assumptions, not measured results for your character.
+
+## Updated priority
+
+1. LUK and convertible DEX: primary targets.
+2. STR and excess DEX: investigate as cheap secondary-stat fillers. For displayed maximum range, each point is worth 40% of a LUK point.
+3. Critical damage: valuable for actual combat, not for displayed range.
+4. INT and Evasion: exclude from the damage-range objective.
+
+Our current 1m NPC-recovery model gives an expected +7.925 effective LUK, or approximately +10.50 maximum displayed range at 53 weapon attack. It remains optimal within the previously modeled LUK-equivalent scroll choices, not necessarily across all mixed-stat strategies.
+
+The immediate next improvement is to add STR and nonconvertible DEX to the exact budget optimizer, using their actual range contributions and current HeneFM prices. We will retain the fixed 30k Pansy base.
+
+[Post-save verification notice omitted.]
+
+## Archive note
+Visible text preserved; citations and formatting flattened. Research commit a1178f2a6acbe8cd4608622e728cad1c9ccf84d4. Mechanical audit of all 24 tiers, not a synchronized price scan or mixed-stat DP rerun.
+
+----- END earring-range-objective -----
+
+
+----- BEGIN pansy-three-range-targets | 7f356bd7ee17a9093acb4815e4fc1f9c2e87ecda -----
+# Three practical Pansy range targets
+
+## User
+
+ok now tell me top 3 to go for, and each added range
+
+## Assistant
+
+Using our **30k Pansy base, 1m budget and 13.5k NPC recovery**, these are the three finished earrings I would target.
+
+## Top 3 Pansy targets
+
+| Rank | Added LUK / convertible DEX | Added maximum range* | Chance of reaching target |
+|---|---:|---:|---:|
+| **1 — Recommended** | +8 | **+10.60** | 78.46% |
+| 2 — Aggressive | +9 | **+11.93** | 57.59% |
+| 3 — High risk | +10 | **+13.25** | 33.29% |
+
+*Based on our level-50 Assassin model with 53 total weapon attack, including throwing stars. Range increases are before in-game rounding.*
+
+## Example successful scroll combinations
+
+| Target | 10% Greater successes | 60% Intermediate successes | 100% Lesser successes |
+|---|---:|---:|---:|
+| +8 | 1 | 2 | 1 |
+| +9 | 1 | 2 | 2 |
+| +10 | 1 | 3 | 1 |
+
+These are example finished combinations, not rigid scrolling sequences. The probabilities above use adaptive strategies, including replacements and NPC recovery.
+
+## My choice
+
+Aim for +8. If the goal is highest average range rather than the chance of a particular target, the unrestricted adaptive strategy is still better: +10.50 expected maximum range, versus +9.47 for the +8-target policy.
+
+Start with a 10% DEX Greater (18,888 mesos); NPC failed openers while the budget permits, then adapt. The +10-target strategy has a 52.18% chance of finishing below +5, so I would not pursue it exclusively.
+
+Prices are carried forward, and the NPC recovery and DEX-to-LUK conversion remain model assumptions. No new mixed-stat optimization or actual character range measurement was performed.
+
+[Post-save verification notice omitted.]
+
+## Archive note
+
+Rendered caption flattened; research commit 9fd81d4767a79781a30ec1112509f3f956af3418.
+
+----- END pansy-three-range-targets -----
+
+
+----- BEGIN catalyst-inventory-range-rerun | 8449cab8a44ae17f5420b9f79b3bce7588b707f6 -----
+# Catalyst inventory and range-target rerun — 2026-11-25
+
+## User
+
+great. now run the test again with all the variables and use github to refresh all knowledge up to right now
+
+## Assistant
+
+## Latest result: catalyst crafting barely improves your earrings
+
+I've reloaded the latest GitHub research and rerun the model with NPC recovery, self-crafted Lesser scrolls, and your fixed **75% Intermediate / 20% Greater / 5% Chaos** catalyst production rates.
+
+The new model allows you to observe a crafted scroll's tier, hold it for a later earring, apply it, or—in a separate scenario—sell it and reuse the proceeds.
+
+| | |
+|---|---:|
+| Starting capital | 1,000,000 |
+| Fixed Pansy base | 30,000 |
+| NPC recovery | 13,500 |
+| Catalyst-assisted craft | 99,779 |
+
+## 1. Scrolling strategy comparison
+
+| Strategy | Expected added LUK equivalent | Expected maximum range increase* |
+|---|---:|---:|
+| Adaptive scrolling with NPC recovery | 7.9252 | +10.501 |
+| Add catalyst crafting for personal use | 7.9252 | +10.501 |
+| Add catalyst crafting and immediate FM resale | **7.9371** | **+10.517** |
+
+*Using our illustrative 53 total weapon attack build. Catalyst model permits up to two crafts, holding one unused crafted scroll at a time.*
+
+Even under favorable assumptions for resale, adding catalysts improves the expected maximum range by only approximately **0.016**.
+
+For making your own earring, buying the appropriate scroll directly remains substantially simpler, with essentially the same modeled result.
+
+## 2. Top three targets with catalyst crafting included
+
+Each row uses a separate policy optimized specifically for that target.
+
+| Target | Added max range | Without catalysts | Craft for self-use | Craft + sell outputs |
+|---|---:|---:|---:|---:|
+| **+8** | **+10.60** | 78.46% | 78.46% | 78.78% |
+| +9 | +11.93 | 57.59% | 57.59% | 58.23% |
+| +10 | +13.25 | 33.29% | 33.30% | 33.75% |
+
+The catalyst resale column assumes completed sales at our previous prices, with the 3% fee deducted. It is not guaranteed immediate liquidity.
+
+I also extended the resale model to allow up to five catalyst crafts. The expected added stat increases to **7.949**, or approximately +10.53 maximum range. Still not a meaningful improvement over buying scrolls.
+
+## 3. Why crafting with catalysts isn't better
+
+| Catalyst output | Probability | Replacement purchase cost |
+|---|---:|---:|
+| Intermediate | 75% | 90,000 |
+| Greater | 20% | 18,888 |
+| Chaos | 5% | 310,000 |
+
+The expected replacement value is only **86,778 mesos**, versus the crafting cost of 99,779. That is a disadvantage of approximately 13k per craft for personal use.
+
+LUK scrolls can sell at a premium over DEX scrolls, which explains the slight advantage when resale is permitted.
+
+## 4. Other improvements tested
+
+| Method | Result |
+|---|---|
+| Cheaper STR Greater scrolls | Negligible improvement |
+| INT, Evasion and Crit Damage | No displayed range increase |
+| NPC failed earrings | Significant improvement |
+| FM resale of failed four-slot earrings | Potentially better than NPC |
+| Retaining the best finished earring | Included |
+| Self-crafted 100% Lesser scrolls | Included |
+
+I found STR Greater listings around 13.3–14k on HeneFM. Even at 14k, allowing these as secondary-stat fillers improved the expected maximum range by less than 0.001 in a separate mixed-stat calculation.
+
+## 5. FM resale is a more promising opportunity
+
+We previously found a failed four-slot Pansy selling for 20k. If you can consistently sell such earrings for that amount and reinvest the proceeds, the model improves more than catalyst crafting does.
+
+[Chart flattened: +8 NPC 78.46%, conditional FM 81.88%; +9 NPC 57.59%, conditional FM 61.40%; +10 NPC 33.29%, conditional FM 36.01%.]
+
+This scenario uses 19k net recovery for failed four-slot bases after conservatively rounding down the 19.4k proceeds. It assumes sales settle before additional attempts.
+
+## 6. The actual strategy I would use
+
+Start by buying one clean Pansy and applying DEX Greater.
+
+**Pansy 30k + Greater 18,888**
+
+**Success:** +3 stat, 4 slots. Apply Intermediate.
+
+**Failure:** Recover 13.5k. NPC and restart.
+
+The new calculation establishes a useful stopping point: under the maximum-expected-range policy, after **14 consecutive failed openers**, with approximately 503k remaining in the rounded model, switch to a 60% opener instead of continuing to gamble.
+
+**My recommendation remains to target +8 effective LUK**, purchase Greater and Intermediate scrolls, craft Lesser when needed, and avoid spending significant capital on catalysts for this particular objective.
+
+## Limitations
+
+This is the most comprehensive comparison so far, not a proof of the unrestricted global optimum. Catalyst inventory is limited to one held scroll at a time; STR and FM failed-base recovery were tested separately rather than jointly with catalysts. Prices are the latest recorded HeneFM inputs, not a fresh synchronized private API scan. NPC value after scrolling, market depth and DEX conversion remain assumptions. The 53 attack range example is illustrative, not a measured character stat.
+
+[Post-save verification notice omitted.]
+
+## Archive note
+
+User-visible prose and data reproduced; rendered components and citations flattened. Research commit 49c4a6f8cbd986c852ae891f9414104c0cdb3efb. No raw provider responses or secrets.
+
+----- END catalyst-inventory-range-rerun -----
+
+
+----- BEGIN triple-greater-100 | 9b0c368c69182c6543d383c2acd7f273e071baba -----
+# 100-base triple Greater experiment
+
+## User
+
+try running this type : 1 10%, do 100 iterations. keep the ones that succed, npc the rest. Then with the remaining ones, throw two 10%'s onto. Report back results
+
+## Assistant
+
+## Simulation — 100 Pansy Earrings
+
+I ran 100 independent 10% opening attempts, NPC'd every failed base, then applied two additional 10% scrolls to every successful earring, regardless of the second scroll's outcome.
+
+Initial earrings: 100
+Successful openers: 8
+NPC'd earrings: 92
+
+## Final results
+
+All eight surviving earrings have two unused slots.
+
+| Final added stat | Quantity | Added max range |
+|---|---:|---:|
+| +3 | 6 | +3.98 |
+| **+6** | **2** | **+7.95** |
+| +9 | 0 | +11.93 |
+
+## Total cost
+
+| Expense | Mesos |
+|---|---:|
+| 100 Pansy bases | 3,000,000 |
+| 116 Greater scrolls | 2,191,008 |
+| NPC recovery on 92 earrings | −1,242,000 |
+| **Net expenditure** | **3,949,008** |
+
+This experiment exceeds our original 1m budget. No resale of surviving earrings is included.
+
+## What to expect over repeated batches
+
+| Outcome | Expected quantity per 100 bases |
+|---|---:|
+| NPC'd | 90 |
+| +3 | 8.1 |
+| +6 | 1.8 |
+| +9 | 0.1 |
+
+The chance of getting at least one +9 earring is only **9.52% per 100-base batch**. The chance of at least one +6 or better is 85.31%.
+
+Our best two earrings are currently +6 with two slots remaining. Finishing either with two guaranteed Lesser scrolls costs another 69,560 and produces +8, or approximately +10.60 maximum range under our illustrative 53-attack model.
+
+Expected net cost of repeating the entire 100-base strategy: 4,051,560 mesos.
+
+This is one seeded random simulation, not actual in-game results. The expected counts and batch probabilities are calculated analytically.
+
+[Post-save verification notice omitted.]
+
+## Archive note
+Rendered bars flattened. Research commit e31b9eafce037e2300c05fc32a96dc10050d3547.
+
+----- END triple-greater-100 -----
+
+
+----- BEGIN final-npc-no-lesser-cost-metric | 7160ff4df6057e43f0126d8c88c685b8ed722824 -----
+# Latest standing constraints, cost questions and chat-switch exchange — 2026-11-25
+
+This archive backfills accessible user-visible wording since the catalyst inventory rerun. The intervening 100-base simulation exchange is already preserved in [triple Greater experiment](2026-11-25-triple-greater-100.md). Rendered components are flattened. No raw private provider payloads or credentials.
+
+## User
+
+no need to explore the npc vs resell. always NPC 4 slot failed scroll earrings.
+
+## Assistant
+
+**Permanent rule: always NPC Pansy Earrings after a failed first scroll, leaving four slots and zero added stats.**
+
+- Fixed clean Pansy cost: 30,000
+- NPC recovery: 13,500
+- Greater scroll: 18,888
+- Net failed attempt cost: **35,388 mesos**
+
+Exclude FM resale of these failed earrings from all future optimizations. No waiting for buyers or repricing.
+
+[Updated GitHub and verified the permanent rule](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/commit/0d2fa0ff053475cf62d1e90d3951e82f64603901).
+
+Future calculations will enforce this as a **hard constraint**, not an optional strategy.
+
+## Intervening exchange
+
+See [100-base triple Greater experiment](2026-11-25-triple-greater-100.md).
+
+## User
+
+how much did that cost?
+
+## Assistant
+
+**3,949,008 mesos net** for the entire 100-earring simulation.
+
+| Expense | Cost |
+|---|---:|
+| 100 Pansy Earrings | 3,000,000 |
+| 116 Greater scrolls | 2,191,008 |
+| NPC recovery | −1,242,000 |
+| **Total** | **3,949,008** |
+
+You ended up with six +3 earrings and two +6 earrings, each with two slots remaining.
+
+Finishing one +6 earring with two guaranteed Lesser scrolls brings the total expenditure to **4,018,568 mesos** for the batch, including one finished +8 earring.
+
+## User
+
+so this is much more expensive than other methods?
+
+## Assistant
+
+**Yes, significantly more expensive if your goal is one strong finished earring.** The problem is applying two additional 10% scrolls after the initial successful opener.
+
+| Strategy | Expected cost | Outcome |
+|---|---:|---|
+| Five guaranteed 100% scrolls | 203,900 | +5 guaranteed |
+| Successful 10% opener, then four 100% | 506,500 | +7 upon completion |
+| Previous adaptive +8 target strategy | Budget of 1m | 78.46% chance of +8* |
+| Triple 10% strategy — 100 bases | ~4.05m | Only 9.52% chance of producing a +9 with two slots left |
+
+The second strategy is particularly attractive: once you land that first 10%, you can guarantee another four stats for just 139,120 mesos.
+
+## Why the triple 10% strategy is inefficient
+
+| Scroll | Expected stat gain per slot |
+|---|---:|
+| 100% Lesser | 1.0 |
+| 60% Intermediate | **1.2** |
+| 10% Greater | 0.3 |
+
+The first 10% is worthwhile because you can NPC failures without sacrificing a successful earring. Subsequent 10% attempts consume valuable slots on an already successful base.
+
+**Use 10% to establish a strong base, then use a mixture of 60% and 100% to finish it.**
+
+*The previous 78.46% calculation allowed retaining some failed openers. It needs recalculation under your new mandatory NPC rule. All costs assume our previously recorded prices, and the +7 method's cost is an average, not a guaranteed spending cap.*
+
+## User
+
+what if i dont want to use 100%'s at all? Only part of the calculation due to that being baseline
+
+## Assistant
+
+**Absolutely. We'll use 100% Lesser scrolls strictly as a benchmark, never as an actual scrolling option.**
+
+I've rerun the 1m budget model with:
+
+- 30k Pansy base.
+- 10% Greater, 60% Intermediate and 10% Chaos only.
+- Mandatory NPC disposal of failed first-scroll earrings.
+- 13.5k NPC recovery.
+- Highest displayed damage range as the objective.
+
+## New results without 100% scrolls
+
+Expected added effective LUK: +7.70
+Expected max range increase: +10.20
+Expected expenditure: 943,623
+Chance of +7 or better: 73.50%
+
+## Top three targets
+
+| Target | Added max range | Target-optimized success chance |
+|---|---:|---:|
+| +8 | +10.60 | **66.75%** |
+| +9 | +11.93 | 49.73% |
+| +10 | +13.25 | 25.86% |
+
+Each target has its own optimized policy. Range figures use our previous illustrative 53 total weapon attack.
+
+## User
+
+great, can you also add the metric of cost per additional stat? such as +8 stat earring costing 800k = 100k per +1 stat
+
+## Assistant
+
+Yes. **Cost per additional stat will now be a standard metric in every scrolling calculation.** All failed attempts and NPC recoveries will be included in the net cost.
+
+## Updated efficiency comparison
+
+Using the new rule of no 100% scrolls and mandatory NPC disposal of failed openers:
+
+| Strategy | Average net cost | Expected added stat | Cost per +1 stat |
+|---|---:|---:|---:|
+| 100% benchmark only | 203,900 | 5.00 | 40,780 |
+| **Maximum expected range** | 943,623 | **7.70** | **122,524** |
+| Target +8 | 945,117 | 6.77 | 139,574 |
+| Target +9 | 941,026 | 5.76 | 163,300 |
+| Target +10 | 959,497 | 4.43 | 216,673 |
+
+These figures include unsuccessful runs, so they reflect the true long-run efficiency of each strategy.
+
+## Cost efficiency when the target is achieved
+
+| Target | Success chance | Average cost of successful runs | Cost per actual added stat* |
+|---|---:|---:|---:|
+| +8 or better | 66.75% | 931,299 | 107,077 |
+| +9 or better | 49.73% | 910,736 | 95,028 |
+| +10 or better | 25.86% | 924,760 | 91,886 |
+
+*Conditional average expenditure divided by conditional average retained stat, including outcomes exceeding the target. Failed runs are excluded from this table only.*
+
+The higher targets look cheaper per stat when they succeed, but their much higher failure rates make them considerably more expensive overall.
+
+### Catalyst crafting impact
+
+With 100% scrolls excluded, allowing up to two catalyst crafts for personal use changes expected added stats from 7.70156 to 7.70162. Still negligible.
+
+### Permanent reporting metrics
+
+Every future comparison will include total net cost, added stat, added damage range, cost per additional stat and target success probability.
+
+The costs above use our previously recorded prices and the purchase-only scrolling model.
+
+[Updated methodology and calculations saved and verified on GitHub](https://github.com/MapleVibeCodin/MaplestoryVibeCodin/commit/c247f8202abfc765e45567739095918154c10182).
+
+## User
+
+awesome save all of this onto github and whats the command or paste into chat gpt for new chat?
+
+## Assistant
+
+## Copy and paste this into any new ChatGPT conversation
+
+Resume from https://github.com/MapleVibeCodin/MaplestoryVibeCodin/blob/main/checkpoints/LATEST.md. Read the latest project state, research files, methodology, and chronological conversation archives. Continue immediately using my latest rules and calculations. Newer instructions override older ones. Do not restart completed research. Preserve subsequent conversations word for word on GitHub and verify every checkpoint.
+
+You can reuse this same prompt indefinitely. It points to the latest checkpoint rather than a specific historical version.
+
+## Saved project state
+
+- Pansy base: 30k; 1m budget; NPC failed four-slot openers immediately for assumed 13.5k.
+- No 100% scroll applications; benchmark only.
+- Catalyst production: fixed 75% Intermediate / 20% Greater / 5% Chaos.
+- Highest displayed range objective; report net cost, added stat, added range, cost per stat and target probability.
+- Latest expected-stat result: +7.70156, +10.20 illustrative maximum range, 943,623 expected net cost, 122,524 per retained stat.
+- All accessible unsaved dialogue backfilled, with rendered UI flattened; earlier archives retained.
+
+[Post-save verification metadata omitted.]
+
+
+----- END final-npc-no-lesser-cost-metric -----
