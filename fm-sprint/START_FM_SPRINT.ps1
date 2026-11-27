@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $Base = 'a80a9ffbcc2a4a1616b5cfdc8c91b35c430df8fb'
 $Repo = 'https://github.com/MapleVibeCodin/MaplestoryVibeCodin.git'
-$Dest = Join-Path $env:LOCALAPPDATA 'FM_Sprint_Prototype_20261127'
+$Dest = Join-Path $env:LOCALAPPDATA 'FM_Sprint_Prototype_20261127_R2'
 $Source = Join-Path $env:LOCALAPPDATA 'FM_Rush_Lab_20261126_154536'
 $Branch = 'performance-lab/step-11-50ms-target'
 if (!(Get-Command git.exe -ErrorAction SilentlyContinue)) { throw 'Git is required.' }
