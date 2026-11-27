@@ -97,3 +97,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Frozen prospective evaluation protocol
 [Three-contender protocol](2026-11-27-frozen-prospective-protocol.md). Original HSMM, density+historical-alert HSMM, and75% mild HSMM/25% Hawkes frozen. Evaluator and regression saved; old86-event baseline and all three results reproduced; empty/synthetic extension/prefix rejection checks passed. Await new real cumulative export after21:19:37.057; no tuning on new data. No runtime edits.
+
+## Frozen three-contender holdout — 288 new records
+[Deep dive](2026-11-27-frozen-holdout-288-deep-dive.md). Ninth original2846,232 consolidated new; all frozen policies net0s, baseline479.91s, A/B1 speculative switch each C0. Fixed 2–3s lead top1 A27/B19/C26 vs persistence29/232. Conditional floor B157 vs fixed178/232. 22m17s capture gap; 3 new strong route episodes, median compatible step7.10s, one CH38 recurrence near8*855. No confirmed scanner count or proactive advantage. No tuning/runtime changes. Next cutoff22:12:57.929.
