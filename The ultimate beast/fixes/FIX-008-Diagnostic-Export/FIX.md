@@ -9,3 +9,7 @@ Update this record with each recurrence, actual check results, and the new commi
 
 ## Centered live evidence
 2026-11-27 actual three uploaded ZIPs opened with CRC checks. Two earlier exports identical raw-only 1214 events; latest Centered archive contains matching session JSONL and report (1246 events, report raw_events equals JSONL, final health true, zero drops/invalid lines). Raw-only and paired export observed working for these samples; broader fallback cases not rerun.
+
+
+## Spatial live trial evidence
+Spatial archive contains valid raw-only JSONL, 4129 events, 1090.1382s, no numbered sequence gaps/duplicates, max recorded dropped=0, no final health marker and no report. Spatial build confirmed by 42 action metadata events; raw fallback worked, session final completeness not established. No retest required for analysis.
