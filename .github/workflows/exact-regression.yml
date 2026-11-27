@@ -1,0 +1,41 @@
+name: Exact historical regression
+on:
+  push:
+    branches: [qa/beast-exact-full-regression-20261127]
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 4c938a5816bf87542603840587e33d69b1c9ba76
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install numpy
+      - name: Fetch pinned scanner and run historical and current offline tests
+        shell: pwsh
+        run: |
+          git fetch --depth=1 origin a80a9ffbcc2a4a1616b5cfdc8c91b35c430df8fb
+          if ($LASTEXITCODE) { throw 'Pinned fetch failed' }
+          git worktree add --detach "$env:RUNNER_TEMP\beast-pinned" FETCH_HEAD
+          if ($LASTEXITCODE) { throw 'Pinned checkout failed' }
+          $env:BEAST_PINNED_SCANNER="$env:RUNNER_TEMP\beast-pinned\Scanner Nov 20"
+          Set-Location 'The ultimate beast'
+          $ErrorActionPreference='Continue'
+          $codes=@()
+          python -m unittest discover -s research -p 'test_*.py' -v
+          $codes+=$LASTEXITCODE
+          python test_spatial.py -v
+          $codes+=$LASTEXITCODE
+          python -m unittest discover -s fixes/FIX-011-Popup-Placement -p 'test_*.py' -v
+          $codes+=$LASTEXITCODE
+          Set-Location $env:BEAST_PINNED_SCANNER
+          python -m unittest discover -s . -p 'test_*.py' -v
+          $codes+=$LASTEXITCODE
+          Write-Host "Suite exit codes: $codes"
+          if ($codes -contains 1 -or $codes -contains 2) { exit 1 }
