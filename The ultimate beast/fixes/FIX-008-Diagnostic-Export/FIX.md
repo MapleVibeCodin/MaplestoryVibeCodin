@@ -13,3 +13,7 @@ Update this record with each recurrence, actual check results, and the new commi
 
 ## Spatial live trial evidence
 Spatial archive contains valid raw-only JSONL, 4129 events, 1090.1382s, no numbered sequence gaps/duplicates, max recorded dropped=0, no final health marker and no report. Spatial build confirmed by 42 action metadata events; raw fallback worked, session final completeness not established. No retest required for analysis.
+
+
+## Stable candidate
+Export includes optional session-specific visual_evidence/<id> directory alongside original raw/report files; no other sessions or automatic upload. Local game screenshots may contain visible chat; review before sharing. Script readback verified; Windows execution pending.
