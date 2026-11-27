@@ -149,3 +149,7 @@ User requests same methodology for all glove stats and range. [Glove research](.
 
 ## Glove allocation and archive note
 [Dialogue excerpt](../scrolling-ev/transcripts/2026-11-25-glove-research.md) commit 3f980967971318f0964494665e3ee5a578e45b13, exact readback; sections 2–7 are omitted in excerpt and recorded as structured research, not a full verbatim transcript. Recommended independent 5m allocation: glove Chaos-first cap2570k, overall750k, cape500k, earring1m; cap4820k, expected spend4527837 approx, expected scroll-only range49.04 at illustrative W53. 180k unallocated. No joint gear optimization. Three guaranteed WATK instead costs1925k, same displayed glove range, less crit enjoyment. Crit-only five Lesser350k, +5crit, no displayed range. No actual purchases.
+
+
+## Dedicated level-50 equipment upgrade archive — 2026-11-27
+For all level-50 Assassin equipment research, begin at [level-50-equipment-upgrades/README.md](../level-50-equipment-upgrades/README.md). Verified dedicated archive contains exact snapshots of 8 research/code files, 29 preexisting dialogue files, and recovered late user requests with explicit missing-reply audit. Prior source files preserved. Original claw, boots, hat and final joint 5m results were not recovered; do not label the earlier glove-stage allocation as the final optimum. Read this dedicated folder before resuming; append subsequent work there, verify readback, and avoid restarting completed research. Archive partial, not a full chat export.
