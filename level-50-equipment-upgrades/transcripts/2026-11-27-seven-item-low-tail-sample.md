@@ -1,0 +1,12 @@
+# Seven user-selected items, low-tail sale sample — 2026-11-27
+Public HeneFM linked pages and sales=all opened. Sample exactly 40 sale rows each, two blocks of 20, nearest-rank P10 (4th sorted value), equal row weights not quantities, nonrandom recent/older windows, incomplete 24h coverage. Sources https://henefm.com/items/{id}?sales=all for each ID below. No raw history stored.
+Item ID | avg | daily reported sales | sample P10 | repeated lower buy band | visible lower-bound exact-price rows | floor(90% avg) sell | modeled net/unit at lower band | units for 10k | capital
+2000001 |136|6830|130|100|5|122|18.34|546|54600
+4010001 |275|2923|200|200|4|247|39.59|253|50600
+2000002 |308|4642|299|250|6|277|18.69|536|134000
+4000049 |95|2178|80|70|6|85|12.45|804|56280
+4003000 |172|1738|150|100|5|154|49.38|203|20300
+2430045 |255300|2589|250000|none|unknown|229770|unknown|unknown|unknown
+2040510 |18900|1323|16700|15000|3|17010|1499.70|7|105000
+3% assumed tax. Cheap sale row counts lower bounds, not unit counts or full-day frequency. Samples include two different time blocks within prior24h, not uniform 24h random sampling. No quantities sold at each price or complete 24h listing distribution. HeneFM reported sold-out observations not verified transaction times. Bundle prices may introduce anomalies; P10 robust to isolated high/low values, but not corrected all bundle artifacts. 
+Actual near-target observed exit: iron250 marked sold scan age0m today, DEX17k age0m today; screw150 age63m today; orange125 age19m older; white275 age0m and32m older; leather85 still listed after96m today, leather90 sold30m older but above discounted target. These are individual historical listing ages not whole batch sell times. Practical prices DEX17000 (net1490,7 units), screw150 (net45.5,220 units); iron247 modeled vs observed250. Palette at P10 loses27123.1 per unit after fee at229770, reject. Iron at sample P10 is only item whose 10th-percentile buy price gives meaningful positive margin at avg-10%; leather80 only2.45/unit (4082 units for10k), screw150 negative at154. Do not claim any fully qualified until cheap stock quantity and fast batch resale verified. Prior exclusions scroll crafting (resale separate). Public prices not fresh authenticated API. No raw data or seller records archived.
