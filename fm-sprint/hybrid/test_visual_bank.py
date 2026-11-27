@@ -56,6 +56,20 @@ class BankTests(unittest.TestCase):
         self.assertIsNone(bank.lookup(key(2),eligible=True))
         self.assertEqual(len(bank.entries),2)
 
+    def test_evicted_claim_still_detects_conflict(self):
+        bank=VerifiedVisualBank(limit=1)
+        bank.qualify(key(1),reviewed());bank.qualify(key(2),reviewed())
+        self.assertIsNone(bank.lookup(key(1),eligible=True))
+        self.assertFalse(bank.qualify(key(1),reviewed('Red Glove')))
+        self.assertIn(key(1),bank.conflicts)
+
+    def test_history_limit_and_bounded_provenance(self):
+        bank=VerifiedVisualBank(limit=1,history_limit=2)
+        self.assertFalse(bank.qualify(key(1),replace(reviewed(),source_id=' '*200+'x')))
+        bank.qualify(key(1),reviewed());bank.qualify(key(2),reviewed())
+        self.assertFalse(bank.qualify(key(3),reviewed()))
+        self.assertTrue(bank.disabled);self.assertEqual(len(bank.claims),2)
+
     def test_conflict_bound_disables_instead_of_forgetting(self):
         bank=VerifiedVisualBank(limit=2,conflict_limit=1)
         bank.qualify(key(1),reviewed());bank.invalidate(key(1))
