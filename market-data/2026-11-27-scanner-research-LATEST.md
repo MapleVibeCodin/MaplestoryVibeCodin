@@ -82,3 +82,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Method 2/5 — exponential Hawkes
 [Method 2 test](2026-11-27-method02-hawkes.md). 25 fits,106 policies, best validation/test 0s (abstention), best active validation1 switch net0; test none. Fitted self20s cross1s, not scanner movement proof. Method1 -3.31s test. Same simulator baseline reproduced exactly. Next renewal, then HSMM and ensemble. No deployment.
+
+## Method 3/5 — renewal and recurrence modulation
+[Method3 test](2026-11-27-method03-renewal.md). Four variants,141 policies, no validation proactive switches, selected net0s validation/test. 720–960s pooled hazard 2.91x480–720s;54/125 long observed episode gaps within120s of multiples855s; not verified scanner cycles. Best recurrence60s test logloss3.3122 but net0. Next HSMM and ensemble; no deployment.
