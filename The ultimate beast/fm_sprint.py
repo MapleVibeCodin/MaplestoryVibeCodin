@@ -116,7 +116,7 @@ def main():
             self._f9_inhibit=False;self._park_serial=0
             super().__init__();self.conf['start_channel']=args.start_channel
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
-            self.root.title('The ultimate beast — Smooth Shortcuts — '+args.engine.title())
+            self.root.title('The ultimate beast — Smooth Shortcuts Centered — '+args.engine.title())
         def sync_archive(self):
             # Do not pop the separate old map window on every new alert.
             self._syncing_archive=True
@@ -129,7 +129,7 @@ def main():
             if pin is None:return
             window=window_rect(hwnd) if hwnd and client and deal else None
             if window and client[2]>=184 and client[3]>=209:
-                x=client[0]-window[0]+client[2]-172;y=client[1]-window[1]+12
+                x=client[0]-window[0]+(client[2]-160)//2;y=client[1]-window[1]+12
                 hit={f'{deal.cc}:{deal.fm}':{'box':(x,y,x+160,y+185),'mode':'ROUTE'}}
                 key=(hwnd,window[2:],x,y,deal.cc,deal.fm)
                 if key!=self._route_mini_key:
