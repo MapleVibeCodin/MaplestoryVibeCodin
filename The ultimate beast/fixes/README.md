@@ -14,5 +14,6 @@ One canonical folder per known problem. Read this index and the matching FIX.md 
 | [FIX-008-Diagnostic-Export — No matching build report; incorrect report filename](FIX-008-Diagnostic-Export/FIX.md) | Fallback supplied; local verification pending |
 | [FIX-009-History-Continuity — Repeated work, lost context or overwritten history](FIX-009-History-Continuity/FIX.md) | Policy implemented |
 | [FIX-010-Historical-Scanner-Regressions — Earlier geometry, scroll, sold-row, price, camera and update defects](FIX-010-Historical-Scanner-Regressions/FIX.md) | Historical evidence; requalify when changed |
+| [FIX-011-Popup-Placement — Top-center route popup](FIX-011-Popup-Placement/FIX.md) | Source corrected; live pending |
 
-Active runtime: 456b90748e6440870b4f0ea9cbc475210c8b5c0e. Historical and current evidence: [continuation](../../fm-sprint/NEXT-CHAT.md). Mandatory first-read policy: [AGENTS.md](../../AGENTS.md). Local mirror: Desktop/Beast-Fixes, versioned snapshots, no scanner changes. For every later iteration, sync the latest registry and record actual test results. If a test fails, record it and do not claim release qualification.
+Active runtime: 95f282dee685bda329daa8a3de15417e83e81427. Historical and current evidence: [continuation](../../fm-sprint/NEXT-CHAT.md). Mandatory first-read policy: [AGENTS.md](../../AGENTS.md). Local mirror: Desktop/Beast-Fixes, versioned snapshots, no scanner changes. For every later iteration, sync the latest registry and record actual test results. If a test fails, record it and do not claim release qualification.
