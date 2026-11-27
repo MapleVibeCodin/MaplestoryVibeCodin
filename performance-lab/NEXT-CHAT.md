@@ -1,4 +1,12 @@
 # FM Rush Performance Lab — next-chat checkpoint
+
+## Latest checkpoint — Step 12 (2026-11-27)
+- Branch: `performance-lab/step-11-50ms-target`; read `performance-lab/STEP-12-1000-REAL-FRAME-AUDIT.md` before making latency claims.
+- Recovered private 42-PNG/10-video archive without user upload. Decoded 5,777 video frames, selected 1,000 real shop-preview frames (982 unique crop SHA-256 hashes, **not** 1,000 independent shops). Private media was not pushed to GitHub.
+- Executed offline Linux image preparation only: P50 3.403ms, P95 4.822ms, P99 6.725ms, max 9.798ms, 1000/1000 under 50ms. **No WinRT OCR, correctness, screen capture, UI poll, overlay drawing, or Windows end-to-end 50ms proof.**
+- Step 11 source fixes on this branch: correct doubled byte-escape literals, do not cache blank OCR reads, reject ambiguous ellipsized competing names, exclude sold rows from fast amber highlight; new targeted regression tests staged. Windows tests **not run**.
+- Original main and historical backups untouched. Next: independent native-image accuracy labels and actual Windows P95 queue-to-overlay/shop-open-to-overlay; do not confuse offline prep timing with real scanning.
+
 Date: 2026-11-26. Continue the existing GitHub + Windows PowerShell workflow. Do not suggest Work or Codex. Read AGENTS.md for original project constraints; this file supersedes its lab status only.
 
 ## Exact state
