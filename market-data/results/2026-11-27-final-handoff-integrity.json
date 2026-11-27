@@ -1,0 +1,79 @@
+{
+  "checks": [
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-121058).txt",
+      "sha": "2ff98b00bd844273d82c3e3ff103e95b71e56717",
+      "match": true,
+      "records": 7970
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-121548).txt",
+      "sha": "941c12a8c280be605426ffc77a5a34b820a85969",
+      "match": true,
+      "records": 1697
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-121754).txt",
+      "sha": "2524734972d0f815e4dee34523757628c28b9afb",
+      "match": true,
+      "records": 1754
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-121944).txt",
+      "sha": "3a8d9e49b390ecb859a0fdf25645943c168cb0a9",
+      "match": true,
+      "records": 1784
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-123052).txt",
+      "sha": "1400521e890837fd5c4ebbfd83ae8a0e2fabe71f",
+      "match": true,
+      "records": 1971
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-123559).txt",
+      "sha": "4cfe057474c1bd341c384fb93ddb434d962c69b6",
+      "match": true,
+      "records": 2052
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-130346).txt",
+      "sha": "11003eeb70569ff53e5bbea9b6544d0fe4947364",
+      "match": true,
+      "records": 2456
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-131959).txt",
+      "sha": "68f456d30f5887421107fda32ffe29ad09ab5aca",
+      "match": true,
+      "records": 2558
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-141325).txt",
+      "sha": "579e4b4f61a3431dbaceb3a0ba3e64f902557761",
+      "match": true,
+      "records": 2846
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-143653).txt",
+      "sha": "2dfdd2c02cab15cd068bc3d3e611883347dd26f1",
+      "match": true,
+      "records": 819
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-144552).txt",
+      "sha": "9abca1d2a6c960b1b1b037d5479971bdc87e51c5",
+      "match": true,
+      "records": 1787
+    },
+    {
+      "path": "market-data/raw/2026-11-27/Pasted text(20261127-145516).txt",
+      "sha": "c5c67a1b52d39bf27797086b6204ac58afb5b4b7",
+      "match": true,
+      "records": 2139
+    }
+  ],
+  "union": 11208,
+  "allMatch": true,
+  "scope": "GitHub blob SHA readback of twelve raw exports; exact filename union, not deduplication by listing ID."
+}
