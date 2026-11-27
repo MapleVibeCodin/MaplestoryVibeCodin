@@ -58,6 +58,7 @@ def main():
     if os.name!='nt':raise SystemExit('Live launcher requires Windows; replay tests are platform independent.')
     import ctypes
     import fm_rush as old
+    from beast_spatial import spatial_mixin
     from game_window import window_rect,window_client_rect,window_has_focus,window_at_point,move_cursor_on_screen,cursor_screen_position
     from camera_alignment import capture_client
     from shop_position import entry_shop_point,shop_marker
@@ -108,15 +109,16 @@ def main():
     home=Path(os.environ['LOCALAPPDATA'])/'The ultimate beast'/args.engine
     home.mkdir(parents=True,exist_ok=True);(home/'archives').mkdir(exist_ok=True)
     old.ARCHIVE_DIR=home/'archives';old.CONFIG=home/'config.json'
-    class App(old.FMApp):
+    class App(spatial_mixin(old),old.FMApp):
         def __init__(self):
             self.flow=Lifecycle();self._f12=False;self._f8=False;self._identity=None;self._message=''
             self._parked=False;self._last_tick=0.;self._last_menu=None
             self._route_mini=None;self._route_mini_key=None;self._syncing_archive=False
             self._f9_inhibit=False;self._park_serial=0
             super().__init__();self.conf['start_channel']=args.start_channel
+            self.beast_spatial_init()
             self._route_mini=RouteMiniPin(self.root,interval_ms=50)
-            self.root.title('The ultimate beast — Smooth Shortcuts Centered — '+args.engine.title())
+            self.root.title('The ultimate beast — Smooth Shortcuts Spatial — '+args.engine.title())
         def sync_archive(self):
             # Do not pop the separate old map window on every new alert.
             self._syncing_archive=True
@@ -137,6 +139,7 @@ def main():
             elif self._route_mini_key is not None:
                 pin.hide();self._route_mini_key=None
         def cancel_pending_pointers(self):
+            self.beast_cancel_audit('cancelled')
             self._park_serial+=1
             self._pointer_serial+=1
             self._pointer_pending=None
@@ -152,11 +155,13 @@ def main():
         def move_pointer_to_target(self,kind,*,received=None):
             if self.flow.stage=='stopped' or user.GetAsyncKeyState(0x7B)&0x8000:
                 self.cancel_pending_pointers()
+                self.beast_reject(kind,'stopped',received)
                 self.status.set('F12 stopped this run — unlock to reset');return
             self._park_serial+=1
             super().move_pointer_to_target(kind,received=received)
         def close(self):
             self.cancel_pending_pointers()
+            self.beast_spatial_close()
             if self._route_mini is not None:self._route_mini.close()
             super().close()
         def f9_down(self):return bool(user.GetAsyncKeyState(0x78)&0x8000)
