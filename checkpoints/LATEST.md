@@ -1,5 +1,11 @@
 # Latest verified cross-project resume index
 
+## Mandatory word-for-word conversation preservation — 2026-11-27
+
+User: "always do word for word. always. update this to github instructions"
+
+Always preserve accessible chronological user and assistant dialogue verbatim alongside separate summaries, with exact commands, corrections, and results. Follow the mandatory rule in [AGENTS.md](../AGENTS.md), verify exact readback, and identify all unavailable or redacted portions. The recovered scanner-count/movement dialogue is now stored in [verbatim transcript](../market-data/transcripts/2026-11-27-scanner-count-movement-verbatim.md) at verified commit `6a6407f42f3e8bdf008d59dacbbfb78ded02390d`. It is user-supplied pasted text, not a platform export. Prior research and historical records retained.
+
 ## 2026-11-27 — current cross-project entry and checkpoint command
 
 - Last substantive market research commit: `75ba889215c691603b4d5b58b49cb5307206e920`. [Current scanner count and movement research](../market-data/2026-11-27-scanner-research-LATEST.md): retain all observations, deduplicate only overlapping screenshot identifiers for analysis, exact worker count and routes unverified; 4–6 is a hypothesis, filename times are delivery/export times. Earlier forecast failed; do not restart forecasting as substitute for evidence.
