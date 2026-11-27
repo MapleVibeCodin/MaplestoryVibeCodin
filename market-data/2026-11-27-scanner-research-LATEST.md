@@ -46,3 +46,6 @@ Read [full historical export audit](2026-11-27-full-history-export-audit.md), ve
 
 ## Second live validation — latest
 [Second validation](2026-11-27-second-live-route-validation.md), commit 2dfa92fdef7328a1569ce34adef564c2480eed79. 57 new IDs,27 eligible transitions, frozen7s exact15/27 vs6.25s10/27, both within1 22/27 and within2 23/27. Retain7s primary,6.25s challenger; next cutoff20:17:39.613 Taipei. Conditional next-room forecasts archived. No global channel-switch prediction or verified worker count. Recent Nov26–27 only, no runtime change.
+
+## Third live validation — latest
+[Third validation](2026-11-27-third-live-route-validation.md), commit 3f18f4fc187e7fa4a410f9ec3878e83abb478981. 30 new IDs,13 eligible transitions,7s exact6/13 vs6.25s4/13. Explicit prior forward predictions: 0/5 next changed observed room,1/5 within three predicted rooms; CH40 no observation. Do not conflate conditional timed accuracy with forward predictions. Latest cutoff20:19:28.203 Taipei. No runtime changes or new fit.
