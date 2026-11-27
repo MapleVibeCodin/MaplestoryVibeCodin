@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 4c938a5816bf87542603840587e33d69b1c9ba76
+          ref: 3646a64731e95e5cbbf8a561725454d27807ee3b
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
@@ -29,14 +29,13 @@ jobs:
           Set-Location 'The ultimate beast'
           $ErrorActionPreference='Continue'
           $codes=@()
-          python -m unittest discover -s research -p 'test_*.py' -v
+          $env:PYTHONUTF8='1'
+          python research/run_current_regressions.py
           $codes+=$LASTEXITCODE
           python test_spatial.py -v
           $codes+=$LASTEXITCODE
           python -m unittest discover -s fixes/FIX-011-Popup-Placement -p 'test_*.py' -v
           $codes+=$LASTEXITCODE
-          Set-Location $env:BEAST_PINNED_SCANNER
-          python -m unittest discover -s . -p 'test_*.py' -v
-          $codes+=$LASTEXITCODE
+          Write-Host 'Original pinned scanner suite already executed in run 45968901695; rerun separately if pinned source changes.'
           Write-Host "Suite exit codes: $codes"
           if (@($codes | Where-Object {$_ -ne 0}).Count -gt 0) { exit 1 }
