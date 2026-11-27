@@ -815,6 +815,7 @@ class ShopInventoryTracker:
                     'scan_id':started,
                     'total_ms':round(((target_at or name_end)-started)*1000,2),
                     'row_recognition_ms':round((name_end-name_start)*1000,2),
+                    'name_ocr_ms':round((name_end-name_start)*1000,2) if used_name_ocr else 0.0,
                     'used_ocr':bool(used_name_ocr),
                     'sold_retry':False,
                     'visible_rows':len(name_rows),
