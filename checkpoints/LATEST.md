@@ -427,3 +427,7 @@ Cash Overlay v1.5 follow-up: per-track visible duration/path/speed/proximity sum
 
 ## Cash Overlay v1.5 — new chat checkpoint
 Resume from [NEXT_CHAT_HANDOFF.md](../cash-overlay-v1/NEXT_CHAT_HANDOFF.md), runtime 585ebb8c2b08e33e452b9b92a6632537d1c644cf. Blob manifest, prior failures, source refs, inventory evidence, capture cadence, MeowDB reference and test limits consolidated. Documentation only; no new tests, no history deletion, no complete transcript export. Prior v1.3→v1.5 compare found zero removed paths.
+
+
+## Cash Overlay v1.5 — resume verification
+[Resume audit](../cash-overlay-v1/research/2026-11-28-v15-resume-audit.md): requested 5ee32bab0b87cda77b8115899437acc0b10beaba matched main; 23/23 manifest blob IDs and 15 installer file references matched; nine commits since v1.3, zero removed paths. Runtime unchanged at 585ebb8c2b08e33e452b9b92a6632537d1c644cf. Ten project-adapted static continuity areas reviewed; full unrelated master-file line-by-line review, full historical transcript and raw evidence recovery, and new runtime/Windows tests incomplete. 31 test methods staged. Endpoint rates currently not active-only; reviewed combat CSV single-session only. Next: existing actual capture archive and real v1.5 qualification; no duplicate research, no runtime change. Audit exact readback verified at 410a32cbea1b11858fb5d1c11bb503b5a226cbfc.
