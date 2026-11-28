@@ -55,6 +55,22 @@ class JournalTests(unittest.TestCase):
             self.assertTrue(r["clean_close"])
             self.assertEqual(r["active_message_metrics"][0]["observed_pickup_mesos"],100)
             self.assertFalse(r["frame_hash_mismatch"])
+    def test_sampled_audit(self):
+        import json
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d); src=root/"session"; dest=root/"analysis";src.mkdir();dest.mkdir()
+            j=Journal(src/"evidence_journal.jsonl")
+            raw=b"{}"
+            (src/"frame.json").write_bytes(raw)
+            j.append("frame",1,file="frame.png",image_sha256=hashlib.sha256(b"image").hexdigest(),sidecar_sha256=hashlib.sha256(raw).hexdigest())
+            (dest/"active_intervals.jsonl").write_text("")
+            r=audit_session(src,dest)
+            self.assertEqual(r["unavailable_images"],["frame.png"])
+            self.assertEqual(r["frame_hash_mismatch"],[])
+            self.assertTrue(r["active_metrics_withheld_for_sampled_images"])
+            (src/"frame.json").write_bytes(b"wrong")
+            r=audit_session(src,dest)
+            self.assertEqual(r["frame_hash_mismatch"],["frame.png"])
     def test_pickup_no_double_count(self):
         c=dict(map="A",segment="a")
         rows=[dict(kind="accepted_pickups",scope=c,messages=[["mesos",20],["item","Orange Potion",3,"Use"]]),
