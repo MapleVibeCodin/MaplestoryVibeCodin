@@ -351,3 +351,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## First actual Assassin video endpoint benchmark — 2026-11-28
 [Burnt Land III benchmark](../research/2026-11-28-assassin-burnt-land-iii-video-benchmark.md): level44 party, 1:13:01–2:13:07, balances1,040,647→1,056,151, EXP310,614→389,618. Normalized15,478 meso balance/h and78,873 EXP/h. NPC loot and intervening transactions unverified. Actual full video duration4:08:12. No runtime changes or deletions.
+
+
+## Second actual Assassin video endpoint benchmark — 2026-11-28
+[Subway benchmark](../research/2026-11-28-assassin-subway-line1-area2-video-benchmark.md): level45, 11:31–2:14:07, wallet1,143,670→1,223,002, EXP9,220→128,056. 38,825 wallet/h and58,158 EXP/h. End NPC buyback visible, intervening activity unknown. 2.51x earlier Burnt Land III wallet rate; not controlled same-map comparison. No runtime changes.
