@@ -215,15 +215,15 @@ def analyze(frames_path, dest, refs, review=None):
                 section["frames"]+=1; section["last_t"]=t
                 # Absolute EXP within one level; never sum cumulative values across resets.
                 if c.get("exp_confident") and not c.get("exp_estimated") and isinstance(c.get("exp"),int):
-                    v=[t,c["exp"]]
+                    v=[c.get("monotonic",t),c["exp"]]
                     if section["first_exp"] is None: section["first_exp"]=v
                     section["last_exp"]=v
                 if isinstance(c.get("wallet"),int) and isinstance(c.get("wallet_age"),(int,float)) and 0<=c["wallet_age"]+(m.get("context_age_seconds") or 0)<=3:
-                    v=[t,c["wallet"]]
+                    v=[c.get("wallet_observed_at") if isinstance(c.get("wallet_observed_at"),(int,float)) else c.get("monotonic",t)-c["wallet_age"],c["wallet"]]
                     if section["first_wallet"] is None: section["first_wallet"]=v
                     section["last_wallet"]=v
                 if isinstance(c.get("raw_mesos"),int):
-                    v=[t,c["raw_mesos"]]
+                    v=[c.get("monotonic",t),c["raw_mesos"]]
                     if section["first_raw"] is None: section["first_raw"]=v
                     section["last_raw"]=v
             im=cv2.imread(row["image"],cv2.IMREAD_COLOR)
@@ -262,7 +262,7 @@ def analyze(frames_path, dest, refs, review=None):
         kills=[k for k in reviewed if k["map"]==name and s["first_t"]<=k["attack_lo"] and k["death_hi"]<=s["last_t"]]
         # A subset of confirmed kills is a lower bound, not a complete kill count.
         kills_hr=rate(len(kills),s["last_t"]-s["first_t"]) if kills else None
-        summary.append(dict(**s,map=name,exp_hr=xp,wallet_change_hr=wallet,observed_pickup_hr=raw,
+        summary.append(dict(**s,map=name,rate_basis="elapsed_between_observed_endpoints_not_active_only",exp_hr=xp,wallet_change_hr=wallet,observed_pickup_hr=raw,
                             reviewed_kills_lower_bound=len(kills) if review is not None else None,
                             reviewed_kills_lower_bound_hr=kills_hr,comparison=compare(reference_for(name,refs),xp,kills_hr)))
     with (dest/"region_occupancy.csv").open("x",encoding="utf-8",newline="") as f:
