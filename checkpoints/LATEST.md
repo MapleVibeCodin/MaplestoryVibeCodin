@@ -367,3 +367,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## MCWO source improvement audit — 2026-11-28
 [Audit](../research/2026-11-28-mcwo-source-improvement-audit.md): confirmed EXP-first cap and metric-specific sample-count issue; synthetic isolated checks executed, no upstream modifications or runtime tests. Prioritize cash-first local ranking, endpoint coverage, cautious OCR and video replay. Never send modified client data to official MCWO.
+
+
+## Tracker source collection — 2026-11-28
+[Collection](../research/tracker-source-collection-2026-11-28/README.md): 25 pinned public repository candidates, 10 actual licensed source/license files retrieved and archived, full upstream download manifest. MesoLens README-only; no claim of full backend source for closed sites. No runtime modifications or executed builds.

@@ -1,0 +1,152 @@
+[
+  {
+    "repo": "beanguri/Maple-Classic-Exp-Overlay",
+    "commit": "97049b7709f5c4d8f8805ff07b4432eb51d35428",
+    "license": "MIT",
+    "archive": "https://github.com/beanguri/Maple-Classic-Exp-Overlay/archive/97049b7709f5c4d8f8805ff07b4432eb51d35428.zip"
+  },
+  {
+    "repo": "itechify/minerva",
+    "commit": "5d90302b44715cb303b0a2b601c5bab4cb0fb4e4",
+    "license": "MIT",
+    "archive": "https://github.com/itechify/minerva/archive/5d90302b44715cb303b0a2b601c5bab4cb0fb4e4.zip"
+  },
+  {
+    "repo": "CabbageCanFly/msxp",
+    "commit": "badb340707df7f62c511452bff975bf46bd561db",
+    "license": "MIT",
+    "archive": "https://github.com/CabbageCanFly/msxp/archive/badb340707df7f62c511452bff975bf46bd561db.zip"
+  },
+  {
+    "repo": "Javipen/maple-exp-overlay",
+    "commit": "1a25186943a42fccd89eec2e0777c7b41ea5a21f",
+    "license": "MIT",
+    "archive": "https://github.com/Javipen/maple-exp-overlay/archive/1a25186943a42fccd89eec2e0777c7b41ea5a21f.zip"
+  },
+  {
+    "repo": "TaylorAdamCA/Maple-Loot-Overlay",
+    "commit": "945caa00131933cf16b5766a39175dd1eb09ee96",
+    "license": "MIT",
+    "archive": "https://github.com/TaylorAdamCA/Maple-Loot-Overlay/archive/945caa00131933cf16b5766a39175dd1eb09ee96.zip"
+  },
+  {
+    "repo": "Looty/maple-exp-overlay",
+    "commit": "a20098e9e17dd9f191fd30894c29e3457fbb3b6d",
+    "license": "MIT",
+    "archive": "https://github.com/Looty/maple-exp-overlay/archive/a20098e9e17dd9f191fd30894c29e3457fbb3b6d.zip"
+  },
+  {
+    "repo": "oryanzz/EXPERT",
+    "commit": "0ab66afc87bdb9319100fec2605ef8c61ff07c43",
+    "license": "MIT",
+    "archive": "https://github.com/oryanzz/EXPERT/archive/0ab66afc87bdb9319100fec2605ef8c61ff07c43.zip"
+  },
+  {
+    "repo": "jcsoutherland/maple-exp-tracker",
+    "commit": "6198930139ade7a5a84f51f8586b1c02e6172daa",
+    "license": null,
+    "archive": "https://github.com/jcsoutherland/maple-exp-tracker/archive/6198930139ade7a5a84f51f8586b1c02e6172daa.zip"
+  },
+  {
+    "repo": "lucaslcn/maple-classic-exp-tracker",
+    "commit": "aca604df59cda964a2a35f9bc4c86bfc5287fd60",
+    "license": null,
+    "archive": "https://github.com/lucaslcn/maple-classic-exp-tracker/archive/aca604df59cda964a2a35f9bc4c86bfc5287fd60.zip"
+  },
+  {
+    "repo": "luk-gg/classic-world-exp-tracker",
+    "commit": "807097014edfe4231df23bc4f25670efd9c87872",
+    "license": null,
+    "archive": "https://github.com/luk-gg/classic-world-exp-tracker/archive/807097014edfe4231df23bc4f25670efd9c87872.zip"
+  },
+  {
+    "repo": "dwlim/maple-exp-tracker",
+    "commit": "df4ee7213a8c4b10d3aff42d4940628da993cf23",
+    "license": null,
+    "archive": "https://github.com/dwlim/maple-exp-tracker/archive/df4ee7213a8c4b10d3aff42d4940628da993cf23.zip"
+  },
+  {
+    "repo": "Maple-Helper/maple-helper",
+    "commit": "feaab98019d81cb96496f2573284d1430fd7a1ab",
+    "license": null,
+    "archive": "https://github.com/Maple-Helper/maple-helper/archive/feaab98019d81cb96496f2573284d1430fd7a1ab.zip"
+  },
+  {
+    "repo": "oleg1994/maplestory-classic-tool",
+    "commit": "af19503df37516de0bf1bf4f53542432e908f041",
+    "license": "MIT",
+    "archive": "https://github.com/oleg1994/maplestory-classic-tool/archive/af19503df37516de0bf1bf4f53542432e908f041.zip"
+  },
+  {
+    "repo": "rednas-source/Maplestory-Classic-EXP-tracker",
+    "commit": "033532249e47adabeedf4ab12f49dec12514b7f5",
+    "license": "MIT",
+    "archive": "https://github.com/rednas-source/Maplestory-Classic-EXP-tracker/archive/033532249e47adabeedf4ab12f49dec12514b7f5.zip"
+  },
+  {
+    "repo": "tonyalcast/classic-exp-tracker",
+    "commit": "987482804db15ba9fde9d7e9626944feb271b06f",
+    "license": "MIT",
+    "archive": "https://github.com/tonyalcast/classic-exp-tracker/archive/987482804db15ba9fde9d7e9626944feb271b06f.zip"
+  },
+  {
+    "repo": "xEmPIr3/MapleStory-EXP-Tracker",
+    "commit": "3d2b3b3a26bae05ade7d849cea4c0e43aac465fa",
+    "license": "All rights reserved",
+    "archive": "https://github.com/xEmPIr3/MapleStory-EXP-Tracker/archive/3d2b3b3a26bae05ade7d849cea4c0e43aac465fa.zip"
+  },
+  {
+    "repo": "rsmsdev/meso-tracker",
+    "commit": "4db49641939c8e39d9846313d73bed2e72ebd37c",
+    "license": null,
+    "archive": "https://github.com/rsmsdev/meso-tracker/archive/4db49641939c8e39d9846313d73bed2e72ebd37c.zip"
+  },
+  {
+    "repo": "zhuffman68/lupin",
+    "commit": "46efd23eca203544e4e5c5ac0e005a472598f398",
+    "license": null,
+    "archive": "https://github.com/zhuffman68/lupin/archive/46efd23eca203544e4e5c5ac0e005a472598f398.zip"
+  },
+  {
+    "repo": "lceCold508/MapleHuntTracker",
+    "commit": "f41c568be087ec4ea5b798af9dc6495e8e1e9e1c",
+    "license": null,
+    "archive": "https://github.com/lceCold508/MapleHuntTracker/archive/f41c568be087ec4ea5b798af9dc6495e8e1e9e1c.zip"
+  },
+  {
+    "repo": "boowenchen/MapleTracker-public",
+    "commit": "9a583d889c6a6d32e3c13177ae976a5173eabd4b",
+    "license": null,
+    "archive": "https://github.com/boowenchen/MapleTracker-public/archive/9a583d889c6a6d32e3c13177ae976a5173eabd4b.zip"
+  },
+  {
+    "repo": "raskinbobbies/mc-tracker",
+    "commit": "8acb590ed9f3d71f3feff18ee33e66cbd289355d",
+    "license": "MIT",
+    "archive": "https://github.com/raskinbobbies/mc-tracker/archive/8acb590ed9f3d71f3feff18ee33e66cbd289355d.zip"
+  },
+  {
+    "repo": "OfeRx/mscw-exp-mesos-tracker",
+    "commit": "cd47605d552fddd664ccd7d4c37740b4cf17af8e",
+    "license": null,
+    "archive": "https://github.com/OfeRx/mscw-exp-mesos-tracker/archive/cd47605d552fddd664ccd7d4c37740b4cf17af8e.zip"
+  },
+  {
+    "repo": "or-keren/maplelens",
+    "commit": "8e6b5b5503f0b9e3fb044290b393ada41124d0c1",
+    "license": "MIT",
+    "archive": "https://github.com/or-keren/maplelens/archive/8e6b5b5503f0b9e3fb044290b393ada41124d0c1.zip"
+  },
+  {
+    "repo": "gincreations/MS-overlay",
+    "commit": "893a56b42a64f36740a094b54cdbfb6eb02b7a89",
+    "license": "MIT",
+    "archive": "https://github.com/gincreations/MS-overlay/archive/893a56b42a64f36740a094b54cdbfb6eb02b7a89.zip"
+  },
+  {
+    "repo": "vibercoder35/Maple-Classic-Overlay",
+    "commit": "f136c86ae77d3b6953dff62693ad561457b95668",
+    "license": "MIT",
+    "archive": "https://github.com/vibercoder35/Maple-Classic-Overlay/archive/f136c86ae77d3b6953dff62693ad561457b95668.zip"
+  }
+]
