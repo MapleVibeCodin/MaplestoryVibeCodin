@@ -26,3 +26,6 @@ Evidence-first passive screen research, not just a live rate display. Collect su
 
 ## Status
 This is a requirements checkpoint and design contract. No runtime code changed, no new tests executed, no new raw captures collected. Prior capture benchmark and first-session qualification remain authoritative. Full raw source is on user's local drive; public GitHub contains technical documentation only. The previous one-second capture rate is retained as baseline. Do not claim this specification is already implemented.
+
+## Inventory evidence requirement
+Capture Use and Etc pages, and Equipment > Deco pet potion slots at session beginning and periodically. Remind until the visible panel is saved, retain scroll states, do not equate a visible panel with a complete count. v1.4 implements hybrid capture and reminders; remaining scene calibration and exact accounting are not complete.

@@ -409,3 +409,7 @@ Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and pa
 
 ## Spatial research source catalog
 [Source-level review](../cash-overlay-v1/SPATIAL_RESEARCH_SOURCE_CATALOG.md): 8 pinned repo heads, 12 files read across 7 repositories, 21 additional search-discovered links; vision-only, camera compensation, event semantics and telemetry. No runtime changes or tests. License constraints respected.
+
+
+## Cash Overlay v1.4
+Hybrid capture, lossless deduplicated UI crops, periodic full reference PNG, observed map/page burst, inventory reminders, nonfuture metadata, initial minimap-overlap relocation. See cash-overlay-v1/README.md. Six new tests included; live runtime and detector recall unverified. Existing history and captures retained.

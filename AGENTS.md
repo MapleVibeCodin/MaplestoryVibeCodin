@@ -309,3 +309,7 @@ Read [initialization exchange and scoped continuity audit](checkpoints/2026-11-2
 
 ## Cash Overlay — permanent research specification (2026-11-28)
 Read [research objectives and raw evidence contract](cash-overlay-v1/RESEARCH_OBJECTIVES.md) before any capture, tracking, analysis, or compression change. User's two primary objectives are map quality (EXP/hr, mesos/hr, mobs/hr) and personal efficiency (spawn distribution, kill coverage, possible spawn-cap pressure, player population and optimal positions). Evidence first: collect visible raw data during normal play for later questions, preserve local history, maintain anonymous actor tracks and distinguish observed from inferred/offscreen. No video required. Current specification is not implemented; fix known first-session failures and validate capture/recognition before claiming completion.
+
+
+## Cash overlay inventory evidence
+Always preserve Use, Etc and Equipment > Deco (pet potion) views for later item/potion reconciliation; reminders should acknowledge saved visible evidence, not claim complete inventory counts. Preserve raw data and distinguish observed/inferred. Read cash-overlay-v1/RESEARCH_OBJECTIVES.md.

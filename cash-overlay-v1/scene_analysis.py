@@ -42,7 +42,7 @@ def gap_bounds(previous, first_absent, last_absent, reappearance):
     return [round(last_absent-first_absent,3),round(reappearance-previous,3)]
 
 def screenshot_files(folder):
-    return sorted(p for p in folder.rglob('*') if p.is_file() and p.suffix.lower() in ('.png', '.webp'))
+    return sorted(p for p in folder.rglob('*') if p.is_file() and 'ui' not in p.relative_to(folder).parts and p.suffix.lower() in ('.png', '.webp', '.jpg', '.jpeg'))
 
 def main():
     import cv2

@@ -55,11 +55,17 @@ class ScreenshotStore:
             if tmp.exists():
                 tmp.unlink()
 
-    def save(self, png, when=None):
+    def save_scene(self, data, when=None):
+        # JPEG is allowed only through the explicit hybrid capture interface.
+        return self.save(data, when, allow_scene=True)
+
+    def save(self, png, when=None, allow_scene=False):
         if lossless_webp(png):
             ext = '.webp'
         elif isinstance(png, bytes) and png.startswith(b"\x89PNG\r\n\x1a\n"):
             ext = '.png'
+        elif allow_scene and isinstance(png, bytes) and png[:2]==b'\xff\xd8' and png[-2:]==b'\xff\xd9':
+            ext = '.jpg'
         else:
             raise ValueError('Expected lossless WebP or PNG bytes')
         if not self.has_space():
