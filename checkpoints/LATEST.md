@@ -363,3 +363,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## MCWO clean upstream source — 2026-11-28
 [Source reference](../research/2026-11-28-mcwo-clean-upstream-source.md): verified MIT licensed beanguri repository, pinned 97049b7709f5c4d8f8805ff07b4432eb51d35428. Website server/ and desktop OCR source; no production database, no local build. Modified clients must not send to official MCWO.
+
+
+## MCWO source improvement audit — 2026-11-28
+[Audit](../research/2026-11-28-mcwo-source-improvement-audit.md): confirmed EXP-first cap and metric-specific sample-count issue; synthetic isolated checks executed, no upstream modifications or runtime tests. Prioritize cash-first local ranking, endpoint coverage, cautious OCR and video replay. Never send modified client data to official MCWO.
