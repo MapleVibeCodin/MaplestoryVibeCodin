@@ -397,3 +397,7 @@ Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and pa
 
 ## Cash overlay first live capture qualification
 [Technical findings](../cash-overlay-v1/FIRST_CAPTURE_QUALIFICATION.md): actual 1 Hz WebP capture validated; map title occlusion, message OCR undercount, and negative metadata-age bug found. No raw personal data archived; runtime fixes still pending.
+
+
+## Capture compression benchmark
+[Measured codec results](../cash-overlay-v1/CAPTURE_COMPRESSION_BENCHMARK.md): first capture archive tested locally; JPEG65 native full-resolution plus lossless UI crops greatly reduces encode time and storage. No runtime update yet, no personal image data committed, recognition parity unverified.
