@@ -381,3 +381,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 [Source and instructions](../cash-overlay-v1/README.md): pinned local-only Javipen engine with cash-first HUD, active-map evidence ledger, isolated data, CSV, offline MCWO ranking. Installer runs compile and five core tests on Windows before launch; no live runtime verified here. Existing FM Rush unchanged. No full merge or automated video OCR yet.
 
 Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and passed; source hashes confirmed. Installer preserves upstream README and bundles archived MCWO dataset. Windows setup/live OCR still untested. [Evidence](../cash-overlay-v1/TEST_EVIDENCE.md).
+
+
+## Cash overlay v1.1 — periodic screenshots
+[Source](../cash-overlay-v1/README.md): user chose PNG snapshots rather than video or new event recording. Three-second foreground game client captures, unique session dirs, free-space guard, no deletion, Desktop shortcut, four new filesystem tests included (not run here). Existing accounting untouched; Windows runtime unverified.
