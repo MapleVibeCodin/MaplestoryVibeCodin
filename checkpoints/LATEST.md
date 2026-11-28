@@ -339,3 +339,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## Forgotten Hollow all-map cash farming comparison — 2026-11-28
 [Research](../research/2026-11-28-forgotten-hollow-all-map-cash-comparison.md): 23 combat maps, six noncombat; Entrance II/III both modeled cap26 despite32/44 spawn points. II best prior cash report, III easier kills, Hanging Gardens cap31 but tougher and larger. No verified new solo cash rates; earlier report direct retrieval blocked. All history retained.
+
+
+## Assassin video benchmark search — 2026-11-28
+[Video research](../research/2026-11-28-assassin-video-benchmark-search.md): level44/45 Assassin multi-hour streams identified, post-Forgotten-Hollow release; direct YouTube retrieval disabled, no actual start/end counters or verified hourly benchmark. Do not claim measured results.
