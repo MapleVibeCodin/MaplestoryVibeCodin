@@ -21,7 +21,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 2.3"
+base.VERSION = "Cash 2.4"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -519,6 +519,10 @@ class CashApp(OriginalApp):
                 from notification_report import summarize
                 summarize(self.screenshot_store.folder)
             except Exception as e: base.log_error('saving quick report',e)
+            try:
+                from species_report import report_folder
+                report_folder(self.screenshot_store.folder)
+            except Exception as exc: base.log_error("species report",exc)
             try:
                 # Actual Windows Downloads known-folder path when redirected; fallback to home.
                 downloads=Path.home()/'Downloads'

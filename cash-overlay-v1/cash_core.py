@@ -7,7 +7,7 @@ from pathlib import Path
 
 NPC = {"Lupin's Banana":37, "Green Mushroom Cap":14, "Raffle Petal":40,
        "Glowing Mushroom Spore":39, "Golden Stirge Wing":42, "Aqumander Tail":43,
-       "Echopus Leg":44, "Curse Eye Tail":33, "Evil Eye Tail":27,
+       "Echopus Leg":44, "Duskmander Tail":49, "Rafflesia Petal":47, "Curse Eye Tail":33, "Evil Eye Tail":27,
        "Jr. Boogie Horn":35, "Cursed Doll":40, "Horny Mushroom Cap":22,
        "Charm of the Undead":24, "Stirge Wing":20, "Wooden Board":23, "Slate":24}
 
