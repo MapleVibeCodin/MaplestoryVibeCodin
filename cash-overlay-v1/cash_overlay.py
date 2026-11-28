@@ -18,7 +18,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 1.7"
+base.VERSION = "Cash 1.8"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -54,12 +54,20 @@ class CashApp(OriginalApp):
         self.party_confirmed_at = None
         self.journal = None
         self.potion_scope_by_id = {}
+        self.hud_enabled = False
+        self.recording_epoch = 0
+        self.last_map_observation = None
         super().__init__(root, templates)
         self._original_show = self.hud.show
         self.hud.show = self._show_cash
         root.title(base.WINDOW_TITLE)
         self.reminder_label = base.tk.Label(root, text='Preparing evidence reminders', bg='#263238', fg='white', wraplength=420, padx=8, pady=5)
         self.reminder_label.grid(row=1,column=0,columnspan=2,sticky='ew')
+        controls=base.tk.Frame(root)
+        controls.grid(row=2,column=0,columnspan=2,sticky='ew')
+        base.tk.Button(controls,text='Hide / keep recording',command=self.hide_recording).pack(side='left',expand=True,fill='x')
+        self.hud_button=base.tk.Button(controls,text='Show game HUD',command=self.toggle_game_hud)
+        self.hud_button.pack(side='left',expand=True,fill='x')
         self.screenshot_store = ScreenshotStore(base.DATA_DIR / 'screenshots')
         self.journal = Journal(self.screenshot_store.folder/'evidence_journal.jsonl')
         self._journal('launch',time.monotonic(),version=base.VERSION)
@@ -71,6 +79,37 @@ class CashApp(OriginalApp):
         try:
             if self.screenshot_store.has_space(): self.journal.append(kind,at,**fields)
         except Exception as e: base.log_error('saving evidence journal',e)
+
+    def _window_rect(self):
+        # A minimized window has no visible screen rectangle to black out.
+        try:
+            if self.root.state() in ('iconic','withdrawn'): return None
+        except Exception: pass
+        return super()._window_rect()
+
+    def hide_recording(self):
+        self.hud_enabled=False
+        self.hud.hide()
+        self.reader.hud_rects=()
+        self.reader.own_rect=None
+        self.hud_button.configure(text='Show game HUD')
+        self._journal('visibility',time.monotonic(),hud=False,control='minimized')
+        self.root.iconify()
+
+    def toggle_game_hud(self):
+        self.hud_enabled=not self.hud_enabled
+        self.hud_button.configure(text='Hide game HUD' if self.hud_enabled else 'Show game HUD')
+        if not self.hud_enabled:
+            self.hud.hide()
+            self.reader.hud_rects=()
+        self._journal('visibility',time.monotonic(),hud=self.hud_enabled,control='visible')
+
+    def _update_hud(self,*args,**kwargs):
+        if not self.hud_enabled or self.root.state() in ('iconic','withdrawn'):
+            self.hud.hide()
+            self.reader.hud_rects=()
+            return
+        return super()._update_hud(*args,**kwargs)
 
     def _screenshot_loop(self):
         # Passive foreground-only capture. Metadata is frozen before acquisition.
@@ -132,7 +171,8 @@ class CashApp(OriginalApp):
                                                 reference=reference,ui=crops,inventory_windows=windows,
                                                 burst=capture_at<self.burst_until,rich=bool(rich or reference),
                                                 frame_gap_seconds=None if self.last_capture_time is None else round(capture_at-self.last_capture_time,4),
-                                                capture_schema=3,sequence=self.screenshot_store.sequence,
+                                                capture_schema=4,sequence=self.screenshot_store.sequence,
+                                                hud_enabled=self.hud_enabled,
                                                 inventory_windows_current=rich,
                                                 inventory_last_known=self.cached_inventory_windows)
                                     self.screenshot_store.metadata(path,data)
@@ -159,21 +199,27 @@ class CashApp(OriginalApp):
                     self.capture_notice='Capture error — see errors.log'
                     base.log_error('saving periodic game screenshot',e)
                 live=self.scene_context
-                interval=self.combat_interval if (time.monotonic()<self.burst_until or (live and live.get('active') and 0<=time.monotonic()-live['monotonic']<=3)) else self.base_interval
+                interval=self.combat_interval if (time.monotonic()<self.burst_until or (live and live.get('tracking_enabled') and 0<=time.monotonic()-live['monotonic']<=3)) else self.base_interval
                 self.stop_evt.wait(max(.02,interval-(time.monotonic()-started)))
 
     def _handle(self, reading):
+        # Keep the last observation, not pixels from a different foreground app.
+        if self.reader.hwnd and self.reader.mode=='window' and ctypes.windll.user32.GetForegroundWindow()!=self.reader.hwnd:
+            return
         super()._handle(reading)
         t, m = self.tracker, self.meso
         now = time.monotonic()
         if reading.party is not None and reading.party == self.party and self._party_seen[1]>=2:
             self.party_confirmed_at=now
+        if reading.map and not self.reader.map_unread:
+            self.last_map_observation=now
         self._state_cash(now)
         # Immutable copy from the UI thread. Values are latest OCR state, not a simultaneous screenshot reading.
         self.scene_context = dict(monotonic=now, map=self.map_name, map_read=reading.map,
-            map_uncertain=bool(self.map_hidden or self.reader.map_unread or not self.reader.map_box),
+            map_uncertain=bool(self.map_hidden or self.reader.map_unread or not self.reader.map_box or self.last_map_observation is None or now-self.last_map_observation>15),
+            map_observed_at=self.last_map_observation,recording_epoch=self.recording_epoch,
             level=self.level, exp=t.exp, exp_pct=t.pct, exp_estimated=bool(t.hidden),
-            exp_candidates=[list(x) for x in reading.candidates], exp_confident=bool(reading.confident),
+            exp_candidates=[list(x) for x in reading.candidates], exp_confident=bool(reading.confident and any(e==t.exp for e,p in reading.candidates if e is not None)),
             exp_gained=t.gained, exp_message_total=self.exp_message_total, party=self.party,
             party_observed=reading.party, party_confirmed=bool(self.party_confirmed_at is not None and now-self.party_confirmed_at<=3 and self._party_seen[0]==self.party and self._party_seen[1]>=2),
             party_confirmed_at=self.party_confirmed_at, job=self.job, wallet=m.value, wallet_read=reading.mesos,
@@ -339,6 +385,8 @@ class CashApp(OriginalApp):
     def reset(self):
         self._journal('reset',time.monotonic(),scope=scope(self.scene_context))
         self.potion_scope_by_id.clear()
+        self.recording_epoch+=1
+        self.scene_context=None
         self._export(True)
         self.cash = CashLedger()
         self.last_signature = None
@@ -350,6 +398,13 @@ class CashApp(OriginalApp):
         if hasattr(self, 'screenshot_thread'):
             self.screenshot_thread.join(timeout=2)
         self._journal('close',time.monotonic())
+        if hasattr(self,'screenshot_store') and (not hasattr(self,'screenshot_thread') or not self.screenshot_thread.is_alive()):
+            try:
+                import json
+                from quick_report import report_folder
+                refs=json.loads(Path(__file__).with_name('meow_reference.json').read_text(encoding='utf-8'))
+                report_folder(self.screenshot_store.folder,refs=refs)
+            except Exception as e: base.log_error('saving quick report',e)
         super().close()
 
 if __name__ == "__main__":
