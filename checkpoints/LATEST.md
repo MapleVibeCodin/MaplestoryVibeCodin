@@ -423,3 +423,7 @@ Hybrid capture, lossless deduplicated UI crops, periodic full reference PNG, obs
 2 Hz baseline and 4 Hz EXP-triggered bursts; raw line evidence, actual gaps, offline registered motion candidates and reviewed TTK brackets, source-linked Primeval Forest I model. Seven new regression tests included, not yet executed. Windows and real detector validation pending. Existing data preserved.
 
 Cash Overlay v1.5 follow-up: per-track visible duration/path/speed/proximity summaries and candidate visibility recurrence gaps; richer camera masking. Eight new research tests included; isolated synthetic camera translation and blank-frame checks executed successfully on Linux, full installer and Windows untested.
+
+
+## Cash Overlay v1.5 — new chat checkpoint
+Resume from [NEXT_CHAT_HANDOFF.md](../cash-overlay-v1/NEXT_CHAT_HANDOFF.md), runtime 585ebb8c2b08e33e452b9b92a6632537d1c644cf. Blob manifest, prior failures, source refs, inventory evidence, capture cadence, MeowDB reference and test limits consolidated. Documentation only; no new tests, no history deletion, no complete transcript export. Prior v1.3→v1.5 compare found zero removed paths.

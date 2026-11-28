@@ -313,3 +313,7 @@ Read [research objectives and raw evidence contract](cash-overlay-v1/RESEARCH_OB
 
 ## Cash overlay inventory evidence
 Always preserve Use, Etc and Equipment > Deco (pet potion) views for later item/potion reconciliation; reminders should acknowledge saved visible evidence, not claim complete inventory counts. Preserve raw data and distinguish observed/inferred. Read cash-overlay-v1/RESEARCH_OBJECTIVES.md.
+
+
+## Cash Overlay current handoff
+Read [NEXT_CHAT_HANDOFF.md](cash-overlay-v1/NEXT_CHAT_HANDOFF.md) for v1.5 runtime, required prior-failure review, source references and actual verification limits before further capture/analysis work. Do not repeat completed work. Preserve all local evidence and older releases; keep public repo free of personal captures. Use one PowerShell command for installation/export.
