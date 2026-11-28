@@ -472,3 +472,8 @@ Read AGENTS.md's latest normal ChatGPT-only rule on every resume. User verbatim:
 ## 2026-11-28 — Maple Research Scanner v2.2 notification-centered release
 
 Runtime 152af651ec180855f10e6a796224184674b74141. Read [release and executed evidence](../cash-overlay-v1/fixes/2026-11-28-v22-notification-replay-release.md). Journal collision fixed, legacy exact-digest recovery, foreground-only stack capture, independent two-pass batched notification OCR, catalog matching, explicit own/shared/bonus EXP, no unvalidated solo claim, inventory-independent pickup rates, readable SESSION_SUMMARY.txt and CSV/JSON. 128/144 sampled rows accepted in ~4.2s (agreement, not ground truth); five scoped tests passed with four actual legacy archives and tamper rejection. Full Windows installer/live tests and exact personal kill attribution remain unverified. Preserve all evidence; no potion costs, no raw private uploads, normal ChatGPT only. Next install pinned v2.2 and upload one session ZIP; do not repeat solved journal diagnosis.
+
+
+## 2026-11-28 — Maple Research Scanner v2.3
+
+Runtime a7b2ac21b55b3463be466ccb7c94571c48e69fd3. Read [v2.3 incremental notifications and test evidence](../cash-overlay-v1/fixes/2026-11-28-v23-incremental-notifications.md). Incremental source processing, selective third OCR pass, per-minute CSV, species-linked observed drops (not kills), pending rows included in coverage. Four exact-blob helper tests passed; 9459-row incremental simulation and 336-crop standalone OCR comparison executed. Full integrated installer and Windows live qualification pending. Preserve v2.2 fixes and historical evidence. Install v2.3 and upload a normal session ZIP. Continue in ordinary ChatGPT only.
