@@ -9,4 +9,8 @@ for old,new in [
     if s.count(old)!=1:
         raise SystemExit("Upstream HUD mismatch; stopping without writing")
     s=s.replace(old,new,1)
+from map_reader_fix import patch_reader_source
+reader=p.with_name("maple_exp.py")
+reader_source=patch_reader_source(reader.read_text(encoding="utf-8"))
+reader.write_text(reader_source,encoding="utf-8")
 p.write_text(s,encoding="utf-8")
