@@ -92,6 +92,8 @@ def main():
     from research_analysis import analyze
     refs=json.loads(args.reference.read_text(encoding="utf-8"))
     analyze(dest/"frames.jsonl",dest,refs,args.review)
+    from evidence_report import build_report
+    build_report(dest/"frames.jsonl", dest, Path(__file__).with_name("mcwo-level-20-50.json"))
     print(dest/"research_summary.json")
     print(dest/"frames.jsonl")
     print("Template observations only; missed detections, camera changes and offscreen actors prevent exact spawn claims.")
