@@ -375,3 +375,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## Expanded tracker public GitHub catalog — 2026-11-28
 [Expanded catalog](../research/tracker-source-collection-2026-11-28/EXPANDED.md): 99 distinct public search candidates, 33 pinned, 63 search-only, 3 unqualified. Prior manifest and source blobs preserved. Downloader resolves missing refs and logs failures; not executed here. No runtime changes.
+
+
+## Maple Cash Overlay v1 — separate implementation
+[Source and instructions](../cash-overlay-v1/README.md): pinned local-only Javipen engine with cash-first HUD, active-map evidence ledger, isolated data, CSV, offline MCWO ranking. Installer runs compile and five core tests on Windows before launch; no live runtime verified here. Existing FM Rush unchanged. No full merge or automated video OCR yet.
