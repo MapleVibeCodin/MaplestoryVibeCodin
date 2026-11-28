@@ -18,13 +18,15 @@ def suppress(matches):
             out.append(a)
     return out
 
-def template_hits(img, tpl, kind, name, threshold, limit=200):
+def template_hits(img, tpl, kind, name, threshold, limit=200, blocked=()):
     import cv2
     import numpy as np
     h,w=tpl.shape[:2]
     if h<4 or w<4 or h>img.shape[0] or w>img.shape[1] or float(np.std(tpl))<3:
         return []
     scores=cv2.matchTemplate(img,tpl,cv2.TM_CCOEFF_NORMED)
+    for x,y,bw,bh in blocked:
+        scores[max(0,int(y)-h+1):min(scores.shape[0],int(y+bh)),max(0,int(x)-w+1):min(scores.shape[1],int(x+bw))]=-1
     out=[]
     for _ in range(limit):
         _,score,_,(x,y)=cv2.minMaxLoc(scores)
@@ -69,10 +71,16 @@ def main():
     with (dest/"frames.jsonl").open("x",encoding="utf-8") as out:
         for f in screenshot_files(args.screenshots):
             im=cv2.imread(str(f),cv2.IMREAD_COLOR)
-            if im is None: continue
             try: meta=json.loads(f.with_suffix(".json").read_text(encoding="utf-8"))
             except (OSError,ValueError): meta={}
-            hits=suppress([hit for k,n,t in templates for hit in template_hits(im,t,k,n,args.threshold)])
+            if im is None:
+                out.write(json.dumps({"image":str(f),"metadata":meta,"unreadable":True,"detections":[]})+"\n")
+                continue
+            H,W=im.shape[:2]
+            blocked=[(0,0,int(W*.38),int(H*.30)),(0,int(H*.83),W,H-int(H*.83))]
+            blocked += [v["box"] for v in meta.get("ui",[]) if v.get("kind")!="minimap" and "box" in v]
+            blocked += [v["box"] for v in meta.get("inventory_last_known",[]) if "box" in v]
+            hits=suppress([hit for k,n,t in templates for hit in template_hits(im,t,k,n,args.threshold,blocked=blocked if k!="anchor" else ())])
             anchors=[a for a in hits if a["kind"]=="anchor"]
             anchor=anchors[0] if len(anchors)==1 else None
             players=[a for a in hits if a["kind"]=="player"]
@@ -94,6 +102,8 @@ def main():
     analyze(dest/"frames.jsonl",dest,refs,args.review)
     from evidence_report import build_report
     build_report(dest/"frames.jsonl", dest, Path(__file__).with_name("mcwo-level-20-50.json"))
+    from evidence_journal import audit_session
+    audit_session(args.screenshots,dest)
     print(dest/"research_summary.json")
     print(dest/"frames.jsonl")
     print("Template observations only; missed detections, camera changes and offscreen actors prevent exact spawn claims.")
