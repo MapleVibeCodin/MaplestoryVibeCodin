@@ -340,3 +340,10 @@ Runtime 152af651ec180855f10e6a796224184674b74141. Read [release and executed evi
 ## 2026-11-28 — Maple Research Scanner v2.3
 
 Runtime a7b2ac21b55b3463be466ccb7c94571c48e69fd3. Read [v2.3 incremental notifications and test evidence](cash-overlay-v1/fixes/2026-11-28-v23-incremental-notifications.md). Incremental source processing, selective third OCR pass, per-minute CSV, species-linked observed drops (not kills), pending rows included in coverage. Four exact-blob helper tests passed; 9459-row incremental simulation and 336-crop standalone OCR comparison executed. Full integrated installer and Windows live qualification pending. Preserve v2.2 fixes and historical evidence. Install v2.3 and upload a normal session ZIP. Continue in ordinary ChatGPT only.
+
+
+## 2026-11-28 — final v2.3 new-chat checkpoint
+
+User verbatim: "LETS MOVE TO NEW CHAT. REMEMBER VERBATUM REMEMBER EVERYTHING AND SAVE TO MEMORY GITHUB AND PULL EVERYTHING FROM GITHUB. NO MORE WORK"
+
+Read [new-chat continuation](cash-overlay-v1/NEW_CHAT_2026-11-28_V23.md) first and [accessible dialogue excerpts](cash-overlay-v1/transcripts/2026-11-28-v23-new-chat-excerpts.md). Runtime unchanged a7b2ac21b55b3463be466ccb7c94571c48e69fd3. Latest map suggestion Decayed Tunnel I, conditional model only. No proof of local installation or new recording. Continue in normal ChatGPT, never suggest Work or Codex. Public repository, private raw evidence omitted, no claim of complete transcript or platform memory synchronization. Preserve prior history, verify actual current main at every resume.
