@@ -8,6 +8,7 @@ import hashlib
 from evidence_journal import Journal, classify_messages, potion_delta, trusted_scope, scope
 from map_reader_fix import stable_map_timestamp
 from compact_capture import EvidencePolicy, export_session
+from minimap_tracker import viewport, observe
 from datetime import datetime, timezone
 from pathlib import Path
 from cash_core import CashLedger, NPC, append_snapshot
@@ -20,7 +21,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 2.0"
+base.VERSION = "Cash 2.1"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -83,6 +84,8 @@ class CashApp(OriginalApp):
         self._journal('launch',time.monotonic(),version=base.VERSION,full_evidence=self.full_evidence)
         self.screenshot_thread = threading.Thread(target=self._screenshot_loop, daemon=True, name='game-screenshots')
         self.screenshot_thread.start()
+        self.minimap_thread=threading.Thread(target=self._minimap_loop,daemon=True,name="minimap-observations")
+        self.minimap_thread.start()
 
     def _journal(self,kind,at,**fields):
         if self.journal is None: return
@@ -124,6 +127,38 @@ class CashApp(OriginalApp):
             self.reader.hud_rects=()
             return
         return super()._update_hud(*args,**kwargs)
+
+    def _minimap_loop(self):
+        # Independent 10 Hz target, no input injection, no saved high-frequency images.
+        import json
+        with base.mss.mss() as sct, (self.screenshot_store.folder/'minimap_observations.jsonl').open('x',encoding='utf-8') as out:
+            while not self.stop_evt.is_set():
+                t=time.monotonic()
+                try:
+                    hwnd=self.reader.hwnd
+                    if self.reader.mode=='window' and hwnd and ctypes.windll.user32.GetForegroundWindow()==hwnd and self.screenshot_store.has_space():
+                        rect=base.PLATFORM.client_rect(hwnd)
+                        if rect:
+                            x,y,w,h=rect
+                            ctx=self.scene_context
+                            at=time.monotonic()
+                            shot=base.grab(sct,x,y,int(w*.38),int(h*.30))
+                            if shot and shot[1:]==(x,y) and shot[0].shape[:2]==(int(h*.30),int(w*.38)) and ctypes.windll.user32.GetForegroundWindow()==hwnd and base.PLATFORM.client_rect(hwnd)==rect:
+                                im=shot[0]
+                                row=observe(im,viewport(im))
+                                c,age=context_at(ctx,at)
+                                c=c or {}
+                                trusted=age is not None and age<=1 and not c.get('map_uncertain') and c.get('map')
+                                row.update(monotonic=at,context_at=c.get('monotonic'),map=c.get('map') if trusted else None,
+                                           epoch=c.get('recording_epoch'),segment=c.get('segment'),level=c.get('level'),
+                                           exp=c.get('exp') if c.get('exp_confident') and not c.get('exp_estimated') and age is not None and age<=1 else None,
+                                           party=c.get('party') if c.get('party_confirmed') and age is not None and age<=1 else None,
+                                           rect=list(rect))
+                                out.write(json.dumps(row,separators=(',',':'),allow_nan=False)+'\n')
+                                out.flush()
+                except Exception as e:
+                    base.log_error('minimap observation',e)
+                self.stop_evt.wait(max(.005,.1-(time.monotonic()-t)))
 
     def _screenshot_loop(self):
         # Passive foreground-only capture. Metadata is frozen before acquisition.
@@ -425,13 +460,19 @@ class CashApp(OriginalApp):
         self.stop_evt.set()
         if hasattr(self, 'screenshot_thread'):
             self.screenshot_thread.join(timeout=2)
+        if hasattr(self,'minimap_thread'):self.minimap_thread.join(timeout=3)
+        mini=self.screenshot_store.folder/'minimap_observations.jsonl'
+        if hasattr(self,'minimap_thread') and not self.minimap_thread.is_alive() and mini.is_file():
+            self._journal('minimap_file',time.monotonic(),file=mini.name,sha256=hashlib.sha256(mini.read_bytes()).hexdigest())
         self._journal('close',time.monotonic())
-        if hasattr(self,'screenshot_store') and (not hasattr(self,'screenshot_thread') or not self.screenshot_thread.is_alive()):
+        if hasattr(self,'screenshot_store') and (not hasattr(self,'screenshot_thread') or not self.screenshot_thread.is_alive()) and (not hasattr(self,'minimap_thread') or not self.minimap_thread.is_alive()):
             try:
                 import json
                 from quick_report import report_folder
                 refs=json.loads(Path(__file__).with_name('meow_reference.json').read_text(encoding='utf-8'))
                 report_folder(self.screenshot_store.folder,refs=refs)
+                from minimap_report import report_minimap
+                report_minimap(self.screenshot_store.folder)
             except Exception as e: base.log_error('saving quick report',e)
             try:
                 # Actual Windows Downloads known-folder path when redirected; fallback to home.
