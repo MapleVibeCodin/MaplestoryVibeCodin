@@ -393,3 +393,7 @@ Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and pa
 
 ## Cash overlay v1.3 — lossless WebP
 [Implementation](../cash-overlay-v1/README.md): one-second WebP with per-frame pixel equality validation, PNG fallback, image size metadata and backward-compatible offline analyzer. Previous files preserved. Three new codec tests included; Windows/live capture not verified.
+
+
+## Cash overlay first live capture qualification
+[Technical findings](../cash-overlay-v1/FIRST_CAPTURE_QUALIFICATION.md): actual 1 Hz WebP capture validated; map title occlusion, message OCR undercount, and negative metadata-age bug found. No raw personal data archived; runtime fixes still pending.
