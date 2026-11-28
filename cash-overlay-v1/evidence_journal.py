@@ -171,8 +171,8 @@ def audit_session(session,dest):
     intervals_path=dest/"active_intervals.jsonl"
     from cash_core import NPC
     with intervals_path.open(encoding="utf-8") as f:
-        intervals=[json.loads(line) for line in f]
-    metrics=interval_metrics(records,intervals,{k.casefold():v for k,v in NPC.items()}) if not errors and not mismatched else []
+        intervals=[r for line in f for r in [json.loads(line)] if Path(r["session"]).resolve()==session.resolve()]
+    metrics=interval_metrics(records,intervals,{k.casefold():v for k,v in NPC.items()}) if not errors and not mismatched and not orphan else []
     report=dict(journal_records=len(records),journal_errors=errors,frame_count=len(frames),
         clean_close=bool(records and records[-1]["kind"]=="close"),active_message_metrics=metrics,
         frame_hash_mismatch=mismatched,unindexed_frames=orphan,capture_gaps=gaps,
