@@ -88,6 +88,82 @@
           "points": 10
         }
       ]
+    },
+    "010006030": {
+      "name": "Primeval Forest III",
+      "source": "https://meowdb.com/msclassic/maps/010006030",
+      "retrieved": "2026-11-28",
+      "model": {
+        "spawn_points": 11,
+        "mob_rate": 0.6,
+        "solo_cap": 9,
+        "tick_seconds": 7.56,
+        "realistic_mobs_hr": 762,
+        "realistic_exp_hr": 69713,
+        "realistic_uptime": 0.4,
+        "ceiling_exp_hr": 394675,
+        "extra_capacity_per_combat_player_after_five": 0.75
+      },
+      "monsters": [
+        {
+          "name": "Raffle",
+          "level": 40,
+          "hp": 1722,
+          "exp": 85,
+          "points": 5,
+          "movement": "jumps between floors"
+        },
+        {
+          "name": "Aqumander",
+          "level": 43,
+          "hp": 2069,
+          "exp": 98,
+          "points": 6,
+          "movement": "stays on its floor"
+        }
+      ]
+    },
+    "010006050": {
+      "name": "Forgotten Entrance II",
+      "source": "https://meowdb.com/msclassic/maps/010006050",
+      "retrieved": "2026-11-28",
+      "model": {
+        "spawn_points": 32,
+        "mob_rate": 0.8,
+        "solo_cap": 26,
+        "tick_seconds": 7.56,
+        "realistic_mobs_hr": 2476,
+        "realistic_exp_hr": 203809,
+        "realistic_uptime": 0.4,
+        "ceiling_exp_hr": 1015238,
+        "extra_capacity_per_combat_player_after_five": 0.75
+      },
+      "monsters": [
+        {
+          "name": "Lupin",
+          "level": 37,
+          "hp": 1336,
+          "exp": 75,
+          "points": 6,
+          "movement": "jumps between floors"
+        },
+        {
+          "name": "Glowshroom",
+          "level": 39,
+          "hp": 1377,
+          "exp": 82,
+          "points": 12,
+          "movement": "stays on its floor"
+        },
+        {
+          "name": "Raffle",
+          "level": 40,
+          "hp": 1722,
+          "exp": 85,
+          "points": 14,
+          "movement": "jumps between floors"
+        }
+      ]
     }
   }
 }
