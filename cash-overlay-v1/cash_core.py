@@ -50,7 +50,8 @@ class CashLedger:
                 _, name, qty, tab = p
                 if not isinstance(name, str) or type(qty) is not int or qty <= 0:
                     continue
-                if tab == "Cash":
+                # Temporary user policy: consumables are count-only, never NPC-valued.
+                if str(tab).casefold() in ("cash","use"):
                     continue
                 self.messages += 1
                 price = prices.get(name.casefold())
