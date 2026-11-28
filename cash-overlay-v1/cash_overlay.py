@@ -139,7 +139,7 @@ class CashApp(OriginalApp):
                                     self._journal('frame',capture_at,file=path.name,
                                         image_sha256=hashlib.sha256(encoded).hexdigest(),
                                         sidecar_sha256=hashlib.sha256(path.with_suffix('.json').read_bytes()).hexdigest(),
-                                        scope=scope(ctx),capture_sequence=self.screenshot_store.sequence)
+                                        scope=trusted_scope(ctx,capture_at),capture_sequence=self.screenshot_store.sequence)
                                     # Only acknowledge a page with saved lossless panel evidence.
                                     saved={v['kind'] for v in crops}
                                     self.reminders.observe(capture_at,[p for p in pages if 'inventory_'+p in saved],map_name)
@@ -259,9 +259,9 @@ class CashApp(OriginalApp):
         if 0 <= now-when <= 2:
             prices = {k.casefold():v for k,v in base.LOOT_PRICES.items()}
             prices.update({k.casefold():v for k,v in (self.cfg.get("loot_prices") or {}).items()})
-            self.cash.add(found, prices)
             sc=trusted_scope(self.scene_context,when)
             accepted=self.cash.active and sc is not None and sc['segment']==self.cash.segment
+            if accepted: self.cash.add(found, prices)
             self._journal('accepted_pickups' if accepted else 'unassigned_pickups',when,
                           scope=sc if accepted else None,messages=found)
         else:
