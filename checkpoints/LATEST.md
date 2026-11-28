@@ -379,3 +379,5 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## Maple Cash Overlay v1 — separate implementation
 [Source and instructions](../cash-overlay-v1/README.md): pinned local-only Javipen engine with cash-first HUD, active-map evidence ledger, isolated data, CSV, offline MCWO ranking. Installer runs compile and five core tests on Windows before launch; no live runtime verified here. Existing FM Rush unchanged. No full merge or automated video OCR yet.
+
+Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and passed; source hashes confirmed. Installer preserves upstream README and bundles archived MCWO dataset. Windows setup/live OCR still untested. [Evidence](../cash-overlay-v1/TEST_EVIDENCE.md).
