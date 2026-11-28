@@ -99,6 +99,8 @@ def main():
             out.write(json.dumps(row,ensure_ascii=False)+"\n")
     from research_analysis import analyze
     refs=json.loads(args.reference.read_text(encoding="utf-8"))
+    from quick_report import report_folder
+    report_folder(args.screenshots,dest/"quick_report.json",refs)
     analyze(dest/"frames.jsonl",dest,refs,args.review)
     from evidence_report import build_report
     build_report(dest/"frames.jsonl", dest, Path(__file__).with_name("mcwo-level-20-50.json"))
