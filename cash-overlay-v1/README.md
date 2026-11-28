@@ -20,3 +20,6 @@ scene_analysis.py is an offline working template matcher, labels monster/self/pl
 
 ## v1.3 — lossless WebP storage
 User accepted the proposed lossless WebP change: "lets do that". New 1-second foreground screenshots use OpenCV WebP quality 101 (lossless VP8L), with pixel-for-pixel BGR decode verification per frame; PNG fallback if encoding or verification fails. JSON sidecars record codec and actual image byte size. Older PNGs, metadata, accounting and history retained; offline analyzer now accepts PNG and WebP. No automatic deletion, 5 GiB free-space guard unchanged. Three codec/compatibility tests added to the installer’s existing screenshot test suite. Actual disk savings and capture cadence depend on content and hardware. Windows/live capture not executed here.
+
+## Permanent research scope
+Before modifying the overlay, read [RESEARCH_OBJECTIVES.md](RESEARCH_OBJECTIVES.md). Capture should support later map quality, kill throughput, spawn coverage, positioning and population analysis without recollecting the same session. This is the next implementation contract, not a claim that all its requirements have been built.

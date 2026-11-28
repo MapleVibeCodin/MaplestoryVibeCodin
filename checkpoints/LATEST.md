@@ -401,3 +401,7 @@ Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and pa
 
 ## Capture compression benchmark
 [Measured codec results](../cash-overlay-v1/CAPTURE_COMPRESSION_BENCHMARK.md): first capture archive tested locally; JPEG65 native full-resolution plus lossless UI crops greatly reduces encode time and storage. No runtime update yet, no personal image data committed, recognition parity unverified.
+
+
+## Cash Overlay — permanent research objective
+[Read first](../cash-overlay-v1/RESEARCH_OBJECTIVES.md): user-defined map quality and personal farming efficiency questions; evidence contract for future hybrid capture, spawn and anonymous actor analysis. Preserve raw local evidence before asking analytical questions. No runtime change or new tests in this checkpoint.
