@@ -413,3 +413,7 @@ Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and pa
 
 ## Cash Overlay v1.4
 Hybrid capture, lossless deduplicated UI crops, periodic full reference PNG, observed map/page burst, inventory reminders, nonfuture metadata, initial minimap-overlap relocation. See cash-overlay-v1/README.md. Six new tests included; live runtime and detector recall unverified. Existing history and captures retained.
+
+
+## Cash Overlay — short endpoint inventory reconciliation
+[Method and reference data](../cash-overlay-v1/research/2026-11-28-primeval-forest-i-five-minute-method.md): matched visible stacks and wallet/EXP endpoints, separate nominal and elapsed rates, no double count of linked pet pots, no exact kills or spawn claims from sparse images. No personal source imagery or holdings committed, no runtime changes.
