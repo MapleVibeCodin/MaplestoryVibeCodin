@@ -343,3 +343,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## Assassin video benchmark search — 2026-11-28
 [Video research](../research/2026-11-28-assassin-video-benchmark-search.md): level44/45 Assassin multi-hour streams identified, post-Forgotten-Hollow release; direct YouTube retrieval disabled, no actual start/end counters or verified hourly benchmark. Do not claim measured results.
+
+
+## Public Minerva observed map loot — 2026-11-28
+[Research](../research/2026-11-28-minerva-observed-forgotten-loot.md): public 9-digit map loot API verified, Primeval II party median49,374 raw/h (4), Entrance II combined29,359 (5), Decayed I party21,661 (3). Small mixed-class samples; no verified solo Assassin rate or actual video counters. Correct initial HTTP400 by padding map IDs to nine digits. No runtime changes.
