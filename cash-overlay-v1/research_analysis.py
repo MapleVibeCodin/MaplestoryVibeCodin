@@ -222,13 +222,14 @@ def analyze(frames_path, dest, refs, review=None):
                     v=[c.get("wallet_observed_at") if isinstance(c.get("wallet_observed_at"),(int,float)) else c.get("monotonic",t)-c["wallet_age"],c["wallet"]]
                     if section["first_wallet"] is None: section["first_wallet"]=v
                     section["last_wallet"]=v
-                if isinstance(c.get("raw_mesos"),int):
-                    v=[c.get("monotonic",t),c["raw_mesos"]]
+                ledger=c.get("cash_ledger") or {}
+                if type(ledger.get("observed_raw")) is int:
+                    v=[c.get("monotonic",t),ledger["observed_raw"]]
                     if section["first_raw"] is None: section["first_raw"]=v
                     section["last_raw"]=v
             im=cv2.imread(row["image"],cv2.IMREAD_COLOR)
             if im is None:
-                prev=None; events(linker.end("unreadable_frame",t)); last_t=t; last_session=session; last_map=name; continue
+                prev=None; epoch+=1; offset=(0.,0.); events(linker.end("unreadable_frame",t)); last_t=t; last_session=session; last_map=name; continue
             shift=camera_shift(prev,im,masks(prev_row),masks(row)) if prev is not None else None
             if shift is None:
                 if prev is not None: events(linker.end("registration_uncertain",t)); epoch+=1
