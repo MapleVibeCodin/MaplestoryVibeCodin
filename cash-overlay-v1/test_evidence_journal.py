@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from evidence_journal import Journal,read_journal,classify_messages,potion_delta,scope,trusted_scope,summarize,verified_frame,interval_metrics
+from evidence_journal import Journal,read_journal,classify_messages,potion_delta,scope,trusted_scope,summarize,verified_frame,interval_metrics,audit_session
 import hashlib
 class JournalTests(unittest.TestCase):
     def test_chain_and_tamper(self):
@@ -38,6 +38,23 @@ class JournalTests(unittest.TestCase):
         self.assertEqual(r["observed_pickup_mesos"],200)
         self.assertEqual(r["known_npc_value"],160)
         self.assertEqual(r["raw_plus_known_npc_hr"],21600)
+    def test_audit_end_to_end(self):
+        import json
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d); src=root/"session"; dest=root/"analysis";src.mkdir();dest.mkdir()
+            j=Journal(src/"evidence_journal.jsonl")
+            c=dict(map="A",segment="a",level=44,job="Assassin",party=1)
+            for i in (0,1):
+                p=src/f"{i}.png";p.write_bytes(bytes([i]))
+                j.append("frame",i,file=p.name,image_sha256=hashlib.sha256(p.read_bytes()).hexdigest(),scope=c)
+            j.append("accepted_pickups",1,scope=c,messages=[["mesos",100]])
+            j.append("close",2)
+            (dest/"active_intervals.jsonl").write_text(json.dumps(dict(c,session=str(src),start=0,end=1))+"\n")
+            r=audit_session(src,dest)
+            self.assertEqual(r["median_frame_gap_s"],1)
+            self.assertTrue(r["clean_close"])
+            self.assertEqual(r["active_message_metrics"][0]["observed_pickup_mesos"],100)
+            self.assertFalse(r["frame_hash_mismatch"])
     def test_pickup_no_double_count(self):
         c=dict(map="A",segment="a")
         rows=[dict(kind="accepted_pickups",scope=c,messages=[["mesos",20],["item","Orange Potion",3,"Use"]]),
