@@ -142,8 +142,11 @@ def report_folder(folder,output=None,refs=None):
     result=summarize(rows,refs)
     result.update(metadata_verified=verified,missing_image_bytes=missing_pixels,intentionally_unsaved_images=intentionally_unsaved,
                   invalid_sidecars=bad_sidecars,invalid_images=bad_pixels,journal_errors=errors,
+                  legacy_minimap_recovery_count=sum(bool(r.get("legacy_minimap_recovered")) for r in records),
                   evidence_mode="indexed_metadata" if frames and not errors else "legacy_unverified",
                   visual_coverage_note="Missing images cannot be independently verified or used for movement; verified sidecars still support statistical analysis.")
+    if result["legacy_minimap_recovery_count"]:
+        result["limitations"].append("Recovered legacy v2.1 reserved-hash collision using original minimap bytes and exact chain digest; source unchanged.")
     if frames and not errors and (bad_sidecars or bad_pixels):
         result["limitations"].append("Invalid frame evidence excluded; rates may be incomplete.")
     target=Path(output) if output else folder/"quick_report.json"

@@ -4,7 +4,7 @@ import unittest
 import hashlib
 from pathlib import Path
 from unittest.mock import patch
-from evidence_journal import Journal,read_journal
+from evidence_journal import Journal,read_journal,canonical
 from minimap_report import report_minimap
 from notification_report import parse,row_hash,results,summarize,source_rows,replay_batch
 
@@ -49,4 +49,20 @@ class Notifications(unittest.TestCase):
             self.assertEqual(report_minimap(folder)["observations"],0)
             p.write_text("tampered")
             self.assertIn("error",report_minimap(folder))
+    def test_legacy_minimap_collision(self):
+        with tempfile.TemporaryDirectory() as d:
+            folder=Path(d);p=folder/"minimap_observations.jsonl";p.write_text("")
+            j=Journal(folder/"evidence_journal.jsonl")
+            original=dict(kind="minimap_file",monotonic=2,utc="test",sequence=1,previous_sha256=None,file=p.name,sha256=hashlib.sha256(p.read_bytes()).hexdigest())
+            digest=hashlib.sha256(canonical(original)).hexdigest()
+            j.path.write_text(json.dumps(dict(original,sha256=digest))+"\n")
+            original_bytes=j.path.read_bytes()
+            records,errors=read_journal(j.path)
+            self.assertEqual(errors,[])
+            self.assertTrue(records[0]["legacy_minimap_recovered"])
+            self.assertTrue(report_minimap(folder)["legacy_minimap_recovered"])
+            self.assertEqual(j.path.read_bytes(),original_bytes)
+            p.write_text("tampered")
+            self.assertTrue(read_journal(j.path)[1])
 if __name__=="__main__":unittest.main()
+

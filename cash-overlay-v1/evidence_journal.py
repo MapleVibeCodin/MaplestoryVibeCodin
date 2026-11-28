@@ -43,10 +43,20 @@ def read_journal(path):
         for i,line in enumerate(f,1):
             try:
                 record=json.loads(line); digest=record.pop("sha256")
-                if digest!=hashlib.sha256(canonical(record)).hexdigest(): raise ValueError("digest mismatch")
+                legacy=False
+                if digest!=hashlib.sha256(canonical(record)).hexdigest():
+                    # Only the demonstrated v2.1 collision is recoverable. Original bytes stay unchanged.
+                    if record.get("kind")!="minimap_file" or record.get("file")!="minimap_observations.jsonl" or "file_sha256" in record:
+                        raise ValueError("digest mismatch")
+                    mini=Path(path).parent/"minimap_observations.jsonl"
+                    try:payload=hashlib.sha256(mini.read_bytes()).hexdigest()
+                    except OSError:raise ValueError("legacy minimap bytes unavailable")
+                    if digest!=hashlib.sha256(canonical(dict(record,sha256=payload))).hexdigest():
+                        raise ValueError("legacy digest mismatch")
+                    record["file_sha256"]=payload;legacy=True
                 if record["sequence"]!=i or record["previous_sha256"]!=previous: raise ValueError("chain mismatch")
                 if type(record["monotonic"]) not in (int,float) or not math.isfinite(record["monotonic"]): raise ValueError("invalid clock")
-                previous=digest; records.append(dict(record,sha256=digest))
+                previous=digest; records.append(dict(record,sha256=digest,**({"legacy_minimap_recovered":True} if legacy else {})))
             except (ValueError,KeyError,TypeError) as e:
                 errors.append(f"line {i}: {e}")
                 break

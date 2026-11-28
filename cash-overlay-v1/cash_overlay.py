@@ -503,6 +503,10 @@ class CashApp(OriginalApp):
         mini=self.screenshot_store.folder/'minimap_observations.jsonl'
         if hasattr(self,'minimap_thread') and not self.minimap_thread.is_alive() and mini.is_file():
             self._journal('minimap_file',time.monotonic(),file=mini.name,file_sha256=hashlib.sha256(mini.read_bytes()).hexdigest())
+        if (not hasattr(self,'message_thread') or not self.message_thread.is_alive()) and (not hasattr(self,'notification_thread') or not self.notification_thread.is_alive()):
+            for kind,name in (('notification_source_file','message_evidence/lines.jsonl'),('notification_result_file','notification_events.jsonl')):
+                p=self.screenshot_store.folder/name
+                if p.is_file():self._journal(kind,time.monotonic(),file=name,file_sha256=hashlib.sha256(p.read_bytes()).hexdigest())
         self._journal('close',time.monotonic())
         if hasattr(self,'screenshot_store') and (not hasattr(self,'screenshot_thread') or not self.screenshot_thread.is_alive()) and (not hasattr(self,'minimap_thread') or not self.minimap_thread.is_alive()) and (not hasattr(self,'message_thread') or not self.message_thread.is_alive()) and (not hasattr(self,'notification_thread') or not self.notification_thread.is_alive()):
             try:

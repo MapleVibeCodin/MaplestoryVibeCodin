@@ -75,5 +75,6 @@ def report_minimap(folder):
         result=dict(error='Minimap evidence missing or unverified; rates withheld.')
     else:
         result=summarize([json.loads(line) for line in p.read_text(encoding='utf-8').splitlines() if line.strip()])
+        result['legacy_minimap_recovered']=bool(hashes[-1].get('legacy_minimap_recovered'))
     (folder/'minimap_report.json').write_text(json.dumps(result,indent=2,allow_nan=False),encoding='utf-8')
     return result

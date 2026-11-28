@@ -161,6 +161,14 @@ def process(folder,tess,items,max_batches=None):
 def summarize(folder):
     from cash_core import NPC
     folder=Path(folder);rows=source_rows(folder);done=results(folder,rows)
+    from evidence_journal import read_journal
+    records,errors=read_journal(folder/"evidence_journal.jsonl")
+    integrity={}
+    for kind,name in (("notification_source_file","message_evidence/lines.jsonl"),("notification_result_file","notification_events.jsonl")):
+        markers=[r for r in records if r.get("kind")==kind and r.get("file")==name]
+        p=folder/name
+        integrity[name]="verified" if markers and not errors and p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest()==markers[-1].get("file_sha256") else "mismatch" if markers and not errors else "unverified"
+    if "mismatch" in integrity.values():raise ValueError("notification journal file hash mismatch")
     groups={}; counts=Counter(r["status"] for r in done)
     prices={k.casefold():v for k,v in NPC.items()}
     for r in done:
@@ -183,7 +191,7 @@ def summarize(folder):
                            personal_kills=None))
     report=dict(schema=1,raw_rows=len(rows),processed_rows=len(done),pending_rows=len(rows)-len(done),
                 accepted_rows=counts["accepted"],unreadable_rows=counts["unreadable"],
-                bad_image_rows=counts["missing_or_bad_image"],groups=output,
+                bad_image_rows=counts["missing_or_bad_image"],groups=output,integrity=integrity,
                 limitations=["Delivered stack arrivals only; upstream can miss/duplicate arrivals. Two image preparations must agree.",
                              "Never add these pickup amounts to upstream totals; independent alternative reader.",
                              "EXP bar is authoritative for total EXP; notification split is incomplete.",
@@ -195,13 +203,15 @@ def summarize(folder):
         a,b=quick.get("wallet_first_t"),quick.get("wallet_last_t")
         if quick.get("evidence_mode")=="indexed_metadata" and not quick.get("journal_errors") and isinstance(a,(int,float)) and isinstance(b,(int,float)) and b-a>=60:
             observed=[r["event"] for r in done if r.get("event") and isinstance(r.get("born"),(int,float)) and a<=r["born"]<=b]
-            npc=sum(e[2]*prices[e[1].casefold()] for e in observed if e[0]=="item" and e[3]!="use" and e[1].casefold() in prices)
-            raw=sum(e[1] for e in observed if e[0]=="mesos")
+            priced=[e[2]*prices[e[1].casefold()] for e in observed if e[0]=="item" and e[3]!="use" and e[1].casefold() in prices]
+            meso=[e[1] for e in observed if e[0]=="mesos"]
+            npc=sum(priced) if priced else None
+            raw=sum(meso) if meso else None
             wallet=quick.get("wallet_change")
             report["wallet_window"]={"seconds":b-a,"wallet_change":wallet,"observed_pickup_mesos":raw,
                 "known_npc_value":npc,"wallet_change_hr":quick.get("wallet_change_hr"),
-                "wallet_plus_known_npc_hr":round((wallet+npc)*3600/(b-a)) if isinstance(wallet,(int,float)) else None,
-                "observed_raw_plus_known_npc_hr":round((raw+npc)*3600/(b-a)),
+                "wallet_plus_known_npc_hr":round((wallet+npc)*3600/(b-a)) if isinstance(wallet,(int,float)) and npc is not None else None,
+                "observed_raw_plus_known_npc_hr":round((raw+(npc or 0))*3600/(b-a)) if raw is not None else None,
                 "note":"Same wallet interval, notification counts may undercount; no potion valuation."}
         report["exp_bar_observed_hr"]=quick.get("exp_observed_hr")
     except (OSError,ValueError,TypeError):pass
@@ -210,6 +220,25 @@ def summarize(folder):
         w=csv.writer(f);w.writerow(["epoch","map","tracking_enabled","item","tab","quantity","known_npc_value"])
         for g in output:
             for v in g["items"]:w.writerow([g["epoch"],g["map"],g["tracking_enabled"],v["name"],v["tab"],v["quantity"],v["npc_value"]])
+    def val(v):
+        return "Unavailable" if v is None else f"{v:,.0f}"
+    win=report.get("wallet_window",{})
+    text=["MAPLE RESEARCH — SESSION SUMMARY",
+          "EXP/hour (bar, observed intervals): "+val(report.get("exp_bar_observed_hr")),
+          "Mesos/hour (wallet): "+val(win.get("wallet_change_hr")),
+          "Wallet + known NPC/hour: "+val(win.get("wallet_plus_known_npc_hr")),
+          "Potion costs excluded. Wallet interval seconds: "+val(win.get("seconds")),
+          "Observed raw pickup + known NPC/hour: "+val(win.get("observed_raw_plus_known_npc_hr")),
+          f"Notifications: {report['accepted_rows']} accepted / {report['raw_rows']} delivered; {report['pending_rows']} pending, {report['unreadable_rows']} unreadable, {report['bad_image_rows']} bad image.",
+          "Accepted rows are not verified exact kills or a complete pickup count.",""]
+    for g in output:
+        text.append(f"Map: {g['map'] or 'unknown'} | Epoch {g['epoch']} | Tracking {g['tracking_enabled']}")
+        text.append(f"Own EXP lines: {g['own_exp']:,} EXP | Shared EXP: {g['shared_exp']:,} | Party bonus: {g['party_bonus_exp']:,} | Observed pickup mesos: {g['mesos']:,}")
+        for v in g["items"]:text.append(f"  {v['name']} x{v['quantity']} ({v['tab']}) | known NPC: {val(v['npc_value'])}")
+        for v in g["unresolved_item_labels"]:text.append(f"  UNRESOLVED {v['label']} x{v['quantity']} ({v['tab']})")
+        text.append("")
+    text.extend(report["limitations"])
+    (folder/"SESSION_SUMMARY.txt").write_text("\n".join(text)+"\n",encoding="utf-8")
     return report
 
 def worker(folder,tess,assets,stop,log_error):
