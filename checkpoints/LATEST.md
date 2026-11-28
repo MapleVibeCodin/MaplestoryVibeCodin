@@ -347,3 +347,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## Public Minerva observed map loot — 2026-11-28
 [Research](../research/2026-11-28-minerva-observed-forgotten-loot.md): public 9-digit map loot API verified, Primeval II party median49,374 raw/h (4), Entrance II combined29,359 (5), Decayed I party21,661 (3). Small mixed-class samples; no verified solo Assassin rate or actual video counters. Correct initial HTTP400 by padding map IDs to nine digits. No runtime changes.
+
+
+## First actual Assassin video endpoint benchmark — 2026-11-28
+[Burnt Land III benchmark](../research/2026-11-28-assassin-burnt-land-iii-video-benchmark.md): level44 party, 1:13:01–2:13:07, balances1,040,647→1,056,151, EXP310,614→389,618. Normalized15,478 meso balance/h and78,873 EXP/h. NPC loot and intervening transactions unverified. Actual full video duration4:08:12. No runtime changes or deletions.
