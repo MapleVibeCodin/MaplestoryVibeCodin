@@ -30,6 +30,11 @@ class CashTests(unittest.TestCase):
         self.assertEqual(a.npc,0)
         a.wallet(999999,2,20)
         self.assertEqual(a.snapshot()["wallet_change"],40)
+    def test_consumables_count_only(self):
+        a=CashLedger();a.tick(0,True,"A")
+        a.add([("item","Orange Potion",3,"Use"),("item","Raffle Petal",2,"Etc")],{"orange potion":150,"raffle petal":40})
+        self.assertEqual(a.npc,80)
+        self.assertEqual(a.unknown,{})
     def test_csv(self):
         a=CashLedger();a.tick(0,True,"A");a.add([("mesos",5)],{})
         with tempfile.TemporaryDirectory() as d:
