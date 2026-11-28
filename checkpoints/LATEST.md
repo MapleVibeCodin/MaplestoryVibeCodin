@@ -322,3 +322,8 @@ User verbatim: update the number of scanners to whateever you wANT
 
 ## Prediction upgrade completed — causal replay, calibrated forecasts, robust policy
 [Complete report](../market-data/2026-11-27-prediction-upgrade-complete.md). Zero-filter3303/1651, no new data. V2 selected61/472 exact CH vs persistence51; fixed-grid49/329 vs43; joint CH/FM45/472; sweep start revisit9/43; prefix1117 identical. Calibrated 40-channel horizon probabilities and timestamped historical snapshot archived. 8640 robust policy configurations, sparse scenarios all reactive; full2s +1.783s with17 extra moves, penalized negative. Freeze advisory models and keep reactive live; no demonstrated deployment benefit. Source/lag/eligibility limitations documented. Preserve all prior files, historical full audit/archive incomplete.
+
+
+## 2026-11-28 — GitHub memory initialization and updated user protocol
+
+Read [initialization exchange and scoped continuity audit](2026-11-28-github-memory-initialization.md) for the user's exact 20-point instruction. The latest baseline was 10ff8e15ab88ffac2e1f8af7d3d17224b72913ff; prediction-upgrade research is current, not the older count-search checkpoint. Follow all twenty instructions as applicable, with actual remote readback, no historical deletion, and project-specific prior-fix review before edits. Automatic continuity means incremental writes during substantive project turns when access permits, not background or complete platform-wide export. Ten static continuity areas inspected; full line-by-line master-file review, independent dataset replay, historical dialogue completeness and live Windows verification remain incomplete. No runtime changes or newly resolved runtime failures.

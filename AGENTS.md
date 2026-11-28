@@ -300,3 +300,8 @@ Begin predictive scanner research at [market-data/2026-11-27-next-chat-handoff.m
 
 ## 2026-11-27 — dense-feed research continuation
 For HeneFM positioning, read [dense-feed new chat handoff](market-data/2026-11-27-dense-feed-new-chat-handoff.md), then linked latest research and original manifests. Twelve original exports reverified (11208 unique filenames). Latest raw cutoff22:55:03.028 Taipei. Seven working anonymous tracks, not exact scanner count; individual timestamp constraints require nine only under specific assumptions. No runtime changes. Transcript archive partial: full earlier transcript write blocked, latest accessible exchanges independently read back. Preserve all history and disclose gaps. Read checkpoints/LATEST.md and run ten continuity checks before new substantive work.
+
+
+## 2026-11-28 — GitHub memory initialization and updated user protocol
+
+Read [initialization exchange and scoped continuity audit](checkpoints/2026-11-28-github-memory-initialization.md) for the user's exact 20-point instruction. The latest baseline was 10ff8e15ab88ffac2e1f8af7d3d17224b72913ff; prediction-upgrade research is current, not the older count-search checkpoint. Follow all twenty instructions as applicable, with actual remote readback, no historical deletion, and project-specific prior-fix review before edits. Automatic continuity means incremental writes during substantive project turns when access permits, not background or complete platform-wide export. Ten static continuity areas inspected; full line-by-line master-file review, independent dataset replay, historical dialogue completeness and live Windows verification remain incomplete. No runtime changes or newly resolved runtime failures.
