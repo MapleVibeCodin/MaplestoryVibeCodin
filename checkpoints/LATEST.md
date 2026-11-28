@@ -327,3 +327,7 @@ User verbatim: update the number of scanners to whateever you wANT
 ## 2026-11-28 — GitHub memory initialization and updated user protocol
 
 Read [initialization exchange and scoped continuity audit](2026-11-28-github-memory-initialization.md) for the user's exact 20-point instruction. The latest baseline was 10ff8e15ab88ffac2e1f8af7d3d17224b72913ff; prediction-upgrade research is current, not the older count-search checkpoint. Follow all twenty instructions as applicable, with actual remote readback, no historical deletion, and project-specific prior-fix review before edits. Automatic continuity means incremental writes during substantive project turns when access permits, not background or complete platform-wide export. Ten static continuity areas inspected; full line-by-line master-file review, independent dataset replay, historical dialogue completeness and live Windows verification remain incomplete. No runtime changes or newly resolved runtime failures.
+
+
+## Level 45 Assassin liquid-meso farming — 2026-11-28
+[Research update](../research/2026-11-28-level-45-assassin-liquid-meso-farming.md): West Rocky Mountain IV first choice, 70–100k/h planning range from community reports, efficient duo preferred; Burnt Land V or Evil Eye caves alternatives. Exact strict-cash rates and solo ranking unverified; no new game tests. NPC pie price100, MP400, Lucky Seven16. Account-specific details excluded from public archive; not a full transcript. No runtime changes or deletions.
