@@ -6,6 +6,13 @@ import statistics
 from collections import Counter
 from pathlib import Path
 
+# Pinned Javipen EXP_TABLE, 1a25186943a42fccd89eec2e0777c7b41ea5a21f.
+EXP_TABLE = [15,34,57,92,135,372,560,840,1242,1716,2360,3216,4200,5460,7050,8840,11040,13716,16680,20216,24402,28980,34320,40512,47216,54900,63666,73080,83720,95700,108480,122760,138666,155540,174216,194832,216600,240500,266682,294216,324240,356916,391160,428280,468450,510420,555680,604416,655200,709716,748608,789631,832902,878545,926689,977471,1031036,1087536,1147132,1209994,1276301,1346242,1420016,1497832,1579913,1666492,1757815,1854143,1955750,2062925,2175973,2295216,2420993,2553663,2693603,2841212,2996910,3161140,3334370,3517093,3709829,3913127,4127566,4353756,4592341,4844001,5109452,5389449,5684790,11938059,25069923,52646838,110558359,232172553,487562361,1023880958,2150150011,4515315023,9482161548]
+
+def absolute_exp(level,exp):
+    if type(level) is not int or type(exp) is not int or not 1<=level<=len(EXP_TABLE) or not 0<=exp<EXP_TABLE[level-1]:return None
+    return sum(EXP_TABLE[:level-1])+exp
+
 def number(x):
     return type(x) in (int,float) and math.isfinite(x)
 
@@ -35,7 +42,7 @@ def summarize(rows,refs=None):
     frames=sorted((r for r in rows if number(r.get("monotonic"))),key=lambda r:r["monotonic"])
     gaps=[]; covered=0.; prior_frame=None; previous=None; wallet={}; counts=Counter(); map_counts=Counter()
     exp_seconds=0.; exp_delta=0; positive=0; negative=0; unresolved=0; last_gain=None; gain_gaps=[]
-    minute_bins=Counter(); last_key=None; runs=[]; run=None
+    minute_bins=Counter(); last_key=None; runs=[]; run=None; levelups=0; endpoints={}
     for m in frames:
         t=m["monotonic"]; c=m.get("context") or {}; at=c.get("monotonic")
         contiguous=prior_frame is not None and 0<t-prior_frame<=1.5
@@ -51,13 +58,19 @@ def summarize(rows,refs=None):
             if 0<=t-w<=3:wallet[w]=c["wallet"]
         if not c.get("exp_confident") or c.get("exp_estimated") or type(c.get("exp")) is not int or type(c.get("level")) is not int:continue
         key=(c.get("recording_epoch"),c["level"])
-        cur=(at,c["exp"],key,name,c.get("party") if c.get("party_confirmed") else None)
+        absolute=absolute_exp(c["level"],c["exp"])
+        if absolute is None:previous=None;run=None;last_gain=None;continue
+        ep=endpoints.setdefault(key[0],dict(first_t=at,first_absolute=absolute,first_level=key[1],first_exp=c["exp"]))
+        ep.update(last_t=at,last_absolute=absolute,last_level=key[1],last_exp=c["exp"])
+        cur=(at,absolute,key,name,c.get("party") if c.get("party_confirmed") else None)
         if previous is not None:
             a,old,k,oldmap,oldparty=previous
             if at==a:continue
             dt=at-a
-            if k==key and 0<dt<=3:
-                d=c["exp"]-old
+            if k[0]==key[0] and key[1] in (k[1],k[1]+1) and 0<dt<=3:
+                d=absolute-old
+                if key[1]==k[1]+1 and d>=0:
+                    levelups+=1;run=None
                 if d>=0:
                     exp_delta+=d;exp_seconds+=dt
                     if run is None:
@@ -76,7 +89,8 @@ def summarize(rows,refs=None):
         previous=cur
     w=sorted(wallet.items()); span=frames[-1]["monotonic"]-frames[0]["monotonic"] if len(frames)>1 else 0
     wd=w[-1][1]-w[0][1] if len(w)>1 else None; ws=w[-1][0]-w[0][0] if len(w)>1 else 0
-    return dict(schema=1,frame_count=len(frames),capture_elapsed_s=round(span,3),observed_capture_s=round(covered,3),
+    endpoint_rows=[dict(epoch=k,**v,net_exp=v["last_absolute"]-v["first_absolute"],elapsed_s=v["last_t"]-v["first_t"],net_exp_hr=rate(v["last_absolute"]-v["first_absolute"],v["last_t"]-v["first_t"])) for k,v in endpoints.items()]
+    return dict(schema=2,frame_count=len(frames),levelups_observed=levelups,endpoint_progression=endpoint_rows,capture_elapsed_s=round(span,3),observed_capture_s=round(covered,3),
         gap_count=len(gaps),largest_gap_s=max(gaps,default=0),map_frame_counts=dict(map_counts),
         exp_observed_delta=exp_delta if exp_seconds else None,exp_observed_s=round(exp_seconds,3),
         exp_observed_hr=rate(exp_delta,exp_seconds),exp_positive_changes=positive,exp_negative_changes=negative,
@@ -89,14 +103,14 @@ def summarize(rows,refs=None):
         "Wallet change includes any spending/transfers; endpoint rate is not raw pickups.",
         "Monster counts conditional on fresh same-map confirmed solo and unmodified EXP; not verified kills.",
         "Unknown map does not discard EXP or wallet evidence; no map-specific attribution.",
-        "No consumable meso valuation. Level-up/reset gaps excluded."])
+        "No consumable meso valuation. Adjacent observed level-ups included; resets and gaps excluded from interval rates. Endpoint net progression spans gaps and can include deaths."])
 
 def report_folder(folder,output=None,refs=None):
     folder=Path(folder); rows=[]
     from evidence_journal import read_journal
     records,errors=read_journal(folder/"evidence_journal.jsonl")
     frames=[r for r in records if r["kind"]=="frame"]
-    missing_pixels=0; bad_sidecars=0; bad_pixels=0; verified=0
+    missing_pixels=0; intentionally_unsaved=0; bad_sidecars=0; bad_pixels=0; verified=0
     if frames and not errors:
         for r in frames:
             name=r.get("file")
@@ -110,7 +124,11 @@ def report_folder(folder,output=None,refs=None):
                 m=json.loads(raw)
                 if m.get("image")!=name or m.get("monotonic")!=r.get("monotonic"):
                     bad_sidecars+=1;continue
-                if image.exists():
+                if r.get("image_retained") is False:
+                    if image.exists() or m.get("image_retained") is not False or r.get("image_sha256") is not None:
+                        bad_pixels+=1;continue
+                    intentionally_unsaved+=1
+                elif image.exists():
                     if hashlib.sha256(image.read_bytes()).hexdigest()!=r.get("image_sha256"):
                         bad_pixels+=1;continue
                 else:missing_pixels+=1
@@ -122,7 +140,7 @@ def report_folder(folder,output=None,refs=None):
             try:rows.append(json.loads(p.read_text(encoding="utf-8")))
             except (OSError,ValueError):continue
     result=summarize(rows,refs)
-    result.update(metadata_verified=verified,missing_image_bytes=missing_pixels,
+    result.update(metadata_verified=verified,missing_image_bytes=missing_pixels,intentionally_unsaved_images=intentionally_unsaved,
                   invalid_sidecars=bad_sidecars,invalid_images=bad_pixels,journal_errors=errors,
                   evidence_mode="indexed_metadata" if frames and not errors else "legacy_unverified",
                   visual_coverage_note="Missing images cannot be independently verified or used for movement; verified sidecars still support statistical analysis.")
