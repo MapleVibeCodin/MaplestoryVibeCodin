@@ -42,6 +42,52 @@
           "movement": "stays on its floor"
         }
       ]
+    },
+    "010006031": {
+      "name": "The Valley of Death",
+      "source": "https://meowdb.com/msclassic/maps/010006031",
+      "retrieved": "2026-11-28",
+      "model": {
+        "spawn_points": 26,
+        "mob_rate": 0.8,
+        "solo_cap": 9,
+        "tick_seconds": 7.56,
+        "realistic_mobs_hr": 952,
+        "realistic_exp_hr": 83226,
+        "realistic_uptime": 0.4,
+        "ceiling_exp_hr": 374175,
+        "extra_capacity_per_combat_player_after_five": 0.75
+      },
+      "monsters": [
+        {
+          "name": "Zombie Mushroom",
+          "level": 24,
+          "hp": 436,
+          "exp": 45,
+          "points": 6
+        },
+        {
+          "name": "Jr. Boogie",
+          "level": 35,
+          "hp": 1395,
+          "exp": 69,
+          "points": 3
+        },
+        {
+          "name": "Zombie Lupin",
+          "level": 41,
+          "hp": 1774,
+          "exp": 89,
+          "points": 7
+        },
+        {
+          "name": "Rafflesia",
+          "level": 47,
+          "hp": 2285,
+          "exp": 117,
+          "points": 10
+        }
+      ]
     }
   }
 }
