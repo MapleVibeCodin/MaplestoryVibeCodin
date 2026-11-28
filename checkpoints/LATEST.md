@@ -405,3 +405,7 @@ Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and pa
 
 ## Cash Overlay — permanent research objective
 [Read first](../cash-overlay-v1/RESEARCH_OBJECTIVES.md): user-defined map quality and personal farming efficiency questions; evidence contract for future hybrid capture, spawn and anonymous actor analysis. Preserve raw local evidence before asking analytical questions. No runtime change or new tests in this checkpoint.
+
+
+## Spatial research source catalog
+[Source-level review](../cash-overlay-v1/SPATIAL_RESEARCH_SOURCE_CATALOG.md): 8 pinned repo heads, 12 files read across 7 repositories, 21 additional search-discovered links; vision-only, camera compensation, event semantics and telemetry. No runtime changes or tests. License constraints respected.
