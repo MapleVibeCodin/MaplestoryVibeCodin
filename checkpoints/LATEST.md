@@ -359,3 +359,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## MCWO observed map farming data — levels 20–50
 [Map index](../research/2026-11-28-mcwo-level-20-50/README.md), 62/62 queries, 121 returned names, solo and party separate, early data included. Public source MCWO. Overlapping windows and result caps; no claim of complete underlying runs. No runtime changes.
+
+
+## MCWO clean upstream source — 2026-11-28
+[Source reference](../research/2026-11-28-mcwo-clean-upstream-source.md): verified MIT licensed beanguri repository, pinned 97049b7709f5c4d8f8805ff07b4432eb51d35428. Website server/ and desktop OCR source; no production database, no local build. Modified clients must not send to official MCWO.
