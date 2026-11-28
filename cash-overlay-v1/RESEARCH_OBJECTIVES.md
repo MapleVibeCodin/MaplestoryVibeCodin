@@ -32,3 +32,8 @@ Capture Use and Etc pages, and Equipment > Deco pet potion slots at session begi
 
 ## Combat research requirement
 Capture movement and attack/death timing evidence, preserve observed sample interval and association uncertainty. Compare against dated MeowDB map reference by exact map name/ID, not guessed names; don't treat modeled cap, tick, or EXP supply as measured. v1.5 provides the capture and offline candidate tracking/reporting path; automatic verified kill timing still needs calibration.
+
+
+## Temporary consumable accounting policy — 2026-11-28
+User verbatim: what about not counting any potions, for these sessions (until the orange pizza things are out), no need to count orange potions or triangle things as math. but do keep track of usage, just not meso equivilant)
+For current farming-session reports and retrospective map comparisons, exclude all potion/consumable replacement costs and meso-equivalent valuations until the existing orange pizza-shaped consumable stock is exhausted. Continue reporting raw counts, net inventory deltas and hourly usage separately; deduplicate linked pet/Use quantities. Do not label net inventory decline as gross consumption when pickups or transfers may occur. Preserve actual wallet change as observed, without adding back hypothetical expenses. This is a reporting policy, not a runtime change; no tests executed. Revisit cost accounting when the stock is exhausted, based on confirmed evidence.
