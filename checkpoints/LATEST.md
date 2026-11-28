@@ -385,3 +385,7 @@ Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and pa
 
 ## Cash overlay v1.1 — periodic screenshots
 [Source](../cash-overlay-v1/README.md): user chose PNG snapshots rather than video or new event recording. Three-second foreground game client captures, unique session dirs, free-space guard, no deletion, Desktop shortcut, four new filesystem tests included (not run here). Existing accounting untouched; Windows runtime unverified.
+
+
+## Cash overlay v1.2 — spawn research capture
+[Implementation](../cash-overlay-v1/README.md): 1-second screenshots + timestamped OCR context, offline template matcher and proximity metrics, no confirmed automatic spawn tracking without real templates and evidence. Five new tests included but not run here; old history intact.

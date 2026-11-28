@@ -2,9 +2,10 @@
 from datetime import datetime, timezone
 from pathlib import Path
 import shutil
+import json
 import uuid
 
-INTERVAL_SECONDS = 3
+INTERVAL_SECONDS = 1
 MIN_FREE_BYTES = 5 * 1024**3
 
 class ScreenshotStore:
@@ -18,6 +19,17 @@ class ScreenshotStore:
 
     def has_space(self):
         return shutil.disk_usage(self.folder).free >= self.min_free
+
+    def metadata(self, path, data):
+        dest = path.with_suffix('.json')
+        tmp = dest.with_suffix('.json.part')
+        try:
+            with tmp.open('x', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, allow_nan=False)
+            tmp.replace(dest)
+        finally:
+            if tmp.exists():
+                tmp.unlink()
 
     def save(self, png, when=None):
         if not isinstance(png, bytes) or not png.startswith(b"\x89PNG\r\n\x1a\n"):

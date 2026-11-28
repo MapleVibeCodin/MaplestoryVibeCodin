@@ -14,7 +14,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 1.1"
+base.VERSION = "Cash 1.2"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -29,6 +29,8 @@ class CashApp(OriginalApp):
         self.cash = CashLedger()
         self.last_export = 0.0
         self.last_signature = None
+        self.scene_context = None
+        self.exp_message_total = 0
         super().__init__(root, templates)
         self._original_show = self.hud.show
         self.hud.show = self._show_cash
@@ -57,14 +59,40 @@ class CashApp(OriginalApp):
                                     base.PLATFORM.client_rect(hwnd) == rect and
                                     shot[1:] == rect[:2] and shot[0].shape[:2] == (rect[3], rect[2])):
                                 ok, png = base.cv2.imencode('.png', shot[0], [base.cv2.IMWRITE_PNG_COMPRESSION, 1])
-                                if ok and self.screenshot_store.save(png.tobytes(), when) is not None:
-                                    warned = False
+                                if ok:
+                                    path = self.screenshot_store.save(png.tobytes(), when)
+                                    if path is not None:
+                                        ctx = self.scene_context
+                                        data = {'image':path.name, 'utc':when.isoformat(), 'monotonic':started,
+                                                'rect':list(rect), 'context':ctx,
+                                                'context_age_seconds':None if ctx is None else round(started-ctx['monotonic'],3)}
+                                        self.screenshot_store.metadata(path, data)
+                                        warned = False
                         elif rect and not warned:
                             base.log_error('Screenshot capture paused: less than 5 GiB free')
                             warned = True
                 except Exception as e:
                     base.log_error('saving periodic game screenshot', e)
                 self.stop_evt.wait(max(0.05, INTERVAL_SECONDS - (time.monotonic() - started)))
+
+    def _handle(self, reading):
+        super()._handle(reading)
+        t, m = self.tracker, self.meso
+        now = time.monotonic()
+        # Immutable copy from the UI thread. Values are latest OCR state, not a simultaneous screenshot reading.
+        self.scene_context = dict(monotonic=now, map=self.map_name, map_read=reading.map,
+            map_uncertain=bool(self.map_hidden or self.reader.map_unread or not self.reader.map_box),
+            level=self.level, exp=t.exp, exp_pct=t.pct, exp_estimated=bool(t.hidden),
+            exp_candidates=[list(x) for x in reading.candidates], exp_confident=bool(reading.confident),
+            exp_gained=t.gained, exp_message_total=self.exp_message_total, party=self.party,
+            party_observed=reading.party, job=self.job, wallet=m.value, wallet_read=reading.mesos,
+            wallet_age=None if m.seen_at is None else round(now-m.seen_at,3),
+            raw_mesos=self.picked_mesos, items=[[name,qty] for name,qty in self.loot.values()],
+            potion_cost=self.session_pot_cost, active=bool(t.running), segment=self.cash.segment)
+
+    def _messages(self, found, when):
+        self.exp_message_total += sum(p[1] for p in found if p[0]=='exp')
+        super()._messages(found, when)
 
     def _export(self, force=False):
         if self.cash.map is None or not (self.cash.seconds or self.cash.messages):
