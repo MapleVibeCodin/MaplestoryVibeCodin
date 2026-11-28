@@ -188,13 +188,13 @@ def summarize(folder,filename="notification_events.jsonl",prefix=""):
              for (n,t),q in sorted(g["items"].items())]
         output.append(dict(epoch=epoch,map=map_name,tracking_enabled=active,**{k:v for k,v in g.items() if k not in ("items","unmatched")},
                            unresolved_item_labels=[dict(label=n,tab=t,quantity=q) for (n,t),q in sorted(g["unmatched"].items())],
-                           items=its,known_npc_value=sum(v["npc_value"] for v in its if v["npc_value"] is not None),
+                           items=its,known_npc_value=sum(v["npc_value"] for v in its if v["npc_value"] is not None) if any(v["npc_value"] is not None for v in its) else None,
                            party_evidence=bool(g["events"]["shared_exp"] or g["events"]["party_bonus_exp"]),
                            personal_kills=None))
     report=dict(schema=2,raw_rows=len(rows),processed_rows=len(done),pending_rows=len(rows)-len(done),
                 third_pass_recovered=sum(bool(r.get("recovered_third_pass")) for r in done),
                 conflicting_parses=sum(bool(r.get("conflicting_parse")) for r in done),
-                notification_breakdown=breakdown(done),
+                notification_breakdown=breakdown(done+[dict(born=r.get("born"),event=None) for r in rows[len(done):]]),
                 accepted_rows=counts["accepted"],unreadable_rows=counts["unreadable"],
                 bad_image_rows=counts["missing_or_bad_image"],groups=output,integrity=integrity,
                 limitations=["Delivered stack arrivals only; upstream can miss/duplicate arrivals. Two image preparations must agree; conflicting parsed values are rejected.",
