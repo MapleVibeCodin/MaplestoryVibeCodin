@@ -1,5 +1,7 @@
 """Independent local evidence journal; no game input, network or remote upload."""
 import hashlib
+import bisect
+import csv
 import json
 import math
 import statistics
@@ -116,6 +118,44 @@ def summarize(records):
             confirmed_kills=None,normal_exp_line_count_is_kill_count=False))
     return result
 
+def interval_metrics(records,intervals,prices):
+    """Align each event to one recorded active interval, never use wall time as active time."""
+    keys=("map","segment","level","job","party")
+    groups=defaultdict(list)
+    for x in intervals:
+        groups[tuple(x.get(k) for k in keys)].append((x["start"],x["end"]))
+    starts={}
+    for key,spans in groups.items():
+        spans.sort()
+        starts[key]=[a for a,b in spans]
+    accepted=[]
+    for r in records:
+        c=r.get("scope")
+        if not isinstance(c,dict): continue
+        key=tuple(c.get(k) for k in keys); t=r["monotonic"]
+        if key not in groups: continue
+        i=bisect.bisect_left(starts[key],t)-1
+        if i>=0 and groups[key][i][0]<t<=groups[key][i][1]: accepted.append(r)
+    result=[]
+    for row in summarize(accepted):
+        key=tuple(row.get(k) for k in keys)
+        seconds=sum(b-a for a,b in groups[key])
+        npc=0; unknown=0; priced=0
+        for item in row["items"]:
+            if item["tab"].casefold() in ("use","cash"): continue
+            price=prices.get(item["item"].casefold())
+            if type(price) is int and price>=0: npc+=price*item["quantity"];priced+=item["quantity"]
+            else: unknown+=item["quantity"]
+        raw=row["observed_pickup_mesos"]
+        row.update(active_observed_seconds=seconds,known_npc_value=npc if priced else None,
+            unknown_nonconsumable_units=unknown,priced_nonconsumable_units=priced,
+            observed_pickup_hr=round(raw*3600/seconds,2) if raw is not None and seconds>=60 else None,
+            raw_plus_known_npc_hr=round((raw+npc)*3600/seconds,2) if raw is not None and seconds>=60 else None,
+            normal_exp_lines_hr=round(row["normal_exp_lines"]*3600/seconds,2) if row["normal_exp_lines"] and seconds>=60 else None,
+            rate_note="Observed message pickups within recorded active intervals; undercount possible. No potion valuation.")
+        result.append(row)
+    return result
+
 def audit_session(session,dest):
     session=Path(session); dest=Path(dest)
     records,errors=read_journal(session/"evidence_journal.jsonl")
@@ -128,11 +168,17 @@ def audit_session(session,dest):
         dt=b["monotonic"]-a["monotonic"]
         if dt<=0 or dt>1.5:gaps.append(dict(previous=a.get("file"),next=b.get("file"),seconds=dt))
         else:intervals.append(dt)
+    intervals_path=dest/"active_intervals.jsonl"
+    from cash_core import NPC
+    with intervals_path.open(encoding="utf-8") as f:
+        intervals=[json.loads(line) for line in f]
+    metrics=interval_metrics(records,intervals,{k.casefold():v for k,v in NPC.items()}) if not errors and not mismatched else []
     report=dict(journal_records=len(records),journal_errors=errors,frame_count=len(frames),
+        clean_close=bool(records and records[-1]["kind"]=="close"),active_message_metrics=metrics,
         frame_hash_mismatch=mismatched,unindexed_frames=orphan,capture_gaps=gaps,
         median_frame_gap_s=statistics.median(intervals) if intervals else None,
         cohorts=summarize(records),limitations=["Hashes detect changes to recorded bytes; not proof of original authenticity or trusted time.",
-        "Missing journal records, OCR or missed pickups are unknown, not zero.",
+        "Missing journal records, OCR or missed pickups are unknown, not zero. Hash chains cannot detect a deleted tail without an independent checkpoint.",
         "Normal EXP lines can include party-shared EXP; no confirmed kill counts.",
         "Potion changes are net observed counts, not gross consumption; no meso equivalents."])
     (dest/"journal_audit.json").write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
