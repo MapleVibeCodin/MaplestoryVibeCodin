@@ -4,6 +4,7 @@ import json
 import math
 import statistics
 import time
+import threading
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,7 +17,11 @@ class Journal:
         self.path=Path(path)
         self.previous=None
         self.sequence=0
+        self.lock=threading.Lock()
     def append(self,kind,at,**fields):
+        with self.lock:
+            return self._append(kind,at,**fields)
+    def _append(self,kind,at,**fields):
         record=dict(kind=kind,monotonic=at,utc=datetime.now(timezone.utc).isoformat(),
                     sequence=self.sequence+1,previous_sha256=self.previous,**fields)
         digest=hashlib.sha256(canonical(record)).hexdigest()
@@ -72,7 +77,10 @@ def verified_frame(session,record):
     name=record.get("file")
     if not isinstance(name,str) or Path(name).name!=name: return False
     p=Path(session)/name
-    try: return hashlib.sha256(p.read_bytes()).hexdigest()==record.get("image_sha256")
+    try:
+        if hashlib.sha256(p.read_bytes()).hexdigest()!=record.get("image_sha256"): return False
+        expected=record.get("sidecar_sha256")
+        return expected is None or hashlib.sha256(p.with_suffix('.json').read_bytes()).hexdigest()==expected
     except OSError: return False
 
 def summarize(records):
