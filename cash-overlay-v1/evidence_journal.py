@@ -163,11 +163,11 @@ def audit_session(session,dest):
     mismatched=[r.get("file") for r in frames if not verified_frame(session,r)]
     known={r.get("file") for r in frames}
     orphan=[p.name for p in session.iterdir() if p.suffix.lower() in (".jpg",".png",".webp") and p.name not in known]
-    gaps=[]; intervals=[]
+    gaps=[]; frame_intervals=[]
     for a,b in zip(frames,frames[1:]):
         dt=b["monotonic"]-a["monotonic"]
         if dt<=0 or dt>1.5:gaps.append(dict(previous=a.get("file"),next=b.get("file"),seconds=dt))
-        else:intervals.append(dt)
+        else:frame_intervals.append(dt)
     intervals_path=dest/"active_intervals.jsonl"
     from cash_core import NPC
     with intervals_path.open(encoding="utf-8") as f:
@@ -176,7 +176,7 @@ def audit_session(session,dest):
     report=dict(journal_records=len(records),journal_errors=errors,frame_count=len(frames),
         clean_close=bool(records and records[-1]["kind"]=="close"),active_message_metrics=metrics,
         frame_hash_mismatch=mismatched,unindexed_frames=orphan,capture_gaps=gaps,
-        median_frame_gap_s=statistics.median(intervals) if intervals else None,
+        median_frame_gap_s=statistics.median(frame_intervals) if frame_intervals else None,
         cohorts=summarize(records),limitations=["Hashes detect changes to recorded bytes; not proof of original authenticity or trusted time.",
         "Missing journal records, OCR or missed pickups are unknown, not zero. Hash chains cannot detect a deleted tail without an independent checkpoint.",
         "Normal EXP lines can include party-shared EXP; no confirmed kill counts.",
