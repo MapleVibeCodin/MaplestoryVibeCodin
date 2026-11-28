@@ -335,3 +335,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## Liquid meso >=100k/h — updated recommendation
 [Nov28 follow-up](../research/2026-11-28-liquid-meso-100k-target.md): Forgotten Entrance II supersedes West Rocky Mountain IV for this target. Same-day reported60k raw/100k incl ETC, lv43–51, solo cash-only not verified. Decayed Tunnel I janitor80k; Forest Up North VIII thief aggregate91k. Prior research retained, no game tests or runtime changes.
+
+
+## Forgotten Hollow all-map cash farming comparison — 2026-11-28
+[Research](../research/2026-11-28-forgotten-hollow-all-map-cash-comparison.md): 23 combat maps, six noncombat; Entrance II/III both modeled cap26 despite32/44 spawn points. II best prior cash report, III easier kills, Hanging Gardens cap31 but tougher and larger. No verified new solo cash rates; earlier report direct retrieval blocked. All history retained.
