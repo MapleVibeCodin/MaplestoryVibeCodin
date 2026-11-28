@@ -32,4 +32,5 @@ class SceneTests(unittest.TestCase):
         hits=template_hits(img,tpl,"monster","fixture",.98)
         self.assertEqual(len(hits),1)
         self.assertEqual((hits[0]["x"],hits[0]["y"]),(36,25))
+        self.assertEqual(template_hits(img,tpl,"monster","fixture",.98,blocked=[(29,19,15,13)]),[])
 if __name__=="__main__": unittest.main()
