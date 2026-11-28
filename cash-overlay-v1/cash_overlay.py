@@ -151,13 +151,14 @@ class CashApp(OriginalApp):
         now = time.monotonic()
         if reading.party is not None and reading.party == self.party and self._party_seen[1]>=2:
             self.party_confirmed_at=now
+        self._state_cash(now)
         # Immutable copy from the UI thread. Values are latest OCR state, not a simultaneous screenshot reading.
         self.scene_context = dict(monotonic=now, map=self.map_name, map_read=reading.map,
             map_uncertain=bool(self.map_hidden or self.reader.map_unread or not self.reader.map_box),
             level=self.level, exp=t.exp, exp_pct=t.pct, exp_estimated=bool(t.hidden),
             exp_candidates=[list(x) for x in reading.candidates], exp_confident=bool(reading.confident),
             exp_gained=t.gained, exp_message_total=self.exp_message_total, party=self.party,
-            party_observed=reading.party, party_confirmed=bool(self.party_confirmed_at is not None and now-self.party_confirmed_at<=3 and self._party_seen==(self.party,self._party_seen[1]) and self._party_seen[1]>=2),
+            party_observed=reading.party, party_confirmed=bool(self.party_confirmed_at is not None and now-self.party_confirmed_at<=3 and self._party_seen[0]==self.party and self._party_seen[1]>=2),
             party_confirmed_at=self.party_confirmed_at, job=self.job, wallet=m.value, wallet_read=reading.mesos,
             wallet_age=None if m.seen_at is None else round(now-m.seen_at,3),
             raw_mesos=self.picked_mesos, items=[[name,qty] for name,qty in self.loot.values()],
