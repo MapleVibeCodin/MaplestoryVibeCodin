@@ -16,7 +16,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 1.5"
+base.VERSION = "Cash 1.6"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -47,6 +47,8 @@ class CashApp(OriginalApp):
         self.last_capture_map = None
         self.relocated = False
         self.capture_notice = ''
+        self.last_capture_state = None
+        self.capture_state_at = -1e9
         super().__init__(root, templates)
         self._original_show = self.hud.show
         self.hud.show = self._show_cash
@@ -66,6 +68,17 @@ class CashApp(OriginalApp):
                 started = time.monotonic()
                 try:
                     hwnd = self.reader.hwnd
+                    state = ('foreground' if self.reader.mode == 'window' and hwnd and
+                             ctypes.windll.user32.GetForegroundWindow() == hwnd else 'not_foreground')
+                    if state == 'foreground' and not self.screenshot_store.has_space():
+                        state = 'low_disk'
+                    if state != self.last_capture_state or started-self.capture_state_at >= 30:
+                        if self.screenshot_store.has_space():
+                            import json
+                            with (self.screenshot_store.folder/'capture_status.jsonl').open('a',encoding='utf-8') as log:
+                                log.write(json.dumps(dict(monotonic=started,utc=datetime.now(timezone.utc).isoformat(),state=state))+'\n')
+                        self.last_capture_state=state
+                        self.capture_state_at=started
                     if (self.reader.mode == 'window' and hwnd and
                             ctypes.windll.user32.GetForegroundWindow() == hwnd):
                         rect = base.PLATFORM.client_rect(hwnd)
@@ -105,7 +118,8 @@ class CashApp(OriginalApp):
                                                 reference=reference,ui=crops,inventory_windows=windows,
                                                 burst=capture_at<self.burst_until,rich=bool(rich or reference),
                                                 frame_gap_seconds=None if self.last_capture_time is None else round(capture_at-self.last_capture_time,4),
-                                                capture_schema=2,inventory_windows_current=rich,
+                                                capture_schema=3,sequence=self.screenshot_store.sequence,
+                                                inventory_windows_current=rich,
                                                 inventory_last_known=self.cached_inventory_windows)
                                     self.screenshot_store.metadata(path,data)
                                     # Only acknowledge a page with saved lossless panel evidence.
@@ -126,7 +140,8 @@ class CashApp(OriginalApp):
                 except Exception as e:
                     self.capture_notice='Capture error — see errors.log'
                     base.log_error('saving periodic game screenshot',e)
-                interval=self.combat_interval if time.monotonic()<self.burst_until else self.base_interval
+                live=self.scene_context
+                interval=self.combat_interval if (time.monotonic()<self.burst_until or (live and live.get('active') and 0<=time.monotonic()-live['monotonic']<=3)) else self.base_interval
                 self.stop_evt.wait(max(.02,interval-(time.monotonic()-started)))
 
     def _handle(self, reading):
@@ -142,7 +157,10 @@ class CashApp(OriginalApp):
             party_observed=reading.party, job=self.job, wallet=m.value, wallet_read=reading.mesos,
             wallet_age=None if m.seen_at is None else round(now-m.seen_at,3),
             raw_mesos=self.picked_mesos, items=[[name,qty] for name,qty in self.loot.values()],
-            potion_cost=self.session_pot_cost, active=bool(t.running), segment=self.cash.segment)
+            potion_cost=self.session_pot_cost, active=bool(t.running and self.session.on and self.session.map==self.session.here and not self.in_town and not self.map_hidden),
+            tracker_running=bool(t.running), tracking_enabled=bool(self.session.on), waiting=self.session.waiting,
+            in_town=bool(self.in_town), cash_ledger=self.cash.snapshot(), wallet_observed_at=m.seen_at,
+            segment=self.cash.segment)
 
     def _said(self, lines, gh):
         # Preserve raw line pixels and the upstream recognition attempts, even if unreadable.
