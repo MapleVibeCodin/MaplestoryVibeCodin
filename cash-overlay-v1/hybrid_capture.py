@@ -32,7 +32,7 @@ def atomic_write(path,data):
 def evidence_regions(frame,rect,reader,windows,stack_area):
     H,W=frame.shape[:2]
     # Broad fallback regions retain useful evidence even when recognition fails.
-    candidates=[('minimap',(0,0,int(W*.38),int(H*.30))),('status',(0,int(H*.83),W,H-int(H*.83)))]
+    candidates=[('minimap',(0,0,int(W*.38),int(H*.30))),('status',(0,int(H*.83),W,H-int(H*.83))),('buffs',(int(W*.55),0,W-int(W*.55),int(H*.12)))]
     if reader.gh:
         x,y,w,h=stack_area(rect,reader.gh)
         candidates.append(('messages',(x-rect[0],y-rect[1],w,h)))
