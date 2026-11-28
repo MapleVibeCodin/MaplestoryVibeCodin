@@ -2,7 +2,7 @@ import unittest
 from evidence_report import active_intervals,summarize,compare
 def row(t,exp=10,active=True,party=1,at=None,seg="x",level=44,folder="s",raw=0):
     return {"image":folder+"/frame.png","metadata":{"monotonic":t,"context":{
-        "monotonic":t if at is None else at,"map":"A","segment":seg,"level":level,"party":party,
+        "monotonic":t if at is None else at,"map":"A","segment":seg,"level":level,"party":party,"party_confirmed":True,
         "job":"Assassin","active":active,"exp":exp,"exp_confident":True,"raw_mesos":raw}}}
 class EvidenceTests(unittest.TestCase):
     def test_pause_gap_and_reset(self):
