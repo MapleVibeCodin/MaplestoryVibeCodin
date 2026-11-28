@@ -71,7 +71,7 @@ def report_minimap(folder):
     folder=Path(folder);p=folder/'minimap_observations.jsonl'
     records,errors=read_journal(folder/'evidence_journal.jsonl')
     hashes=[r for r in records if r.get('kind')=='minimap_file' and r.get('file')==p.name]
-    if errors or not hashes or not p.is_file() or hashlib.sha256(p.read_bytes()).hexdigest()!=hashes[-1].get('sha256'):
+    if errors or not hashes or not p.is_file() or hashlib.sha256(p.read_bytes()).hexdigest()!=hashes[-1].get('file_sha256'):
         result=dict(error='Minimap evidence missing or unverified; rates withheld.')
     else:
         result=summarize([json.loads(line) for line in p.read_text(encoding='utf-8').splitlines() if line.strip()])

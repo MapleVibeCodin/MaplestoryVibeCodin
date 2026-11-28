@@ -24,6 +24,8 @@ class Journal:
         with self.lock:
             return self._append(kind,at,**fields)
     def _append(self,kind,at,**fields):
+        if {"kind","monotonic","utc","sequence","previous_sha256","sha256"} & fields.keys():
+            raise ValueError("reserved journal field")
         record=dict(kind=kind,monotonic=at,utc=datetime.now(timezone.utc).isoformat(),
                     sequence=self.sequence+1,previous_sha256=self.previous,**fields)
         digest=hashlib.sha256(canonical(record)).hexdigest()

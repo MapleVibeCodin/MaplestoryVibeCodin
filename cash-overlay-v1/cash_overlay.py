@@ -21,7 +21,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 2.1"
+base.VERSION = "Cash 2.2"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -86,6 +86,10 @@ class CashApp(OriginalApp):
         self.screenshot_thread.start()
         self.minimap_thread=threading.Thread(target=self._minimap_loop,daemon=True,name="minimap-observations")
         self.minimap_thread.start()
+        from notification_report import worker
+        self.notification_stop=threading.Event()
+        self.notification_thread=threading.Thread(target=worker,args=(self.screenshot_store.folder,base.find_tesseract(),Path(__file__).with_name('assets'),self.notification_stop,base.log_error),daemon=True,name='notification-replay')
+        self.notification_thread.start()
 
     def _journal(self,kind,at,**fields):
         if self.journal is None: return
@@ -279,7 +283,7 @@ class CashApp(OriginalApp):
             level=self.level, exp=t.exp, exp_pct=t.pct, exp_estimated=bool(t.hidden),
             exp_candidates=[list(x) for x in reading.candidates], exp_confident=bool(reading.confident and any(e==t.exp for e,p in reading.candidates if e is not None)),
             exp_gained=t.gained, exp_message_total=self.exp_message_total, party=self.party,
-            party_observed=reading.party, party_confirmed=bool(self.party_confirmed_at is not None and now-self.party_confirmed_at<=3 and self._party_seen[0]==self.party and self._party_seen[1]>=2),
+            party_observed=reading.party, party_confirmed=bool(self.party is not None and self.party>1 and self.party_confirmed_at is not None and now-self.party_confirmed_at<=3 and self._party_seen[0]==self.party and self._party_seen[1]>=2),
             party_confirmed_at=self.party_confirmed_at, job=self.job, wallet=m.value, wallet_read=reading.mesos,
             wallet_age=None if m.seen_at is None else round(now-m.seen_at,3),
             raw_mesos=self.picked_mesos, items=[[name,qty] for name,qty in self.loot.values()],
@@ -287,6 +291,27 @@ class CashApp(OriginalApp):
             tracker_running=bool(t.running), tracking_enabled=bool(self.session.on), waiting=self.session.waiting,
             in_town=bool(self.in_town), cash_ledger=self.cash.snapshot(), wallet_observed_at=m.seen_at,
             segment=self.cash.segment)
+
+    def _message_worker(self):
+        # Foreground and geometry must be valid before advancing the stack watcher.
+        self.message_thread=threading.current_thread()
+        turn=0
+        with base.mss.mss() as sct:
+            while not self.stop_evt.is_set():
+                t0=time.monotonic()
+                try:
+                    hwnd=self.reader.hwnd
+                    rect,g=self.reader.last_rect,self.reader.gh
+                    good=bool(hasattr(self,'screenshot_store') and self.messages and hwnd and rect and g and self.reader.mode=='window' and ctypes.windll.user32.GetForegroundWindow()==hwnd and base.PLATFORM.client_rect(hwnd)==rect)
+                    shot=self.reader._hide_own(base.grab(sct,*base.stack_area(rect,g))) if good else None
+                    if shot and ctypes.windll.user32.GetForegroundWindow()==hwnd and base.PLATFORM.client_rect(hwnd)==rect:
+                        found=self._said(self.messages.look(shot[0],g,t0),g)
+                        if found:self.q.put(('messages',(found,t0)))
+                        turn=(turn+1)%base.POT_EVERY
+                        if self.pot_reader and not turn:self._look_for_pots(sct,rect,g)
+                    elif self.messages:self.messages.reset()
+                except Exception as exc:base.log_error('watching foreground messages',exc)
+                self.stop_evt.wait(max(.02,base.MESSAGE_POLL-(time.monotonic()-t0)))
 
     def _said(self, lines, gh):
         # Never retain background-window message crops from an obscured game.
@@ -307,7 +332,11 @@ class CashApp(OriginalApp):
                             data=png_bytes(line.band)
                             image=hashlib.sha256(data).hexdigest()+'.png'
                             atomic_write(folder/image,data)
-                        out.write(json.dumps(dict(born=line.born,observed=time.monotonic(),kind=line.kind,amount=line.amount,
+                        ctx=self.scene_context or {}
+                        age=time.monotonic()-ctx.get('monotonic',-1e9)
+                        out.write(json.dumps(dict(born=line.born,observed=time.monotonic(),epoch=ctx.get('recording_epoch'),
+                                                  map=ctx.get('map') if 0<=age<=2 and not ctx.get('map_uncertain') else None,
+                                                  tracking_enabled=ctx.get('tracking_enabled') if 0<=age<=2 else None,kind=line.kind,amount=line.amount,
                                                   colour=line.colour,tries=line.tries,span=line.span,image=image),default=str)+'\n')
             except Exception as e: base.log_error('saving raw message evidence',e)
         if lines:
@@ -456,16 +485,26 @@ class CashApp(OriginalApp):
         super().reset()
 
     def close(self):
+        if getattr(self,'auto_started',False) and not self.stop_evt.is_set():
+            missing=[k for k in ('etc','use','pet') if time.monotonic()-self.reminders.seen.get(k,-1e9)>90]
+            if missing:
+                from tkinter import messagebox
+                if not messagebox.askyesno('Finish recording?', 'Recent inventory evidence missing: '+', '.join(missing)+'. Pickup tracking does not require inventory. Finish anyway?'):
+                    return
         self._export(True)
         self.stop_evt.set()
         if hasattr(self, 'screenshot_thread'):
             self.screenshot_thread.join(timeout=2)
         if hasattr(self,'minimap_thread'):self.minimap_thread.join(timeout=3)
+        if hasattr(self,'message_thread'):self.message_thread.join(timeout=6)
+        if hasattr(self,'notification_stop'):
+            self.notification_stop.set()
+            self.notification_thread.join(timeout=25)
         mini=self.screenshot_store.folder/'minimap_observations.jsonl'
         if hasattr(self,'minimap_thread') and not self.minimap_thread.is_alive() and mini.is_file():
-            self._journal('minimap_file',time.monotonic(),file=mini.name,sha256=hashlib.sha256(mini.read_bytes()).hexdigest())
+            self._journal('minimap_file',time.monotonic(),file=mini.name,file_sha256=hashlib.sha256(mini.read_bytes()).hexdigest())
         self._journal('close',time.monotonic())
-        if hasattr(self,'screenshot_store') and (not hasattr(self,'screenshot_thread') or not self.screenshot_thread.is_alive()) and (not hasattr(self,'minimap_thread') or not self.minimap_thread.is_alive()):
+        if hasattr(self,'screenshot_store') and (not hasattr(self,'screenshot_thread') or not self.screenshot_thread.is_alive()) and (not hasattr(self,'minimap_thread') or not self.minimap_thread.is_alive()) and (not hasattr(self,'message_thread') or not self.message_thread.is_alive()) and (not hasattr(self,'notification_thread') or not self.notification_thread.is_alive()):
             try:
                 import json
                 from quick_report import report_folder
@@ -473,6 +512,8 @@ class CashApp(OriginalApp):
                 report_folder(self.screenshot_store.folder,refs=refs)
                 from minimap_report import report_minimap
                 report_minimap(self.screenshot_store.folder)
+                from notification_report import summarize
+                summarize(self.screenshot_store.folder)
             except Exception as e: base.log_error('saving quick report',e)
             try:
                 # Actual Windows Downloads known-folder path when redirected; fallback to home.

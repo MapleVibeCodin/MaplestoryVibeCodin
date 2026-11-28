@@ -97,7 +97,7 @@ def summarize(rows,refs=None):
         exp_per_minute_observed=dict(sorted(minute_bins.items())),exp_runs=runs,
         median_exp_event_gap_s=statistics.median(gain_gaps) if gain_gaps else None,
         wallet_start=w[0][1] if w else None,wallet_end=w[-1][1] if w else None,
-        wallet_observation_count=len(w),wallet_endpoint_seconds=ws,wallet_change=wd,wallet_change_hr=rate(wd,ws),
+        wallet_observation_count=len(w),wallet_first_t=w[0][0] if w else None,wallet_last_t=w[-1][0] if w else None,wallet_endpoint_seconds=ws,wallet_change=wd,wallet_change_hr=rate(wd,ws),
         conditional_monster_counts=dict(counts),unresolved_exp=unresolved,
         limitations=["Capture time and EXP-covered time are not attack-active time.",
         "Wallet change includes any spending/transfers; endpoint rate is not raw pickups.",
