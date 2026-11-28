@@ -1,0 +1,794 @@
+[
+  {
+    "repo": "beanguri/Maple-Classic-Exp-Overlay",
+    "commit": "97049b7709f5c4d8f8805ff07b4432eb51d35428",
+    "license": "MIT",
+    "archive": "https://github.com/beanguri/Maple-Classic-Exp-Overlay/archive/97049b7709f5c4d8f8805ff07b4432eb51d35428.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "itechify/minerva",
+    "commit": "5d90302b44715cb303b0a2b601c5bab4cb0fb4e4",
+    "license": "MIT",
+    "archive": "https://github.com/itechify/minerva/archive/5d90302b44715cb303b0a2b601c5bab4cb0fb4e4.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "CabbageCanFly/msxp",
+    "commit": "badb340707df7f62c511452bff975bf46bd561db",
+    "license": "MIT",
+    "archive": "https://github.com/CabbageCanFly/msxp/archive/badb340707df7f62c511452bff975bf46bd561db.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "Javipen/maple-exp-overlay",
+    "commit": "1a25186943a42fccd89eec2e0777c7b41ea5a21f",
+    "license": "MIT",
+    "archive": "https://github.com/Javipen/maple-exp-overlay/archive/1a25186943a42fccd89eec2e0777c7b41ea5a21f.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "TaylorAdamCA/Maple-Loot-Overlay",
+    "commit": "945caa00131933cf16b5766a39175dd1eb09ee96",
+    "license": "MIT",
+    "archive": "https://github.com/TaylorAdamCA/Maple-Loot-Overlay/archive/945caa00131933cf16b5766a39175dd1eb09ee96.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "Looty/maple-exp-overlay",
+    "commit": "a20098e9e17dd9f191fd30894c29e3457fbb3b6d",
+    "license": "MIT",
+    "archive": "https://github.com/Looty/maple-exp-overlay/archive/a20098e9e17dd9f191fd30894c29e3457fbb3b6d.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "oryanzz/EXPERT",
+    "commit": "0ab66afc87bdb9319100fec2605ef8c61ff07c43",
+    "license": "MIT",
+    "archive": "https://github.com/oryanzz/EXPERT/archive/0ab66afc87bdb9319100fec2605ef8c61ff07c43.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "jcsoutherland/maple-exp-tracker",
+    "commit": "6198930139ade7a5a84f51f8586b1c02e6172daa",
+    "license": null,
+    "archive": "https://github.com/jcsoutherland/maple-exp-tracker/archive/6198930139ade7a5a84f51f8586b1c02e6172daa.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "lucaslcn/maple-classic-exp-tracker",
+    "commit": "aca604df59cda964a2a35f9bc4c86bfc5287fd60",
+    "license": null,
+    "archive": "https://github.com/lucaslcn/maple-classic-exp-tracker/archive/aca604df59cda964a2a35f9bc4c86bfc5287fd60.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "luk-gg/classic-world-exp-tracker",
+    "commit": "807097014edfe4231df23bc4f25670efd9c87872",
+    "license": null,
+    "archive": "https://github.com/luk-gg/classic-world-exp-tracker/archive/807097014edfe4231df23bc4f25670efd9c87872.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "dwlim/maple-exp-tracker",
+    "commit": "df4ee7213a8c4b10d3aff42d4940628da993cf23",
+    "license": null,
+    "archive": "https://github.com/dwlim/maple-exp-tracker/archive/df4ee7213a8c4b10d3aff42d4940628da993cf23.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "Maple-Helper/maple-helper",
+    "commit": "feaab98019d81cb96496f2573284d1430fd7a1ab",
+    "license": null,
+    "archive": "https://github.com/Maple-Helper/maple-helper/archive/feaab98019d81cb96496f2573284d1430fd7a1ab.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "oleg1994/maplestory-classic-tool",
+    "commit": "af19503df37516de0bf1bf4f53542432e908f041",
+    "license": "MIT",
+    "archive": "https://github.com/oleg1994/maplestory-classic-tool/archive/af19503df37516de0bf1bf4f53542432e908f041.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "rednas-source/Maplestory-Classic-EXP-tracker",
+    "commit": "033532249e47adabeedf4ab12f49dec12514b7f5",
+    "license": "MIT",
+    "archive": "https://github.com/rednas-source/Maplestory-Classic-EXP-tracker/archive/033532249e47adabeedf4ab12f49dec12514b7f5.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "tonyalcast/classic-exp-tracker",
+    "commit": "987482804db15ba9fde9d7e9626944feb271b06f",
+    "license": "MIT",
+    "archive": "https://github.com/tonyalcast/classic-exp-tracker/archive/987482804db15ba9fde9d7e9626944feb271b06f.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "xEmPIr3/MapleStory-EXP-Tracker",
+    "commit": "3d2b3b3a26bae05ade7d849cea4c0e43aac465fa",
+    "license": "All rights reserved",
+    "archive": "https://github.com/xEmPIr3/MapleStory-EXP-Tracker/archive/3d2b3b3a26bae05ade7d849cea4c0e43aac465fa.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "rsmsdev/meso-tracker",
+    "commit": "4db49641939c8e39d9846313d73bed2e72ebd37c",
+    "license": null,
+    "archive": "https://github.com/rsmsdev/meso-tracker/archive/4db49641939c8e39d9846313d73bed2e72ebd37c.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "zhuffman68/lupin",
+    "commit": "46efd23eca203544e4e5c5ac0e005a472598f398",
+    "license": null,
+    "archive": "https://github.com/zhuffman68/lupin/archive/46efd23eca203544e4e5c5ac0e005a472598f398.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "lceCold508/MapleHuntTracker",
+    "commit": "f41c568be087ec4ea5b798af9dc6495e8e1e9e1c",
+    "license": null,
+    "archive": "https://github.com/lceCold508/MapleHuntTracker/archive/f41c568be087ec4ea5b798af9dc6495e8e1e9e1c.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "boowenchen/MapleTracker-public",
+    "commit": "9a583d889c6a6d32e3c13177ae976a5173eabd4b",
+    "license": null,
+    "archive": "https://github.com/boowenchen/MapleTracker-public/archive/9a583d889c6a6d32e3c13177ae976a5173eabd4b.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "raskinbobbies/mc-tracker",
+    "commit": "8acb590ed9f3d71f3feff18ee33e66cbd289355d",
+    "license": "MIT",
+    "archive": "https://github.com/raskinbobbies/mc-tracker/archive/8acb590ed9f3d71f3feff18ee33e66cbd289355d.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "OfeRx/mscw-exp-mesos-tracker",
+    "commit": "cd47605d552fddd664ccd7d4c37740b4cf17af8e",
+    "license": null,
+    "archive": "https://github.com/OfeRx/mscw-exp-mesos-tracker/archive/cd47605d552fddd664ccd7d4c37740b4cf17af8e.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "or-keren/maplelens",
+    "commit": "8e6b5b5503f0b9e3fb044290b393ada41124d0c1",
+    "license": "MIT",
+    "archive": "https://github.com/or-keren/maplelens/archive/8e6b5b5503f0b9e3fb044290b393ada41124d0c1.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "gincreations/MS-overlay",
+    "commit": "893a56b42a64f36740a094b54cdbfb6eb02b7a89",
+    "license": "MIT",
+    "archive": "https://github.com/gincreations/MS-overlay/archive/893a56b42a64f36740a094b54cdbfb6eb02b7a89.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "vibercoder35/Maple-Classic-Overlay",
+    "commit": "f136c86ae77d3b6953dff62693ad561457b95668",
+    "license": "MIT",
+    "archive": "https://github.com/vibercoder35/Maple-Classic-Overlay/archive/f136c86ae77d3b6953dff62693ad561457b95668.zip",
+    "category": "previous tracker collection",
+    "status": "pinned"
+  },
+  {
+    "repo": "jackychen19/mscw-battle-analysis",
+    "commit": "6df84d3a738bc67d0505f460e4af2143d1ac60c3",
+    "license": "MIT",
+    "archive": "https://github.com/jackychen19/mscw-battle-analysis/archive/6df84d3a738bc67d0505f460e4af2143d1ac60c3.zip",
+    "category": "tracker",
+    "status": "pinned"
+  },
+  {
+    "repo": "bookard-dev/MapleTracker",
+    "commit": "a8ddfb8b7643c2690a0483c8a8fac5d50ec79c2d",
+    "license": "NOASSERTION",
+    "archive": "https://github.com/bookard-dev/MapleTracker/archive/a8ddfb8b7643c2690a0483c8a8fac5d50ec79c2d.zip",
+    "category": "tracker",
+    "status": "pinned"
+  },
+  {
+    "repo": "AmitSrourDev/maple-classic-farm-tracker",
+    "commit": "fb7a337c581f5e2d77c67001d2a4a00cd26d86fc",
+    "license": "MIT",
+    "archive": "https://github.com/AmitSrourDev/maple-classic-farm-tracker/archive/fb7a337c581f5e2d77c67001d2a4a00cd26d86fc.zip",
+    "category": "tracker",
+    "status": "pinned"
+  },
+  {
+    "repo": "jcsoutherland/ms-classic-training-simulator",
+    "commit": "425f5b753edbdb66cfaf226e8f14c618ff32ae54",
+    "license": null,
+    "archive": "https://github.com/jcsoutherland/ms-classic-training-simulator/archive/425f5b753edbdb66cfaf226e8f14c618ff32ae54.zip",
+    "category": "training models",
+    "status": "pinned"
+  },
+  {
+    "repo": "bluegreytiger/maple-exp-meso-estimator",
+    "commit": "9495baed820cee953cbdf861c465d990daa73c8f",
+    "license": null,
+    "archive": "https://github.com/bluegreytiger/maple-exp-meso-estimator/archive/9495baed820cee953cbdf861c465d990daa73c8f.zip",
+    "category": "training models",
+    "status": "pinned"
+  },
+  {
+    "repo": "Crazy3001/Leafline",
+    "commit": "6a994c358aef4aeb49ece8bb558101e24423e7af",
+    "license": "MIT",
+    "archive": "https://github.com/Crazy3001/Leafline/archive/6a994c358aef4aeb49ece8bb558101e24423e7af.zip",
+    "category": "tracker",
+    "status": "pinned"
+  },
+  {
+    "repo": "xmeset/MapleHUD",
+    "commit": "985d0eac8347e2e6453199a745e40fdfc14b18e0",
+    "license": "NOASSERTION",
+    "archive": "https://github.com/xmeset/MapleHUD/archive/985d0eac8347e2e6453199a745e40fdfc14b18e0.zip",
+    "category": "tracker",
+    "status": "pinned"
+  },
+  {
+    "repo": "CrazyScorcer/Maple-Classic-Exp-Overlay-Linux",
+    "commit": "802983ce5dbd2b52f334eeb2637f327728c91603",
+    "license": "MIT",
+    "archive": "https://github.com/CrazyScorcer/Maple-Classic-Exp-Overlay-Linux/archive/802983ce5dbd2b52f334eeb2637f327728c91603.zip",
+    "category": "platform variant",
+    "status": "pinned"
+  },
+  {
+    "repo": "luckeyfaraday/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "fabriciorby/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "barleviatias/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "ruttwood/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "AlexDru2017/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Shawn-Noruzi/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "thanhphamvan/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "drishans/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "jeffvli/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "mkkim0000001/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "a807257775/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Halfwhit/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "marcopoloq/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "ssaenger/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "warnerktsang/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "auto-moe/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "xoere2/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "apiusage/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "joosphotos/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "guddevbaddev/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "cpaez33/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "EdwardJBaumel/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "sirasitxp/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Niehaus/Maple-Classic-Exp-Overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Kewee123/Maple-Classic-Exp-Overlay-mac",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "k0ga1/maple-exp-overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Itamar-Avitan/maple-helper",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "bar-globalski/maple-helper",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "kevindelacruz/lupin",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "apiusage/EXPERT",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "ephan9/maple-helper",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "fork or variant candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Shonitbar/mpl-ocr",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "67-6f-64/mpl-ocr",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "maplerouteadmin-dev/maple-route",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Herzzzz/fengyumu-decky",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "KR-KAIN/GeulClassic-Addon",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Ithamar14/maple-price-checker",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "GitFist/Maple-Map-Buddy",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Tura2/classic-companion",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "kwonth211/gms-hub",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "Bromelda/maplestory-classic-database",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "MegoGuava/maplestory-classic-database",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "cg8894500/maplestory-classic-skill-database",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "xLivennicex/livens-classic-maple-guide",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "AttackHunter/maplestory-guide",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "jaydieudigne-cmyk/maplestory-wz-dumps",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "jayee88/mfm-tracker",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "GabrielGarciaRivas/mfm-tracker",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "apiusage/mfm-tracker",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "shaybenshi/maple-price-agent",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "ant-codez/Bankers-Maplestory-Free-Market-Tracker",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "danjaaron/MesoSlave",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "DKJ-Solutions/dkj-maplestory-classic-mesowise",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "danielfang7/MesoVibe",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "DMOG189/meso-market-data",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "dizzyvinci/inflation-watch-astra",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "OliveProjects/maplestory-portfolio",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "OliveProjects/maplestory-nx-portfolio",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "zootzootzoot/maplestory",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "squintz-sol/HornPub",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "r5u/trackwhales",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "ms-classic/msClassicCalendar",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "adeola4/advanced-sp-calculator",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "related OCR, data, or market candidate",
+    "status": "search-discovered; resolve public default branch before download"
+  },
+  {
+    "repo": "infomesolens-source/maplestory-classic-overlay",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "source unavailable or unqualified",
+    "status": "excluded from downloader"
+  },
+  {
+    "repo": "a1400demon/MapleTrack",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "source unavailable or unqualified",
+    "status": "excluded from downloader"
+  },
+  {
+    "repo": "vincentgg1000-cmyk/maplestory-classic-godrow-exp-tracker",
+    "commit": null,
+    "license": null,
+    "archive": null,
+    "category": "source unavailable or unqualified",
+    "status": "excluded from downloader"
+  }
+]

@@ -371,3 +371,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## Tracker source collection — 2026-11-28
 [Collection](../research/tracker-source-collection-2026-11-28/README.md): 25 pinned public repository candidates, 10 actual licensed source/license files retrieved and archived, full upstream download manifest. MesoLens README-only; no claim of full backend source for closed sites. No runtime modifications or executed builds.
+
+
+## Expanded tracker public GitHub catalog — 2026-11-28
+[Expanded catalog](../research/tracker-source-collection-2026-11-28/EXPANDED.md): 99 distinct public search candidates, 33 pinned, 63 search-only, 3 unqualified. Prior manifest and source blobs preserved. Downloader resolves missing refs and logs failures; not executed here. No runtime changes.
