@@ -389,3 +389,7 @@ Cash Overlay v1 follow-up: five exact-source core tests executed on Linux and pa
 
 ## Cash overlay v1.2 — spawn research capture
 [Implementation](../cash-overlay-v1/README.md): 1-second screenshots + timestamped OCR context, offline template matcher and proximity metrics, no confirmed automatic spawn tracking without real templates and evidence. Five new tests included but not run here; old history intact.
+
+
+## Cash overlay v1.3 — lossless WebP
+[Implementation](../cash-overlay-v1/README.md): one-second WebP with per-frame pixel equality validation, PNG fallback, image size metadata and backward-compatible offline analyzer. Previous files preserved. Three new codec tests included; Windows/live capture not verified.

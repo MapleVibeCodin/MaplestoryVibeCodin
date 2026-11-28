@@ -1,4 +1,4 @@
-"""Timestamped PNG snapshots; no video, no network, no automatic deletion."""
+"""Timestamped lossless WebP/PNG snapshots; no video, network or automatic deletion."""
 from datetime import datetime, timezone
 from pathlib import Path
 import shutil
@@ -7,6 +7,30 @@ import uuid
 
 INTERVAL_SECONDS = 1
 MIN_FREE_BYTES = 5 * 1024**3
+
+def lossless_webp(data):
+    # OpenCV produces simple VP8L WebP for 3-channel BGR images. Reject lossy VP8.
+    return (isinstance(data, bytes) and len(data) >= 20 and data[:4] == b'RIFF'
+            and data[8:16] == b'WEBPVP8L')
+
+def encode_lossless(img):
+    """Encode and compare every decoded pixel; fall back to PNG if WebP is unavailable."""
+    import cv2
+    import numpy as np
+    try:
+        ok, packed = cv2.imencode('.webp', img, [cv2.IMWRITE_WEBP_QUALITY, 101])
+        if ok:
+            data = packed.tobytes()
+            if lossless_webp(data):
+                decoded = cv2.imdecode(packed, cv2.IMREAD_UNCHANGED)
+                if decoded is not None and decoded.dtype == img.dtype and np.array_equal(decoded, img):
+                    return data
+    except (cv2.error, AttributeError):
+        pass
+    ok, packed = cv2.imencode('.png', img, [cv2.IMWRITE_PNG_COMPRESSION, 1])
+    if not ok:
+        raise OSError('Lossless screenshot encoding failed')
+    return packed.tobytes()
 
 class ScreenshotStore:
     def __init__(self, parent, min_free=MIN_FREE_BYTES):
@@ -32,13 +56,17 @@ class ScreenshotStore:
                 tmp.unlink()
 
     def save(self, png, when=None):
-        if not isinstance(png, bytes) or not png.startswith(b"\x89PNG\r\n\x1a\n"):
-            raise ValueError("Expected encoded PNG bytes")
+        if lossless_webp(png):
+            ext = '.webp'
+        elif isinstance(png, bytes) and png.startswith(b"\x89PNG\r\n\x1a\n"):
+            ext = '.png'
+        else:
+            raise ValueError('Expected lossless WebP or PNG bytes')
         if not self.has_space():
             return None
         when = when or datetime.now(timezone.utc)
         self.sequence += 1
-        name = f"{when.strftime('%Y%m%dT%H%M%S_%fZ')}_{self.sequence:08d}.png"
+        name = f"{when.strftime('%Y%m%dT%H%M%S_%fZ')}_{self.sequence:08d}{ext}"
         path = self.folder / name
         tmp = path.with_suffix(".part")
         try:

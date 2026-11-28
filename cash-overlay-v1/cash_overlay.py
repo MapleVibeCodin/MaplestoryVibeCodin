@@ -7,14 +7,14 @@ import ctypes
 from datetime import datetime, timezone
 from pathlib import Path
 from cash_core import CashLedger, NPC, append_snapshot
-from screenshots import ScreenshotStore, INTERVAL_SECONDS
+from screenshots import ScreenshotStore, INTERVAL_SECONDS, encode_lossless
 
 os.environ["MAPLE_EXP_DATA"] = str(Path(os.environ["LOCALAPPDATA"]) / "MapleCashOverlayV1")
 import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 1.2"
+base.VERSION = "Cash 1.3"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -43,6 +43,7 @@ class CashApp(OriginalApp):
         # Separate screen-only worker; no input, no video, no OCR changes.
         # Use the actual foreground HWND, not the upstream helper which also accepts the overlay itself.
         warned = False
+        codec_warned = False
         with base.mss.mss() as sct:
             while not self.stop_evt.is_set():
                 started = time.monotonic()
@@ -58,16 +59,19 @@ class CashApp(OriginalApp):
                             if (shot and ctypes.windll.user32.GetForegroundWindow() == hwnd and
                                     base.PLATFORM.client_rect(hwnd) == rect and
                                     shot[1:] == rect[:2] and shot[0].shape[:2] == (rect[3], rect[2])):
-                                ok, png = base.cv2.imencode('.png', shot[0], [base.cv2.IMWRITE_PNG_COMPRESSION, 1])
-                                if ok:
-                                    path = self.screenshot_store.save(png.tobytes(), when)
-                                    if path is not None:
-                                        ctx = self.scene_context
-                                        data = {'image':path.name, 'utc':when.isoformat(), 'monotonic':started,
-                                                'rect':list(rect), 'context':ctx,
-                                                'context_age_seconds':None if ctx is None else round(started-ctx['monotonic'],3)}
-                                        self.screenshot_store.metadata(path, data)
-                                        warned = False
+                                encoded = encode_lossless(shot[0])
+                                path = self.screenshot_store.save(encoded, when)
+                                if path is not None:
+                                    if path.suffix == '.png' and not codec_warned:
+                                        base.log_error('Lossless WebP unavailable or pixel check failed; saving PNG instead')
+                                        codec_warned = True
+                                    ctx = self.scene_context
+                                    data = {'image':path.name, 'utc':when.isoformat(), 'monotonic':started,
+                                            'rect':list(rect), 'context':ctx, 'codec':path.suffix[1:],
+                                            'image_bytes':len(encoded),
+                                            'context_age_seconds':None if ctx is None else round(started-ctx['monotonic'],3)}
+                                    self.screenshot_store.metadata(path, data)
+                                    warned = False
                         elif rect and not warned:
                             base.log_error('Screenshot capture paused: less than 5 GiB free')
                             warned = True

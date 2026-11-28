@@ -41,6 +41,9 @@ def gap_bounds(previous, first_absent, last_absent, reappearance):
     if not previous<=first_absent<=last_absent<=reappearance: raise ValueError("invalid ordering")
     return [round(last_absent-first_absent,3),round(reappearance-previous,3)]
 
+def screenshot_files(folder):
+    return sorted(p for p in folder.rglob('*') if p.is_file() and p.suffix.lower() in ('.png', '.webp'))
+
 def main():
     import cv2
     p=argparse.ArgumentParser(description=__doc__)
@@ -62,7 +65,7 @@ def main():
     import uuid
     dest=args.output/("analysis_"+uuid.uuid4().hex[:8]);dest.mkdir()
     with (dest/"frames.jsonl").open("x",encoding="utf-8") as out:
-        for f in sorted(args.screenshots.rglob("*.png")):
+        for f in screenshot_files(args.screenshots):
             im=cv2.imread(str(f),cv2.IMREAD_COLOR)
             if im is None: continue
             try: meta=json.loads(f.with_suffix(".json").read_text(encoding="utf-8"))
