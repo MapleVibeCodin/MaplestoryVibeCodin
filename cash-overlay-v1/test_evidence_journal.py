@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from evidence_journal import Journal,read_journal,classify_messages,potion_delta,scope,trusted_scope,summarize,verified_frame
+from evidence_journal import Journal,read_journal,classify_messages,potion_delta,scope,trusted_scope,summarize,verified_frame,interval_metrics
 import hashlib
 class JournalTests(unittest.TestCase):
     def test_chain_and_tamper(self):
@@ -31,6 +31,13 @@ class JournalTests(unittest.TestCase):
         c=dict(active=True,map="A",segment="a",monotonic=10,party=1,party_confirmed=False)
         self.assertIsNone(scope(c)["party"]);self.assertIsNone(trusted_scope(c,13));self.assertIsNotNone(trusted_scope(c,11))
         self.assertIsNone(scope(dict(c,map_uncertain=True)))
+    def test_interval_alignment(self):
+        c=dict(map="A",segment="a",level=44,job="Assassin",party=1)
+        records=[dict(kind="accepted_pickups",monotonic=t,scope=c,messages=[["mesos",100],["item","Raffle Petal",2,"Etc"],["item","Orange Potion",3,"Use"]]) for t in (0,1,60,61)]
+        r=interval_metrics(records,[dict(c,start=0,end=60)],{"raffle petal":40,"orange potion":150})[0]
+        self.assertEqual(r["observed_pickup_mesos"],200)
+        self.assertEqual(r["known_npc_value"],160)
+        self.assertEqual(r["raw_plus_known_npc_hr"],21600)
     def test_pickup_no_double_count(self):
         c=dict(map="A",segment="a")
         rows=[dict(kind="accepted_pickups",scope=c,messages=[["mesos",20],["item","Orange Potion",3,"Use"]]),
