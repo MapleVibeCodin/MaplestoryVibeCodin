@@ -1,0 +1,106 @@
+{
+  "runtime_commit": "97318efcb8c2895977dbf155dddae957279a7bc1",
+  "files": [
+    {
+      "path": "cash-overlay-v1/cash_core.py",
+      "git_blob": "41f091c3d6aef7c97fb6881792e1e32b14f32a57"
+    },
+    {
+      "path": "cash-overlay-v1/cash_overlay.py",
+      "git_blob": "f187951aa32cd26632ea2a82883b689290977d28"
+    },
+    {
+      "path": "cash-overlay-v1/test_cash_core.py",
+      "git_blob": "d28858d378c136d23b2a9afccab51669b27bff31"
+    },
+    {
+      "path": "cash-overlay-v1/patch_hud.py",
+      "git_blob": "3852eb9c867adbd2353bde349c553c9cd96c330a"
+    },
+    {
+      "path": "cash-overlay-v1/rank_maps.py",
+      "git_blob": "4eea3988da2c58a12a82822e31acd3848d58c591"
+    },
+    {
+      "path": "cash-overlay-v1/screenshots.py",
+      "git_blob": "0c171acb20f209ef32da34dc11fa755f51585a73"
+    },
+    {
+      "path": "cash-overlay-v1/test_screenshots.py",
+      "git_blob": "fc40d39e48abdccaae045a8528d508e89e1fce03"
+    },
+    {
+      "path": "cash-overlay-v1/scene_analysis.py",
+      "git_blob": "aabd73006db0032b1fb9b7178937ec6d0de8044e"
+    },
+    {
+      "path": "cash-overlay-v1/test_scene_analysis.py",
+      "git_blob": "4ba9d5fc869f94279d7b3c2d2c747c6c93c7c9bb"
+    },
+    {
+      "path": "cash-overlay-v1/inventory_ui.py",
+      "git_blob": "5c2328034f36c510ad272a4458df640b8cd23ade"
+    },
+    {
+      "path": "cash-overlay-v1/hybrid_capture.py",
+      "git_blob": "b4bf74391e022adda762d7fcf7aa6f5b6ba89f30"
+    },
+    {
+      "path": "cash-overlay-v1/test_hybrid.py",
+      "git_blob": "8718898c5b900cf49b03a68552166dbfcdfcab33"
+    },
+    {
+      "path": "cash-overlay-v1/research_analysis.py",
+      "git_blob": "cc361fbddbb75c123b152b5728d037dce6000932"
+    },
+    {
+      "path": "cash-overlay-v1/test_research.py",
+      "git_blob": "08eec3d128c752416a4e5a324a4510ec082b4fba"
+    },
+    {
+      "path": "cash-overlay-v1/meow_reference.json",
+      "git_blob": "1ba453e1dd222c168ac476d27e5b1694ea534c25"
+    },
+    {
+      "path": "cash-overlay-v1/evidence_report.py",
+      "git_blob": "105e8ba4c50c83f6a79a42de63a83c973e738ad8"
+    },
+    {
+      "path": "cash-overlay-v1/test_evidence_report.py",
+      "git_blob": "f5570671f5bfdbe7415872c95fa0a8ad8e57761f"
+    },
+    {
+      "path": "cash-overlay-v1/evidence_journal.py",
+      "git_blob": "cfa871f88225f638678698ce631577c697f7babb"
+    },
+    {
+      "path": "cash-overlay-v1/test_evidence_journal.py",
+      "git_blob": "e2c29019b51d55cd9cdc7f7f2936d519212ec34f"
+    },
+    {
+      "path": "cash-overlay-v1/INSTALL.ps1",
+      "git_blob": "69fb830f4b08d06bbcabe8cd146f1f18689b82a5"
+    },
+    {
+      "path": "cash-overlay-v1/README.md",
+      "git_blob": "748f394264b13835082762592a99d2aa3776fb48"
+    }
+  ],
+  "installer_project_files": 19,
+  "installer_test_suites": 7,
+  "missing_installer_dependencies": [],
+  "external_pins": {
+    "upstream": "1a25186943a42fccd89eec2e0777c7b41ea5a21f",
+    "mcwo": "c4b04bb07d1907822ad89a5e77654443de6604f7"
+  },
+  "test_execution": {
+    "journal_tests": 8,
+    "passed": 8,
+    "seconds": 0.006,
+    "exact_blob_match": true,
+    "full_suite": false,
+    "windows": false
+  },
+  "removed_paths": [],
+  "verification": "Read back all 21 project/installer/README paths at pinned runtime; external pins inherited; full install not executed."
+}
