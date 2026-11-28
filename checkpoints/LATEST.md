@@ -417,3 +417,7 @@ Hybrid capture, lossless deduplicated UI crops, periodic full reference PNG, obs
 
 ## Cash Overlay — short endpoint inventory reconciliation
 [Method and reference data](../cash-overlay-v1/research/2026-11-28-primeval-forest-i-five-minute-method.md): matched visible stacks and wallet/EXP endpoints, separate nominal and elapsed rates, no double count of linked pet pots, no exact kills or spawn claims from sparse images. No personal source imagery or holdings committed, no runtime changes.
+
+
+## Cash Overlay v1.5 — combat evidence and MeowDB comparison
+2 Hz baseline and 4 Hz EXP-triggered bursts; raw line evidence, actual gaps, offline registered motion candidates and reviewed TTK brackets, source-linked Primeval Forest I model. Seven new regression tests included, not yet executed. Windows and real detector validation pending. Existing data preserved.

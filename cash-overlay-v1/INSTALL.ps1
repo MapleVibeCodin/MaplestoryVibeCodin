@@ -11,7 +11,7 @@ if(!(Test-Path (Join-Path $src 'LICENSE')) -or !(Test-Path (Join-Path $src 'mapl
 # Download our files from the same immutable revision as this installer.
 if(!$env:MAPLE_CASH_REF -or $env:MAPLE_CASH_REF -notmatch '^[a-f0-9]{40}$'){throw 'Set MAPLE_CASH_REF to the release commit'}
 $base="https://raw.githubusercontent.com/MapleVibeCodin/MaplestoryVibeCodin/$env:MAPLE_CASH_REF/cash-overlay-v1"
-foreach($f in @('cash_core.py','cash_overlay.py','test_cash_core.py','patch_hud.py','rank_maps.py','screenshots.py','test_screenshots.py','scene_analysis.py','test_scene_analysis.py','inventory_ui.py','hybrid_capture.py','test_hybrid.py')){Invoke-WebRequest -UseBasicParsing -Uri "$base/$f" -OutFile (Join-Path $src $f)}
+foreach($f in @('cash_core.py','cash_overlay.py','test_cash_core.py','patch_hud.py','rank_maps.py','screenshots.py','test_screenshots.py','scene_analysis.py','test_scene_analysis.py','inventory_ui.py','hybrid_capture.py','test_hybrid.py','research_analysis.py','test_research.py','meow_reference.json')){Invoke-WebRequest -UseBasicParsing -Uri "$base/$f" -OutFile (Join-Path $src $f)}
 Invoke-WebRequest -UseBasicParsing -Uri "$base/README.md" -OutFile (Join-Path $src 'CASH_README.md')
 Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MapleVibeCodin/MaplestoryVibeCodin/c4b04bb07d1907822ad89a5e77654443de6604f7/research/2026-11-28-mcwo-level-20-50/data.json' -OutFile (Join-Path $src 'mcwo-level-20-50.json')
 Push-Location $src
@@ -23,7 +23,7 @@ try {
  if($LASTEXITCODE){throw 'Dependency install failed'}
  & $python -B patch_hud.py
  if($LASTEXITCODE){throw 'HUD patch failed'}
- & $python -B -m py_compile cash_core.py cash_overlay.py rank_maps.py hud.py screenshots.py test_screenshots.py scene_analysis.py test_scene_analysis.py inventory_ui.py hybrid_capture.py test_hybrid.py
+ & $python -B -m py_compile cash_core.py cash_overlay.py rank_maps.py hud.py screenshots.py test_screenshots.py scene_analysis.py test_scene_analysis.py inventory_ui.py hybrid_capture.py test_hybrid.py research_analysis.py test_research.py
  if($LASTEXITCODE){throw 'Compile failed'}
  & $python -B test_cash_core.py
  if($LASTEXITCODE){throw 'Cash regressions failed'}
@@ -33,6 +33,8 @@ try {
  if($LASTEXITCODE){throw 'Scene regressions failed'}
  & $python -B test_hybrid.py
  if($LASTEXITCODE){throw 'Hybrid regressions failed'}
+ & $python -B test_research.py
+ if($LASTEXITCODE){throw 'Research regressions failed'}
  $data=Join-Path $env:LOCALAPPDATA 'MapleCashOverlayV1'
  New-Item -ItemType Directory -Path $data -Force | Out-Null
  $launcher=Join-Path $src 'Start Cash Overlay.cmd'
@@ -44,6 +46,18 @@ try {
  $shotlink=$shell.CreateShortcut((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Maple Cash Screenshots.lnk'))
  $shotlink.TargetPath=$shots;$shotlink.Save()
  $templates=Join-Path $data 'scene-templates'; foreach($kind in @('monster','self','player','anchor')){New-Item -ItemType Directory -Path (Join-Path $templates $kind) -Force | Out-Null}
+ $anal=Join-Path $src 'Analyze Latest Session.ps1'
+ @'
+ $ErrorActionPreference='Stop'
+ $data=Join-Path $env:LOCALAPPDATA 'MapleCashOverlayV1'
+ $s=Get-ChildItem (Join-Path $data 'screenshots') -Directory | Sort-Object CreationTime -Descending | Select-Object -First 1
+ if(!$s){throw 'No screenshot sessions found'}
+ & (Join-Path $PSScriptRoot '.venv\Scripts\python.exe') (Join-Path $PSScriptRoot 'scene_analysis.py') $s.FullName (Join-Path $data 'scene-templates') --output (Join-Path $data 'analysis')
+ if($LASTEXITCODE){throw 'Analysis failed'}
+ explorer.exe (Join-Path $data 'analysis')
+'@ | Set-Content -LiteralPath $anal -Encoding UTF8
+ $al=$shell.CreateShortcut((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Analyze Latest Maple Session.lnk'))
+ $al.TargetPath='powershell.exe';$al.Arguments='-NoProfile -ExecutionPolicy Bypass -File "'+$anal+'"';$al.WorkingDirectory=$src;$al.Save()
  Write-Host "Screenshots and OCR context: $shots"
  Write-Host "Optional scene templates: $templates"
  Write-Host "Local cash CSV: $data\cash-sessions.csv"

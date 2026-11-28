@@ -42,7 +42,7 @@ def gap_bounds(previous, first_absent, last_absent, reappearance):
     return [round(last_absent-first_absent,3),round(reappearance-previous,3)]
 
 def screenshot_files(folder):
-    return sorted(p for p in folder.rglob('*') if p.is_file() and 'ui' not in p.relative_to(folder).parts and p.suffix.lower() in ('.png', '.webp', '.jpg', '.jpeg'))
+    return sorted(p for p in folder.rglob('*') if p.is_file() and not {'ui','message_evidence'}.intersection(p.relative_to(folder).parts) and p.suffix.lower() in ('.png', '.webp', '.jpg', '.jpeg'))
 
 def main():
     import cv2
@@ -50,6 +50,8 @@ def main():
     p.add_argument("screenshots",type=Path);p.add_argument("templates",type=Path)
     p.add_argument("--output",type=Path,required=True)
     p.add_argument("--threshold",type=float,default=.90)
+    p.add_argument("--reference",type=Path,default=Path(__file__).with_name("meow_reference.json"))
+    p.add_argument("--review",type=Path,help="Optional evidence-reviewed combat intervals CSV")
     args=p.parse_args()
     if not .75<=args.threshold<=1: p.error("threshold must be .75–1")
     # Folder names: monster, self, player, anchor. Template basename identifies species/landmark.
@@ -59,7 +61,7 @@ def main():
             im=cv2.imread(str(f),cv2.IMREAD_COLOR)
             if im is not None: templates.append((kind,f.stem,im))
     if not any(k=="monster" for k,_,_ in templates):
-        raise SystemExit("No monster templates. Supply labeled crops from the captured game images.")
+        print("No monster templates: endpoint and camera analysis only; monster observations unknown.")
     args.output.mkdir(parents=True,exist_ok=True)
     # Never overwrite a previous analysis.
     import uuid
@@ -83,10 +85,14 @@ def main():
                 if anchor:
                     a["landmark_x"]=round(a["x"]-anchor["x"],2)
                     a["landmark_y"]=round(a["y"]-anchor["y"],2)
-            row={"image":str(f),"metadata":meta,"anchor":anchor,"observed_monsters":len(monsters),
+            row={"image":str(f),"metadata":meta,"anchor":anchor,"observed_monsters":len(monsters) if any(k=="monster" for k,_,_ in templates) else None,
                  "observed_other_players":len(players) if any(k=="player" for k,_,_ in templates) else None,
                  "detections":hits}
             out.write(json.dumps(row,ensure_ascii=False)+"\n")
+    from research_analysis import analyze
+    refs=json.loads(args.reference.read_text(encoding="utf-8"))
+    analyze(dest/"frames.jsonl",dest,refs,args.review)
+    print(dest/"research_summary.json")
     print(dest/"frames.jsonl")
     print("Template observations only; missed detections, camera changes and offscreen actors prevent exact spawn claims.")
 

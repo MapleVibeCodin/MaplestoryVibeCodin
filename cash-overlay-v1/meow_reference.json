@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "maps": {
+    "010006010": {
+      "name": "Primeval Forest I",
+      "source": "https://meowdb.com/msclassic/maps/010006010",
+      "retrieved": "2026-11-28",
+      "model": {
+        "spawn_points": 23,
+        "mob_rate": 0.5,
+        "solo_cap": 10,
+        "tick_seconds": 7.56,
+        "realistic_mobs_hr": 952,
+        "realistic_exp_hr": 88949,
+        "realistic_uptime": 0.4,
+        "ceiling_exp_hr": 451346,
+        "extra_capacity_per_combat_player_after_five": 0.75
+      },
+      "monsters": [
+        {
+          "name": "Glowshroom",
+          "level": 39,
+          "hp": 1377,
+          "exp": 82,
+          "points": 8,
+          "movement": "stays on its floor"
+        },
+        {
+          "name": "Aqumander",
+          "level": 43,
+          "hp": 2069,
+          "exp": 98,
+          "points": 9,
+          "movement": "stays on its floor"
+        },
+        {
+          "name": "Echopus",
+          "level": 45,
+          "hp": 2163,
+          "exp": 107,
+          "points": 6,
+          "movement": "stays on its floor"
+        }
+      ]
+    }
+  }
+}

@@ -16,7 +16,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 1.4"
+base.VERSION = "Cash 1.5"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -37,6 +37,12 @@ class CashApp(OriginalApp):
         self.inventory_detector = InventoryDetector()
         self.last_saved_pages = ()
         self.last_reference = -1e9
+        self.last_rich = -1e9
+        self.last_capture_time = None
+        self.last_exp_marker = None
+        self.cached_inventory_windows = []
+        self.base_interval = .5
+        self.combat_interval = .25
         self.burst_until = 0.0
         self.last_capture_map = None
         self.relocated = False
@@ -74,28 +80,40 @@ class CashApp(OriginalApp):
                                     shot[1:] == rect[:2] and shot[0].shape[:2] == (rect[3], rect[2])):
                                 img = shot[0]
                                 ctx, age = context_at(ctx0,capture_at)
-                                windows = self.inventory_detector.detect(img)
+                                rich = capture_at-self.last_rich>=.95
+                                if rich:
+                                    self.cached_inventory_windows = self.inventory_detector.detect(img)
+                                windows = self.cached_inventory_windows if rich else []
                                 pages = tuple(sorted(v['page'] for v in windows if v['page']))
                                 map_name = ctx.get('map') if ctx and not ctx.get('map_uncertain') and age<=3 else None
-                                changed = bool(pages and pages != self.last_saved_pages)
+                                changed = bool(rich and pages and pages != self.last_saved_pages)
+                                marker = (ctx.get('level'),ctx.get('exp')) if ctx and ctx.get('exp_confident') else None
+                                exp_changed = bool(marker and self.last_exp_marker and marker != self.last_exp_marker)
+                                if marker: self.last_exp_marker = marker
+                                if exp_changed: self.burst_until = max(self.burst_until,capture_at+8)
                                 map_changed = bool(map_name and map_name != self.last_capture_map)
                                 if changed or map_changed: self.burst_until = capture_at+8
                                 reference = changed or map_changed or capture_at-self.last_reference>=60
                                 encoded = png_bytes(img) if reference else jpeg_bytes(img)
                                 path = self.screenshot_store.save_scene(encoded,when)
                                 if path is not None:
-                                    regions = evidence_regions(img,rect,self.reader,windows,base.stack_area)
+                                    regions = evidence_regions(img,rect,self.reader,windows,base.stack_area) if rich or reference else []
                                     crops = save_crops(self.screenshot_store,img,regions)
                                     data = dict(image=path.name,utc=when.isoformat(),monotonic=capture_at,
                                                 acquisition_seconds=round(elapsed,4),rect=list(rect),context=ctx,
                                                 context_age_seconds=age,codec=path.suffix[1:],image_bytes=len(encoded),
                                                 reference=reference,ui=crops,inventory_windows=windows,
-                                                burst=capture_at<self.burst_until)
+                                                burst=capture_at<self.burst_until,rich=bool(rich or reference),
+                                                frame_gap_seconds=None if self.last_capture_time is None else round(capture_at-self.last_capture_time,4),
+                                                capture_schema=2,inventory_windows_current=rich)
                                     self.screenshot_store.metadata(path,data)
                                     # Only acknowledge a page with saved lossless panel evidence.
                                     saved={v['kind'] for v in crops}
                                     self.reminders.observe(capture_at,[p for p in pages if 'inventory_'+p in saved],map_name)
-                                    self.last_saved_pages=pages
+                                    if rich:
+                                        self.last_saved_pages=pages
+                                        self.last_rich=capture_at
+                                    self.last_capture_time=capture_at
                                     if map_name: self.last_capture_map=map_name
                                     if reference: self.last_reference=capture_at
                                     self.capture_notice=''
@@ -107,7 +125,7 @@ class CashApp(OriginalApp):
                 except Exception as e:
                     self.capture_notice='Capture error — see errors.log'
                     base.log_error('saving periodic game screenshot',e)
-                interval=.25 if time.monotonic()<self.burst_until else INTERVAL_SECONDS
+                interval=self.combat_interval if time.monotonic()<self.burst_until else self.base_interval
                 self.stop_evt.wait(max(.02,interval-(time.monotonic()-started)))
 
     def _handle(self, reading):
@@ -124,6 +142,27 @@ class CashApp(OriginalApp):
             wallet_age=None if m.seen_at is None else round(now-m.seen_at,3),
             raw_mesos=self.picked_mesos, items=[[name,qty] for name,qty in self.loot.values()],
             potion_cost=self.session_pot_cost, active=bool(t.running), segment=self.cash.segment)
+
+    def _said(self, lines, gh):
+        # Preserve raw line pixels and the upstream recognition attempts, even if unreadable.
+        # Only lines delivered by the watcher can be recorded by this hook.
+        import json, hashlib
+        from hybrid_capture import atomic_write
+        if lines and hasattr(self,'screenshot_store') and self.screenshot_store.has_space():
+            try:
+                folder=self.screenshot_store.folder/'message_evidence'
+                folder.mkdir(exist_ok=True)
+                with (folder/'lines.jsonl').open('a',encoding='utf-8') as out:
+                    for line in lines:
+                        image=None
+                        if line.band is not None and line.band.size:
+                            data=png_bytes(line.band)
+                            image=hashlib.sha256(data).hexdigest()+'.png'
+                            atomic_write(folder/image,data)
+                        out.write(json.dumps(dict(born=line.born,observed=time.monotonic(),kind=line.kind,amount=line.amount,
+                                                  colour=line.colour,tries=line.tries,span=line.span,image=image),default=str)+'\n')
+            except Exception as e: base.log_error('saving raw message evidence',e)
+        return super()._said(lines,gh)
 
     def _messages(self, found, when):
         self.exp_message_total += sum(p[1] for p in found if p[0]=='exp')

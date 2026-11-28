@@ -29,3 +29,6 @@ This is a requirements checkpoint and design contract. No runtime code changed, 
 
 ## Inventory evidence requirement
 Capture Use and Etc pages, and Equipment > Deco pet potion slots at session beginning and periodically. Remind until the visible panel is saved, retain scroll states, do not equate a visible panel with a complete count. v1.4 implements hybrid capture and reminders; remaining scene calibration and exact accounting are not complete.
+
+## Combat research requirement
+Capture movement and attack/death timing evidence, preserve observed sample interval and association uncertainty. Compare against dated MeowDB map reference by exact map name/ID, not guessed names; don't treat modeled cap, tick, or EXP supply as measured. v1.5 provides the capture and offline candidate tracking/reporting path; automatic verified kill timing still needs calibration.
