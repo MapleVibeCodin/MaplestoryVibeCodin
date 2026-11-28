@@ -1,0 +1,458 @@
+{
+  "date": "2026-11-28",
+  "user_request": "do actual research instead of googling what other sites say. look up the raw data and come up with your own conclusion",
+  "sources": {
+    "mcwo": "https://mcwo.app/api/stats?class=Thief&path=Night%20Lord&level=44&party=solo",
+    "mcwoSource": "https://raw.githubusercontent.com/beanguri/Maple-Classic-Exp-Overlay/main/server/src/index.js",
+    "minervaSolo": "https://owlofminerva.app/api/bands/40?kind=solo",
+    "minervaParty": "https://owlofminerva.app/api/bands/40?kind=party",
+    "minervaSource": "https://github.com/itechify/minerva/blob/main/site/worker/leaderboards.ts",
+    "npc": "https://mesos.guide/guides/selling-drops"
+  },
+  "limitations": [
+    "Public API data, not full underlying individual run database. MCWO dots are rounded per-player EXP medians; dot levels are median starting levels. Wallet contributor counts and per-player wallet rates not public. Overlapping queries not independent. Minerva top entries are personal bests, not means; map band top row can be another class. Pickup OCR cohorts mixed class/level; no cross-cohort sums. No potion values or costs. No runtime changes/tests. Only selected response fields preserved, not complete API JSON."
+  ],
+  "mcwo44SoloColumns": [
+    "map",
+    "wallet_hr",
+    "exp_hr",
+    "hours",
+    "dots",
+    "dot_levels"
+  ],
+  "mcwo44Solo": [
+    [
+      "Monkey Forest I",
+      70453,
+      120496,
+      18,
+      [
+        91000,
+        108000,
+        113000,
+        115000,
+        118000,
+        120000,
+        121000,
+        129000,
+        131000,
+        136000,
+        140000
+      ],
+      [
+        46,
+        46,
+        43,
+        45,
+        43,
+        46,
+        42,
+        47,
+        47,
+        47,
+        45
+      ]
+    ],
+    [
+      "Monkey Forest II",
+      60368,
+      122009,
+      8.3,
+      [
+        96800,
+        102000,
+        110000,
+        112000,
+        117000,
+        120000,
+        122000,
+        123000,
+        126000,
+        127000,
+        129000,
+        129000,
+        141000
+      ],
+      [
+        41,
+        44,
+        45,
+        41,
+        42,
+        44,
+        44,
+        45,
+        45,
+        46,
+        45,
+        46,
+        47
+      ]
+    ],
+    [
+      "Lorang Lorang",
+      66919,
+      117492,
+      15,
+      [
+        87600,
+        93600,
+        94500,
+        109000,
+        110000,
+        111000,
+        112000,
+        113000,
+        115000,
+        117000,
+        118000,
+        119000,
+        122000,
+        122000,
+        126000,
+        126000,
+        130000,
+        138000,
+        141000
+      ],
+      [
+        45,
+        42,
+        47,
+        43,
+        42,
+        45,
+        46,
+        46,
+        41,
+        47,
+        45,
+        41,
+        45,
+        45,
+        45,
+        44,
+        45,
+        45,
+        46
+      ]
+    ],
+    [
+      "Forgotten Entrance II",
+      60348,
+      122936,
+      8.3,
+      [
+        103000,
+        111000,
+        120000,
+        122000,
+        124000,
+        127000,
+        128000,
+        135000
+      ],
+      [
+        47,
+        43,
+        45,
+        45,
+        42,
+        47,
+        43,
+        41
+      ]
+    ],
+    [
+      "Evil Eye I",
+      95529,
+      79489,
+      2,
+      [
+        74600,
+        79500,
+        121000
+      ],
+      [
+        39,
+        46,
+        47
+      ]
+    ],
+    [
+      "Primeval Forest II",
+      52793,
+      136614,
+      2.5,
+      [
+        132000,
+        137000,
+        151000
+      ],
+      [
+        46,
+        46,
+        45
+      ]
+    ],
+    [
+      "Primeval Forest III",
+      null,
+      140537,
+      1,
+      [
+        136000,
+        141000,
+        143000
+      ],
+      [
+        48,
+        43,
+        47
+      ]
+    ],
+    [
+      "West Rocky Mountain IV",
+      70580,
+      97590,
+      7.5,
+      [
+        86100,
+        88000,
+        95900,
+        97500,
+        97700,
+        101000,
+        102000,
+        112000
+      ],
+      [
+        45,
+        42,
+        42,
+        44,
+        43,
+        43,
+        46,
+        42
+      ]
+    ]
+  ],
+  "mcwo44PartyPrimevalII": {
+    "wallet_hr": 81754,
+    "exp_hr": 159516,
+    "hours": 10,
+    "dots": [
+      148000,
+      150000,
+      155000,
+      164000,
+      174000,
+      176000
+    ],
+    "dot_levels": [
+      45,
+      43,
+      44,
+      47,
+      45,
+      47
+    ]
+  },
+  "minervaBandCounts": {
+    "solo": {
+      "maps": 115,
+      "populated": 81,
+      "assassinBest": 45
+    },
+    "party": {
+      "maps": 120,
+      "populated": 87,
+      "assassinBest": 36
+    }
+  },
+  "minervaSoloTopColumns": [
+    "map_id",
+    "board_entries_all_jobs",
+    "best_level",
+    "best_exp_hr"
+  ],
+  "minervaSoloTop": [
+    [
+      "010006030",
+      2,
+      48,
+      171420
+    ],
+    [
+      "010006020",
+      1,
+      49,
+      163716
+    ],
+    [
+      "010002021",
+      3,
+      47,
+      162252
+    ],
+    [
+      "010005054",
+      1,
+      48,
+      160272
+    ],
+    [
+      "010002023",
+      6,
+      49,
+      151440
+    ],
+    [
+      "010004100",
+      1,
+      47,
+      146304
+    ],
+    [
+      "010004101",
+      5,
+      48,
+      144660
+    ],
+    [
+      "010007020",
+      8,
+      47,
+      138852
+    ],
+    [
+      "010003068",
+      3,
+      46,
+      138816
+    ],
+    [
+      "010003095",
+      6,
+      46,
+      123864
+    ],
+    [
+      "010004115",
+      3,
+      45,
+      121056
+    ],
+    [
+      "010003096",
+      6,
+      46,
+      115692
+    ],
+    [
+      "010004112",
+      1,
+      49,
+      110016
+    ],
+    [
+      "010005072",
+      2,
+      44,
+      109044
+    ]
+  ],
+  "minervaLoot": [
+    {
+      "map": "010006030",
+      "mode": "party",
+      "n": 6,
+      "raw": 50212,
+      "items": [
+        [
+          "Aqumander Tail",
+          208.6636,
+          43
+        ],
+        [
+          "Raffle Petal",
+          205.2253,
+          40
+        ]
+      ],
+      "combined_selected_NPC": 67393.5468
+    },
+    {
+      "map": "010006020",
+      "mode": "party",
+      "n": 4,
+      "raw": 49374,
+      "items": [
+        [
+          "Echopus Leg",
+          171.8104,
+          44
+        ],
+        [
+          "Golden Stirge Wing",
+          94.9718,
+          42
+        ],
+        [
+          "Aqumander Tail",
+          83.5705,
+          43
+        ]
+      ],
+      "combined_selected_NPC": 64516.0047
+    },
+    {
+      "map": "010005073",
+      "mode": "solo",
+      "n": 3,
+      "raw": 31400,
+      "items": [
+        [
+          "Evil Eye Tail",
+          363.6539,
+          27
+        ],
+        [
+          "Jr. Boogie Horn",
+          8.2449,
+          35
+        ]
+      ],
+      "combined_selected_NPC": 41507.226800000004
+    },
+    {
+      "map": "010003068",
+      "mode": "party",
+      "n": 3,
+      "raw": 18778,
+      "items": [
+        [
+          "Medicine With Weird Vibes",
+          107.4692,
+          48
+        ]
+      ],
+      "combined_selected_NPC": 23936.5216
+    },
+    {
+      "map": "010007020",
+      "mode": "party",
+      "n": 3,
+      "raw": 5236,
+      "items": [
+        [
+          "Lorang Claw",
+          55.4236,
+          38
+        ]
+      ],
+      "combined_selected_NPC": 7342.096799999999
+    }
+  ]
+}
