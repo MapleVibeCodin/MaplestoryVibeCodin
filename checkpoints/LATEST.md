@@ -331,3 +331,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## Level 45 Assassin liquid-meso farming — 2026-11-28
 [Research update](../research/2026-11-28-level-45-assassin-liquid-meso-farming.md): West Rocky Mountain IV first choice, 70–100k/h planning range from community reports, efficient duo preferred; Burnt Land V or Evil Eye caves alternatives. Exact strict-cash rates and solo ranking unverified; no new game tests. NPC pie price100, MP400, Lucky Seven16. Account-specific details excluded from public archive; not a full transcript. No runtime changes or deletions.
+
+
+## Liquid meso >=100k/h — updated recommendation
+[Nov28 follow-up](../research/2026-11-28-liquid-meso-100k-target.md): Forgotten Entrance II supersedes West Rocky Mountain IV for this target. Same-day reported60k raw/100k incl ETC, lv43–51, solo cash-only not verified. Decayed Tunnel I janitor80k; Forest Up North VIII thief aggregate91k. Prior research retained, no game tests or runtime changes.
