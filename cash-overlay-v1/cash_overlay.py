@@ -7,6 +7,7 @@ import ctypes
 import hashlib
 from evidence_journal import Journal, classify_messages, potion_delta, trusted_scope, scope
 from map_reader_fix import stable_map_timestamp
+from compact_capture import EvidencePolicy, export_session
 from datetime import datetime, timezone
 from pathlib import Path
 from cash_core import CashLedger, NPC, append_snapshot
@@ -19,7 +20,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 1.9"
+base.VERSION = "Cash 2.0"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -60,6 +61,10 @@ class CashApp(OriginalApp):
         self.last_map_observation = None
         self.control_state = "visible"
         self.auto_hide = True
+        self.auto_started = False
+        self.evidence_policy = EvidencePolicy()
+        self.full_evidence = os.environ.get("MAPLE_FULL_EVIDENCE") == "1"
+        self.last_level_saved = None
         super().__init__(root, templates)
         self._original_show = self.hud.show
         self.hud.show = self._show_cash
@@ -75,7 +80,7 @@ class CashApp(OriginalApp):
         base.tk.Checkbutton(root,text='Auto-hide controls when game is foreground',variable=self.auto_hide_var,command=self._change_auto_hide).grid(row=3,column=0,columnspan=2,sticky='w')
         self.screenshot_store = ScreenshotStore(base.DATA_DIR / 'screenshots')
         self.journal = Journal(self.screenshot_store.folder/'evidence_journal.jsonl')
-        self._journal('launch',time.monotonic(),version=base.VERSION)
+        self._journal('launch',time.monotonic(),version=base.VERSION,full_evidence=self.full_evidence)
         self.screenshot_thread = threading.Thread(target=self._screenshot_loop, daemon=True, name='game-screenshots')
         self.screenshot_thread.start()
 
@@ -168,25 +173,32 @@ class CashApp(OriginalApp):
                                 if exp_changed: self.burst_until = max(self.burst_until,capture_at+8)
                                 map_changed = bool(map_name and map_name != self.last_capture_map)
                                 if changed or map_changed: self.burst_until = capture_at+8
-                                reference = changed or map_changed or capture_at-self.last_reference>=60
-                                encoded = png_bytes(img) if reference else jpeg_bytes(img)
-                                path = self.screenshot_store.save_scene(encoded,when)
+                                level=ctx.get('level') if ctx and ctx.get('exp_confident') else None
+                                level_changed=bool(level and level!=self.last_level_saved)
+                                if level: self.last_level_saved=level
+                                reference = changed or map_changed or level_changed or capture_at-self.last_reference>=60
+                                keep=self.evidence_policy.scene(capture_at,reference,self.full_evidence)
+                                encoded=(png_bytes(img) if reference else jpeg_bytes(img)) if keep else None
+                                path = self.screenshot_store.save_scene(encoded,when) if keep else self.screenshot_store.reserve_metadata_frame(when)
                                 if path is not None:
                                     regions = evidence_regions(img,rect,self.reader,windows,base.stack_area) if rich or reference else []
+                                    if not self.full_evidence:
+                                        regions=self.evidence_policy.regions(regions,capture_at,reference,changed)
                                     crops = save_crops(self.screenshot_store,img,regions)
                                     data = dict(image=path.name,utc=when.isoformat(),monotonic=capture_at,
                                                 acquisition_seconds=round(elapsed,4),rect=list(rect),context=ctx,
-                                                context_age_seconds=age,codec=path.suffix[1:],image_bytes=len(encoded),
+                                                context_age_seconds=age,codec=path.suffix[1:] if keep else None,image_bytes=len(encoded) if keep else 0,
+                                                image_retained=keep,retention_policy='full' if self.full_evidence else 'compact',
                                                 reference=reference,ui=crops,inventory_windows=windows,
                                                 burst=capture_at<self.burst_until,rich=bool(rich or reference),
                                                 frame_gap_seconds=None if self.last_capture_time is None else round(capture_at-self.last_capture_time,4),
-                                                capture_schema=4,sequence=self.screenshot_store.sequence,
+                                                capture_schema=5,sequence=self.screenshot_store.sequence,
                                                 hud_enabled=self.hud_enabled,control_state=self.control_state,
                                                 inventory_windows_current=rich,
                                                 inventory_last_known=self.cached_inventory_windows)
                                     self.screenshot_store.metadata(path,data)
                                     self._journal('frame',capture_at,file=path.name,
-                                        image_sha256=hashlib.sha256(encoded).hexdigest(),
+                                        image_sha256=hashlib.sha256(encoded).hexdigest() if keep else None,image_retained=keep,
                                         sidecar_sha256=hashlib.sha256(path.with_suffix('.json').read_bytes()).hexdigest(),
                                         scope=trusted_scope(ctx,capture_at),capture_sequence=self.screenshot_store.sequence)
                                     # Only acknowledge a page with saved lossless panel evidence.
@@ -218,6 +230,9 @@ class CashApp(OriginalApp):
         super()._handle(reading)
         t, m = self.tracker, self.meso
         now = time.monotonic()
+        if hasattr(self,'screenshot_store') and not self.auto_started and self.reader.hwnd and self.reader.mode=='window' and reading.confident and type(t.exp) is int:
+            self.auto_started=True
+            if not self.session.started and not self.session.on: self.toggle()
         if reading.party is not None and reading.party == self.party and self._party_seen[1]>=2:
             self.party_confirmed_at=now
         self.last_map_observation=stable_map_timestamp(self.reader,self.map_name,now)
@@ -240,7 +255,7 @@ class CashApp(OriginalApp):
 
     def _said(self, lines, gh):
         # Never retain background-window message crops from an obscured game.
-        if self.reader.mode!='window' or not self.reader.hwnd or ctypes.windll.user32.GetForegroundWindow()!=self.reader.hwnd:
+        if self.stop_evt.is_set() or self.reader.mode!='window' or not self.reader.hwnd or ctypes.windll.user32.GetForegroundWindow()!=self.reader.hwnd:
             return []
         # Preserve raw line pixels and the upstream recognition attempts, even if unreadable.
         # Only lines delivered by the watcher can be recorded by this hook.
@@ -418,6 +433,19 @@ class CashApp(OriginalApp):
                 refs=json.loads(Path(__file__).with_name('meow_reference.json').read_text(encoding='utf-8'))
                 report_folder(self.screenshot_store.folder,refs=refs)
             except Exception as e: base.log_error('saving quick report',e)
+            try:
+                # Actual Windows Downloads known-folder path when redirected; fallback to home.
+                downloads=Path.home()/'Downloads'
+                try:
+                    import winreg
+                    with winreg.OpenKey(winreg.HKEY_CURRENT_USER,r'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders') as key:
+                        downloads=Path(os.path.expandvars(winreg.QueryValueEx(key,'{374DE290-123F-4565-9164-39C4925E467B}')[0]))
+                except OSError: pass
+                archive=export_session(self.screenshot_store.folder,downloads)
+                print('Session ZIP:',archive,flush=True)
+                import subprocess
+                subprocess.Popen(['explorer.exe','/select,',str(archive)])
+            except Exception as e: base.log_error('exporting session ZIP',e)
         super().close()
 
 if __name__ == "__main__":
