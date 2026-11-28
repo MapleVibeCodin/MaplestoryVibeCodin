@@ -160,7 +160,19 @@ def audit_session(session,dest):
     session=Path(session); dest=Path(dest)
     records,errors=read_journal(session/"evidence_journal.jsonl")
     frames=[r for r in records if r["kind"]=="frame"]
-    mismatched=[r.get("file") for r in frames if not verified_frame(session,r)]
+    missing_pixels=[]; mismatched=[]
+    for r in frames:
+        name=r.get('file')
+        if not isinstance(name,str) or Path(name).name!=name:
+            mismatched.append(name); continue
+        p=session/name
+        if not p.is_file():
+            try:
+                if hashlib.sha256(p.with_suffix('.json').read_bytes()).hexdigest()!=r.get('sidecar_sha256'):
+                    mismatched.append(name); continue
+                missing_pixels.append(name)
+            except OSError: mismatched.append(name)
+        elif not verified_frame(session,r): mismatched.append(name)
     known={r.get("file") for r in frames}
     orphan=[p.name for p in session.iterdir() if p.suffix.lower() in (".jpg",".png",".webp") and p.name not in known]
     gaps=[]; frame_intervals=[]
@@ -172,10 +184,11 @@ def audit_session(session,dest):
     from cash_core import NPC
     with intervals_path.open(encoding="utf-8") as f:
         intervals=[r for line in f for r in [json.loads(line)] if Path(r["session"]).resolve()==session.resolve()]
-    metrics=interval_metrics(records,intervals,{k.casefold():v for k,v in NPC.items()}) if not errors and not mismatched and not orphan else []
+    metrics=interval_metrics(records,intervals,{k.casefold():v for k,v in NPC.items()}) if not errors and not mismatched and not orphan and not missing_pixels else []
     report=dict(journal_records=len(records),journal_errors=errors,frame_count=len(frames),
         clean_close=bool(records and records[-1]["kind"]=="close"),active_message_metrics=metrics,
-        frame_hash_mismatch=mismatched,unindexed_frames=orphan,capture_gaps=gaps,
+        frame_hash_mismatch=mismatched,unavailable_images=missing_pixels,unindexed_frames=orphan,capture_gaps=gaps,
+        active_metrics_withheld_for_sampled_images=bool(missing_pixels),
         median_frame_gap_s=statistics.median(frame_intervals) if frame_intervals else None,
         cohorts=summarize(records),limitations=["Hashes detect changes to recorded bytes; not proof of original authenticity or trusted time.",
         "Missing journal records, OCR or missed pickups are unknown, not zero. Hash chains cannot detect a deleted tail without an independent checkpoint.",
