@@ -4,6 +4,8 @@ import sys
 import time
 import threading
 import ctypes
+import hashlib
+from evidence_journal import Journal, classify_messages, potion_delta, trusted_scope, scope
 from datetime import datetime, timezone
 from pathlib import Path
 from cash_core import CashLedger, NPC, append_snapshot
@@ -16,7 +18,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 1.6"
+base.VERSION = "Cash 1.7"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -50,6 +52,8 @@ class CashApp(OriginalApp):
         self.last_capture_state = None
         self.capture_state_at = -1e9
         self.party_confirmed_at = None
+        self.journal = None
+        self.potion_scope_by_id = {}
         super().__init__(root, templates)
         self._original_show = self.hud.show
         self.hud.show = self._show_cash
@@ -57,8 +61,16 @@ class CashApp(OriginalApp):
         self.reminder_label = base.tk.Label(root, text='Preparing evidence reminders', bg='#263238', fg='white', wraplength=420, padx=8, pady=5)
         self.reminder_label.grid(row=1,column=0,columnspan=2,sticky='ew')
         self.screenshot_store = ScreenshotStore(base.DATA_DIR / 'screenshots')
+        self.journal = Journal(self.screenshot_store.folder/'evidence_journal.jsonl')
+        self._journal('launch',time.monotonic(),version=base.VERSION)
         self.screenshot_thread = threading.Thread(target=self._screenshot_loop, daemon=True, name='game-screenshots')
         self.screenshot_thread.start()
+
+    def _journal(self,kind,at,**fields):
+        if self.journal is None: return
+        try:
+            if self.screenshot_store.has_space(): self.journal.append(kind,at,**fields)
+        except Exception as e: base.log_error('saving evidence journal',e)
 
     def _screenshot_loop(self):
         # Passive foreground-only capture. Metadata is frozen before acquisition.
@@ -78,6 +90,7 @@ class CashApp(OriginalApp):
                             import json
                             with (self.screenshot_store.folder/'capture_status.jsonl').open('a',encoding='utf-8') as log:
                                 log.write(json.dumps(dict(monotonic=started,utc=datetime.now(timezone.utc).isoformat(),state=state))+'\n')
+                        self._journal('capture_state',started,state=state)
                         self.last_capture_state=state
                         self.capture_state_at=started
                     if (self.reader.mode == 'window' and hwnd and
@@ -123,6 +136,10 @@ class CashApp(OriginalApp):
                                                 inventory_windows_current=rich,
                                                 inventory_last_known=self.cached_inventory_windows)
                                     self.screenshot_store.metadata(path,data)
+                                    self._journal('frame',capture_at,file=path.name,
+                                        image_sha256=hashlib.sha256(encoded).hexdigest(),
+                                        sidecar_sha256=hashlib.sha256(path.with_suffix('.json').read_bytes()).hexdigest(),
+                                        scope=scope(ctx),capture_sequence=self.screenshot_store.sequence)
                                     # Only acknowledge a page with saved lossless panel evidence.
                                     saved={v['kind'] for v in crops}
                                     self.reminders.observe(capture_at,[p for p in pages if 'inventory_'+p in saved],map_name)
@@ -162,7 +179,7 @@ class CashApp(OriginalApp):
             party_confirmed_at=self.party_confirmed_at, job=self.job, wallet=m.value, wallet_read=reading.mesos,
             wallet_age=None if m.seen_at is None else round(now-m.seen_at,3),
             raw_mesos=self.picked_mesos, items=[[name,qty] for name,qty in self.loot.values()],
-            potion_cost=self.session_pot_cost, active=bool(t.running and self.session.on and self.session.map==self.session.here and not self.in_town and not self.map_hidden),
+            potion_cost_excluded=True, potion_counts=dict(self.pots.counts), potion_counted_at=dict(self.pots.counted_at), active=bool(t.running and self.session.on and self.session.map==self.session.here and not self.in_town and not self.map_hidden),
             tracker_running=bool(t.running), tracking_enabled=bool(self.session.on), waiting=self.session.waiting,
             in_town=bool(self.in_town), cash_ledger=self.cash.snapshot(), wallet_observed_at=m.seen_at,
             segment=self.cash.segment)
@@ -186,6 +203,13 @@ class CashApp(OriginalApp):
                         out.write(json.dumps(dict(born=line.born,observed=time.monotonic(),kind=line.kind,amount=line.amount,
                                                   colour=line.colour,tries=line.tries,span=line.span,image=image),default=str)+'\n')
             except Exception as e: base.log_error('saving raw message evidence',e)
+        if lines:
+            ctx=self.scene_context
+            now=time.monotonic()
+            for entry in classify_messages(lines):
+                born=entry.get('born')
+                at=born if isinstance(born,(float,int)) and 0<=now-born<=2 else now
+                self._journal('visual_messages',at,scope=trusted_scope(ctx,at),lines=[entry])
         return super()._said(lines,gh)
 
     def _messages(self, found, when):
@@ -219,8 +243,8 @@ class CashApp(OriginalApp):
     def _state_cash(self, now):
         name = self.session.map
         here = self.session.here
-        active = bool(self.tracker.running and name and name == here
-                      and not self.in_town and not self.map_hidden)
+        active = bool(self.tracker.running and self.session.on and name and name == here
+                      and not self.in_town and not self.map_hidden and not self.reader.map_unread and self.reader.map_box)
         if name and self.cash.map and name != self.cash.map:
             self._export(True)
             self.cash = CashLedger()
@@ -236,7 +260,43 @@ class CashApp(OriginalApp):
             prices = {k.casefold():v for k,v in base.LOOT_PRICES.items()}
             prices.update({k.casefold():v for k,v in (self.cfg.get("loot_prices") or {}).items()})
             self.cash.add(found, prices)
+            sc=trusted_scope(self.scene_context,when)
+            accepted=self.cash.active and sc is not None and sc['segment']==self.cash.segment
+            self._journal('accepted_pickups' if accepted else 'unassigned_pickups',when,
+                          scope=sc if accepted else None,messages=found)
+        else:
+            self._journal('unassigned_pickups',when,scope=None,messages=found,reason='delayed')
         super()._pickups(found, when)
+
+    def _pots(self,slots,when):
+        # Reuse upstream icon matching and count confirmation, without any meso conversion.
+        items=self.cfg.setdefault('pots',[])
+        counts={}; changed=False
+        for look,count in slots:
+            if look is None or count is None: continue
+            item=next((it for it in items if base.same_icon(base.np.asarray(it['look'],base.np.float32),look)),None)
+            if item is None:
+                name,price=base.guess_item(look)
+                item={'id':max([it['id'] for it in items]+[0])+1,'name':name,'price':price,
+                      'look':base.np.round(look,3).tolist()}
+                items.append(item); changed=True
+            counts[item['id']]=counts.get(item['id'],0)+count
+        before=dict(self.pots.counts)
+        corrections=self.pots.observe(counts,when,self.session.on,self.in_town)
+        sc=trusted_scope(self.scene_context,when)
+        deltas=potion_delta(before,self.pots.counts)
+        for d in deltas:
+            k=d['item_id']; previous=self.potion_scope_by_id.get(k)
+            assigned=sc if sc is not None and previous==sc else None
+            self._journal('potion_counts',when,scope=assigned,changes=[d],
+                          item_label=next((it['name'] for it in items if it['id']==k),None),
+                          label_status='configured_or_icon_guess',upstream_usage_candidate=corrections.get(k))
+        for k in counts:
+            if k in self.pots.counts and self.pots.counts[k]==counts[k]:
+                self.potion_scope_by_id[k]=sc
+        if counts:
+            self._journal('potion_read',when,scope=sc,observed=counts,confirmed=dict(self.pots.counts))
+        if changed: base.save_config(self.cfg)
 
     def _update_display(self):
         self._state_cash(time.monotonic())
@@ -270,6 +330,8 @@ class CashApp(OriginalApp):
         return self._original_show(rect, c)
 
     def reset(self):
+        self._journal('reset',time.monotonic(),scope=scope(self.scene_context))
+        self.potion_scope_by_id.clear()
         self._export(True)
         self.cash = CashLedger()
         self.last_signature = None
@@ -280,6 +342,7 @@ class CashApp(OriginalApp):
         self.stop_evt.set()
         if hasattr(self, 'screenshot_thread'):
             self.screenshot_thread.join(timeout=2)
+        self._journal('close',time.monotonic())
         super().close()
 
 if __name__ == "__main__":
