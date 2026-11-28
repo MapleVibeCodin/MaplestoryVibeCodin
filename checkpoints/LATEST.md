@@ -355,3 +355,7 @@ Read [initialization exchange and scoped continuity audit](2026-11-28-github-mem
 
 ## Second actual Assassin video endpoint benchmark — 2026-11-28
 [Subway benchmark](../research/2026-11-28-assassin-subway-line1-area2-video-benchmark.md): level45, 11:31–2:14:07, wallet1,143,670→1,223,002, EXP9,220→128,056. 38,825 wallet/h and58,158 EXP/h. End NPC buyback visible, intervening activity unknown. 2.51x earlier Burnt Land III wallet rate; not controlled same-map comparison. No runtime changes.
+
+
+## MCWO observed map farming data — levels 20–50
+[Map index](../research/2026-11-28-mcwo-level-20-50/README.md), 62/62 queries, 121 returned names, solo and party separate, early data included. Public source MCWO. Overlapping windows and result caps; no claim of complete underlying runs. No runtime changes.
