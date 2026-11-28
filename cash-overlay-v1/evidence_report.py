@@ -18,7 +18,7 @@ def context(row):
     return c
 
 def identity(c):
-    return tuple(c.get(k) for k in ("map","segment","level","job","party"))
+    return (*tuple(c.get(k) for k in ("map","segment","level","job")),c.get("party") if c.get("party_confirmed") is True else None)
 
 def active_intervals(rows):
     previous=None
@@ -45,6 +45,8 @@ def active_intervals(rows):
                          session=folder,start=old["monotonic"],end=c["monotonic"],seconds=dt)
                 for field,key in (("exp","exp_delta"),("raw_mesos","pickup_delta")):
                     a,b=old.get(field),c.get(field)
+                    if field=="raw_mesos" and "cash_ledger" in old and "cash_ledger" in c:
+                        a,b=old["cash_ledger"].get("observed_raw"),c["cash_ledger"].get("observed_raw")
                     good=type(a) is int and type(b) is int and b>=a
                     if field=="exp":
                         good=good and all(x.get("exp_confident") and not x.get("exp_estimated") for x in (old,c))
@@ -116,7 +118,7 @@ def build_report(frames,dest,public_path=None):
                     for key in ("exp","wallet_read","party_observed"):
                         coverage[key+"_present_frames"]+=int(c.get(key) is not None)
                     n=row.get("observed_other_players")
-                    if type(n) is int: populations[(c["map"],c.get("party"))][n]+=1
+                    if type(n) is int: populations[(c["map"],identity(c)[4])][n]+=1
                 for crop in m.get("ui",[]):
                     if crop.get("kind","").startswith("inventory_"):
                         inventory.append(dict(session=folder,map=c.get("map") if c else None,monotonic=t,
