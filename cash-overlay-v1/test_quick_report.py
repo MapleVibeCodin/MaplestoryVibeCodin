@@ -45,6 +45,28 @@ class QuickTests(unittest.TestCase):
             r=report_folder(folder)
             self.assertEqual(r["invalid_sidecars"],1)
             self.assertEqual(r["metadata_verified"],60)
+    def test_level_rollover(self):
+        a=frame(0,428270);b=frame(1,75);b["context"]["level"]=45
+        r=summarize([a,b])
+        self.assertEqual(r["exp_observed_delta"],85)
+        self.assertEqual(r["levelups_observed"],1)
+        self.assertEqual(r["endpoint_progression"][0]["net_exp"],85)
+    def test_intentionally_unsaved(self):
+        import tempfile,json,hashlib
+        from pathlib import Path
+        from evidence_journal import Journal
+        from quick_report import report_folder
+        with tempfile.TemporaryDirectory() as d:
+            folder=Path(d); j=Journal(folder/"evidence_journal.jsonl")
+            for i in range(2):
+                name=f"{i}.jpg";m=dict(frame(i,100+i),image=name,image_retained=False)
+                raw=json.dumps(m).encode();(folder/name).with_suffix(".json").write_bytes(raw)
+                j.append("frame",i,file=name,image_sha256=None,image_retained=False,sidecar_sha256=hashlib.sha256(raw).hexdigest())
+            r=report_folder(folder)
+            self.assertEqual(r["metadata_verified"],2)
+            self.assertEqual(r["intentionally_unsaved_images"],2)
+            self.assertEqual(r["missing_image_bytes"],0)
+            self.assertEqual(r["exp_observed_delta"],1)
     def test_negative(self):
         r=summarize([frame(0,100),frame(1,90),frame(2,100)])
         self.assertEqual(r["exp_observed_delta"],10);self.assertEqual(r["exp_negative_changes"],1)
