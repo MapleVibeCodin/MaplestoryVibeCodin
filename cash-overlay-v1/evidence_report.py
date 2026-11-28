@@ -28,7 +28,7 @@ def active_intervals(rows):
         m=row.get("metadata") or {}
         t=m.get("monotonic")
         folder=str(Path(row["image"]).parent)
-        c=context(row)
+        c=None if row.get("unreadable") else context(row)
         if folder!=session or not finite(t) or (last_frame is not None and not 0<t-last_frame<=1.5):
             previous=None
         session=folder
@@ -45,8 +45,8 @@ def active_intervals(rows):
                          session=folder,start=old["monotonic"],end=c["monotonic"],seconds=dt)
                 for field,key in (("exp","exp_delta"),("raw_mesos","pickup_delta")):
                     a,b=old.get(field),c.get(field)
-                    if field=="raw_mesos" and "cash_ledger" in old and "cash_ledger" in c:
-                        a,b=old["cash_ledger"].get("observed_raw"),c["cash_ledger"].get("observed_raw")
+                    if field=="raw_mesos":
+                        a,b=(old.get("cash_ledger") or {}).get("observed_raw"),(c.get("cash_ledger") or {}).get("observed_raw")
                     good=type(a) is int and type(b) is int and b>=a
                     if field=="exp":
                         good=good and all(x.get("exp_confident") and not x.get("exp_estimated") for x in (old,c))
@@ -111,6 +111,7 @@ def build_report(frames,dest,public_path=None):
                     coverage["missing_sequence_ids"]+=seq-prior_sequence-1
                 prior_sequence=seq; prior_folder=folder; last=t
                 coverage["frames"]+=1
+                coverage["unreadable_frames"]+=int(bool(row.get("unreadable")))
                 coverage["image_bytes"]+=m.get("image_bytes") or 0
                 coverage["map_trusted_frames"]+=int(c is not None)
                 coverage["active_frames"]+=int(c is not None and c.get("active") is True)
