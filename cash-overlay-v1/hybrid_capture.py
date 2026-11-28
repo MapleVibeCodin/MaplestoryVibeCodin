@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 import cv2
 from inventory_ui import clip
+from screenshots import encode_lossless, lossless_webp
 
 def png_bytes(img):
     ok,buf=cv2.imencode('.png',img,[cv2.IMWRITE_PNG_COMPRESSION,1])
@@ -33,6 +34,10 @@ def evidence_regions(frame,rect,reader,windows,stack_area):
     H,W=frame.shape[:2]
     # Broad fallback regions retain useful evidence even when recognition fails.
     candidates=[('minimap',(0,0,int(W*.38),int(H*.30))),('status',(0,int(H*.83),W,H-int(H*.83))),('buffs',(int(W*.55),0,W-int(W*.55),int(H*.12)))]
+    # Prefer the calibrated EXP rectangle; preserve broad fallback if unknown.
+    if reader.box:
+        x,y,w,h=reader.box
+        candidates[1]=('status',(x-8,y-8,w+16,h+16))
     if reader.gh:
         x,y,w,h=stack_area(rect,reader.gh)
         candidates.append(('messages',(x-rect[0],y-rect[1],w,h)))
@@ -55,11 +60,15 @@ def save_crops(store,frame,regions):
         img=frame[y:y+h,x:x+w]
         # Hash raw pixels and shape; unchanged crops are reused without re-encoding.
         key=hashlib.sha256(str(img.shape).encode()+img.tobytes()).hexdigest()
-        p=directory/(key+'.png')
+        p=directory/(key+'.webp')
+        fallback=directory/(key+'.png')
+        if not p.exists() and fallback.exists(): p=fallback
         if not p.exists():
             if not store.has_space(): break
-            atomic_write(p,png_bytes(img))
-        rows.append(dict(kind=name,box=[x,y,w,h],file='ui/'+p.name))
+            data=encode_lossless(img)
+            if not lossless_webp(data):p=fallback
+            atomic_write(p,data)
+        rows.append(dict(kind=name,box=[x,y,w,h],file='ui/'+p.name,sha256=hashlib.sha256(p.read_bytes()).hexdigest()))
     return rows
 
 class Reminders:
