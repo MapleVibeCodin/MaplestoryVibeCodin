@@ -3,7 +3,7 @@ from evidence_report import active_intervals,summarize,compare
 def row(t,exp=10,active=True,party=1,at=None,seg="x",level=44,folder="s",raw=0):
     return {"image":folder+"/frame.png","metadata":{"monotonic":t,"context":{
         "monotonic":t if at is None else at,"map":"A","segment":seg,"level":level,"party":party,"party_confirmed":True,
-        "job":"Assassin","active":active,"exp":exp,"exp_confident":True,"raw_mesos":raw}}}
+        "job":"Assassin","active":active,"exp":exp,"exp_confident":True,"raw_mesos":raw,"cash_ledger":{"observed_raw":raw}}}}
 class EvidenceTests(unittest.TestCase):
     def test_pause_gap_and_reset(self):
         r=list(active_intervals([row(0),row(1,20),row(2,30,False),row(3,40),row(4,50),row(8,70),row(9,80,seg="y")]))
@@ -25,6 +25,12 @@ class EvidenceTests(unittest.TestCase):
         x=summarize(active_intervals(rows))[0]
         self.assertIsNone(x["exp_hr"])
         self.assertEqual(x["exp_seconds"],58)
+    def test_unreadable_and_missing_ledger(self):
+        a,b,c=row(0),row(1),row(2)
+        b["unreadable"]=True
+        self.assertEqual(list(active_intervals([a,b,c])),[])
+        b.pop("unreadable");b["metadata"]["context"].pop("cash_ledger")
+        self.assertTrue(all(x["pickup_delta"] is None for x in active_intervals([a,b,c])))
     def test_comparison(self):
         a={"results":[{"level":44,"party":"solo","rows":[["A",200,100,3,4,1,True,[41,47]]]}]}
         x=compare(dict(map="A",level=44,party=1,job="Assassin",exp_hr=150),a)
