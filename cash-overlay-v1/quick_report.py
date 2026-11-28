@@ -1,5 +1,6 @@
 """Map-independent quick report. Never confuse capture time with combat time."""
 import json
+import hashlib
 import math
 import statistics
 from collections import Counter
@@ -92,11 +93,41 @@ def summarize(rows,refs=None):
 
 def report_folder(folder,output=None,refs=None):
     folder=Path(folder); rows=[]
-    for p in folder.glob("*.json"):
-        if not any(p.with_suffix(ext).is_file() for ext in (".png",".jpg",".jpeg",".webp")):continue
-        try:rows.append(json.loads(p.read_text(encoding="utf-8")))
-        except (OSError,ValueError):continue
+    from evidence_journal import read_journal
+    records,errors=read_journal(folder/"evidence_journal.jsonl")
+    frames=[r for r in records if r["kind"]=="frame"]
+    missing_pixels=0; bad_sidecars=0; bad_pixels=0; verified=0
+    if frames and not errors:
+        for r in frames:
+            name=r.get("file")
+            if not isinstance(name,str) or Path(name).name!=name:
+                bad_sidecars+=1;continue
+            image=folder/name; side=image.with_suffix(".json")
+            try:
+                raw=side.read_bytes()
+                if hashlib.sha256(raw).hexdigest()!=r.get("sidecar_sha256"):
+                    bad_sidecars+=1;continue
+                m=json.loads(raw)
+                if m.get("image")!=name or m.get("monotonic")!=r.get("monotonic"):
+                    bad_sidecars+=1;continue
+                if image.exists():
+                    if hashlib.sha256(image.read_bytes()).hexdigest()!=r.get("image_sha256"):
+                        bad_pixels+=1;continue
+                else:missing_pixels+=1
+                rows.append(m);verified+=1
+            except (OSError,ValueError):bad_sidecars+=1
+    else:
+        for p in folder.glob("*.json"):
+            if not any(p.with_suffix(ext).is_file() for ext in (".png",".jpg",".jpeg",".webp")):continue
+            try:rows.append(json.loads(p.read_text(encoding="utf-8")))
+            except (OSError,ValueError):continue
     result=summarize(rows,refs)
+    result.update(metadata_verified=verified,missing_image_bytes=missing_pixels,
+                  invalid_sidecars=bad_sidecars,invalid_images=bad_pixels,journal_errors=errors,
+                  evidence_mode="indexed_metadata" if frames and not errors else "legacy_unverified",
+                  visual_coverage_note="Missing images cannot be independently verified or used for movement; verified sidecars still support statistical analysis.")
+    if frames and not errors and (bad_sidecars or bad_pixels):
+        result["limitations"].append("Invalid frame evidence excluded; rates may be incomplete.")
     target=Path(output) if output else folder/"quick_report.json"
     target.write_text(json.dumps(result,indent=2,ensure_ascii=False),encoding="utf-8")
     return result
