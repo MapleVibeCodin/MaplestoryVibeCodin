@@ -18,7 +18,7 @@ class Notifications(unittest.TestCase):
     def test_catalog(self):
         items={"etc":{"echopus leg":["Echopus Leg"],"jr boogie horn":["Jr. Boogie Horn"]}}
         self.assertEqual(parse("Echopus Leg x1 eared. (Etc)","white",items),("item","Echopus Leg",1,"etc"))
-        self.assertIsNone(parse("Unknown drop x1 earned. (Etc)","white",items))
+        self.assertEqual(parse("Unknown drop x1 earned. (Etc)","white",items),("unmatched_item","unknown drop",1,"etc"))
         self.assertIsNone(parse("Echopus Leg x1 earned. (Etc)","yellow",items))
     def test_duplicate_timestamps_not_merged_and_summary(self):
         with tempfile.TemporaryDirectory() as d:

@@ -2,6 +2,7 @@
 Never add these totals to the upstream pickup ledger; do not infer kills from drops."""
 import argparse
 import csv
+import difflib
 import hashlib
 import io
 import json
@@ -13,10 +14,11 @@ from collections import Counter
 from pathlib import Path
 import cv2
 import numpy as np
+from PIL import Image
 
 BATCH=48
 AMOUNT=re.compile(r"^(you received exp|bonus exp for party|you have gained mesos)\s*\(\+\s*([0-9][0-9 ]*)\s*\)$",re.I)
-ITEM=re.compile(r"^(.+?)\s*x\s*([0-9]+)\s+ear(?:n|r|m)?ed[.,]?\s*\((etc|use|equip|setup|cash)\)$",re.I)
+ITEM=re.compile(r"^(.+?)\s*x\s*([0-9]+)\s+(?:earned|eared|eamed)[.,]?\s*\((etc|use|equip|setup|cash)\)$",re.I)
 
 def norm(s):
     return " ".join(re.sub(r"[^a-z0-9' ]"," ",s.casefold()).split())
@@ -29,8 +31,9 @@ def catalog(path):
     return out
 
 def parse(text,colour,items):
-    s=" ".join(str(text).strip().split()).strip(" _-")
+    s=" ".join(str(text).strip().split()).strip(" _-‘’'")
     s=re.sub(r"^You\.have ","You have ",s,flags=re.I)
+    s=re.sub(r"^Bon us EXP ","Bonus EXP ",s,flags=re.I)
     m=AMOUNT.fullmatch(s)
     if m:
         phrase=m[1].casefold(); v=int(m[2].replace(" ",""))
@@ -47,8 +50,13 @@ def parse(text,colour,items):
     matches=names.get(norm(raw),[])
     if raw.endswith("...") and len(norm(raw))>=8:
         matches=[n for k,ns in names.items() if k.startswith(norm(raw)) for n in ns]
-    if len(matches)!=1:return None
-    return ("item",matches[0],qty,tab)
+    if len(matches)==1:return ("item",matches[0],qty,tab)
+    if not matches and not raw.endswith("...") and len(norm(raw))>=5:
+        scored=sorted(((difflib.SequenceMatcher(None,norm(raw),k).ratio(),n) for k,ns in names.items() for n in ns),reverse=True)
+        if scored and scored[0][0]>=.88 and (len(scored)==1 or scored[0][0]-scored[1][0]>=.08):
+            return ("item",scored[0][1],qty,tab)
+    # Keep agreeing visible labels even if the bundled catalog is outdated; do not price or merge them.
+    return ("unmatched_item",norm(raw),qty,tab) if len(norm(raw))>=4 else None
 
 def row_hash(row):
     return hashlib.sha256(json.dumps(row,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
@@ -88,16 +96,12 @@ def prepare(im,colour,variant):
 
 def ocr_batch(entries,tess,variant):
     if not entries:return {}
-    pics=[prepare(im,row.get("colour"),variant) for _,row,im in entries]
-    pitch=max(x.shape[0] for x in pics)+24
-    width=max(x.shape[1] for x in pics)+40
-    page=np.full((pitch*len(pics),width),255,np.uint8)
-    for i,p in enumerate(pics):page[i*pitch+8:i*pitch+8+p.shape[0],20:20+p.shape[1]]=p
+    pics=[Image.fromarray(cv2.copyMakeBorder(prepare(im,row.get("colour"),variant),12,12,20,20,cv2.BORDER_CONSTANT,value=255)) for _,row,im in entries]
     with tempfile.TemporaryDirectory(prefix="maple-notify-") as d:
-        p=Path(d)/"batch.png"
-        if not cv2.imwrite(str(p),page):raise OSError("batch image write")
+        p=Path(d)/"batch.tiff"
+        pics[0].save(p,save_all=True,append_images=pics[1:],compression="tiff_deflate")
         env=dict(os.environ,OMP_THREAD_LIMIT="1")
-        proc=subprocess.run([str(tess),str(p),"stdout","--psm","6","tsv"],capture_output=True,text=True,
+        proc=subprocess.run([str(tess),str(p),"stdout","--psm","7","tsv"],capture_output=True,text=True,
                             encoding="utf-8",errors="replace",timeout=10,env=env,
                             creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
         if proc.returncode:raise RuntimeError("Tesseract batch failed")
@@ -105,8 +109,8 @@ def ocr_batch(entries,tess,variant):
     for q in csv.DictReader(io.StringIO(proc.stdout),delimiter="\t"):
         if q.get("level")!="5" or not q.get("text","").strip():continue
         try:
-            y=int(q["top"]);h=int(q["height"]);idx=int((y+h/2)//pitch)
-            if not 0<=idx<len(entries) or y<idx*pitch or y+h>(idx+1)*pitch:continue
+            idx=int(q["page_num"])-1
+            if not 0<=idx<len(entries):continue
             words.setdefault(idx,[]).append((int(q["left"]),q["text"]))
         except (ValueError,KeyError):continue
     return {entries[i][0]:" ".join(t for _,t in sorted(v)) for i,v in words.items()}
@@ -163,15 +167,17 @@ def summarize(folder):
         e=r.get("event")
         if not e:continue
         key=(r.get("epoch"),r.get("map"),r.get("tracking_enabled"))
-        g=groups.setdefault(key,{"mesos":0,"own_exp":0,"shared_exp":0,"party_bonus_exp":0,"events":Counter(),"items":Counter()})
+        g=groups.setdefault(key,{"mesos":0,"own_exp":0,"shared_exp":0,"party_bonus_exp":0,"events":Counter(),"items":Counter(),"unmatched":Counter()})
         g["events"][e[0]]+=1
         if e[0]=="item":g["items"][(e[1],e[3])]+=e[2]
+        elif e[0]=="unmatched_item":g["unmatched"][(e[1],e[3])]+=e[2]
         else:g[e[0]]+=e[1]
     output=[]
     for (epoch,map_name,active),g in groups.items():
         its=[dict(name=n,tab=t,quantity=q,npc_value=q*prices[n.casefold()] if t!="use" and n.casefold() in prices else None)
              for (n,t),q in sorted(g["items"].items())]
-        output.append(dict(epoch=epoch,map=map_name,tracking_enabled=active,**{k:v for k,v in g.items() if k!="items"},
+        output.append(dict(epoch=epoch,map=map_name,tracking_enabled=active,**{k:v for k,v in g.items() if k not in ("items","unmatched")},
+                           unresolved_item_labels=[dict(label=n,tab=t,quantity=q) for (n,t),q in sorted(g["unmatched"].items())],
                            items=its,known_npc_value=sum(v["npc_value"] for v in its if v["npc_value"] is not None),
                            party_evidence=bool(g["events"]["shared_exp"] or g["events"]["party_bonus_exp"]),
                            personal_kills=None))
@@ -183,6 +189,22 @@ def summarize(folder):
                              "EXP bar is authoritative for total EXP; notification split is incomplete.",
                              "Party evidence contradicts solo; drops/EXP lines are not confirmed personal kills.",
                              "No consumable valuation; unknown NPC prices are not zero-valued drops."])
+    # Align loot with actual wallet endpoints, not the entire recording.
+    try:
+        quick=json.loads((folder/"quick_report.json").read_text(encoding="utf-8"))
+        a,b=quick.get("wallet_first_t"),quick.get("wallet_last_t")
+        if quick.get("evidence_mode")=="indexed_metadata" and not quick.get("journal_errors") and isinstance(a,(int,float)) and isinstance(b,(int,float)) and b-a>=60:
+            observed=[r["event"] for r in done if r.get("event") and isinstance(r.get("born"),(int,float)) and a<=r["born"]<=b]
+            npc=sum(e[2]*prices[e[1].casefold()] for e in observed if e[0]=="item" and e[3]!="use" and e[1].casefold() in prices)
+            raw=sum(e[1] for e in observed if e[0]=="mesos")
+            wallet=quick.get("wallet_change")
+            report["wallet_window"]={"seconds":b-a,"wallet_change":wallet,"observed_pickup_mesos":raw,
+                "known_npc_value":npc,"wallet_change_hr":quick.get("wallet_change_hr"),
+                "wallet_plus_known_npc_hr":round((wallet+npc)*3600/(b-a)) if isinstance(wallet,(int,float)) else None,
+                "observed_raw_plus_known_npc_hr":round((raw+npc)*3600/(b-a)),
+                "note":"Same wallet interval, notification counts may undercount; no potion valuation."}
+        report["exp_bar_observed_hr"]=quick.get("exp_observed_hr")
+    except (OSError,ValueError,TypeError):pass
     (folder/"notification_summary.json").write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
     with (folder/"notification_items.csv").open("w",encoding="utf-8",newline="") as f:
         w=csv.writer(f);w.writerow(["epoch","map","tracking_enabled","item","tab","quantity","known_npc_value"])
@@ -197,8 +219,7 @@ def worker(folder,tess,assets,stop,log_error):
             try:process(folder,tess,items,max_batches=1)
             except Exception as exc:log_error("notification replay",exc)
             stop.wait(2)
-        # Bounded final batch. Remaining originals are included and replayable.
-        process(folder,tess,items,max_batches=1)
+        # Stop after the current batch; pending originals stay available for offline replay.
     except Exception as exc:log_error("notification worker",exc)
 
 if __name__=="__main__":
