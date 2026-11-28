@@ -70,3 +70,9 @@ Runtime 152af651ec180855f10e6a796224184674b74141. Read [release and executed evi
 ## 2026-11-28 — Maple Research Scanner v2.3
 
 Runtime a7b2ac21b55b3463be466ccb7c94571c48e69fd3. Read [v2.3 incremental notifications and test evidence](fixes/2026-11-28-v23-incremental-notifications.md). Incremental source processing, selective third OCR pass, per-minute CSV, species-linked observed drops (not kills), pending rows included in coverage. Four exact-blob helper tests passed; 9459-row incremental simulation and 336-crop standalone OCR comparison executed. Full integrated installer and Windows live qualification pending. Preserve v2.2 fixes and historical evidence. Install v2.3 and upload a normal session ZIP. Continue in ordinary ChatGPT only.
+
+
+## v2.4 — species-specific permanent accounting
+
+User verbatim: "ok now do this for all of our tests. and put on github. and always keep track. upgrade scanner to automatically include"
+Runtime dbc31213e61c5aa93cac50df864baf77ddd72197. Read [historical species replay and implementation](research/2026-11-28-v24-historical-species-benchmark.md). Nine unique archives replayed with exact module, four scoped tests passed. Automatically emit species_report.csv/json per local recording; track conditional EXP equivalents and rate, species-linked observed drops, known NPC value per equivalent, actual raw and combined mesos per species only when attributed, unknown otherwise; report unassigned mesos and coverage. Always first EXP/hr, wallet/hr, wallet+known NPC/hr (matching denominators), no potion costs. Preserve all old reports, append anonymized comparable benchmarks to GitHub as requested; no account identifiers, balances or raw evidence. Do not equate model matches to actual kills, or extrapolate low-coverage samples. Earlier archives unavailable in current runtime, Windows full installation and notification capture failure still pending. Never suggest Work or Codex.
