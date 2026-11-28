@@ -1,0 +1,131 @@
+"""Independent local evidence journal; no game input, network or remote upload."""
+import hashlib
+import json
+import math
+import statistics
+import time
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+
+def canonical(record):
+    return json.dumps(record,sort_keys=True,separators=(",",":"),ensure_ascii=False,allow_nan=False).encode("utf-8")
+
+class Journal:
+    def __init__(self,path):
+        self.path=Path(path)
+        self.previous=None
+        self.sequence=0
+    def append(self,kind,at,**fields):
+        record=dict(kind=kind,monotonic=at,utc=datetime.now(timezone.utc).isoformat(),
+                    sequence=self.sequence+1,previous_sha256=self.previous,**fields)
+        digest=hashlib.sha256(canonical(record)).hexdigest()
+        with self.path.open("a",encoding="utf-8") as f:
+            f.write(json.dumps(dict(record,sha256=digest),ensure_ascii=False,allow_nan=False)+"\n")
+            f.flush()
+        self.sequence+=1
+        self.previous=digest
+        return digest
+
+def read_journal(path):
+    records=[]; errors=[]; previous=None
+    if not Path(path).is_file(): return records,["journal_missing"]
+    with Path(path).open(encoding="utf-8") as f:
+        for i,line in enumerate(f,1):
+            try:
+                record=json.loads(line); digest=record.pop("sha256")
+                if digest!=hashlib.sha256(canonical(record)).hexdigest(): raise ValueError("digest mismatch")
+                if record["sequence"]!=i or record["previous_sha256"]!=previous: raise ValueError("chain mismatch")
+                if type(record["monotonic"]) not in (int,float) or not math.isfinite(record["monotonic"]): raise ValueError("invalid clock")
+                previous=digest; records.append(dict(record,sha256=digest))
+            except (ValueError,KeyError,TypeError) as e:
+                errors.append(f"line {i}: {e}")
+                break
+    return records,errors
+
+def scope(c):
+    c=c or {}
+    if not c.get("active") or c.get("map_uncertain") or not c.get("map") or not c.get("segment"): return None
+    return dict(map=c["map"],segment=c["segment"],level=c.get("level"),job=c.get("job"),
+                party=c.get("party") if c.get("party_confirmed") is True else None)
+
+def trusted_scope(c,at,max_age=2):
+    if not c or type(c.get("monotonic")) not in (float,int) or not 0<=at-c["monotonic"]<=max_age: return None
+    return scope(c)
+
+def classify_messages(lines):
+    """Each visual line is an observation, not an independent confirmed kill."""
+    out=[]
+    for line in lines:
+        kind=getattr(line,"kind",None); amount=getattr(line,"amount",None)
+        if kind in ("exp","bonus","mesos") and type(amount) is int and amount>0:
+            out.append(dict(kind=kind,amount=amount,born=getattr(line,"born",None)))
+    return out
+
+def potion_delta(before,after):
+    # A decrease is net inventory change, not necessarily gross consumption.
+    return [dict(item_id=k,before=before[k],after=after[k],net_decrease=before[k]-after[k])
+            for k in sorted(before.keys() & after.keys()) if before[k]!=after[k]]
+
+def verified_frame(session,record):
+    # Hashes establish matching bytes, not authenticity before local capture.
+    name=record.get("file")
+    if not isinstance(name,str) or Path(name).name!=name: return False
+    p=Path(session)/name
+    try: return hashlib.sha256(p.read_bytes()).hexdigest()==record.get("image_sha256")
+    except OSError: return False
+
+def summarize(records):
+    groups={}
+    for r in records:
+        c=r.get("scope")
+        if not isinstance(c,dict) or not c.get("map"): continue
+        key=tuple(c.get(k) for k in ("map","segment","level","job","party"))
+        g=groups.setdefault(key,dict(normal_exp_lines=0,normal_exp_total=0,party_bonus_lines=0,
+                party_bonus_total=0,observed_pickup_mesos=0,meso_lines=0,items=Counter(),
+                potion_net_decrease=Counter(),potion_observations=0))
+        if r["kind"]=="visual_messages":
+            for line in r.get("lines",[]):
+                if line["kind"]=="exp":
+                    g["normal_exp_lines"]+=1;g["normal_exp_total"]+=line["amount"]
+                elif line["kind"]=="bonus":
+                    g["party_bonus_lines"]+=1;g["party_bonus_total"]+=line["amount"]
+        if r["kind"]=="accepted_pickups":
+            for p in r.get("messages",[]):
+                if len(p)==2 and p[0]=="mesos" and type(p[1]) is int and p[1]>0:
+                    g["observed_pickup_mesos"]+=p[1];g["meso_lines"]+=1
+                elif len(p)==4 and p[0]=="item" and type(p[2]) is int and p[2]>0:
+                    g["items"][(str(p[3]),str(p[1]))]+=p[2]
+        if r["kind"]=="potion_counts":
+            g["potion_observations"]+=1
+            for d in r.get("changes",[]):g["potion_net_decrease"][str(d["item_id"])]+=d["net_decrease"]
+    result=[]
+    for k,g in groups.items():
+        items=[dict(tab=t,item=n,quantity=q) for (t,n),q in sorted(g.pop("items").items())]
+        g["potion_net_decrease"]=dict(g["potion_net_decrease"])
+        if not g["meso_lines"]:g["observed_pickup_mesos"]=None
+        result.append(dict(zip(("map","segment","level","job","party"),k),**g,items=items,
+            confirmed_kills=None,normal_exp_line_count_is_kill_count=False))
+    return result
+
+def audit_session(session,dest):
+    session=Path(session); dest=Path(dest)
+    records,errors=read_journal(session/"evidence_journal.jsonl")
+    frames=[r for r in records if r["kind"]=="frame"]
+    mismatched=[r.get("file") for r in frames if not verified_frame(session,r)]
+    known={r.get("file") for r in frames}
+    orphan=[p.name for p in session.iterdir() if p.suffix.lower() in (".jpg",".png",".webp") and p.name not in known]
+    gaps=[]; intervals=[]
+    for a,b in zip(frames,frames[1:]):
+        dt=b["monotonic"]-a["monotonic"]
+        if dt<=0 or dt>1.5:gaps.append(dict(previous=a.get("file"),next=b.get("file"),seconds=dt))
+        else:intervals.append(dt)
+    report=dict(journal_records=len(records),journal_errors=errors,frame_count=len(frames),
+        frame_hash_mismatch=mismatched,unindexed_frames=orphan,capture_gaps=gaps,
+        median_frame_gap_s=statistics.median(intervals) if intervals else None,
+        cohorts=summarize(records),limitations=["Hashes detect changes to recorded bytes; not proof of original authenticity or trusted time.",
+        "Missing journal records, OCR or missed pickups are unknown, not zero.",
+        "Normal EXP lines can include party-shared EXP; no confirmed kill counts.",
+        "Potion changes are net observed counts, not gross consumption; no meso equivalents."])
+    (dest/"journal_audit.json").write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
+    return report
