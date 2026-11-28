@@ -37,6 +37,11 @@ class Notifications(unittest.TestCase):
         rows=[dict(colour="white")]
         with patch("notification_report.read_image",return_value=object()),patch("notification_report.ocr_batch",side_effect=[{0:"You have gained mesos (+13)"},{0:"You have gained mesos (+18)"}]):
             self.assertIsNone(replay_batch(".",rows,0,"unused",{})[0]["event"])
+    def test_adaptive_third_pass(self):
+        rows=[dict(colour="white")]
+        with patch("notification_report.read_image",return_value=object()),patch("notification_report.ocr_batch",side_effect=[{0:"You have gained mesos (+13)"},{0:"junk"},{0:"You have gained mesos (+13)"}]):
+            out=replay_batch(".",rows,0,"unused",{})[0]
+            self.assertEqual(out["event"],["mesos",13]);self.assertTrue(out["recovered_third_pass"])
     def test_real_journal_minimap_hash(self):
         with tempfile.TemporaryDirectory() as d:
             folder=Path(d); p=folder/"minimap_observations.jsonl";p.write_text("")

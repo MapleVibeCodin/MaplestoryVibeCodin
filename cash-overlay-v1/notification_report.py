@@ -15,6 +15,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 from PIL import Image
+from notification_stream import SourceTail, consensus, breakdown
 
 BATCH=48
 AMOUNT=re.compile(r"^(you received exp|bonus exp for party|you have gained mesos)\s*\(\+\s*([0-9][0-9 ]*)\s*\)$",re.I)
@@ -62,16 +63,7 @@ def row_hash(row):
     return hashlib.sha256(json.dumps(row,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
 
 def source_rows(folder):
-    path=Path(folder)/"message_evidence"/"lines.jsonl"
-    if not path.is_file():return []
-    # The capture writer may be appending; only completed newline records are visible.
-    rows=[]
-    with path.open("rb") as f:
-        for line in f:
-            if not line.endswith(b"\n"):break
-            try:rows.append(json.loads(line))
-            except (ValueError,UnicodeError):rows.append({"invalid_source":True})
-    return rows
+    return SourceTail(Path(folder)/"message_evidence"/"lines.jsonl").poll()
 
 def read_image(folder,row):
     n=row.get("image")
@@ -91,7 +83,10 @@ def prepare(im,colour,variant):
     # Yellow letters are bright in red/green, not necessarily blue.
     v=np.minimum(g,r) if colour=="yellow" else im.min(2)
     v=cv2.resize(v,None,fx=4,fy=4,interpolation=cv2.INTER_CUBIC)
-    v=(v>max(45 if variant else 50,np.percentile(v,92)*(.50 if variant else .60))).astype(np.uint8)*255
+    if variant==2:
+        _,v=cv2.threshold(v,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    else:
+        v=(v>max(45 if variant else 50,np.percentile(v,92)*(.50 if variant else .60))).astype(np.uint8)*255
     return 255-v
 
 def ocr_batch(entries,tess,variant):
@@ -123,16 +118,22 @@ def replay_batch(folder,rows,start,tess,items):
         if im is not None:entries.append((i,row,im))
     valid={i for i,_,_ in entries}
     a=ocr_batch(entries,tess,0);b=ocr_batch(entries,tess,1)
+    first={i:(parse(a.get(i,""),row.get("colour"),items),parse(b.get(i,""),row.get("colour"),items)) for i,row in batch}
+    retry=[(i,row,im) for i,row,im in entries if (first[i][0] is None)!=(first[i][1] is None)]
+    c=ocr_batch(retry,tess,2) if retry else {}
     out=[]
     for i,row in batch:
-        p=parse(a.get(i,""),row.get("colour"),items)
-        q=parse(b.get(i,""),row.get("colour"),items)
-        event=list(p) if p is not None and p==q else None
+        p,q=first[i]
+        r=parse(c.get(i,""),row.get("colour"),items)
+        agreed=consensus(p,q,r)
+        event=list(agreed) if agreed is not None else None
         out.append(dict(index=i,source_sha256=row_hash(row),born=row.get("born"),epoch=row.get("epoch"),
                         map=row.get("map"),tracking_enabled=row.get("tracking_enabled"),
                         colour=row.get("colour"),event=event,
                         status="accepted" if event else "unreadable" if i in valid else "missing_or_bad_image",
-                        reads=[a.get(i,""),b.get(i,"")]))
+                        recovered_third_pass=bool(event and (p is None or q is None)),
+                        conflicting_parse=bool(p is not None and q is not None and p!=q),
+                        reads=[a.get(i,""),b.get(i,"")]+([c[i]] if i in c else [])))
     return out
 
 def results(folder,rows,filename="notification_events.jsonl"):
@@ -190,10 +191,13 @@ def summarize(folder,filename="notification_events.jsonl",prefix=""):
                            items=its,known_npc_value=sum(v["npc_value"] for v in its if v["npc_value"] is not None),
                            party_evidence=bool(g["events"]["shared_exp"] or g["events"]["party_bonus_exp"]),
                            personal_kills=None))
-    report=dict(schema=1,raw_rows=len(rows),processed_rows=len(done),pending_rows=len(rows)-len(done),
+    report=dict(schema=2,raw_rows=len(rows),processed_rows=len(done),pending_rows=len(rows)-len(done),
+                third_pass_recovered=sum(bool(r.get("recovered_third_pass")) for r in done),
+                conflicting_parses=sum(bool(r.get("conflicting_parse")) for r in done),
+                notification_breakdown=breakdown(done),
                 accepted_rows=counts["accepted"],unreadable_rows=counts["unreadable"],
                 bad_image_rows=counts["missing_or_bad_image"],groups=output,integrity=integrity,
-                limitations=["Delivered stack arrivals only; upstream can miss/duplicate arrivals. Two image preparations must agree.",
+                limitations=["Delivered stack arrivals only; upstream can miss/duplicate arrivals. Two image preparations must agree; conflicting parsed values are rejected.",
                              "Never add these pickup amounts to upstream totals; independent alternative reader.",
                              "EXP bar is authoritative for total EXP; notification split is incomplete.",
                              "Party evidence contradicts solo; drops/EXP lines are not confirmed personal kills.",
@@ -247,19 +251,37 @@ def summarize(folder,filename="notification_events.jsonl",prefix=""):
         for v in g["items"]:text.append(f"  {v['name']} x{v['quantity']} ({v['tab']}) | known NPC: {val(v['npc_value'])}")
         for v in g["unresolved_item_labels"]:text.append(f"  UNRESOLVED {v['label']} x{v['quantity']} ({v['tab']})")
         text.append("")
+    text.append("Species-linked observed item units (NOT personal kills):")
+    for name,qty in sorted(report["notification_breakdown"]["species_drop_units"].items()):text.append(f"  {name}: {qty:,}")
+    text.append(f"Party EXP evidence: {report['notification_breakdown']['party_evidence']}")
+    text.append(f"Third-pass recoveries: {report['third_pass_recovered']}; conflicting parses withheld: {report['conflicting_parses']}")
     text.extend(report["limitations"])
     (folder/(prefix+"SESSION_SUMMARY.txt")).write_text("\n".join(text)+"\n",encoding="utf-8")
+    with (folder/(prefix+"notification_minutes.csv")).open("w",encoding="utf-8",newline="") as f:
+        fields=["minute","delivered_rows","accepted_rows","own_exp","shared_exp","party_bonus_exp","mesos","item_units"]
+        w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(report["notification_breakdown"]["minute_bins"])
     return report
 
 def worker(folder,tess,assets,stop,log_error):
+    # One source reader and one append owner; no quadratic history re-read.
     try:
+        folder=Path(folder)
+        if not tess:return
         items=catalog(Path(assets)/"items.txt")
+        tail=SourceTail(folder/"message_evidence"/"lines.jsonl")
+        rows=tail.poll()
+        done=len(results(folder,rows))
         while not stop.is_set():
-            try:process(folder,tess,items,max_batches=1)
-            except Exception as exc:log_error("notification replay",exc)
-            stop.wait(2)
-        # Stop after the current batch; pending originals stay available for offline replay.
-    except Exception as exc:log_error("notification worker",exc)
+            rows=tail.poll()
+            if done>=len(rows):
+                stop.wait(.5);continue
+            # Leave failed or partial batches for separately named offline replay.
+            batch=replay_batch(folder,rows,done,tess,items)
+            payload="".join(json.dumps(r,ensure_ascii=False,allow_nan=False)+"\n" for r in batch)
+            with (folder/"notification_events.jsonl").open("a",encoding="utf-8") as f:f.write(payload)
+            done+=len(batch)
+            stop.wait(.05 if len(rows)-done>=BATCH else .5)
+    except Exception as exc:log_error("notification worker stopped; raw evidence retained",exc)
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()

@@ -11,7 +11,7 @@ if(!(Test-Path (Join-Path $src 'LICENSE')) -or !(Test-Path (Join-Path $src 'mapl
 # Download our files from the same immutable revision as this installer.
 if(!$env:MAPLE_CASH_REF -or $env:MAPLE_CASH_REF -notmatch '^[a-f0-9]{40}$'){throw 'Set MAPLE_CASH_REF to the release commit'}
 $base="https://raw.githubusercontent.com/MapleVibeCodin/MaplestoryVibeCodin/$env:MAPLE_CASH_REF/cash-overlay-v1"
-foreach($f in @('cash_core.py','cash_overlay.py','test_cash_core.py','patch_hud.py','rank_maps.py','screenshots.py','test_screenshots.py','scene_analysis.py','test_scene_analysis.py','inventory_ui.py','hybrid_capture.py','test_hybrid.py','research_analysis.py','test_research.py','meow_reference.json','evidence_report.py','test_evidence_report.py','evidence_journal.py','test_evidence_journal.py','quick_report.py','test_quick_report.py','map_reader_fix.py','test_map_reader_fix.py','compact_capture.py','test_compact_capture.py','minimap_tracker.py','minimap_report.py','test_minimap_tracker.py','test_minimap_report.py','notification_report.py','test_notification_report.py')){Invoke-WebRequest -UseBasicParsing -Uri "$base/$f" -OutFile (Join-Path $src $f)}
+foreach($f in @('cash_core.py','cash_overlay.py','test_cash_core.py','patch_hud.py','rank_maps.py','screenshots.py','test_screenshots.py','scene_analysis.py','test_scene_analysis.py','inventory_ui.py','hybrid_capture.py','test_hybrid.py','research_analysis.py','test_research.py','meow_reference.json','evidence_report.py','test_evidence_report.py','evidence_journal.py','test_evidence_journal.py','quick_report.py','test_quick_report.py','map_reader_fix.py','test_map_reader_fix.py','compact_capture.py','test_compact_capture.py','minimap_tracker.py','minimap_report.py','test_minimap_tracker.py','test_minimap_report.py','notification_report.py','test_notification_report.py','notification_stream.py','test_notification_stream.py')){Invoke-WebRequest -UseBasicParsing -Uri "$base/$f" -OutFile (Join-Path $src $f)}
 Invoke-WebRequest -UseBasicParsing -Uri "$base/README.md" -OutFile (Join-Path $src 'CASH_README.md')
 Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MapleVibeCodin/MaplestoryVibeCodin/c4b04bb07d1907822ad89a5e77654443de6604f7/research/2026-11-28-mcwo-level-20-50/data.json' -OutFile (Join-Path $src 'mcwo-level-20-50.json')
 Push-Location $src
@@ -23,7 +23,7 @@ try {
  if($LASTEXITCODE){throw 'Dependency install failed'}
  & $python -B patch_hud.py
  if($LASTEXITCODE){throw 'HUD patch failed'}
- & $python -B -m py_compile cash_core.py cash_overlay.py rank_maps.py hud.py screenshots.py test_screenshots.py scene_analysis.py test_scene_analysis.py inventory_ui.py hybrid_capture.py test_hybrid.py research_analysis.py test_research.py evidence_report.py test_evidence_report.py evidence_journal.py test_evidence_journal.py quick_report.py test_quick_report.py map_reader_fix.py test_map_reader_fix.py compact_capture.py test_compact_capture.py minimap_tracker.py minimap_report.py test_minimap_tracker.py test_minimap_report.py notification_report.py test_notification_report.py
+ & $python -B -m py_compile cash_core.py cash_overlay.py rank_maps.py hud.py screenshots.py test_screenshots.py scene_analysis.py test_scene_analysis.py inventory_ui.py hybrid_capture.py test_hybrid.py research_analysis.py test_research.py evidence_report.py test_evidence_report.py evidence_journal.py test_evidence_journal.py quick_report.py test_quick_report.py map_reader_fix.py test_map_reader_fix.py compact_capture.py test_compact_capture.py minimap_tracker.py minimap_report.py test_minimap_tracker.py test_minimap_report.py notification_report.py test_notification_report.py notification_stream.py test_notification_stream.py
  if($LASTEXITCODE){throw 'Compile failed'}
  & $python -B test_cash_core.py
  if($LASTEXITCODE){throw 'Cash regressions failed'}
@@ -51,6 +51,8 @@ try {
  if($LASTEXITCODE){throw 'Minimap report regressions failed'}
  & $python -B test_notification_report.py
  if($LASTEXITCODE){throw 'Notification and journal integration regressions failed'}
+ & $python -B test_notification_stream.py
+ if($LASTEXITCODE){throw 'Notification stream regressions failed'}
  $data=Join-Path $env:LOCALAPPDATA 'MapleCashOverlayV1'
  New-Item -ItemType Directory -Path $data -Force | Out-Null
  $launcher=Join-Path $src 'Start Cash Overlay.cmd'
