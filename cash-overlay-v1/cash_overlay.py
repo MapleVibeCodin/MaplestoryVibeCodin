@@ -6,6 +6,7 @@ import threading
 import ctypes
 import hashlib
 from evidence_journal import Journal, classify_messages, potion_delta, trusted_scope, scope
+from map_reader_fix import stable_map_timestamp
 from datetime import datetime, timezone
 from pathlib import Path
 from cash_core import CashLedger, NPC, append_snapshot
@@ -18,7 +19,7 @@ import maple_exp as base
 
 base.WINDOW_TITLE = "Maple Cash Overlay"
 base.OLD_TITLES = ()
-base.VERSION = "Cash 1.8"
+base.VERSION = "Cash 1.9"
 base.DEFAULTS.update(hud_layout="full", hud_repot=False, hud_scale=0.45,
                      hud_theme="steel", hotkeys_on=False, gap_seconds=120)
 base.LOGGING = True
@@ -57,6 +58,8 @@ class CashApp(OriginalApp):
         self.hud_enabled = False
         self.recording_epoch = 0
         self.last_map_observation = None
+        self.control_state = "visible"
+        self.auto_hide = True
         super().__init__(root, templates)
         self._original_show = self.hud.show
         self.hud.show = self._show_cash
@@ -68,6 +71,8 @@ class CashApp(OriginalApp):
         base.tk.Button(controls,text='Hide / keep recording',command=self.hide_recording).pack(side='left',expand=True,fill='x')
         self.hud_button=base.tk.Button(controls,text='Show game HUD',command=self.toggle_game_hud)
         self.hud_button.pack(side='left',expand=True,fill='x')
+        self.auto_hide_var=base.tk.BooleanVar(value=True)
+        base.tk.Checkbutton(root,text='Auto-hide controls when game is foreground',variable=self.auto_hide_var,command=self._change_auto_hide).grid(row=3,column=0,columnspan=2,sticky='w')
         self.screenshot_store = ScreenshotStore(base.DATA_DIR / 'screenshots')
         self.journal = Journal(self.screenshot_store.folder/'evidence_journal.jsonl')
         self._journal('launch',time.monotonic(),version=base.VERSION)
@@ -87,6 +92,9 @@ class CashApp(OriginalApp):
         except Exception: pass
         return super()._window_rect()
 
+    def _change_auto_hide(self):
+        self.auto_hide=bool(self.auto_hide_var.get())
+
     def hide_recording(self):
         self.hud_enabled=False
         self.hud.hide()
@@ -95,6 +103,7 @@ class CashApp(OriginalApp):
         self.hud_button.configure(text='Show game HUD')
         self._journal('visibility',time.monotonic(),hud=False,control='minimized')
         self.root.iconify()
+        self.control_state='minimized' if self.root.state()=='iconic' else self.root.state()
 
     def toggle_game_hud(self):
         self.hud_enabled=not self.hud_enabled
@@ -172,7 +181,7 @@ class CashApp(OriginalApp):
                                                 burst=capture_at<self.burst_until,rich=bool(rich or reference),
                                                 frame_gap_seconds=None if self.last_capture_time is None else round(capture_at-self.last_capture_time,4),
                                                 capture_schema=4,sequence=self.screenshot_store.sequence,
-                                                hud_enabled=self.hud_enabled,
+                                                hud_enabled=self.hud_enabled,control_state=self.control_state,
                                                 inventory_windows_current=rich,
                                                 inventory_last_known=self.cached_inventory_windows)
                                     self.screenshot_store.metadata(path,data)
@@ -211,12 +220,11 @@ class CashApp(OriginalApp):
         now = time.monotonic()
         if reading.party is not None and reading.party == self.party and self._party_seen[1]>=2:
             self.party_confirmed_at=now
-        if reading.map and not self.reader.map_unread:
-            self.last_map_observation=now
+        self.last_map_observation=stable_map_timestamp(self.reader,self.map_name,now)
         self._state_cash(now)
         # Immutable copy from the UI thread. Values are latest OCR state, not a simultaneous screenshot reading.
         self.scene_context = dict(monotonic=now, map=self.map_name, map_read=reading.map,
-            map_uncertain=bool(self.map_hidden or self.reader.map_unread or not self.reader.map_box or self.last_map_observation is None or now-self.last_map_observation>15),
+            map_uncertain=bool(self.map_hidden or self.reader.map_unread or not self.reader.map_box or self.last_map_observation is None or now-self.last_map_observation>3),
             map_observed_at=self.last_map_observation,recording_epoch=self.recording_epoch,
             level=self.level, exp=t.exp, exp_pct=t.pct, exp_estimated=bool(t.hidden),
             exp_candidates=[list(x) for x in reading.candidates], exp_confident=bool(reading.confident and any(e==t.exp for e,p in reading.candidates if e is not None)),
@@ -293,7 +301,8 @@ class CashApp(OriginalApp):
         name = self.session.map
         here = self.session.here
         active = bool(self.tracker.running and self.session.on and name and name == here
-                      and not self.in_town and not self.map_hidden and not self.reader.map_unread and self.reader.map_box)
+                      and not self.in_town and not self.map_hidden and stable_map_timestamp(self.reader,self.map_name,now) is not None
+                      and self.reader.hwnd and ctypes.windll.user32.GetForegroundWindow()==self.reader.hwnd)
         if name and self.cash.map and name != self.cash.map:
             self._export(True)
             self.cash = CashLedger()
@@ -356,6 +365,9 @@ class CashApp(OriginalApp):
         super()._update_display()
         self._export()
         if hasattr(self,'reminder_label'):
+            if self.auto_hide and self.reader.hwnd and ctypes.windll.user32.GetForegroundWindow()==self.reader.hwnd and self.root.state()=='normal':
+                self.hide_recording()
+            self.control_state='minimized' if self.root.state()=='iconic' else self.root.state()
             now=time.monotonic()
             self.reminder_label.configure(text=self.capture_notice or self.reminders.text(now))
             # Repair known minimap obstruction on launch, without moving an already safe window.
@@ -386,6 +398,7 @@ class CashApp(OriginalApp):
         self._journal('reset',time.monotonic(),scope=scope(self.scene_context))
         self.potion_scope_by_id.clear()
         self.recording_epoch+=1
+        self.last_map_observation=None
         self.scene_context=None
         self._export(True)
         self.cash = CashLedger()
