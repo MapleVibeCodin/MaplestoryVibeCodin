@@ -90,7 +90,7 @@ def summarize(rows,refs=None):
     w=sorted(wallet.items()); span=frames[-1]["monotonic"]-frames[0]["monotonic"] if len(frames)>1 else 0
     wd=w[-1][1]-w[0][1] if len(w)>1 else None; ws=w[-1][0]-w[0][0] if len(w)>1 else 0
     endpoint_rows=[dict(epoch=k,**v,net_exp=v["last_absolute"]-v["first_absolute"],elapsed_s=v["last_t"]-v["first_t"],net_exp_hr=rate(v["last_absolute"]-v["first_absolute"],v["last_t"]-v["first_t"])) for k,v in endpoints.items()]
-    return dict(schema=2,frame_count=len(frames),levelups_observed=levelups,endpoint_progression=endpoint_rows,capture_elapsed_s=round(span,3),observed_capture_s=round(covered,3),
+    return dict(schema=2,frame_count=len(frames),levelups_observed=levelups,endpoint_progression=endpoint_rows,capture_elapsed_s=round(span,3),capture_first_t=frames[0]["monotonic"] if frames else None,capture_last_t=frames[-1]["monotonic"] if frames else None,observed_capture_s=round(covered,3),
         gap_count=len(gaps),largest_gap_s=max(gaps,default=0),map_frame_counts=dict(map_counts),
         exp_observed_delta=exp_delta if exp_seconds else None,exp_observed_s=round(exp_seconds,3),
         exp_observed_hr=rate(exp_delta,exp_seconds),exp_positive_changes=positive,exp_negative_changes=negative,

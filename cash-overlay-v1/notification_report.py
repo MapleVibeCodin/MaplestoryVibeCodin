@@ -135,8 +135,8 @@ def replay_batch(folder,rows,start,tess,items):
                         reads=[a.get(i,""),b.get(i,"")]))
     return out
 
-def results(folder,rows):
-    p=Path(folder)/"notification_events.jsonl"; out=[]
+def results(folder,rows,filename="notification_events.jsonl"):
+    p=Path(folder)/filename; out=[]
     if p.is_file():
         with p.open(encoding="utf-8") as f:
             for line in f:
@@ -147,20 +147,20 @@ def results(folder,rows):
                 out.append(r)
     return out
 
-def process(folder,tess,items,max_batches=None):
-    folder=Path(folder); rows=source_rows(folder); done=results(folder,rows)
+def process(folder,tess,items,max_batches=None,filename="notification_events.jsonl"):
+    folder=Path(folder); rows=source_rows(folder); done=results(folder,rows,filename)
     if not tess:return len(done),len(rows)
     n=0
     while len(done)<len(rows) and (max_batches is None or n<max_batches):
         batch=replay_batch(folder,rows,len(done),tess,items)
-        with (folder/"notification_events.jsonl").open("a",encoding="utf-8") as f:
+        with (folder/filename).open("a",encoding="utf-8") as f:
             for r in batch:f.write(json.dumps(r,ensure_ascii=False,allow_nan=False)+"\n")
         done.extend(batch);n+=1
     return len(done),len(rows)
 
-def summarize(folder):
+def summarize(folder,filename="notification_events.jsonl",prefix=""):
     from cash_core import NPC
-    folder=Path(folder);rows=source_rows(folder);done=results(folder,rows)
+    folder=Path(folder);rows=source_rows(folder);done=results(folder,rows,filename)
     from evidence_journal import read_journal
     records,errors=read_journal(folder/"evidence_journal.jsonl")
     integrity={}
@@ -169,6 +169,7 @@ def summarize(folder):
         p=folder/name
         integrity[name]="verified" if markers and not errors and p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest()==markers[-1].get("file_sha256") else "mismatch" if markers and not errors else "unverified"
     if "mismatch" in integrity.values():raise ValueError("notification journal file hash mismatch")
+    if filename!="notification_events.jsonl":integrity[filename]="derived_replay_not_sealed"
     groups={}; counts=Counter(r["status"] for r in done)
     prices={k.casefold():v for k,v in NPC.items()}
     for r in done:
@@ -213,10 +214,18 @@ def summarize(folder):
                 "wallet_plus_known_npc_hr":round((wallet+npc)*3600/(b-a)) if isinstance(wallet,(int,float)) and npc is not None else None,
                 "observed_raw_plus_known_npc_hr":round((raw+(npc or 0))*3600/(b-a)) if raw is not None else None,
                 "note":"Same wallet interval, notification counts may undercount; no potion valuation."}
+        a,b=quick.get("capture_first_t"),quick.get("capture_last_t")
+        if quick.get("evidence_mode")=="indexed_metadata" and not quick.get("journal_errors") and isinstance(a,(int,float)) and isinstance(b,(int,float)) and b-a>=60:
+            observed=[r["event"] for r in done if r.get("event") and isinstance(r.get("born"),(int,float)) and a<=r["born"]<=b]
+            meso=[e[1] for e in observed if e[0]=="mesos"]
+            priced=[e[2]*prices[e[1].casefold()] for e in observed if e[0]=="item" and e[3]!="use" and e[1].casefold() in prices]
+            report["capture_window"]={"seconds":b-a,"observed_pickup_mesos_hr":round(sum(meso)*3600/(b-a)) if meso else None,
+                "observed_pickup_plus_known_npc_hr":round((sum(meso)+sum(priced))*3600/(b-a)) if meso else None,
+                "note":"Capture elapsed denominator, inventory-independent, may include travel and missed notifications."}
         report["exp_bar_observed_hr"]=quick.get("exp_observed_hr")
     except (OSError,ValueError,TypeError):pass
-    (folder/"notification_summary.json").write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
-    with (folder/"notification_items.csv").open("w",encoding="utf-8",newline="") as f:
+    (folder/(prefix+"notification_summary.json")).write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
+    with (folder/(prefix+"notification_items.csv")).open("w",encoding="utf-8",newline="") as f:
         w=csv.writer(f);w.writerow(["epoch","map","tracking_enabled","item","tab","quantity","known_npc_value"])
         for g in output:
             for v in g["items"]:w.writerow([g["epoch"],g["map"],g["tracking_enabled"],v["name"],v["tab"],v["quantity"],v["npc_value"]])
@@ -228,7 +237,8 @@ def summarize(folder):
           "Mesos/hour (wallet): "+val(win.get("wallet_change_hr")),
           "Wallet + known NPC/hour: "+val(win.get("wallet_plus_known_npc_hr")),
           "Potion costs excluded. Wallet interval seconds: "+val(win.get("seconds")),
-          "Observed raw pickup + known NPC/hour: "+val(win.get("observed_raw_plus_known_npc_hr")),
+          "Observed raw pickups/hour (inventory-independent): "+val(report.get("capture_window",{}).get("observed_pickup_mesos_hr")),
+          "Observed pickups + known NPC/hour (capture elapsed): "+val(report.get("capture_window",{}).get("observed_pickup_plus_known_npc_hr")),
           f"Notifications: {report['accepted_rows']} accepted / {report['raw_rows']} delivered; {report['pending_rows']} pending, {report['unreadable_rows']} unreadable, {report['bad_image_rows']} bad image.",
           "Accepted rows are not verified exact kills or a complete pickup count.",""]
     for g in output:
@@ -238,7 +248,7 @@ def summarize(folder):
         for v in g["unresolved_item_labels"]:text.append(f"  UNRESOLVED {v['label']} x{v['quantity']} ({v['tab']})")
         text.append("")
     text.extend(report["limitations"])
-    (folder/"SESSION_SUMMARY.txt").write_text("\n".join(text)+"\n",encoding="utf-8")
+    (folder/(prefix+"SESSION_SUMMARY.txt")).write_text("\n".join(text)+"\n",encoding="utf-8")
     return report
 
 def worker(folder,tess,assets,stop,log_error):
@@ -255,4 +265,13 @@ if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("folder",type=Path);p.add_argument("--tesseract",required=True)
     p.add_argument("--assets",type=Path,default=Path(__file__).with_name("assets"))
-    a=p.parse_args();process(a.folder,a.tesseract,catalog(a.assets/"items.txt"));print(json.dumps(summarize(a.folder),indent=2))
+    a=p.parse_args()
+    # Historical replay never modifies the original, sealed event stream.
+    from evidence_journal import read_journal
+    records,errors=read_journal(a.folder/"evidence_journal.jsonl")
+    marker=[r for r in records if r.get("kind")=="notification_source_file"]
+    if marker and (errors or hashlib.sha256((a.folder/"message_evidence"/"lines.jsonl").read_bytes()).hexdigest()!=marker[-1].get("file_sha256")):
+        raise ValueError("notification source hash mismatch")
+    filename="offline_notification_events.jsonl"
+    process(a.folder,a.tesseract,catalog(a.assets/"items.txt"),filename=filename)
+    print(json.dumps(summarize(a.folder,filename=filename,prefix="offline_"),indent=2))
