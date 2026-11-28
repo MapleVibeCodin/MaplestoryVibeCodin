@@ -1,0 +1,14 @@
+# Two further farming benchmarks — 2026-11-28
+
+Actual private v2.3 and v2.4 ZIPs opened directly; CRC, journal links, frame sidecars, retained scene hashes, file seals and notification source/result hashes verified, zero errors. No original alterations. Anonymized benchmarking results per standing request.
+
+| Map | EXP elapsed s | EXP/hr | Wallet interval s | Wallet/hr | Wallet plus known NPC/hr | Equivalent kills | Equivalent/hr |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| The Valley of Death | 342.64 | 98133 | 336.55 | 41321 | 49868 | unavailable | unavailable |
+| Forgotten Entrance I | 700.40 | 89979 | 683.99 | 47859 | unavailable | 186 | 956 |
+
+Valley: automated map unknown on all 1245 frames; eight sampled retained minimap titles distributed across recording visibly identify The Valley of Death. Manual map association, not continuous OCR proof. 333/518 delivered notifications accepted, 15 third-pass recoveries, 3 conflicts; 53 own EXP awards all 62, 37 shared awards and 179 party bonuses. Shared and bonus amounts prevent exact base-EXP kill decomposition. 17 Rafflesia Petals at verified 47 NPC each (https://meowdb.com/msclassic/item-db/403), all within wallet interval; 799 known NPC, 2440 observed raw pickups, distinct from wallet. Unmatched event items not priced. Species cash and kills unknown.
+
+Forgotten Entrance I: verified https://meowdb.com/msclassic/maps/010006040, Raffle 85 EXP, Golden Stirge 93, Aqumander 98. Full trusted map endpoints 700.40s including idle; first-to-last gain interval from preceding observation 575.07s yields 109589/hr. Merged consecutive same-map same-epoch same-level contexts across cash-ledger segment change, gap <=3s for increments, fresh <=1s confident unestimated context; independent wallet timestamps. 16553 matched EXP (94.56%), 953 unmatched. Exact within conditional base-EXP model: Raffle 115 (591/hr), Golden Stirge 36 (185/hr), Aqumander 35 (180/hr); total 186 (956/hr). Same equivalent count in wallet interval, conditional aggregate wallet mesos/EQ 48.89. Raw and NPC per species not measurable. Notification reader 0/13 accepted, recurrence of missing-arrival failure. Movement reliable consecutive same-map/epoch/segment/level/rect/box candidate pairs <=.35s: 393.43s, 71.54% low displacement <=1px, 63.72% red marker visible, 4.02% near <=18px. Association only. 3441 frames/307 retained, 3504 journal records, 10009 minimap observations. Earlier archive 1245 frames/82 retained, 1292 journal records, 3122 minimap observations.
+
+v2.4 species catalog omitted Forgotten Entrance I, so automatic report missed it. Added verified map ID and species mapping plus staged regression in v2.4.1. Independent actual replay completed; new installer regression not executed, Windows integration pending. Map OCR and notification capture failures unresolved. No raw private images or balances published. No potion costs. Normal ChatGPT only.

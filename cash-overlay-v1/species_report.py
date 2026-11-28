@@ -18,7 +18,7 @@ F=('Raffle',85,'Raffle Petal',40)
 Y=('Fairy 4',54,"Fairy's Tentacle",None)
 M=('Myewood',160,None,None)
 T=('Rotten Mushroom',183,None,None)
-MAPS={'The Faded Canopy':('010006072',(S,F,E)), 'Perilous Descent I':('010006090',(Z,B,E)), 'Perilous Descent II':('010006100',(Z,B,E,D)), 'Perilous Descent III':('010006110',(E,D)), 'Decayed Tunnel II':('010006130',(B,L,G,R)), 'Lingering Regret':('010006150',(Y,E,M)), 'Precipice of Darkness':('010006160',(Z,L,D,T)), 'Primeval Forest I':('010006010',(S,A,E)), 'Primeval Forest II':('010006020',(E,G,A)), 'Primeval Forest III':('010006030',(A,F)), 'The Valley of Death':('010006031',(Z,B,L,R)), 'Decayed Tunnel III':('010006140',(G,R,M))}
+MAPS={'The Faded Canopy':('010006072',(S,F,E)), 'Perilous Descent I':('010006090',(Z,B,E)), 'Perilous Descent II':('010006100',(Z,B,E,D)), 'Perilous Descent III':('010006110',(E,D)), 'Decayed Tunnel II':('010006130',(B,L,G,R)), 'Lingering Regret':('010006150',(Y,E,M)), 'Precipice of Darkness':('010006160',(Z,L,D,T)), 'Forgotten Entrance I':('010006040',(F,G,A)), 'Primeval Forest I':('010006010',(S,A,E)), 'Primeval Forest II':('010006020',(E,G,A)), 'Primeval Forest III':('010006030',(A,F)), 'The Valley of Death':('010006031',(Z,B,L,R)), 'Decayed Tunnel III':('010006140',(G,R,M))}
 
 def digest(b):return hashlib.sha256(b).hexdigest()
 def canon(r):return json.dumps(r,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()

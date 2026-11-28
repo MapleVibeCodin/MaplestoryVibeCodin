@@ -1,5 +1,5 @@
 import unittest,itertools
-from species_report import bounds,analyze,canon,digest
+from species_report import bounds,analyze,canon,digest,MAPS
 class SpeciesTests(unittest.TestCase):
     def test_dp_against_bruteforce(self):
         vs=(3,5,7)
@@ -14,6 +14,10 @@ class SpeciesTests(unittest.TestCase):
         r=dict(sequence=1,previous_sha256=None,kind='launch')
         b=canon(dict(r,sha256='bad'))
         with self.assertRaises(ValueError):analyze(lambda _:b,lambda _:False)
+    def test_forgotten_entrance_i_catalog(self):
+        map_id,species=MAPS['Forgotten Entrance I']
+        self.assertEqual(map_id,'010006040')
+        self.assertEqual([(s[0],s[1]) for s in species],[('Raffle',85),('Golden Stirge',93),('Aqumander',98)])
     def test_empty(self):
         r=dict(sequence=1,previous_sha256=None,kind='launch')
         b=canon(dict(r,sha256=digest(canon(r))))
