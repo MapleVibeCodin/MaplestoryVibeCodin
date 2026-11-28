@@ -185,6 +185,9 @@ class CashApp(OriginalApp):
             segment=self.cash.segment)
 
     def _said(self, lines, gh):
+        # Never retain background-window message crops from an obscured game.
+        if self.reader.mode!='window' or not self.reader.hwnd or ctypes.windll.user32.GetForegroundWindow()!=self.reader.hwnd:
+            return []
         # Preserve raw line pixels and the upstream recognition attempts, even if unreadable.
         # Only lines delivered by the watcher can be recorded by this hook.
         import json, hashlib
@@ -271,7 +274,7 @@ class CashApp(OriginalApp):
     def _pots(self,slots,when):
         # Reuse upstream icon matching and count confirmation, without any meso conversion.
         items=self.cfg.setdefault('pots',[])
-        counts={}; changed=False
+        counts={}; changed=False; ambiguous=set(); raw_slots=[]
         for look,count in slots:
             if look is None or count is None: continue
             item=next((it for it in items if base.same_icon(base.np.asarray(it['look'],base.np.float32),look)),None)
@@ -280,7 +283,11 @@ class CashApp(OriginalApp):
                 item={'id':max([it['id'] for it in items]+[0])+1,'name':name,'price':price,
                       'look':base.np.round(look,3).tolist()}
                 items.append(item); changed=True
-            counts[item['id']]=counts.get(item['id'],0)+count
+            k=item['id']; raw_slots.append(dict(item_id=k,count=count))
+            if k in counts: ambiguous.add(k)
+            counts[k]=count
+        # Repeated icons may point at the same inventory stack: refuse to sum.
+        for k in ambiguous: counts.pop(k,None)
         before=dict(self.pots.counts)
         corrections=self.pots.observe(counts,when,self.session.on,self.in_town)
         sc=trusted_scope(self.scene_context,when)
@@ -294,8 +301,8 @@ class CashApp(OriginalApp):
         for k in counts:
             if k in self.pots.counts and self.pots.counts[k]==counts[k]:
                 self.potion_scope_by_id[k]=sc
-        if counts:
-            self._journal('potion_read',when,scope=sc,observed=counts,confirmed=dict(self.pots.counts))
+        if raw_slots:
+            self._journal('potion_read',when,scope=sc,raw_slots=raw_slots,ambiguous_item_ids=sorted(ambiguous),observed=counts,confirmed=dict(self.pots.counts))
         if changed: base.save_config(self.cfg)
 
     def _update_display(self):
