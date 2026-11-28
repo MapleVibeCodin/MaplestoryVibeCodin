@@ -23,6 +23,28 @@ class QuickTests(unittest.TestCase):
         self.assertEqual(r["conditional_monster_counts"],{"Raffle":1,"Aqumander":1})
         r=summarize([frame(0,100),frame(1,283)],refs)
         self.assertEqual(r["unresolved_exp"],183)
+    def test_lite_metadata(self):
+        import tempfile,json,hashlib
+        from pathlib import Path
+        from evidence_journal import Journal
+        from quick_report import report_folder
+        with tempfile.TemporaryDirectory() as d:
+            folder=Path(d); j=Journal(folder/"evidence_journal.jsonl")
+            for i in range(61):
+                name=f"{i:04d}.png"
+                m=dict(frame(i,100+i),image=name)
+                raw=json.dumps(m).encode()
+                (folder/name).with_suffix(".json").write_bytes(raw)
+                if i==0:(folder/name).write_bytes(b"pixel")
+                j.append("frame",i,file=name,image_sha256=hashlib.sha256(b"pixel").hexdigest(),sidecar_sha256=hashlib.sha256(raw).hexdigest())
+            r=report_folder(folder)
+            self.assertEqual(r["metadata_verified"],61)
+            self.assertEqual(r["missing_image_bytes"],60)
+            self.assertEqual(r["exp_observed_hr"],3600)
+            (folder/"0001.json").write_text("{}")
+            r=report_folder(folder)
+            self.assertEqual(r["invalid_sidecars"],1)
+            self.assertEqual(r["metadata_verified"],60)
     def test_negative(self):
         r=summarize([frame(0,100),frame(1,90),frame(2,100)])
         self.assertEqual(r["exp_observed_delta"],10);self.assertEqual(r["exp_negative_changes"],1)
