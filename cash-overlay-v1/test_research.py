@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import cv2
-from research_analysis import TrackLinker,camera_shift,trusted_context,reference_for,compare,reviewed_combat
+from research_analysis import TrackLinker,camera_shift,trusted_context,reference_for,compare,reviewed_combat,visibility_recurrences
 from pathlib import Path
 import tempfile,json
 class ResearchTests(unittest.TestCase):
@@ -39,4 +39,11 @@ class ResearchTests(unittest.TestCase):
             p=Path(d)/"review.csv";p.write_text("map,species,confirmed,attack_lo,attack_hi,death_lo,death_hi,evidence\nA,B,yes,0,.25,1,1.25,frames\n")
             row=reviewed_combat(p)[0]
             self.assertEqual((row["ttk_lower_s"],row["ttk_upper_s"]),(.75,1.25))
+    def test_recurrence_not_respawn(self):
+        a=dict(map="A",registration_epoch=1,kind="monster",species="M",track_id=1,samples=3,first_t=0,last_t=1,first_x=20,first_y=30,last_x=22,last_y=30,first_source="a",last_source="b")
+        b={**a,"track_id":2,"first_t":7,"last_t":8,"first_source":"c","last_source":"d"}
+        e=visibility_recurrences([a,b])
+        self.assertEqual(e[0]["visible_gap_s"],6)
+        self.assertFalse(e[0]["confirmed_respawn"])
+        self.assertEqual(visibility_recurrences([a,{**b,"registration_epoch":2}]),[])
 if __name__=="__main__": unittest.main()

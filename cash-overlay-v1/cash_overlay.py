@@ -105,7 +105,8 @@ class CashApp(OriginalApp):
                                                 reference=reference,ui=crops,inventory_windows=windows,
                                                 burst=capture_at<self.burst_until,rich=bool(rich or reference),
                                                 frame_gap_seconds=None if self.last_capture_time is None else round(capture_at-self.last_capture_time,4),
-                                                capture_schema=2,inventory_windows_current=rich)
+                                                capture_schema=2,inventory_windows_current=rich,
+                                                inventory_last_known=self.cached_inventory_windows)
                                     self.screenshot_store.metadata(path,data)
                                     # Only acknowledge a page with saved lossless panel evidence.
                                     saved={v['kind'] for v in crops}

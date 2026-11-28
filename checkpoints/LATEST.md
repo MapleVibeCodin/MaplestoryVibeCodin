@@ -421,3 +421,5 @@ Hybrid capture, lossless deduplicated UI crops, periodic full reference PNG, obs
 
 ## Cash Overlay v1.5 — combat evidence and MeowDB comparison
 2 Hz baseline and 4 Hz EXP-triggered bursts; raw line evidence, actual gaps, offline registered motion candidates and reviewed TTK brackets, source-linked Primeval Forest I model. Seven new regression tests included, not yet executed. Windows and real detector validation pending. Existing data preserved.
+
+Cash Overlay v1.5 follow-up: per-track visible duration/path/speed/proximity summaries and candidate visibility recurrence gaps; richer camera masking. Eight new research tests included; isolated synthetic camera translation and blank-frame checks executed successfully on Linux, full installer and Windows untested.

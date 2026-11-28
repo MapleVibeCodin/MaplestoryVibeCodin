@@ -37,6 +37,11 @@ def masks(row):
     m=row.get("metadata") or {}
     boxes=[x["box"] for x in m.get("ui",[]) if "box" in x]
     boxes += [x["box"] for x in m.get("inventory_windows",[]) if "box" in x]
+    boxes += [x["box"] for x in m.get("inventory_last_known",[]) if "box" in x]
+    # Protect minimap pixels even on non-rich frames. Geometry is client-relative.
+    rect=m.get("rect")
+    if isinstance(rect,list) and len(rect)==4:
+        boxes.append([0,0,int(rect[2]*.38),int(rect[3]*.30)])
     for x in row.get("detections",[]):
         boxes.append([x["x"]-x["w"]/2-8,x["y"]-x["h"]/2-8,x["w"]+16,x["h"]+16])
     return boxes
@@ -127,6 +132,55 @@ def reviewed_combat(path):
                              ttk_lower_s=round(c-b,3),ttk_upper_s=round(d-a,3),evidence=r["evidence"]))
     return rows
 
+def track_summaries(path):
+    """Aggregate only observed points; lifetime is visible duration, not age since spawn."""
+    rows={}
+    with Path(path).open(encoding="utf-8") as f:
+        for line in f:
+            p=json.loads(line); i=p["track_id"]
+            if i not in rows:
+                rows[i]=dict(track_id=i,map=p["map"],registration_epoch=p["epoch"],
+                             kind=p["kind"],species=p["species"],first_t=p["t"],last_t=p["t"],
+                             first_x=p["x"],first_y=p["y"],last_x=p["x"],last_y=p["y"],
+                             first_source=p["source"],last_source=p["source"],samples=0,
+                             distance_px=0.,speeds=[],self_distances=[],player_distances=[])
+            s=rows[i]
+            if s["samples"] and p.get("observed_speed_px_s") is not None:
+                s["distance_px"]+=math.hypot(p["x"]-s["last_x"],p["y"]-s["last_y"])
+                s["speeds"].append(p["observed_speed_px_s"])
+            s.update(last_t=p["t"],last_x=p["x"],last_y=p["y"],last_source=p["source"],samples=s["samples"]+1)
+            for key,field in [("nearest_self_px","self_distances"),("nearest_player_px","player_distances")]:
+                if p.get(key) is not None: s[field].append(p[key])
+    out=[]
+    for s in rows.values():
+        speeds=s.pop("speeds"); self_d=s.pop("self_distances"); other=s.pop("player_distances")
+        out.append(dict(**s,visible_span_s=round(s["last_t"]-s["first_t"],3),
+                        median_speed_px_s=statistics.median(speeds) if speeds else None,
+                        nearest_self_px=min(self_d) if self_d else None,
+                        nearest_other_player_px=min(other) if other else None))
+    return out
+
+def visibility_recurrences(summaries):
+    # Match only nearby appearances within one registered epoch and session.
+    # This is not a respawn detector. An existing monster may re-enter view.
+    history=defaultdict(list)
+    out=[]
+    for s in sorted(summaries,key=lambda q:(str(q["map"]),q["registration_epoch"],q["first_t"])):
+        if s["kind"]!="monster" or s["map"] is None: continue
+        key=(s["map"],s["registration_epoch"],s["species"])
+        prev=history[key]
+        prev[:]=[p for p in prev if s["first_t"]-p["last_t"]<=30]
+        matches=[p for p in prev if .15<=s["first_t"]-p["last_t"]<=30 and
+                 math.hypot(s["first_x"]-p["last_x"],s["first_y"]-p["last_y"])<=24 and p["samples"]>=2]
+        if len(matches)==1 and s["samples"]>=2:
+            p=matches[0]
+            out.append(dict(map=s["map"],species=s["species"],old_track=p["track_id"],new_track=s["track_id"],
+                            last_visible=p["last_t"],next_visible=s["first_t"],
+                            visible_gap_s=round(s["first_t"]-p["last_t"],3),
+                            old_frame=p["last_source"],new_frame=s["first_source"],confirmed_respawn=False))
+        prev.append(s)
+    return out
+
 def analyze(frames_path, dest, refs, review=None):
     import cv2
     dest=Path(dest)
@@ -214,7 +268,14 @@ def analyze(frames_path, dest, refs, review=None):
     with (dest/"region_occupancy.csv").open("x",encoding="utf-8",newline="") as f:
         w=csv.writer(f);w.writerow(["map","registration_epoch","kind","cell_x_64px","cell_y_64px","observed_actor_seconds"])
         for key,val in sorted(occupancy.items(),key=lambda x:str(x[0])): w.writerow([*key,round(val,3)])
+    track_rows=track_summaries(dest/"actor_tracks.jsonl")
+    recurrences=visibility_recurrences(track_rows)
+    with (dest/"track_summary.csv").open("x",encoding="utf-8",newline="") as f:
+        if track_rows:
+            w=csv.DictWriter(f,fieldnames=list(track_rows[0]));w.writeheader();w.writerows(track_rows)
+    (dest/"visibility_recurrence_candidates.json").write_text(json.dumps(recurrences,indent=2),encoding="utf-8")
     result=dict(frames=frame_count,registered_pairs=aligned,discontinuities=gaps,
+                tracked_objects=len(track_rows),visibility_recurrence_candidates=len(recurrences),
                 visibility_events=dict(event_counts),map_segments=summary,
                 movement=[dict(map=k[0],kind=k[1],species=k[2],samples=len(v),median_visible_px_s=statistics.median(v)) for k,v in movement.items()],
                 reviewed_combat=reviewed,limitations=["Tracks are candidates, not authoritative identities. Visibility starts/ends are not births/deaths.",
