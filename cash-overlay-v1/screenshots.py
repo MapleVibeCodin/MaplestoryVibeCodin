@@ -55,6 +55,13 @@ class ScreenshotStore:
             if tmp.exists():
                 tmp.unlink()
 
+    def reserve_metadata_frame(self,when=None):
+        # Unique virtual image name; no image bytes are written or claimed.
+        if not self.has_space(): return None
+        when=when or datetime.now(timezone.utc)
+        self.sequence+=1
+        return self.folder / f"{when.strftime('%Y%m%dT%H%M%S_%fZ')}_{self.sequence:08d}.jpg"
+
     def save_scene(self, data, when=None):
         # JPEG is allowed only through the explicit hybrid capture interface.
         return self.save(data, when, allow_scene=True)
